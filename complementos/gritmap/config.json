@@ -1,0 +1,8 @@
+{
+    "theme": "classic_green",
+    "measure": "reviews",
+    "cell_size": 25,
+    "border_radius": 1,
+    "avg_window": 30,
+    "show_week_diff": true
+}
