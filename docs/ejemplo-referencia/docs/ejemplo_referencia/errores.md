@@ -19,6 +19,13 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   Por qué: las frases tenían el plural fijo, sin mirar la cifra. Regla: toda frase con una cifra tiene
   su forma en singular y en plural, y se elige por la cifra. Prueba de regresión: «TagMessagesTest»,
   que falló antes del arreglo y pasa después.
+- FIX-002 · 2026-10-12 · versión 1.0.2 · Qué pasaba: el complemento comparte con la pantalla de repaso
+  su estilo y su código de la insignia, pero la regla con que lo hacía era tan abierta que una tarjeta
+  podía pedir, con una dirección preparada, archivos de estilo y de código de otros complementos. Por
+  qué: Anki compara esa regla antes de resolver los «..» de la dirección, y la regla aceptaba
+  cualquier cosa entre la carpeta y la extensión. Regla: lo que se comparte con las páginas se
+  describe con una regla cerrada, que solo admite nombres de archivo sin carpetas ni puntos de más.
+  Prueba de regresión: «WebExportsPatternTest», que falló antes del arreglo y pasa después.
 
 ## Así a propósito
 

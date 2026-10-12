@@ -198,7 +198,7 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 
 ### APR-021 · Grep no entra en .venv dentro de un repositorio
 - Qué es: Grep, la búsqueda de Claude Code, respeta los .gitignore. uv y `python -m venv` (desde Python 3.13) crean dentro de .venv un .gitignore con «*», así que, si la carpeta del taller es un repositorio git, Grep sobre cualquier carpeta de .venv responde «No matches found» aunque el texto exista. Sobre un archivo concreto sí lo encuentra, y Glob, que no respeta .gitignore, sí entra.
-- Por qué es buena práctica: el fallo es silencioso y lleva a concluir que un gancho o una función de Anki no existe, justo lo que <fuentes_de_verdad> manda comprobar en el código instalado. Esa sección dice hoy «Busque con Grep indicando esa ruta», que no basta: véase PROP-006.
+- Por qué es buena práctica: el fallo es silencioso y lleva a concluir que un gancho o una función de Anki no existe, justo lo que <fuentes_de_verdad> manda comprobar en el código instalado. Esa sección decía «Busque con Grep indicando esa ruta»; se corrigió con PROP-006.
 - Para qué sirve: comprobar nombres de la API en el Anki instalado sin falsos «no existe».
 - Cómo se aplica: localice el archivo con Glob (por ejemplo, `**/hooks.py` en la carpeta _aqt de site-packages) y busque con Grep en ese archivo; o use grep -rn por Bash. Sin repositorio, Grep sí entra, pero el taller lo tiene siempre (git init).
 - Fuente: https://code.claude.com/docs/en/tools-reference y https://docs.python.org/3.13/library/venv.html
@@ -218,7 +218,7 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Qué es: los tipos de nota estándar los crea el motor de Anki en el idioma activo al crear la colección. En español: «Básico» (Anverso, Reverso), «Básico (y tarjeta invertida)», «Básico (tarjeta invertida opcional)», «Básico (teclear la respuesta)», «Respuesta anidada» (Texto, Reverso Extra) y «Oclusión de imagen». note[nombre] busca el nombre exacto y lanza KeyError; col.models.by_name("Basic") devuelve None. «Oclusión de imagen» también tiene type == MODEL_CLOZE.
 - Por qué es buena práctica: un complemento escrito con los nombres ingleses falla en la colección del cliente, y unas pruebas con colección temporal en inglés lo ocultan.
 - Para qué sirve: cualquier complemento que lea o escriba campos o elija un tipo de nota.
-- Cómo se aplica: el nombre del campo sale de config.json (o se pregunta al cliente) y se comprueba con `campo in note` antes de leerlo. Los de huecos se reconocen con notetype["type"] == MODEL_CLOZE (de anki.consts); para apartar la oclusión de imagen, notetype.get("originalStockKind") == StockNotetype.OriginalStockKind.ORIGINAL_STOCK_KIND_IMAGE_OCCLUSION (StockNotetype de anki.models, no de *_pb2, APR-016). En las pruebas, anki.lang.set_lang("es_ES") antes de crear la colección temporal.
+- Cómo se aplica: el nombre del campo sale de config.json (o se pregunta al cliente) y se comprueba con `campo in note` antes de leerlo. Los de huecos se reconocen con notetype["type"] == MODEL_CLOZE (de anki.consts); para apartar la oclusión de imagen, notetype.get("originalStockKind") == StockNotetype.OriginalStockKind.ORIGINAL_STOCK_KIND_IMAGE_OCCLUSION (StockNotetype de anki.models, no de *_pb2, APR-016). Si la lógica depende de esos nombres, pruébela también con una colección temporal creada tras anki.lang.set_lang("es_ES") (el ejemplo de referencia no lo necesita: busca y etiqueta sin mirar nombres de campo).
 - Fuente: anki/stdmodels.py, anki/notes.py, anki/consts.py y anki/models.py
 - Comprobado: 2026-10-12, con Anki 26.09.3: una colección temporal creada en esta sesión tras set_lang("es_ES") trae «Básico», «Respuesta anidada», «Oclusión de imagen»…, campos «Anverso» y «Reverso», y by_name("Basic") devuelve None.
 - Origen: revisión del manual antiguo de Anki (2.0, en español) aportado por el cliente.
@@ -323,7 +323,7 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Origen: revisión de las notas de versión aportadas por el cliente.
 
 ### APR-035 · Las sugerencias de mypy
-- Qué es: cuando mypy no encuentra un nombre, sugiere otros de escritura parecida («maybe "_LegacyAnkiPackageImporter"?»), no el sustituto. Ese nombre con guion bajo es interno, pasa mypy y empaquetar.py sin aviso y desaparecerá con el envoltorio; para registerNotes sugiere «register», que es otra función. Anki declara los sustitutos con register_deprecated_attributes y register_deprecated_aliases en cada módulo o clase.
+- Qué es: cuando mypy no encuentra un nombre, sugiere otros de escritura parecida («maybe "_LegacyAnkiPackageImporter"?»), no el sustituto. Ese nombre con guion bajo es interno, pasa mypy sin aviso (empaquetar.py avisa desde PROP-007) y desaparecerá con el envoltorio; para registerNotes sugiere «register», que es otra función. Anki declara los sustitutos con register_deprecated_attributes y register_deprecated_aliases en cada módulo o clase.
 - Por qué es buena práctica: seguir la sugerencia esconde el problema en vez de resolverlo.
 - Para qué sirve: arreglar complementos heredados o código escrito de memoria.
 - Cómo se aplica: busque el nombre en register_deprecated_attributes o register_deprecated_aliases del módulo o la clase: el segundo nombre es el sustituto (col.import_anki_package, col.export_anki_package, tags.clear_unused_tags…). Si no figura, el de la guía (TextImporter → col.import_csv). Nunca use nombres que empiecen por _Legacy.
@@ -359,7 +359,7 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Origen: revisión de las notas de versión aportadas por el cliente.
 
 ### APR-039 · Traducciones, fechas y cifras
-- Qué es: _() y ngettext() de anki.lang (y los que Anki instala como globales) están obsoletos: devuelven el texto recibido sin traducir, ngettext devuelve siempre el plural («1 cards») e imprimen un aviso; mypy no los detecta. QLocale() de aqt.qt sigue el idioma elegido en Anki (time.strftime y el módulo locale siguen el de Windows) y solo cambia al reiniciar; anki.lang.current_lang cambia al momento. En español, QLocale escribe 1240 sin punto de millar.
+- Qué es: _() y ngettext() de anki.lang (y los que Anki instala como globales) están obsoletos: devuelven el texto recibido sin traducir, ngettext devuelve siempre el plural («1 cards») e imprimen un aviso; mypy no los detecta (empaquetar.py sí, desde PROP-007). QLocale() de aqt.qt sigue el idioma elegido en Anki (time.strftime y el módulo locale siguen el de Windows) y solo cambia al reiniciar; anki.lang.current_lang cambia al momento. En español, QLocale escribe 1240 sin punto de millar.
 - Por qué es buena práctica: textos y fechas salen en el idioma del cliente, y las cifras con el punto que pide CLAUDE.md.
 - Para qué sirve: cualquier texto visible con fechas o cifras.
 - Cómo se aplica: textos propios en strings.py y los de Anki con tr (APR-010); fechas con QLocale().toString(fecha, QLocale.FormatType.LongFormat) («lunes, 12 de octubre de 2026»); cifras con format_count.
@@ -452,7 +452,7 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Qué es: Anki sirve /_addons/<paquete>/<ruta> si la ruta cumple re.fullmatch(patrón) y después la resuelve desde la carpeta de todos los complementos (ensure_safe_path sobre addonsFolder()). Como el patrón se compara antes de resolver la ruta, uno con «.*» acepta rutas con «..» que salen de la carpeta del complemento (por ejemplo, «web/..%2F..%2Fotro%2Farchivo.js», que el servidor recibe ya decodificada). Lo servido no lleva política de seguridad, está en el mismo origen que las tarjetas y el JS de cualquier tarjeta puede leerlo con fetch.
 - Por qué es buena práctica: con un patrón abierto, una tarjeta podría leer archivos de otros complementos que terminen igual.
 - Para qué sirve: todo complemento que inyecta CSS o JS propios.
-- Cómo se aplica: setWebExports(__name__, r"web/[\w-]+\.(css|js)"), sin «/» ni «.» libres en medio; nunca .json, .html ni user_files. El ejemplo de referencia aún usa r"web/.*\.(css|js)": véase PROP-008.
+- Cómo se aplica: setWebExports(__name__, r"web/[\w-]+\.(css|js)"), sin «/» ni «.» libres en medio; nunca .json, .html ni user_files. El ejemplo de referencia usaba r"web/.*\.(css|js)" y lo corrigió en 1.0.2 (FIX-002); empaquetar.py avisa de los patrones abiertos desde PROP-007.
 - Fuente: aqt/mediasrv.py y aqt/addons.py
 - Comprobado: 2026-10-12, con Anki 26.09.3: en esta sesión, Flask (el servidor de Anki) entrega «web/../../otro/x.js» para «web/..%2F..%2Fotro%2Fx.js»; ese texto cumple r"web/.*\.(css|js)" y no cumple r"web/[\w-]+\.(css|js)".
 - Origen: revisión de las notas de versión aportadas por el cliente.
@@ -528,9 +528,9 @@ nuevo, empaquetar.py --revision avisa.
 | --- | --- | --- | --- |
 | docs/LEEME.txt | a7da4389791b | 2026-10-09 | Índice de la carpeta; actualizado al crear la automejora y al sustituir la guía de complementos. |
 | docs/guia-complementos.md | 4d1e797d6d1e | 2026-10-09 | Sustituida, con el visto bueno del cliente, por el original oficial (docs-site/addons, commit a13d8a6, Anki 26.09.3) con el código intacto. Leída entera: APR-007 a APR-020. |
-| docs/guia-interfaz.md | 1884aa0696c4 | 2026-10-09 | Guía del taller; base desde el principio. No se ha releído en busca de aprendizajes nuevos. |
+| docs/guia-interfaz.md | c2382e94cd10 | 2026-10-12 | Guía del taller; base desde el principio. Cambiada con PROP-006 (cómo buscar en .venv y setWebExports con patrón cerrado). |
 | docs/paleta-nocturne.md | 4be1cf8b07be | 2026-10-09 | Documento del cliente; base desde el principio. No se ha releído en busca de aprendizajes nuevos. |
-| docs/preparar-entorno.md | d8b5eb71e77a | 2026-10-09 | Actualizado al crear la automejora (notas de versión y revisión de aprendizajes al cambiar Anki) y con PROP-001 (sesiones en la nube). |
+| docs/preparar-entorno.md | fc4d9d999f58 | 2026-10-12 | Actualizado al crear la automejora (notas de versión y revisión de aprendizajes al cambiar Anki), con PROP-001 (sesiones en la nube) y con PROP-008 (no usar "aqt[qt6]"; cómo actualiza Anki el cliente). |
 
 Revisado también, sin guardarlo en el taller: el código fuente oficial de Anki que aportó el cliente
 (anki-main.zip, commit a13d8a6 de github.com/ankitects/anki, versión 26.09.3; cinco archivos cotejados
@@ -555,27 +555,7 @@ docs.ankiweb.net (solo en inglés: la portada en español dice que no está trad
 Cambios a las reglas que esperan el visto bueno del cliente. Al decidirse, pasan a «Cambios aprobados»
 o a «Propuestas rechazadas».
 
-- PROP-006 (2026-10-12) · CLAUDE.md y docs/guia-interfaz.md. Qué cambia: en <fuentes_de_verdad> 1 y al
-  principio de la guía de interfaz, «busque con Grep indicando la carpeta» pasa a «localice el archivo
-  con Glob y busque con Grep en ese archivo, o con grep -rn por la terminal», porque Grep no entra en
-  .venv aunque se le indique la carpeta (APR-021); en <automejora>, el foro oficial
-  (forums.ankiweb.net) se nombra entre las pistas, como pidió el cliente (APR-055); y en el punto 8
-  del apartado 4 de la guía de interfaz, setWebExports con un patrón cerrado (APR-049). Por qué: la
-  instrucción actual hace concluir que un nombre de Anki no existe cuando sí existe. Fuente:
-  https://code.claude.com/docs/en/tools-reference y prueba en esta sesión.
-- PROP-007 (2026-10-12) · herramientas/empaquetar.py. Qué cambia: tres avisos nuevos en la comprobación
-  de piezas obsoletas: importar de anki.importing, anki.exporting, aqt.importing o aqt.exporting, o
-  usar nombres que empiezan por _Legacy (APR-034 y APR-035); llamar a _() o ngettext() (APR-039); y
-  un setWebExports cuyo patrón acepta rutas con «..» (APR-049); con su caso en la autoprueba. Por qué:
-  mypy no ve ninguno de los tres y los tres pasan hoy sin aviso. Fuente: anki/importing.py,
-  anki/exporting.py, anki/lang.py y aqt/mediasrv.py del Anki instalado.
-- PROP-008 (2026-10-12) · Ejemplo de referencia y docs/preparar-entorno.md. Qué cambia: el ejemplo
-  pasa a 1.0.2 con FIX-002: su setWebExports usa r"web/.*\.(css|js)", que deja a una tarjeta leer
-  archivos .css y .js de otros complementos; se cierra a r"web/[\w-]+\.(css|js)", con prueba de
-  regresión y sus documentos al día. En preparar-entorno, el aviso de no usar "aqt[qt6]" (APR-054) y,
-  en «Anki ha cambiado de versión», cómo actualiza el cliente (Herramientas > «Comprobar
-  actualizaciones»). Por qué: el ejemplo es el modelo que se copia en cada complemento nuevo. Fuente:
-  aqt/mediasrv.py, aqt/main.py y https://pypi.org/project/aqt/26.9.3/.
+(Ninguna.)
 
 ## Propuestas rechazadas
 
@@ -591,3 +571,4 @@ Cada cambio de las reglas, con su aprobación, la copia previa y la huella de CL
 - 2026-10-09 · PROP-001 en docs/preparar-entorno.md (apartado 4): en las sesiones en la nube, el intérprete es .venv/bin/python y, si la autoprueba falla por libEGL, se instala la pieza gráfica libegl1 con permiso del cliente. PROP-002 en CLAUDE.md (<comprobaciones>): en una sesión en la nube, cada entrega se sube a la rama de trabajo de la sesión, nunca a la principal; en el ordenador del cliente sigue «nunca git push». Motivo: sin la pieza falla la autoprueba en la nube, y lo no subido se pierde al reciclarse el ordenador temporal (https://code.claude.com/docs/en/claude-code-on-the-web#environment-expired). Aprobado por el cliente: 2026-10-09. Copia previa: herramientas/copias/CLAUDE-2026-10-09-2.md (y preparar-entorno-2026-10-09-2.md). Huella de CLAUDE.md: 8a8c8b5a6acf.
 - 2026-10-09 · Cerradura: .claude/settings.json nuevo, con permisos «ask» para editar las reglas del taller y los documentos del cliente; CLAUDE.md (<carpetas> y <automejora>: la cerradura, la prohibición de rodearla y «ni ampliar lo que permite .claude/settings.json»); empaquetar.py (avisa si falta la cerradura, y su autoprueba lo verifica); aprendizaje APR-006. Motivo: que el visto bueno del cliente no dependa de que Claude lo recuerde. Aprobado por el cliente: 2026-10-09. Copia previa: herramientas/copias/CLAUDE-2026-10-09-3.md (y empaquetar-2026-10-09-2.py; .claude/settings.json no existía). Huella de CLAUDE.md: 86a117a4aaa9.
 - 2026-10-09 · PROP-003, PROP-004 y PROP-005, tras revisar el código fuente oficial de Anki que aportó el cliente (commit a13d8a6): docs/guia-complementos.md sustituida por el original oficial con el código intacto; empaquetar.py avisa de piezas de Anki obsoletas (funciones @deprecated, ganchos obsoletos, addHook y archivos *_pb2), con la lista leída del Anki instalado, y admite dev-docs.ankiweb.net y betas.ankiweb.net como fuentes oficiales; el ejemplo de referencia corrige «1 notas» (FIX-001, versión 1.0.1, con prueba de regresión); CLAUDE.md (<carpetas>, <automejora> y <comprobaciones>) y los LEEME al día. Aprobado por el cliente: 2026-10-09. Copia previa: herramientas/copias/CLAUDE-2026-10-09-4.md (y empaquetar-2026-10-09-3.py, guia-complementos-2026-10-09.md y ejemplo-referencia-2026-10-09/). Huella de CLAUDE.md: 63d7834a7f5c.
+- 2026-10-12 · PROP-006, PROP-007 y PROP-008, tras revisar el manual antiguo de Anki y las notas de versión 26.08–26.09.3 que aportó el cliente. PROP-006: CLAUDE.md (<fuentes_de_verdad> 1: Grep no entra en .venv ni indicándole la carpeta, así que se localiza el archivo con Glob y se busca en él, APR-021; <automejora>: el foro oficial, forums.ankiweb.net, entre las pistas, APR-055) y docs/guia-interfaz.md (lo mismo al principio, y setWebExports con patrón cerrado en el punto 8 del apartado 4, APR-049). PROP-007: empaquetar.py avisa de importar anki.importing, anki.exporting, aqt.importing o aqt.exporting, de nombres _Legacy*, de _() y ngettext(), y de un setWebExports que acepta rutas con «..», con su caso en la autoprueba (diez avisos esperados). PROP-008: el ejemplo de referencia pasa a 1.0.2 con FIX-002 (patrón de setWebExports cerrado, con la prueba WebExportsPatternTest, que falló antes del arreglo y pasa después; 19 pruebas) y docs/preparar-entorno.md avisa de no usar "aqt[qt6]" y explica cómo actualiza Anki el cliente. Aprobado por el cliente: 2026-10-12. Copia previa: herramientas/copias/CLAUDE-2026-10-12.md (y guia-interfaz-2026-10-12.md, empaquetar-2026-10-12.py, preparar-entorno-2026-10-12.md y ejemplo-referencia-2026-10-12/). Incidencia: la versión del manifiesto del ejemplo se cambió primero, por error, con un comando que no pasa por la cerradura; se deshizo y se rehízo con la herramienta de edición, y se le dijo al cliente. Huella de CLAUDE.md: 97b885c83fff.

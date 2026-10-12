@@ -1,6 +1,6 @@
 # Qué hace «Ejemplo de referencia»
 
-Versión 1.0.1 · 2026-10-09
+Versión 1.0.2 · 2026-10-12
 
 Complemento de muestra del taller: no está pensado para instalarse, sino para copiar su forma de
 trabajar. Añade dos entradas al menú Herramientas y, si se activa, un botón pequeño en la pantalla de
@@ -90,6 +90,8 @@ Cancelar, Sí, No) salen en el idioma de Anki.
 ## 8. Qué no hace
 
 - No se conecta a internet.
+- No deja que las tarjetas lean más archivos suyos que su estilo y su código de la insignia, ni
+  archivos de otros complementos.
 - No cambia nada de su colección salvo añadir la etiqueta que usted confirma.
 - No quita etiquetas: para eso están Editar > Deshacer o Explorar.
 - No aparece fuera de los sitios del apartado 1.

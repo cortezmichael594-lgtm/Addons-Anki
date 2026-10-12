@@ -5,6 +5,9 @@ La lógica vive en logic.py, lo que pasa al pulsar en actions.py, los diálogos 
 dialogs.py y los textos en strings.py.
 """
 
+# Historial de correcciones de este archivo:
+# FIX-002 (2026-10-12): una tarjeta podía leer archivos .css y .js de otros complementos.
+
 from __future__ import annotations
 
 import html
@@ -19,6 +22,12 @@ from . import actions, config, strings
 from .errors import guarded, guarded_filter
 
 _BRIDGE_COMMAND = "ejemplo_referencia:options"
+
+# --- FIX-002 (2026-10-12) ---
+# Síntoma: con «web/..%2F..%2Fotro%2Fx.js», una tarjeta podía leer archivos de otros complementos.
+# Causa: Anki compara el patrón antes de resolver los «..», y «.*» los aceptaba.
+# Regla: el patrón de setWebExports es cerrado: sin «/» ni «.» libres entre la carpeta y la extensión.
+WEB_EXPORTS_PATTERN = r"web/[\w-]+\.(css|js)"
 
 
 @guarded
@@ -61,7 +70,7 @@ def _register() -> None:
         mw.form.menuTools.addAction(action)
 
     mw.addonManager.setConfigAction(__name__, actions.open_options)
-    mw.addonManager.setWebExports(__name__, r"web/.*\.(css|js)")
+    mw.addonManager.setWebExports(__name__, WEB_EXPORTS_PATTERN)
     gui_hooks.webview_will_set_content.append(_add_assets_to_reviewer)
     gui_hooks.webview_did_receive_js_message.append(_on_js_message)
 
