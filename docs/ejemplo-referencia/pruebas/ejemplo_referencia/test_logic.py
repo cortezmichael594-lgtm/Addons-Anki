@@ -5,12 +5,13 @@ Se ejecutan con herramientas/empaquetar.py, que añade complementos/ al PYTHONPA
 
 from __future__ import annotations
 
+import re
 import tempfile
 import unittest
 from pathlib import Path
 
 from anki.collection import Collection
-from ejemplo_referencia import logic, strings
+from ejemplo_referencia import WEB_EXPORTS_PATTERN, logic, strings
 
 
 class CleanTagTest(unittest.TestCase):
@@ -43,6 +44,19 @@ class TagMessagesTest(unittest.TestCase):
 
     def test_zero_notes_is_plural(self) -> None:
         self.assertEqual(strings.tagged(0), "Se etiquetaron 0 notas. Puede deshacerlo desde Editar → Deshacer.")
+
+
+class WebExportsPatternTest(unittest.TestCase):
+    """Prueba de regresión de FIX-002: el patrón dejaba leer archivos de otros complementos."""
+
+    def test_own_assets_are_served(self) -> None:
+        for path in ("web/ejemplo.css", "web/ejemplo.js"):
+            self.assertIsNotNone(re.fullmatch(WEB_EXPORTS_PATTERN, path), path)
+
+    def test_paths_leaving_the_folder_are_refused(self) -> None:
+        # Anki recibe «%2F» ya convertido en «/» y compara el patrón antes de resolver los «..».
+        for path in ("web/../../otro/x.js", "web/sub/../../../otro/x.css", "web/../meta.json", "web/x.json"):
+            self.assertIsNone(re.fullmatch(WEB_EXPORTS_PATTERN, path), path)
 
 
 class CollectionLogicTest(unittest.TestCase):

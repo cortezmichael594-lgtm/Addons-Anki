@@ -30,6 +30,8 @@ La versión de `aqt` debe coincidir con la de Anki del cliente, porque con ella 
 - Con uv: `uv pip install --python .venv/Scripts/python.exe "aqt[qt]==26.9.3" mypy`
 - Sin uv: `.venv/Scripts/python -m pip install "aqt[qt]==26.9.3" mypy`
 
+No copie `"aqt[qt6]"`, aunque lo digan la guía oficial («Editor Setup») y la página de betas: ese extra no existe en aqt 26.9.3, pip solo avisa y deja PyQt6 sin fijar a la versión que trae Anki (APR-054).
+
 ## 4. Comprobar
 
 `.venv/Scripts/python herramientas/empaquetar.py --autoprueba` debe terminar en «AUTOPRUEBA: CORRECTA». Esa prueba crea un complemento mínimo en una carpeta temporal y recorre todo el proceso (mypy, importación y empaquetado), así que confirma que el entorno y la herramienta funcionan.
@@ -46,7 +48,7 @@ En cuatro líneas como máximo: qué ha quedado preparado y qué falta, si falta
 
 ## Anki ha cambiado de versión
 
-Cuando el cliente diga que ha actualizado Anki a la versión X.Y.Z (Ayuda > Acerca de Anki):
+El cliente actualiza Anki con Herramientas > «Comprobar actualizaciones» (desde 26.05 descarga e instala la versión nueva); no con el botón del mismo nombre de la ventana Complementos, que solo actualiza complementos. Cuando diga que ha actualizado Anki a la versión X.Y.Z (Ayuda > «Acerca de Anki»):
 
 1. Cambie `herramientas/version-anki.txt` y los datos de `<entorno>` de `CLAUDE.md`. Es un cambio de las reglas pedido por el cliente: guarde antes la copia en `herramientas/copias/` y regístrelo en «Cambios aprobados» de `docs/automejora.md` con la huella nueva (véase `<automejora>`).
 2. Reinstale en el entorno: `uv pip install --python .venv/Scripts/python.exe "aqt[qt]==X.Y.Z" mypy` (sin cero a la izquierda en el mes: 26.09.3 se escribe 26.9.3). Si PyPI aún no publica esa versión, dígaselo al cliente y espere.

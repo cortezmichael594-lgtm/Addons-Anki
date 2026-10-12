@@ -17,7 +17,8 @@ Uso, desde la carpeta del proyecto y con el intérprete del .venv:
 Qué comprueba, por este orden:
   1. manifest.json y config.json válidos.
   2. Cada .py compila; sin PyQt directo, sin colores fijos, sin errores típicos, y sin
-     piezas que el Anki instalado marca como obsoletas (la lista se lee de su código).
+     piezas que el Anki instalado marca como obsoletas (la lista se lee de su código), sin
+     módulos retirados, funciones que no traducen ni patrones abiertos de setWebExports.
   3. Los archivos web (css/js/html): sin colores fijos ni recursos de internet.
   4. Las notas de corrección (FIX-NNN): índice y bloques coherentes, y ninguna
      perdida respecto a la última entrega (se guardan en herramientas/registro-fix/).
@@ -167,6 +168,16 @@ IMPORT_RE = re.compile(r"(?<![\w.])@[\w~./\\-]")
 # Piezas obsoletas de Anki (véanse APR-007, APR-008 y APR-016 en docs/automejora.md). Las funciones y
 # los ganchos se leen del Anki instalado en cada comprobación, así que la lista sigue sola a cada versión.
 LEGACY_HOOK_CALLS = {"addHook", "runHook", "runFilter", "remHook"}
+# Módulos que Anki retiró en 26.09 (APR-034) y funciones de traducción que no traducen (APR-039).
+REMOVED_MODULES = ("anki.importing", "anki.exporting", "aqt.importing", "aqt.exporting")
+UNTRANSLATED_CALLS = {"_", "ngettext"}
+# Rutas que un patrón de setWebExports no debe aceptar: salen de la carpeta del complemento o exponen
+# su configuración (APR-049).
+WEB_EXPORT_PROBES = tuple(
+    prefix + tail
+    for prefix in ("", "web/", "web/sub/", "assets/", "static/", "css/", "js/", "img/")
+    for tail in ("../otro/x.js", "../../otro/x.css", "../../otro/x.png", "../meta.json", "../config.json")
+) + ("meta.json", "config.json", "user_files/datos.json")
 # Nombres demasiado comunes: solo se avisa si el objeto parece el de Anki (note.flush(), col.save()).
 COMMON_METHOD_NAMES = {
     "all_names",
@@ -684,8 +695,28 @@ def matching_deprecation(func: ast.expr, name: str, owners: list[tuple[str, str]
     return None
 
 
+def check_web_exports_pattern(call: ast.Call, relative: str, line: object, report: Report) -> None:
+    """Un patrón de setWebExports que acepta «..» deja a una tarjeta leer archivos ajenos (APR-049)."""
+    candidates = list(call.args[1:2]) + [kw.value for kw in call.keywords if kw.arg == "pattern"]
+    literal = next((arg.value for arg in candidates if isinstance(arg, ast.Constant)), None)
+    if not isinstance(literal, str):
+        return  # patrón calculado: no se puede comprobar aquí
+    try:
+        pattern = re.compile(literal)
+    except re.error:
+        report.warn(f"{relative}:{line}: el patrón de setWebExports no es una expresión regular válida.")
+        return
+    leaked = next((probe for probe in WEB_EXPORT_PROBES if pattern.fullmatch(probe)), None)
+    if leaked is not None:
+        report.warn(
+            f"{relative}:{line}: el patrón de setWebExports acepta «{leaked}»: una tarjeta podría leer archivos "
+            'de otros complementos o la configuración. Use uno cerrado, como r"web/[\\w-]+\\.(css|js)" (APR-049).'
+        )
+
+
 def check_obsolete(folder: Path, files: list[Path], report: Report) -> None:
-    """Funciones @deprecated, ganchos obsoletos o antiguos y archivos *_pb2 (APR-007, APR-008 y APR-016)."""
+    """Funciones @deprecated, ganchos obsoletos o antiguos, archivos *_pb2, módulos retirados, funciones
+    que no traducen y patrones abiertos de setWebExports (APR-007, 008, 016, 034, 035, 039 y 049)."""
     catalog = anki_obsolete_catalog()
     if catalog is None:
         return
@@ -701,11 +732,21 @@ def check_obsolete(folder: Path, files: list[Path], report: Report) -> None:
             continue  # ya lo informa check_python
         for node in ast.walk(tree):
             line = getattr(node, "lineno", "?")
+            used = node.id if isinstance(node, ast.Name) else node.attr if isinstance(node, ast.Attribute) else ""
+            if used.startswith("_Legacy"):
+                report.warn(f"{relative}:{line}: {used} es un envoltorio interno de Anki, de paso: busque el sustituto (APR-035).")
             if isinstance(node, ast.Call):
                 func = node.func
                 name = func.attr if isinstance(func, ast.Attribute) else func.id if isinstance(func, ast.Name) else ""
                 if name in LEGACY_HOOK_CALLS:
                     report.warn(f"{relative}:{line}: {name}() es del sistema antiguo de ganchos: use gui_hooks o hooks (APR-008).")
+                elif name in UNTRANSLATED_CALLS:
+                    report.warn(
+                        f"{relative}:{line}: {name}() no traduce (ngettext pone siempre el plural, «1 cards»): textos "
+                        "propios en strings.py y los de Anki con tr (APR-039)."
+                    )
+                elif name == "setWebExports":
+                    check_web_exports_pattern(node, relative, line, report)
                 elif name in methods:
                     hint = matching_deprecation(func, name, methods[name])
                     if hint is not None:
@@ -718,10 +759,23 @@ def check_obsolete(folder: Path, files: list[Path], report: Report) -> None:
             elif isinstance(node, (ast.Import, ast.ImportFrom)):
                 modules = [alias.name for alias in node.names]
                 if isinstance(node, ast.ImportFrom) and node.module:
-                    modules.append(node.module)
+                    modules += [node.module] + [f"{node.module}.{alias.name}" for alias in node.names]
                 internal = next((module for module in modules if "_pb2" in module), None)
                 if internal:
                     report.warn(f"{relative}:{line}: importa {internal}, un archivo interno de Anki: use los tipos que exporta pylib (APR-016).")
+                removed = next(
+                    (module for module in modules if any(module == r or module.startswith(r + ".") for r in REMOVED_MODULES)),
+                    None,
+                )
+                if removed:
+                    report.warn(
+                        f"{relative}:{line}: importa {removed}, que Anki retiró en 26.09 (si se importa al cargar, el "
+                        "complemento no arranca): use col.import_anki_package, col.import_csv, col.export_anki_package "
+                        "o col.export_note_csv (APR-034)."
+                    )
+                for alias in node.names:
+                    if alias.name.startswith("_Legacy"):
+                        report.warn(f"{relative}:{line}: {alias.name} es un envoltorio interno de Anki, de paso: busque el sustituto (APR-035).")
     if len(report.warnings) == before:
         report.ok(f"Sin piezas obsoletas de Anki (revisadas {len(methods)} funciones y {len(hooks)} ganchos del Anki instalado).")
 
@@ -1667,22 +1721,26 @@ def self_test() -> int:
             print(f"\nAUTOPRUEBA: no detecta {'; '.join(missed)}. No se fíe de esta herramienta.")
             return 1
 
-        # Cinco piezas obsoletas a propósito; «propio.save()» y «col.update_note()» no lo son.
+        # Nueve piezas obsoletas o peligrosas a propósito; «propio.save()», «col.update_note()» y el
+        # segundo setWebExports, con patrón cerrado, no lo son.
         sample = Path(tmp) / "obsoletos" / "muestra.py"
         sample.parent.mkdir()
         sample.write_text(
-            "from anki import collection_pb2\nfrom anki.hooks import addHook\nfrom aqt import gui_hooks\n\n\n"
-            "def ejemplo(note, col, propio):\n    note.flush()\n    col.save()\n    propio.save()\n"
+            "from anki import collection_pb2\nfrom anki.hooks import addHook\nfrom aqt import gui_hooks\n"
+            "from anki.importing import AnkiPackageImporter\nfrom anki import exporting\n\n\n"
+            "def ejemplo(note, col, propio, mw):\n    note.flush()\n    col.save()\n    propio.save()\n"
             "    col.update_note(note)\n    gui_hooks.add_cards_did_change_note_type.append(print)\n"
-            "    addHook('leech', print)\n",
+            "    addHook('leech', print)\n    _('hola')\n    exporting._LegacyAnkiPackageExporter(col)\n"
+            "    mw.addonManager.setWebExports(__name__, r'web/.*\\.(css|js)')\n"
+            "    mw.addonManager.setWebExports(__name__, r'web/[\\w-]+\\.(css|js)')\n",
             encoding="utf-8",
         )
         obsolete_report = Report()
         check_obsolete(sample.parent, [sample], obsolete_report)
-        if len(obsolete_report.warnings) != 5:
+        if len(obsolete_report.warnings) != 10:
             print(
                 f"\nAUTOPRUEBA: el detector de piezas obsoletas da {len(obsolete_report.warnings)} avisos "
-                "en lugar de 5. No se fíe de esta herramienta."
+                "en lugar de 10. No se fíe de esta herramienta."
             )
             return 1
     print("\nAUTOPRUEBA: CORRECTA. La herramienta y el entorno funcionan.")

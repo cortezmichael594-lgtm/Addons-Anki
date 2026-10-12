@@ -1,0 +1,13 @@
+Complemento modelo («Ejemplo de referencia»). No se instala en Anki: sirve para que Claude Code copie
+su estructura y sus buenas prácticas. Está comprobado contra Anki 26.09.3: pasa mypy, se importa fuera
+de Anki, supera sus 17 pruebas y se empaqueta sin errores ni avisos. Su FIX-001 sirve de modelo de
+corrección: nota en el código, línea en errores.md y prueba de regresión.
+
+  complementos/ejemplo_referencia/   el código (menús nativos, diálogo de opciones, operación masiva
+                                     con confirmación y deshacer, e insignia en el repaso con la paleta)
+  pruebas/ejemplo_referencia/        sus pruebas, con colección temporal
+  docs/ejemplo_referencia/           sus dos documentos, modelo de los de cada complemento: que-hace.md
+                                     (qué hace, en lenguaje llano) y errores.md (sus fallos)
+
+Para ver todas las comprobaciones en acción: copie esas tres subcarpetas a complementos/, pruebas/ y
+docs/ del proyecto, ejecute empaquetar.py y bórrelas después.

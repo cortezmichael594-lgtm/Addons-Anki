@@ -2,8 +2,9 @@
 
 Documento del proyecto, comprobado contra el código de Anki 26.09.3. Léalo entero antes
 de diseñar o escribir cualquier ventana, menú, botón o página. Los nombres de aquí son
-los que existen en esa versión; ante cualquier duda, confírmelos con Grep en el código
-real del entorno (`.venv`, carpetas `aqt` y `_aqt`).
+los que existen en esa versión; ante cualquier duda, confírmelos en el código real del
+entorno (`.venv`, carpetas `aqt` y `_aqt`): localice el archivo con Glob y busque con Grep
+en ese archivo, porque Grep no entra en las carpetas de `.venv`.
 
 ## 1. Nativo primero
 
@@ -112,7 +113,8 @@ hasta que su estilo está inyectado. Para no estropearlo:
    `onShownHook` (después del fundido) para el JS que dependa del momento. Los hooks se
    reinician con cada tarjeta.
 8. Sin internet: nada de CDNs ni fuentes externas; todo dentro del paquete, servido con
-   `setWebExports`.
+   `setWebExports` y un patrón cerrado, `r"web/[\w-]+\.(css|js)"`: con `.*` una tarjeta
+   podría leer archivos de otros complementos (APR-049).
 9. Chromium 140: sirve el CSS moderno (`:has()`, `color-mix()`, anidamiento, `@layer`,
    consultas de contenedor). Si duda de una función, compruébela en MDN.
 
