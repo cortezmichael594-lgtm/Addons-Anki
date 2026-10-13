@@ -96,6 +96,10 @@ FUTURE_DARK: tuple[str, ...] = (
 )
 
 THEME_NAMES: tuple[str, ...] = tuple(PAST_LIGHT)
+# Temas sobre los que el borde naranja de las fechas clave no se distingue.
+WARM_THEMES: frozenset[str] = frozenset({"fire_red", "sunset_orange", "rose_pink"})
+KEY_BLUE_LIGHT = "#1971C2"  # colores-ok: reserva de STATE_NEW de Nocturne (dia)
+KEY_BLUE_DARK = "#74C0FC"  # colores-ok: reserva de STATE_NEW de Nocturne (noche)
 LEGEND_FACTORS: tuple[float, ...] = (0.125, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 4.0)
 STREAK_COLOR_LEVELS: tuple[tuple[int, int], ...] = ((14, 1), (30, 3), (90, 5), (180, 8), (365, 9))
 AVG_COLOR_LEVELS: tuple[tuple[int, int], ...] = ((10, 1), (25, 3), (60, 5), (150, 7), (300, 8))
@@ -152,6 +156,11 @@ def _vars_block(theme: str, dark: bool) -> str:
     future = FUTURE_DARK if dark else FUTURE_LIGHT
     parts = [f"--gritmap-p{i + 1}:{color};" for i, color in enumerate(past)]
     parts += [f"--gritmap-f{i + 1}:{color};" for i, color in enumerate(future)]
+    if theme in WARM_THEMES:
+        # El borde naranja de las fechas clave no se distingue sobre estos
+        # temas: pasa al azul de Nocturne (decision del cliente, 2026-10-13).
+        fallback = KEY_BLUE_DARK if dark else KEY_BLUE_LIGHT
+        parts.append(f"--gritmap-key:var(--state-new,{fallback});")
     return "".join(parts)
 
 

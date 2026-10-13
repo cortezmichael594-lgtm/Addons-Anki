@@ -137,6 +137,13 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - Las cifras del mapa se leen directamente de la base de datos, solo para leer, porque Anki no ofrece
   ninguna función que dé la actividad por día. Criterio del complemento original, confirmado en la
   revisión del 2026-10-12: Anki 26.09.3 sigue sin esa función.
+- Versión 3.3.0 (pedido del cliente el 2026-10-13, tras ver la 3.2.0): sin recuadro alrededor del
+  mapa, sin leyenda y sin las iniciales de los días; los cuatro botones encima y el año debajo, como
+  en la 3.1.1; la muestra del tema en Opciones vuelve a ser un solo cuadrito.
+- El globo de cada día lleva la fecha arriba (sin «el») y lo hecho debajo, en todos los idiomas. Lo
+  pidió el cliente el 2026-10-13.
+- Las fechas clave llevan el borde naranja de siempre, y azul en los temas Rojo fuego, Naranja
+  atardecer y Rosa suave, donde el naranja no se distingue. Lo eligió el cliente el 2026-10-13.
 - Las cifras de debajo del mapa se escriben en el color del texto, con un cuadrito del tono delante,
   y no en el tono del tema. Lo eligió el cliente el 2026-10-13: los tonos claros no se leían.
 - Los botones del mapa ya no funden el color al pasar el ratón; solo se hunden un instante al

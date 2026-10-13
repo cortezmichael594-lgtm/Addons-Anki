@@ -29,18 +29,17 @@
  */
 
 #gritmap-root {
-    --gritmap-card-bg: var(--canvas-elevated, #FFFFFF);
-    --gritmap-card-border: var(--border-subtle, #E9ECF0);
     --gritmap-empty: var(--border-subtle, #E9ECF0);
     --gritmap-fg: var(--fg, #1B2430);
     --gritmap-muted: var(--fg-subtle, #5C6675);
+    --gritmap-btn: var(--button-bg, #FFFFFF);
     --gritmap-btnh: var(--button-gradient-start, #F0F2F6);
     --gritmap-btnb: var(--border, #DCE0E6);
+    --gritmap-icon: var(--fg-subtle, #5C6675);
     --gritmap-hover: var(--fg-subtle, #5C6675);
     --gritmap-today: var(--fg, #1B2430);
     --gritmap-focus: var(--border-focus, #3B6FE0);
-    --gritmap-kd: var(--fg, #1B2430);
-    --gritmap-kd-ring: var(--canvas-elevated, #FFFFFF);
+    --gritmap-key: var(--state-learn, #E8590C);
     --gritmap-tipbg: var(--canvas-overlay, #FFFFFF);
     --gritmap-tipfg: var(--fg, #1B2430);
     --gritmap-tipb: var(--border, #DCE0E6);
@@ -48,23 +47,20 @@
     --gritmap-shadow-soft: var(--shadow-subtle, #1B243012);
 }
 
-/* De noche los cuadritos vacios toman el borde normal: el sutil apenas se
- * distingue del fondo del recuadro. */
 html.night-mode #gritmap-root,
 body.night_mode #gritmap-root,
 body.nightMode #gritmap-root {
-    --gritmap-card-bg: var(--canvas-elevated, #212836);
-    --gritmap-card-border: var(--border, #2C3545);
-    --gritmap-empty: var(--border, #2C3545);
+    --gritmap-empty: var(--border-subtle, #202836);
     --gritmap-fg: var(--fg, #E9EDF4);
     --gritmap-muted: var(--fg-subtle, #9FABBB);
+    --gritmap-btn: var(--button-bg, #212836);
     --gritmap-btnh: var(--button-gradient-start, #2A3342);
     --gritmap-btnb: var(--border, #2C3545);
+    --gritmap-icon: var(--fg-subtle, #9FABBB);
     --gritmap-hover: var(--fg-subtle, #9FABBB);
     --gritmap-today: var(--fg, #E9EDF4);
     --gritmap-focus: var(--border-focus, #6390FF);
-    --gritmap-kd: var(--fg, #E9EDF4);
-    --gritmap-kd-ring: var(--canvas-elevated, #212836);
+    --gritmap-key: var(--state-learn, #FFA94D);
     --gritmap-tipbg: var(--canvas-overlay, #191E2A);
     --gritmap-tipfg: var(--fg, #E9EDF4);
     --gritmap-tipb: var(--border, #2C3545);
@@ -74,26 +70,10 @@ body.nightMode #gritmap-root {
 
 #gritmap-root {
     position: relative;
-    margin: 18px 0 8px 0;
+    margin: 10px 0 6px 0;
     text-align: center;
     user-select: none;
     -webkit-user-select: none;
-}
-
-/* Recuadro, como el de la lista de mazos: ocupa lo que ocupa el mapa. */
-#gritmap-root .gritmap-card {
-    display: inline-block;
-    box-sizing: border-box;
-    max-width: 100%;
-    padding: 14px 18px 14px 18px;
-    text-align: start;
-    background: var(--gritmap-card-bg);
-    border: 1px solid var(--gritmap-card-border);
-    border-radius: var(--border-radius-medium, 12px);
-}
-
-.fancy #gritmap-root .gritmap-card {
-    box-shadow: 0 1px 3px var(--gritmap-shadow-soft);
 }
 
 /* --- FIX-023 (2026-10-13) ---
@@ -103,86 +83,65 @@ body.nightMode #gritmap-root {
  * Causa: Anki pone toda la pagina de derecha a izquierda y la cabecera se
  *        invertia, mientras la rejilla sigue el orden del calendario; el
  *        hueco entre rotulo y cifra era un margen fijo a la derecha.
- * Regla: el eje del tiempo (cabecera, rejilla y leyenda) va siempre de
- *        izquierda a derecha, y los huecos entre textos usan margenes
- *        logicos (margin-inline-*), que siguen la direccion del idioma.
+ * Regla: el eje del tiempo (botones y rejilla) va siempre de izquierda a
+ *        derecha, y los huecos entre textos usan margenes logicos
+ *        (margin-inline-*), que siguen la direccion del idioma.
  */
-#gritmap-root .gritmap-head,
-#gritmap-root .gritmap-grid,
-#gritmap-root .gritmap-legend {
+#gritmap-root .gritmap-nav,
+#gritmap-root .gritmap-grid {
     direction: ltr;
 }
 
-#gritmap-root .gritmap-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 10px;
-}
-
-#gritmap-root .gritmap-nav,
-#gritmap-root .gritmap-tools {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-#gritmap-root .gritmap-year {
-    min-width: 3.2em;
+#gritmap-root .gritmap-nav {
     text-align: center;
-    font-size: 15px;
-    font-weight: 650;
-    letter-spacing: 0.01em;
-    font-variant-numeric: tabular-nums;
-    color: var(--gritmap-fg);
+    margin-bottom: 10px;
+    line-height: 0;
 }
 
-/* Botones de icono, sin relleno hasta pasar el raton por encima. Se anulan
- * los estilos que Anki da a todos los <button> de sus paginas. */
+/* Los controles son botones de verdad: se pueden alcanzar con el tabulador y
+ * los lee un lector de pantalla. Se anulan los estilos que Anki da a todos
+ * los <button> de sus paginas. */
 #gritmap-root .gritmap-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    margin: 0;
+    width: 27px;
+    height: 27px;
     padding: 0;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    background: transparent;
-    box-shadow: none;
-    color: var(--gritmap-muted);
-    font: inherit;
+    border-radius: 7px;
+    background: var(--gritmap-btn);
+    border: 1px solid var(--gritmap-btnb);
+    margin: 0 3px;
     cursor: pointer;
+    color: var(--gritmap-icon);
+    font: inherit;
+    vertical-align: middle;
     transition: transform 0.1s ease;
+    box-shadow: 0 1px 2px var(--gritmap-shadow-soft);
 }
 
 #gritmap-root .gritmap-btn:hover {
     background: var(--gritmap-btnh);
     border-color: var(--gritmap-btnb);
-    color: var(--gritmap-fg);
-    box-shadow: none;
+    box-shadow: 0 2px 6px var(--gritmap-shadow);
 }
 
 #gritmap-root .gritmap-btn:active {
     transform: translateY(1px);
-    box-shadow: none;
 }
 
 /* Solo se ve al navegar con el teclado, nunca al hacer clic con el raton. */
 #gritmap-root .gritmap-btn:focus-visible {
     outline: 2px solid var(--gritmap-focus);
-    outline-offset: 1px;
+    outline-offset: 2px;
 }
 
 #gritmap-root .gritmap-btn[disabled],
 #gritmap-root .gritmap-btn[disabled]:hover {
-    opacity: 0.35;
+    opacity: 0.3;
     cursor: default;
-    background: transparent;
-    border-color: transparent;
-    color: var(--gritmap-muted);
+    background: var(--gritmap-btn);
+    box-shadow: none;
 }
 
 #gritmap-root .gritmap-btn svg {
@@ -191,7 +150,7 @@ body.nightMode #gritmap-root {
 
 /* La barra de desplazamiento, si hace falta, es la de Anki. */
 #gritmap-root .gritmap-grid {
-    display: block;
+    display: inline-block;
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
@@ -204,17 +163,22 @@ body.nightMode #gritmap-root {
 #gritmap-root .gritmap-month {
     font-size: 10.5px;
     font-weight: 600;
-    letter-spacing: 0.02em;
-    fill: var(--gritmap-muted);
-}
-
-#gritmap-root .gritmap-wd {
+    letter-spacing: 0.03em;
     fill: var(--gritmap-muted);
 }
 
 #gritmap-root .gritmap-cell[data-gritmap-today] {
     stroke: var(--gritmap-today);
     stroke-width: 1.5px;
+    stroke-opacity: 0.8;
+}
+
+/* Fechas clave: borde naranja, como siempre; en los temas calidos la paleta
+ * lo cambia a azul para que se distinga. */
+#gritmap-root .gritmap-cell[data-gritmap-key] {
+    stroke: var(--gritmap-key);
+    stroke-width: 2px;
+    stroke-opacity: 0.95;
 }
 
 #gritmap-root .gritmap-cell[data-gritmap-cmd] {
@@ -224,6 +188,7 @@ body.nightMode #gritmap-root {
 #gritmap-root .gritmap-cell:hover {
     stroke: var(--gritmap-hover);
     stroke-width: 1.5px;
+    stroke-opacity: 1;
 }
 
 #gritmap-root .gritmap-cell:focus {
@@ -233,44 +198,45 @@ body.nightMode #gritmap-root {
 #gritmap-root .gritmap-cell:focus-visible {
     stroke: var(--gritmap-focus);
     stroke-width: 2px;
+    stroke-opacity: 1;
 }
 
-/* Marca de las fechas clave: punto con aro, visible sobre cualquier tono. */
-#gritmap-root .gritmap-kd {
-    fill: var(--gritmap-kd);
-    stroke: var(--gritmap-kd-ring);
-    stroke-width: 1.5px;
-    pointer-events: none;
-}
-
-#gritmap-root .gritmap-legend {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
+/* El ano, debajo del mapa; al pasar el raton dice lo hecho ese ano. */
+#gritmap-root .gritmap-yl {
     margin-top: 8px;
-    font-size: 11px;
-    color: var(--gritmap-muted);
+    line-height: 1.4;
 }
 
-#gritmap-root .gritmap-legend svg {
-    display: block;
+#gritmap-root .gritmap-yv {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    color: var(--gritmap-muted);
+    cursor: default;
+}
+
+#gritmap-root .gritmap-yv:focus {
+    outline: none;
+}
+
+#gritmap-root .gritmap-yv:focus-visible {
+    outline: 2px solid var(--gritmap-focus);
+    outline-offset: 2px;
+    border-radius: 3px;
 }
 
 #gritmap-root .gritmap-stats {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 10px 28px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--gritmap-card-border);
+    justify-content: center;
+    gap: 10px 44px;
+    margin-top: 14px;
 }
 
 #gritmap-root .gritmap-stat {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     min-width: 0;
 }
 
@@ -310,7 +276,8 @@ body.nightMode #gritmap-root {
 }
 
 #gritmap-root .gritmap-msg {
-    margin: 2px 2px 4px 2px;
+    margin: 14px 0;
+    text-align: center;
     font-size: 13px;
     color: var(--gritmap-muted);
 }
@@ -333,7 +300,7 @@ body.nightMode #gritmap-root {
     font-weight: 400;
     line-height: 1.45;
     padding: 8px 11px;
-    border-radius: 8px;
+    border-radius: 7px;
     text-align: center;
     max-width: 260px;
     pointer-events: none;

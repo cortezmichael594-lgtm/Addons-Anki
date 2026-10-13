@@ -13,8 +13,8 @@ El reparto de trabajo con la parte web es deliberado:
 Las cifras salen de aqui sin separadores de millares, envueltas en un
 <span class="gritmap-n">, y los porcentajes en un <span class="gritmap-pct">:
 el navegador los reescribe con el formato del idioma de Anki (Intl), que
-conoce las costumbres de cada idioma. Los nombres de los meses y las
-iniciales de los dias de la semana tambien los pone el navegador.
+conoce las costumbres de cada idioma. Los nombres de los meses y las fechas
+de los globos tambien los pone el navegador.
 """
 
 # Historial de correcciones de este archivo:
@@ -46,6 +46,7 @@ from .data import (
     FullStats,
     HeatmapData,
     full_stats,
+    measure_value,
     round_half_up,
     scale_reference,
     week_diff,
@@ -90,12 +91,7 @@ WEB_PATTERN = r"web/[\w-]+\.(css|js)"
 STYLE_ID = "gritmap-palette"
 _CELL_GAP = 3
 _TOP_MARGIN = 20
-# Las iniciales de los dias de la semana solo se ponen si caben en la fila.
-_WEEKDAY_MIN_CELL = 10
-_WEEKDAY_WIDTH = 16
-# Tonos de la leyenda (ademas del vacio): uno de cada dos, hasta el mas intenso.
-_LEGEND_LEVELS = (2, 4, 6, 8, 10)
-_LEGEND_MAX_SIZE = 11
+_LEFT_MARGIN = 2
 
 
 # Cifras y textos
@@ -179,7 +175,7 @@ def _icon(kind: str) -> str:
     elif kind == "right":
         body = f'<path d="M5.3 2.6 L9.4 7 L5.3 11.4" {stroke}/>'
     elif kind == "circle":
-        body = f'<circle cx="7" cy="7" r="4.2" {stroke}/><circle cx="7" cy="7" r="1.4" fill="currentColor"/>'
+        body = f'<circle cx="7" cy="7" r="4" {stroke}/>'
     else:
         body = (
             f'<line x1="2.2" y1="3.8" x2="11.8" y2="3.8" {stroke}/>'
@@ -190,7 +186,7 @@ def _icon(kind: str) -> str:
             '<circle cx="10" cy="10.2" r="1.7" fill="currentColor"/>'
         )
     return (
-        '<svg width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg"'
+        '<svg width="12" height="12" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg"'
         f' aria-hidden="true" focusable="false">{body}</svg>'
     )
 
@@ -210,29 +206,18 @@ def _nav_button(cmd: str, label: str, icon_kind: str, disabled: bool) -> str:
     return f'<button type="button" class="gritmap-btn"{attrs}>{_icon(icon_kind)}</button>'
 
 
-def _build_head(year: int | None, prev_disabled: bool, next_disabled: bool) -> str:
-    """Cabecera: el ano entre sus flechas y, a la derecha, Hoy y Opciones.
-
-    Sin ano (no hay mapa que ensenar) solo queda el boton de opciones.
-    """
-    if year is None:
-        nav = ""
-        tools = _nav_button("opts", t("nav_opts"), "sliders", False)
+def _build_nav(prev_disabled: bool, next_disabled: bool, only_options: bool = False) -> str:
+    """Los cuatro botones centrados encima del mapa (solo Opciones si no hay mapa)."""
+    if only_options:
+        buttons = _nav_button("opts", t("nav_opts"), "sliders", False)
     else:
-        nav = (
+        buttons = (
             _nav_button("prev", t("nav_back"), "left", prev_disabled)
-            + f'<span class="gritmap-year" aria-live="polite">{year}</span>'
+            + _nav_button("today", t("nav_today"), "circle", False)
             + _nav_button("next", t("nav_forward"), "right", next_disabled)
+            + _nav_button("opts", t("nav_opts"), "sliders", False)
         )
-        tools = _nav_button("today", t("nav_today"), "circle", False) + _nav_button(
-            "opts", t("nav_opts"), "sliders", False
-        )
-    return (
-        '<div class="gritmap-head">'
-        f'<div class="gritmap-nav">{nav}</div>'
-        f'<div class="gritmap-tools">{tools}</div>'
-        "</div>"
-    )
+    return f'<div class="gritmap-nav">{buttons}</div>'
 
 
 def past_cell(
@@ -300,23 +285,12 @@ def _build_cell(
         attrs += ' data-gritmap-today="1"'
     if focusable:
         attrs += ' tabindex="0"'
-    cell = (
+    return (
         f'<rect class="gritmap-cell" x="{x}" y="{y}" width="{cfg.cell_size}"'
         f' height="{cfg.cell_size}" rx="{cfg.border_radius}" fill="{fill}"'
         f' data-gritmap-tip="1" data-d="{day.isoformat()}" data-v="{shown}" data-t="{template}"'
         f"{attrs}></rect>"
     )
-    if label:
-        # Marca de fecha clave: un punto con aro, visible sobre cualquier tono
-        # y cualquier tema (el borde naranja de antes no se veia sobre los
-        # temas naranja y rojo).
-        half = cfg.cell_size / 2
-        radius = max(1.5, round(cfg.cell_size * 0.17, 1))
-        cell += (
-            f'<circle class="gritmap-kd" cx="{x + half:g}" cy="{y + half:g}" r="{radius:g}"'
-            ' aria-hidden="true"></circle>'
-        )
-    return cell
 
 
 def _build_year_svg(
@@ -333,8 +307,7 @@ def _build_year_svg(
     start_row = start_date.weekday()
     total_days = (end_date - start_date).days + 1
     num_weeks = (start_row + total_days + 6) // 7
-    show_weekdays = cfg.cell_size >= _WEEKDAY_MIN_CELL
-    left_margin = _WEEKDAY_WIDTH if show_weekdays else 2
+    left_margin = _LEFT_MARGIN
     width = left_margin + num_weeks * step
     height = _TOP_MARGIN + 7 * step
     # El dia que recibe el tabulador: hoy si esta en este ano, si no el 1 de enero.
@@ -343,15 +316,6 @@ def _build_year_svg(
         f'<svg viewBox="0 0 {width} {height}" width="{width}" height="{height}"'
         f' xmlns="http://www.w3.org/2000/svg" role="group" aria-label="{year}">'
     ]
-    if show_weekdays:
-        font = min(10, cfg.cell_size - 1)
-        for row in (0, 2, 4):
-            # Lunes, miercoles y viernes; el navegador pone la inicial del idioma.
-            baseline = _TOP_MARGIN + row * step + cfg.cell_size / 2 + font * 0.36
-            parts.append(
-                f'<text class="gritmap-wd" data-gritmap-wd="{row}" x="0" y="{baseline:g}"'
-                f' font-size="{font}"></text>'
-            )
     row = start_row
     week = 0
     last_label_month = 0
@@ -385,24 +349,21 @@ def _build_year_svg(
     return "".join(parts)
 
 
-def _build_legend(cfg: Config) -> str:
-    """«Menos □■■■■■ Mas», con los mismos cuadritos que el mapa."""
-    size = min(cfg.cell_size, _LEGEND_MAX_SIZE)
-    radius = min(cfg.border_radius, size / 2)
-    fills = ["var(--gritmap-empty)"] + [f"var(--gritmap-p{level})" for level in _LEGEND_LEVELS]
-    step = size + _CELL_GAP
-    width = len(fills) * step - _CELL_GAP
-    rects = "".join(
-        f'<rect x="{index * step}" y="0" width="{size}" height="{size}" rx="{radius:g}" fill="{fill}"/>'
-        for index, fill in enumerate(fills)
-    )
+def year_total(data: HeatmapData, year: int, measure: str) -> int:
+    """Lo hecho en un ano, en la unidad de la medida (los dias futuros no cuentan)."""
+    total = 0.0
+    for days_ago, day in data.past.items():
+        if (data.today - timedelta(days=days_ago)).year == year:
+            total += measure_value(day, measure)
+    return int(total)
+
+
+def _year_label(data: HeatmapData, year: int, measure: str) -> str:
+    """El ano, debajo del mapa; al pasar el raton, lo hecho ese ano («12.480 repasos»)."""
+    info = count_html(year_total(data, year, measure), measure)
     return (
-        '<div class="gritmap-legend" aria-hidden="true">'
-        f'<span>{html.escape(t("legend_less"))}</span>'
-        f'<svg width="{width}" height="{size}" viewBox="0 0 {width} {size}"'
-        f' xmlns="http://www.w3.org/2000/svg">{rects}</svg>'
-        f'<span>{html.escape(t("legend_more"))}</span>'
-        "</div>"
+        f'<div class="gritmap-yl"><span class="gritmap-yv" data-gritmap-tip="1"'
+        f' data-gritmap-info="{html.escape(info, quote=True)}" tabindex="0">{year}</span></div>'
     )
 
 
@@ -511,22 +472,20 @@ def build_stats(stats: FullStats, measure: str, window: int = 30) -> str:
     )
 
 
-def _card(inner: str) -> str:
-    """Recuadro del mapa, con el globo fuera para que pueda sobresalir."""
-    return f'<div class="gritmap-card">{inner}</div><div id="gritmap-tip" role="tooltip"></div>'
+_TIP = '<div id="gritmap-tip" role="tooltip"></div>'
 
 
-def _message_card(key: str) -> str:
-    """Recuadro con un aviso y el boton de opciones, para poder cambiarlas."""
-    return _card(_build_head(None, True, True) + f'<div class="gritmap-msg">{html.escape(t(key))}</div>')
+def _message(key: str) -> str:
+    """Aviso en lugar del mapa, con el boton de opciones para poder cambiarlas."""
+    return _build_nav(True, True, only_options=True) + f'<div class="gritmap-msg">{html.escape(t(key))}</div>' + _TIP
 
 
 def build_widget_html(data: HeatmapData, cfg: Config, offset: int) -> str:
     if data.deck_excluded:
-        return _message_card("deck_excluded")
+        return _message("deck_excluded")
     key_labels = _key_labels(cfg.key_dates, data.today)
     if not data.past and not data.future_counts and not key_labels:
-        return _message_card("no_data")
+        return _message("no_data")
     key_days = tuple(kd.day for kd in cfg.key_dates)
     min_year, max_year = year_bounds(data, key_days)
     year = max(min_year, min(max_year, data.today.year - offset))
@@ -535,18 +494,19 @@ def build_widget_html(data: HeatmapData, cfg: Config, offset: int) -> str:
     # Los dias futuros no dependen de la medida: siguen en gris segun las
     # tarjetas que vencen, con la escala de siempre (la de los repasos).
     future_thresholds = legend_thresholds(scale_reference(data, "reviews"))
-    return _card(
-        _build_head(year, year <= min_year, year >= max_year)
+    return (
+        _build_nav(year <= min_year, year >= max_year)
         + '<div class="gritmap-grid">'
         + _build_year_svg(data, cfg, year, past_thresholds, future_thresholds, key_labels)
         + "</div>"
-        + _build_legend(cfg)
+        + _year_label(data, year, cfg.measure)
         + build_stats(stats, cfg.measure, cfg.avg_window)
+        + _TIP
     )
 
 
 def error_html() -> str:
-    return _message_card("load_error")
+    return _message("load_error")
 
 
 # Contenedor y paleta
@@ -557,13 +517,12 @@ def _estimated_height(cfg: Config) -> int:
     """Alto aproximado del mapa terminado.
 
     Sirve para que el contenedor reserve el hueco y la lista de mazos no de un
-    salto cuando llegan los datos: borde y relleno del recuadro (30 px),
-    cabecera (40), rejilla (20 de meses y siete filas de cuadritos), leyenda
-    (22), cifras (61) y un margen por si aparece la barra de desplazamiento
-    (9). Medido en Chromium con el tamano por defecto: 369 px sin barra.
+    salto cuando llegan los datos: botones (29 px mas 10 de margen), rejilla
+    (20 de meses y siete filas de cuadritos), ano (25), cifras (52) y un margen
+    por si aparece la barra de desplazamiento (6).
     """
     svg_height = _TOP_MARGIN + 7 * (cfg.cell_size + _CELL_GAP)
-    return 30 + 40 + svg_height + 22 + 61 + 9
+    return 39 + svg_height + 25 + 52 + 6
 
 
 def placeholder_html(cfg: Config) -> str:

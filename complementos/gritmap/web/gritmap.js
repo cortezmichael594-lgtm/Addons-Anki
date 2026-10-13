@@ -176,7 +176,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         return fmt ? fmt.format(day) : iso;
     }
 
-    /* Los nombres de mes y las iniciales de los dias los pone el navegador,
+    /* Los nombres de mes los pone el navegador,
      * que conoce todos los idiomas en los que se puede usar Anki. Los meses
      * se cambian todos o ninguno: si alguno no cabe en su hueco, se queda la
      * fila entera de reserva que deja Python, para no mezclar estilos. */
@@ -202,27 +202,17 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
                 }
             }
         }
-        var weekdays = container.querySelectorAll("[data-gritmap-wd]");
-        var dayFmt = weekdays.length ? formatter({ weekday: "narrow" }) : null;
-        for (var w = 0; dayFmt && w < weekdays.length; w++) {
-            var row = parseInt(weekdays[w].getAttribute("data-gritmap-wd"), 10);
-            if (row >= 0 && row <= 6) {
-                /* El 1 de enero de 2024 fue lunes, la primera fila del mapa. */
-                weekdays[w].textContent = dayFmt.format(new Date(2024, 0, 1 + row));
-            }
-        }
     }
 
-    /* Python ya ha decidido que plantilla toca a cada dia (data-t) segun la
-     * medida elegida y la forma de plural; aqui solo se rellenan la cifra y
-     * la fecha. */
+    /* Globo de un dia: la fecha y, en la linea de abajo, lo hecho («lunes,
+     * 22 de junio de 2026» / «9 tarjetas»), igual en todos los idiomas.
+     * Python ya ha decidido que plantilla toca (data-t) segun la medida y la
+     * forma de plural; aqui solo se rellena la cifra. */
     function tooltipText(cell) {
         var count = parseInt(cell.getAttribute("data-v"), 10) || 0;
         var template = state.texts[cell.getAttribute("data-t") || "none"];
-        return fill(template, {
-            count: formatNumber(count),
-            date: formatDate(cell.getAttribute("data-d")),
-        });
+        return formatDate(cell.getAttribute("data-d")) + "<br>"
+            + fill(template, { count: formatNumber(count) });
     }
 
     function showTip(cell) {
@@ -302,7 +292,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
     function plainTip(cell) {
         var box = document.createElement("div");
         var keyLabel = cell.getAttribute("data-gritmap-key");
-        box.innerHTML = (keyLabel ? "★ " + keyLabel + ". " : "") + tooltipText(cell);
+        box.innerHTML = (keyLabel ? "★ " + keyLabel + ". " : "") + tooltipText(cell).replace("<br>", ". ");
         return box.textContent || "";
     }
 
@@ -420,7 +410,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             grid.scrollLeft = Math.max(0, centre);
             return;
         }
-        var shown = parseInt((container.querySelector(".gritmap-year") || {}).textContent, 10);
+        var shown = parseInt((container.querySelector(".gritmap-yv") || {}).textContent, 10);
         grid.scrollLeft = shown < new Date().getFullYear() ? grid.scrollWidth : 0;
     }
 
@@ -437,7 +427,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         /* Los mismos datos que ya se ven (por ejemplo, al terminar el calculo
          * tras volver a esta pantalla) no se vuelven a pintar: asi no se
          * pierden el desplazamiento ni el foco. */
-        if (html === state.lastHtml && container.querySelector(".gritmap-card")) {
+        if (html === state.lastHtml && container.querySelector(".gritmap-nav")) {
             renderWeekDiff(payload.week);
             return;
         }
@@ -458,7 +448,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         var focusDay = hadFocus && active.classList.contains("gritmap-cell")
             ? active.getAttribute("data-d") : null;
         var oldGrid = container.querySelector(".gritmap-grid");
-        var oldYear = (container.querySelector(".gritmap-year") || {}).textContent;
+        var oldYear = (container.querySelector(".gritmap-yv") || {}).textContent;
         var oldScroll = oldGrid ? oldGrid.scrollLeft : 0;
 
         hideTip();
@@ -473,7 +463,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         renderWeekDiff(payload.week);
 
         var newGrid = container.querySelector(".gritmap-grid");
-        var newYear = (container.querySelector(".gritmap-year") || {}).textContent;
+        var newYear = (container.querySelector(".gritmap-yv") || {}).textContent;
         if (newGrid && oldGrid && newYear === oldYear) {
             newGrid.scrollLeft = oldScroll;
         } else if (newGrid) {

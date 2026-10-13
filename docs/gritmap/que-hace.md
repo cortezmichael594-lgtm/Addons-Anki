@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 3.2.0 · 2026-10-13
+Versión 3.3.0 · 2026-10-13
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub: un cuadrito por día del año,
 más oscuro (de día) o más luminoso (de noche) cuanto más estudió ese día, y en gris los días que
@@ -20,24 +20,22 @@ repasos. Lo único que guarda son sus opciones.
 
 ## 2. El mapa
 
-- Va dentro de un recuadro con las esquinas redondeadas, como la lista de mazos, del ancho del
-  propio mapa. Arriba, a la izquierda, el año entre dos flechas; a la derecha, los botones «Hoy» y
-  «Opciones».
-- Un año entero, de enero a diciembre, en columnas de semanas que empiezan en lunes. Encima, los
-  nombres de los meses; a la izquierda, las iniciales del lunes, el miércoles y el viernes (solo si
-  la celda mide 10 px o más). Todo en el idioma de Anki y siempre con el calendario gregoriano.
+- Encima del mapa, cuatro botones pequeños centrados (véase el apartado 5). Debajo del mapa, el año
+  que se ve; al pasar el ratón por él (o llegar con el tabulador) dice lo hecho ese año en la unidad
+  de la medida: «12.480 repasos», «9.300 tarjetas» o «850 nuevas» (los días futuros no cuentan).
+- Un año entero, de enero a diciembre, en columnas de semanas que empiezan en lunes, con los nombres
+  de los meses encima en el idioma de Anki y siempre con el calendario gregoriano.
 - Días pasados y hoy: el color sale del tema elegido, en diez tonos. Sin estudio, el cuadrito queda
   en el gris de fondo. Los tonos se reparten según su promedio de siempre en los días que estudió
   (con un mínimo, para que al empezar no salga todo oscuro): desde un octavo del promedio hasta
   cuatro veces el promedio.
 - Días futuros: en diez grises suaves, según cuántas tarjetas vencen ese día. Lo atrasado no se
   dibuja.
-- El cuadrito de hoy lleva un borde del color del texto. Las fechas clave llevan en el centro un
-  punto con aro, que se ve sobre cualquier tono y cualquier tema.
+- El cuadrito de hoy lleva un borde del color del texto. Las fechas clave llevan un borde naranja;
+  en los temas Rojo fuego, Naranja atardecer y Rosa suave, azul, porque el naranja no se distingue
+  sobre ellos.
 - Al pasar el ratón por un día, el cuadrito se resalta con un borde; si se puede pulsar, el puntero
   cambia a una mano.
-- Debajo del mapa, a la derecha, una leyenda: «Menos», el gris vacío y cinco tonos del tema, y
-  «Más».
 - Qué mide el color se elige en las opciones: repasos (cada respuesta cuenta una; no cuentan los
   cambios manuales de fecha ni las reprogramaciones), tarjetas (tarjetas distintas respondidas ese
   día) o nuevas (tarjetas que empezó a estudiar ese día, también en los años anteriores al
@@ -45,7 +43,7 @@ repasos. Lo único que guarda son sus opciones.
 - Si el mapa no cabe a lo ancho, se puede desplazar de lado. Al abrir un año se ve la semana de hoy;
   en un año pasado, diciembre, y en uno futuro, enero. Al redibujar el mismo año se conserva el
   desplazamiento. «Hoy» vuelve siempre a la semana de hoy.
-- Si no hay nada que dibujar (ni repasos, ni vencimientos, ni fechas clave), el recuadro dice «No
+- Si no hay nada que dibujar (ni repasos, ni vencimientos, ni fechas clave), en su lugar dice «No
   hay datos de actividad para mostrar.». En la pantalla de un mazo excluido dice «Este mazo está
   excluido del mapa.». En los dos casos queda el botón de opciones.
 - La primera vez que se abre una pantalla muestra «…» en el hueco que ocupará el mapa, para que la
@@ -55,21 +53,23 @@ repasos. Lo único que guarda son sus opciones.
 - Cambiar de año o de tema, tamaño, redondeo, periodo o comparativa no vuelve a calcular el mapa: es
   inmediato. Cambiar la medida o los mazos excluidos sí lo recalcula, sin quitar el mapa mientras
   tanto. El cálculo se hace sin congelar Anki.
-- En árabe, hebreo, persa y uigur, la cabecera, el mapa y la leyenda van de izquierda a derecha, como
-  el calendario, y las cifras de debajo, de derecha a izquierda.
+- En árabe, hebreo, persa y uigur, los botones y el mapa van de izquierda a derecha, como el
+  calendario, y las cifras de debajo, de derecha a izquierda.
 
 ## 3. Al pasar el ratón por un día (o llegar a él con el teclado)
 
-Sale un globo con la cifra y la fecha larga en el idioma de Anki. En español:
+Sale un globo con la fecha larga en el idioma de Anki (sin «el») y, en la línea de abajo, lo hecho
+ese día. Es igual en todos los idiomas. En español:
 
-- «**12** **repasos** el lunes, 12 de octubre de 2026» (o «1 repaso»).
-- Con la medida «Tarjetas»: «**8** **tarjetas** el …».
-- Con la medida «Nuevas»: «**3** **nuevas** el …», «**1** **nueva** el …» o «**Ninguna** **nueva** el …».
-- Sin estudio: «**Ningún** **repaso** el …».
-- Días futuros: «**30** tarjetas **pendientes** el …», «**1** tarjeta **pendiente** el …» o
-  «**Ninguna** tarjeta **pendiente** el …».
-- En una fecha clave, encima, con una estrella: el nombre (varios, separados por « · ») y, si no ha
-  pasado, la cuenta atrás: «★ Examen de Anatomía (faltan 23 días)», «(falta 1 día)» o «(es hoy)».
+- «lunes, 22 de junio de 2026» / «**12** **repasos**» (o «1 repaso»).
+- Con la medida «Tarjetas»: «… / **9** **tarjetas**».
+- Con la medida «Nuevas»: «… / **3** **nuevas**», «**1** **nueva**» o «**Ninguna** **nueva**».
+- Sin estudio: «… / **Ningún** **repaso**».
+- Días futuros: «… / **30** tarjetas **pendientes**», «**1** tarjeta **pendiente**» o «**Ninguna**
+  tarjeta **pendiente**».
+- En una fecha clave, encima de todo, con una estrella: el nombre (varios, separados por « · ») y,
+  si no ha pasado, la cuenta atrás: «★ Examen de Anatomía (faltan 23 días)», «(falta 1 día)» o
+  «(es hoy)».
 - Las cifras de 1.000 o más llevan punto de millar.
 
 ## 4. Al pulsar un día
@@ -81,13 +81,12 @@ Sale un globo con la cifra y la fecha larga en el idioma de Anki. En español:
 - Los días sin nada no responden al clic.
 - Con el teclado, Intro o la barra espaciadora hacen lo mismo que el clic.
 
-## 5. Los botones de la cabecera
+## 5. Los botones de encima del mapa
 
-Cuatro botones pequeños con icono, sin relleno hasta pasar el ratón, con su nombre al pasar el
-ratón: «Año anterior», «Año siguiente» (las flechas a los lados del año), «Hoy» (vuelve al año
-actual y a la semana de hoy) y «Opciones». Las flechas se apagan en el primer año con repasos y en el
-último con vencimientos o fechas clave. Al pulsarlos se hunden un instante (nada si Anki o el
-sistema piden reducir las animaciones).
+Cuatro botones pequeños con icono, centrados, con su nombre al pasar el ratón: «Año anterior»,
+«Hoy» (vuelve al año actual y a la semana de hoy), «Año siguiente» y «Opciones». Retroceder y
+avanzar se apagan en el primer año con repasos y en el último con vencimientos o fechas clave. Al
+pulsarlos se hunden un instante (nada si Anki o el sistema piden reducir las animaciones).
 
 Con el teclado: el tabulador llega a los botones y al mapa (a un solo día: hoy, o el 1 de enero en
 otro año); dentro del mapa, las flechas arriba y abajo cambian de día y las flechas a los lados, de
@@ -96,7 +95,7 @@ el foco se queda en el botón pulsado (o en «Hoy», si ese botón se apaga).
 
 ## 6. Las cifras de debajo
 
-Separadas del mapa por una línea fina. Cada cifra va arriba, en el color del texto y con un cuadrito
+Centradas debajo del año. Cada cifra va arriba, en el color del texto y con un cuadrito
 delante del tono del tema que le corresponde según lo buena que es; su nombre va debajo, en gris.
 Sin dato, la cifra va en gris y sin cuadrito.
 
@@ -130,7 +129,7 @@ tamaño y su posición. Al aceptar, el mapa se redibuja en su sitio, sin recarga
 
 | Opción | Valores | Por defecto |
 |---|---|---|
-| Tema de color | Azul océano, Naranja atardecer, Púrpura real, Rojo fuego, Rosa suave, Turquesa laguna, Verde clásico (con una tira de cinco tonos del modo activo, que cambia si Anki pasa de día a noche) | Verde clásico |
+| Tema de color | Azul océano, Naranja atardecer, Púrpura real, Rojo fuego, Rosa suave, Turquesa laguna, Verde clásico (con un cuadrito de muestra del tono del modo activo, que cambia si Anki pasa de día a noche) | Verde clásico |
 | El color mide | Repasos, Tarjetas, Nuevas | Repasos |
 | Tamaño de celda | 8 a 60 px | 25 px |
 | Redondeo de esquinas | 0 a 15 px | 1 px |
@@ -173,14 +172,14 @@ fechas clave.
 
 Sus textos están en 51 idiomas; si el de Anki no está, sale en inglés. Cada cifra con unidad usa la
 forma de plural de su idioma (por ejemplo, en ruso 1 день, 2 дня, 5 дней). Las cifras, los
-porcentajes, las fechas, los nombres de los meses y las iniciales de los días los escribe el
+porcentajes, las fechas y los nombres de los meses los escribe el
 navegador de Anki en su idioma; en español, con punto de millar desde 1.000. «N/A», «Añadir»,
 «Eliminar» y «Buscar» usan los textos de Anki.
 
 ## 10. Si algo falla
 
 Nunca abre la ventana de error de Anki: el detalle queda en el registro del complemento (un archivo
-de texto en la carpeta de registros del perfil de Anki) y, en el recuadro del mapa, sale «No se pudo
+de texto en la carpeta de registros del perfil de Anki) y, en el sitio del mapa, sale «No se pudo
 cargar el mapa de calor.», con el botón de opciones. Anki sigue funcionando.
 
 ## 11. Qué no hace

@@ -100,7 +100,7 @@ class PluralTextsTest(unittest.TestCase):
 
     def test_language_without_own_text_falls_back_to_english(self) -> None:
         use("kk")
-        self.assertEqual(i18n.t("legend_more"), "More")
+        self.assertEqual(i18n.t("week_tip"), "Last 7 days compared with the previous 7")
 
 
 if __name__ == "__main__":

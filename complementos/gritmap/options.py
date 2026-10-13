@@ -47,12 +47,9 @@ from aqt.qt import (
     QKeySequence,
     QLineEdit,
     QLocale,
-    QPainter,
     QPixmap,
     QPushButton,
-    QRectF,
     QShortcut,
-    QSize,
     QSpinBox,
     Qt,
     QTreeWidget,
@@ -88,8 +85,6 @@ from .i18n import anki_text, fill, lang, plural_key, t
 from .palettes import PAST_DARK, PAST_LIGHT, THEME_NAMES
 from .state import state
 
-# Muestra de cada tema: cinco tonos de su escala, de claro a oscuro.
-_SWATCH_SIZE = QSize(44, 12)
 # Nombres que caben en el globo del boton de mazos excluidos.
 _TOOLTIP_MAX_NAMES = 15
 _SPIN_WIDTH = 110
@@ -135,7 +130,7 @@ def _format_day(day: date) -> str:
 
 
 def _theme_swatch(name: str) -> QIcon:
-    """Muestra del tema con los tonos que se veran en el mapa ahora mismo."""
+    """Muestra del tema con el tono que se vera en el mapa ahora mismo."""
     # --- FIX-007 (2026-10-08) --------------------------------------
     # Sintoma: con Anki en modo noche, la muestra de cada tema en el desplegable
     #          ensenaba el tono de dia, distinto del que luego se ve en el mapa.
@@ -144,18 +139,8 @@ def _theme_swatch(name: str) -> QIcon:
     #        en el momento de construir la ventana.
     # ---------------------------------------------------------------
     scale = PAST_DARK if theme_manager.night_mode else PAST_LIGHT
-    tones = scale.get(name, scale[DEFAULT_CONFIG.theme])[1::2]
-    ratio = mw.devicePixelRatioF() if mw is not None else 1.0
-    pixmap = QPixmap(round(_SWATCH_SIZE.width() * ratio), round(_SWATCH_SIZE.height() * ratio))
-    pixmap.setDevicePixelRatio(ratio)
-    pixmap.fill(Qt.GlobalColor.transparent)
-    painter = QPainter(pixmap)
-    segment = _SWATCH_SIZE.width() / len(tones)
-    for index, tone in enumerate(tones):
-        painter.fillRect(
-            QRectF(index * segment, 0, segment, _SWATCH_SIZE.height()), QColor(tone)
-        )
-    painter.end()
+    pixmap = QPixmap(16, 16)
+    pixmap.fill(QColor(scale.get(name, scale[DEFAULT_CONFIG.theme])[5]))
     return QIcon(pixmap)
 
 
@@ -482,7 +467,6 @@ class HeatmapOptionsDialog(QDialog):
         self._decks = decks
 
         self._theme = QComboBox()
-        self._theme.setIconSize(_SWATCH_SIZE)
         for name in _sorted_theme_names():
             self._theme.addItem(_theme_swatch(name), t(f"theme_{name}"), name)
         self._measure = QComboBox()

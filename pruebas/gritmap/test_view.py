@@ -31,24 +31,42 @@ class WidgetTest(unittest.TestCase):
         anki.lang.current_lang = "es"
         i18n.reset()
 
-    def test_map_has_head_legend_and_stats(self) -> None:
+    def test_map_has_nav_year_and_stats(self) -> None:
         cfg = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 11, 20), "Examen <b>"),))
         html = view.build_widget_html(sample(), cfg, 0)
-        self.assertIn('class="gritmap-year"', html)
-        self.assertIn(">2026<", html)
-        self.assertIn("gritmap-legend", html)
+        self.assertEqual(html.count('class="gritmap-btn"'), 4)
+        self.assertNotIn("legend", html)
+        self.assertNotIn("data-gritmap-wd", html)
         self.assertEqual(html.count('class="gritmap-stat"'), 5)
         # El dia de hoy se marca y es el que recibe el tabulador.
         self.assertRegex(html, r'data-d="2026-10-13"[^>]*data-gritmap-today="1"[^>]*tabindex="0"')
-        # La fecha clave lleva su punto y su nombre escapado.
-        self.assertIn("gritmap-kd", html)
+        # La fecha clave lleva su borde (atributo) y su nombre escapado.
+        self.assertRegex(html, r'data-d="2026-11-20"[^>]*data-gritmap-key=')
         self.assertIn("Examen &amp;lt;b&amp;gt;", html)
         self.assertNotIn("<b>Examen", html)
+
+    def test_year_label_shows_the_year_total(self) -> None:
+        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        # 5 + 1240 + 30 repasos en 2026, en la unidad de la medida.
+        self.assertIn('data-n=&quot;1275&quot;', html)
+        self.assertIn("repasos", html[html.index("gritmap-yv"):html.index("gritmap-yv") + 300])
+        self.assertEqual(view.year_total(sample(), 2026, "new"), 4)
+        self.assertEqual(view.year_total(sample(), 2025, "reviews"), 0)
+
+    def test_tooltip_texts_have_no_date(self) -> None:
+        # La fecha va en su propia linea, la pone el navegador (peticion del cliente).
+        for code, texts in i18n.STRINGS.items():
+            for key, text in texts.items():
+                self.assertNotIn("{date}", text, f"{code}.{key}")
+
+    def test_warm_themes_mark_key_dates_in_blue(self) -> None:
+        self.assertIn("--gritmap-key:var(--state-new", palettes.palette_css("sunset_orange"))
+        self.assertNotIn("--gritmap-key", palettes.palette_css("classic_green"))
 
     def test_all_injected_names_start_with_gritmap(self) -> None:
         # Regla de FIX-008.
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        for name in re.findall(r'class="([^"]+)"', html):
+        for name in re.findall(r'class="([^"]+)"', html.replace("&quot;", '"')):
             for part in name.split():
                 self.assertTrue(part.startswith("gritmap"), part)
         for attr in re.findall(r"\sdata-([a-z-]+)=", html):
