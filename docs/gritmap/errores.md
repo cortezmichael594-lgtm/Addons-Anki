@@ -132,6 +132,11 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - Los periodos de 7 y 90 días se retiraron al poner los botones rápidos de periodo junto al año,
   como control segmentado sin marco: el elegido con fondo suave de pastilla y negrita, como en la
   imagen que aportó («30 días», «1 año», «Todo»). Lo pidió el cliente el 2026-10-13.
+- Versión 3.5.0 (plan aprobado por el cliente el 2026-10-13, con criterios de diseño citados en la
+  entrega): cifras en dos grupos (constancia y rendimiento) con la racha actual primero, número
+  grande y unidad pequeña, misma letra que Anki, globos con la fecha en gris y cierre con Esc, y
+  botones de periodo de al menos 24 píxeles de alto. El cliente descartó la llama de la racha y sus
+  globos de motivación.
 - El globo del año lleva el signo de exclamación de cada idioma; en español, los dos («¡…!»). Lo
   pidió el cliente el 2026-10-13.
 - La retención no tiene globo explicativo. Lo retiró el cliente el 2026-10-09.

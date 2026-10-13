@@ -62,6 +62,16 @@ class WidgetTest(unittest.TestCase):
         self.assertIn("¡", html[html.index("gritmap-yv"):html.index("gritmap-periods")])
         self.assertNotIn("window:90", html)
 
+    def test_stats_in_two_groups_with_streak_first(self) -> None:
+        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        stats = html[html.index('class="gritmap-stats"'):]
+        self.assertEqual(stats.count('class="gritmap-group"'), 2)
+        order = [stats.index(label) for label in
+                 ("Racha actual", "Racha más larga", "Días estudiados", "Promedio diario", "Retención")]
+        self.assertEqual(order, sorted(order))
+        # La unidad va aparte para poder ir mas pequena que el numero.
+        self.assertIn('<span class="gritmap-unit">repasos</span>', stats)
+
     def test_tooltip_texts_have_no_date(self) -> None:
         # La fecha va en su propia linea, la pone el navegador (peticion del cliente).
         for code, texts in i18n.STRINGS.items():

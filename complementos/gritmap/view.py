@@ -124,12 +124,18 @@ def fill_html(key: str, **values: str) -> str:
     return text
 
 
+def unit_html(text: str) -> str:
+    """Unidad de una cifra («repasos», «días»): en las cifras de debajo del
+    mapa va mas pequena y en gris, para que destaque el numero."""
+    return f'<span class="gritmap-unit">{html.escape(text)}</span>'
+
+
 def count_html(count: int, measure: str) -> str:
     """Cantidad entera con su unidad: 85 repasos, 60 tarjetas, 8 nuevas."""
     if measure == "new":
-        return num_html(count) + " " + html.escape(plural_text("unit_new", count))
+        return num_html(count) + " " + unit_html(plural_text("unit_new", count))
     unit = "card" if measure == "cards" else "review"
-    return num_html(count) + " " + html.escape(unit_label(count, unit))
+    return num_html(count) + " " + unit_html(unit_label(count, unit))
 
 
 def countdown_html(days: int) -> str:
@@ -410,7 +416,8 @@ def _stat_entry(label: str, value_html: str, level: int, info_html: str = "") ->
 
     value_html ya viene escapado. La cifra va en el color del texto, con un
     cuadrito del tono que le corresponde delante (level_class). Si hay
-    info_html, la cifra muestra un globo con ese texto al pasar el raton.
+    info_html, la cifra muestra un globo con ese texto al pasar el raton o
+    al llegar con el tabulador.
     """
     info = (
         f' data-gritmap-tip="1" data-gritmap-info="{html.escape(info_html, quote=True)}" tabindex="0"'
@@ -446,7 +453,7 @@ def _retention_entry(retention: int | None) -> str:
 
 
 def _days_html(count: int) -> str:
-    return num_html(count) + " " + html.escape(unit_label(count, "day"))
+    return num_html(count) + " " + unit_html(unit_label(count, "day"))
 
 
 def _current_streak_entry(stats: FullStats) -> str:
@@ -497,16 +504,21 @@ def _average_entry(average: float | None, measure: str, window: int) -> str:
 
 
 def build_stats(stats: FullStats, measure: str, window: int = 30) -> str:
+    """Las cinco cifras en dos grupos (ley de proximidad): constancia (rachas y
+    dias estudiados), con la racha actual primero, y rendimiento (promedio y
+    retencion). Plan aprobado por el cliente el 2026-10-13."""
     return (
         '<div class="gritmap-stats">'
-        + _average_entry(stats.average, measure, window)
-        + _stat_entry(_label("days_learned"), pct_html(stats.studied_pct), pct_level(stats.studied_pct))
-        + _retention_entry(stats.retention)
+        '<div class="gritmap-group">'
+        + _current_streak_entry(stats)
         + _stat_entry(
             _label("longest_streak"), _days_html(stats.longest_streak), streak_level(stats.longest_streak)
         )
-        + _current_streak_entry(stats)
-        + "</div>"
+        + _stat_entry(_label("days_learned"), pct_html(stats.studied_pct), pct_level(stats.studied_pct))
+        + '</div><div class="gritmap-group">'
+        + _average_entry(stats.average, measure, window)
+        + _retention_entry(stats.retention)
+        + "</div></div>"
     )
 
 

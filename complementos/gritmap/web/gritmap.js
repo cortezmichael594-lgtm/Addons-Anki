@@ -136,7 +136,16 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         for (var j = 0; pctFmt && j < pcts.length; j++) {
             var pct = parseInt(pcts[j].getAttribute("data-p"), 10);
             if (!isNaN(pct)) {
-                pcts[j].textContent = pctFmt.format(pct / 100);
+                /* El signo % va como unidad (mas pequeno), igual que «repasos». */
+                pcts[j].innerHTML = "";
+                pctFmt.formatToParts(pct / 100).forEach(function (part) {
+                    var piece = document.createElement("span");
+                    if (part.type === "percentSign") {
+                        piece.className = "gritmap-unit";
+                    }
+                    piece.textContent = part.value;
+                    pcts[j].appendChild(piece);
+                });
             }
         }
     }
@@ -211,8 +220,9 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
     function tooltipText(cell) {
         var count = parseInt(cell.getAttribute("data-v"), 10) || 0;
         var template = state.texts[cell.getAttribute("data-t") || "none"];
-        return formatDate(cell.getAttribute("data-d")) + "<br>"
-            + fill(template, { count: formatNumber(count) });
+        /* La fecha, en gris y mas pequena; lo hecho, debajo y destacado. */
+        return '<span class="gritmap-tip-date">' + formatDate(cell.getAttribute("data-d"))
+            + "</span><br>" + fill(template, { count: formatNumber(count) });
     }
 
     function showTip(cell) {
@@ -292,7 +302,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
     function plainTip(cell) {
         var box = document.createElement("div");
         var keyLabel = cell.getAttribute("data-gritmap-key");
-        box.innerHTML = (keyLabel ? "★ " + keyLabel + ". " : "") + tooltipText(cell).replace("<br>", ". ");
+        box.innerHTML = (keyLabel ? "★ " + keyLabel + ". " : "") + tooltipText(cell).replace(/<br>/g, ". ");
         return box.textContent || "";
     }
 
@@ -365,6 +375,13 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             }
         });
         container.addEventListener("focusout", hideTip);
+        /* La tecla Esc cierra el globo (WCAG 1.4.13: lo que aparece al pasar
+         * el raton o al enfocar se puede descartar). */
+        container.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                hideTip();
+            }
+        });
         container.addEventListener("mouseleave", hideTip);
         /* Si el mapa se desplaza lateralmente, el globo dejaria de apuntar a
          * su celda: se oculta en cuanto empieza el desplazamiento. */

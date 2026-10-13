@@ -165,7 +165,7 @@ body.nightMode #gritmap-root {
 }
 
 #gritmap-root .gritmap-month {
-    font-size: 10.5px;
+    font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.03em;
     fill: var(--gritmap-muted);
@@ -212,9 +212,10 @@ body.nightMode #gritmap-root {
 }
 
 #gritmap-root .gritmap-yv {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.09em;
+    font-size: 12px;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
     color: var(--gritmap-muted);
     cursor: default;
 }
@@ -243,16 +244,17 @@ body.nightMode #gritmap-root {
 
 #gritmap-root .gritmap-period {
     margin: 0;
-    padding: 2px 9px;
+    min-height: 24px;
+    padding: 3px 10px;
     border: none;
     border-radius: 6px;
     background: transparent;
     box-shadow: none;
     color: var(--gritmap-muted);
     font: inherit;
-    font-size: 11.5px;
+    font-size: 12px;
     font-weight: 500;
-    line-height: 1.5;
+    line-height: 18px;
     cursor: pointer;
 }
 
@@ -276,12 +278,27 @@ body.nightMode #gritmap-root {
     outline-offset: 1px;
 }
 
+/* Cifras en dos grupos (constancia y rendimiento) separados por una raya
+ * fina: lo cercano se lee como relacionado (ley de proximidad). */
 #gritmap-root .gritmap-stats {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 10px 44px;
-    margin-top: 14px;
+    align-items: flex-start;
+    gap: 12px 0;
+    margin-top: 16px;
+}
+
+#gritmap-root .gritmap-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 36px;
+    padding: 0 28px;
+}
+
+#gritmap-root .gritmap-group + .gritmap-group {
+    border-inline-start: 1px solid var(--gritmap-btnb);
 }
 
 #gritmap-root .gritmap-stat {
@@ -291,28 +308,47 @@ body.nightMode #gritmap-root {
     min-width: 0;
 }
 
+/* Jerarquia por peso y tamano, con una sola familia (la de Anki): el
+ * numero manda; la unidad y el rotulo acompanan en gris. Cifras de ancho
+ * fijo para que no bailen al cambiar. */
 #gritmap-root .gritmap-value {
-    font-size: 15px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25em;
+    font-size: 19px;
     font-weight: 650;
-    line-height: 1.3;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
     color: var(--gritmap-fg);
+}
+
+#gritmap-root .gritmap-value .gritmap-unit {
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--gritmap-muted);
+}
+
+#gritmap-root .gritmap-value .gritmap-pct .gritmap-unit {
+    margin-inline-start: 0.05em;
 }
 
 /* Cuadrito del tono de cada cifra: el color de fondo lo pone la paleta. */
 #gritmap-root .gritmap-value::before {
     content: "";
     display: inline-block;
-    width: 0.62em;
-    height: 0.62em;
-    margin-inline-end: 0.42em;
+    align-self: center;
+    width: 9px;
+    height: 9px;
+    margin-inline-end: 0.2em;
     border-radius: 2px;
-    vertical-align: 0.04em;
 }
 
 #gritmap-root .gritmap-value.gritmap-cm {
     color: var(--gritmap-muted);
+    font-weight: 600;
 }
 
 #gritmap-root .gritmap-value.gritmap-cm::before {
@@ -320,8 +356,9 @@ body.nightMode #gritmap-root {
 }
 
 #gritmap-root .gritmap-label {
-    margin-top: 2px;
-    font-size: 11.5px;
+    margin-top: 3px;
+    font-size: 12px;
+    font-weight: 500;
     white-space: nowrap;
     color: var(--gritmap-muted);
 }
@@ -342,15 +379,20 @@ body.nightMode #gritmap-root {
     padding: 18px;
 }
 
+#gritmap-tip .gritmap-tip-date {
+    font-size: 11.5px;
+    color: var(--gritmap-muted);
+}
+
 #gritmap-tip {
     position: absolute;
     display: none;
     background: var(--gritmap-tipbg);
     color: var(--gritmap-tipfg);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 400;
     line-height: 1.45;
-    padding: 8px 11px;
+    padding: 8px 12px;
     border-radius: 7px;
     text-align: center;
     max-width: 260px;

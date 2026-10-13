@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 3.4.2 · 2026-10-13
+Versión 3.5.0 · 2026-10-13
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub: un cuadrito por día del año,
 más oscuro (de día) o más luminoso (de noche) cuanto más estudió ese día, y en gris los días que
@@ -61,8 +61,9 @@ repasos. Lo único que guarda son sus opciones.
 
 ## 3. Al pasar el ratón por un día (o llegar a él con el teclado)
 
-Sale un globo con la fecha larga en el idioma de Anki (sin «el») y, en la línea de abajo, lo hecho
-ese día. Es igual en todos los idiomas. En español:
+Sale un globo con la fecha larga en el idioma de Anki (sin «el»), en gris y algo más pequeña, y, en
+la línea de abajo, lo hecho ese día. Es igual en todos los idiomas. La tecla Esc lo cierra. En
+español:
 
 - «lunes, 22 de junio de 2026» / «**12** **repasos**» (o «1 repaso»).
 - Con la medida «Tarjetas»: «… / **9** **tarjetas**».
@@ -104,9 +105,13 @@ son texto gris que toma ese fondo al pasar el ratón. Al pulsar otro, las cifras
 la elección se guarda (es la misma opción «Periodo de las cifras» de la ventana de opciones). Al
 pasar el ratón por ellos dice «Periodo de las cifras».
 
-Debajo, las cinco cifras, centradas. Cada cifra va arriba, en el color del texto y con un cuadrito
-delante del tono del tema que le corresponde según lo buena que es; su nombre va debajo, en gris.
-Sin dato, la cifra va en gris y sin cuadrito.
+Debajo, las cinco cifras, centradas, en dos grupos separados por una raya fina: a la izquierda la
+constancia («Racha actual», «Racha más larga» y «Días estudiados»), a la derecha el rendimiento
+(«Promedio diario» y «Retención»). Si la ventana es estrecha, los grupos pasan a dos líneas. Cada
+cifra va arriba: el número grande y en negrita, en el color del texto, con la unidad («días»,
+«repasos», «%») más pequeña y en gris, y un cuadrito delante del tono del tema que le corresponde
+según lo buena que es; su nombre va debajo, en gris. Sin dato, la cifra va en gris y sin cuadrito.
+Los números tienen todos el mismo ancho, para que no bailen al cambiar.
 
 Todas siguen la medida elegida: con «Repasos» y «Tarjetas», un día estudiado es un día con repasos;
 con «Nuevas», solo un día en que empezó alguna tarjeta nueva. Así cambian el promedio, los días
