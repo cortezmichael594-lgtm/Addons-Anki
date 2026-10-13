@@ -1,6 +1,9 @@
 /* Historial de correcciones de este archivo:
  * FIX-008 (2026-10-08) — Los selectores, clases y variables usaban el prefijo
  *                        "shm", que no es el nombre del paquete.
+ * FIX-023 (2026-10-13) — En arabe, hebreo, persa y uigur las flechas de
+ *                        navegacion salian invertidas y la cifra pegada a su
+ *                        rotulo.
  */
 
 /* GritMap - estructura del mapa de calor.
@@ -13,6 +16,9 @@
  *
  * Esta hoja se carga junto con la pagina, antes de que se dibuje nada, para
  * que el mapa no aparezca primero sin estilo y luego se recoloque.
+ *
+ * Sin animaciones: solo el leve hundimiento de los botones al pulsarlos
+ * (100 ms), que se anula si Anki o el sistema piden reducir el movimiento.
  */
 
 /* --- FIX-008 (2026-10-08) ---
@@ -23,14 +29,18 @@
  */
 
 #gritmap-root {
+    --gritmap-card-bg: var(--canvas-elevated, #FFFFFF);
+    --gritmap-card-border: var(--border-subtle, #E9ECF0);
     --gritmap-empty: var(--border-subtle, #E9ECF0);
+    --gritmap-fg: var(--fg, #1B2430);
     --gritmap-muted: var(--fg-subtle, #5C6675);
-    --gritmap-btn: var(--button-bg, #FFFFFF);
     --gritmap-btnh: var(--button-gradient-start, #F0F2F6);
     --gritmap-btnb: var(--border, #DCE0E6);
-    --gritmap-icon: var(--fg-subtle, #5C6675);
+    --gritmap-hover: var(--fg-subtle, #5C6675);
     --gritmap-today: var(--fg, #1B2430);
-    --gritmap-key: var(--state-learn, #E8590C);
+    --gritmap-focus: var(--border-focus, #3B6FE0);
+    --gritmap-kd: var(--fg, #1B2430);
+    --gritmap-kd-ring: var(--canvas-elevated, #FFFFFF);
     --gritmap-tipbg: var(--canvas-overlay, #FFFFFF);
     --gritmap-tipfg: var(--fg, #1B2430);
     --gritmap-tipb: var(--border, #DCE0E6);
@@ -38,17 +48,23 @@
     --gritmap-shadow-soft: var(--shadow-subtle, #1B243012);
 }
 
+/* De noche los cuadritos vacios toman el borde normal: el sutil apenas se
+ * distingue del fondo del recuadro. */
 html.night-mode #gritmap-root,
 body.night_mode #gritmap-root,
 body.nightMode #gritmap-root {
-    --gritmap-empty: var(--border-subtle, #202836);
+    --gritmap-card-bg: var(--canvas-elevated, #212836);
+    --gritmap-card-border: var(--border, #2C3545);
+    --gritmap-empty: var(--border, #2C3545);
+    --gritmap-fg: var(--fg, #E9EDF4);
     --gritmap-muted: var(--fg-subtle, #9FABBB);
-    --gritmap-btn: var(--button-bg, #212836);
     --gritmap-btnh: var(--button-gradient-start, #2A3342);
     --gritmap-btnb: var(--border, #2C3545);
-    --gritmap-icon: var(--fg-subtle, #9FABBB);
+    --gritmap-hover: var(--fg-subtle, #9FABBB);
     --gritmap-today: var(--fg, #E9EDF4);
-    --gritmap-key: var(--state-learn, #FFA94D);
+    --gritmap-focus: var(--border-focus, #6390FF);
+    --gritmap-kd: var(--fg, #E9EDF4);
+    --gritmap-kd-ring: var(--canvas-elevated, #212836);
     --gritmap-tipbg: var(--canvas-overlay, #191E2A);
     --gritmap-tipfg: var(--fg, #E9EDF4);
     --gritmap-tipb: var(--border, #2C3545);
@@ -58,122 +74,243 @@ body.nightMode #gritmap-root {
 
 #gritmap-root {
     position: relative;
-    margin: 10px 0 6px 0;
+    margin: 18px 0 8px 0;
     text-align: center;
     user-select: none;
     -webkit-user-select: none;
 }
 
-#gritmap-root .gritmap-nav {
-    text-align: center;
-    margin-bottom: 10px;
-    line-height: 0;
+/* Recuadro, como el de la lista de mazos: ocupa lo que ocupa el mapa. */
+#gritmap-root .gritmap-card {
+    display: inline-block;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding: 14px 18px 14px 18px;
+    text-align: start;
+    background: var(--gritmap-card-bg);
+    border: 1px solid var(--gritmap-card-border);
+    border-radius: var(--border-radius-medium, 12px);
 }
 
-/* Los controles son botones de verdad: se pueden alcanzar con el tabulador y
- * los lee un lector de pantalla. El aspecto es el mismo de siempre porque se
- * anulan los estilos que el navegador da a <button>. */
+.fancy #gritmap-root .gritmap-card {
+    box-shadow: 0 1px 3px var(--gritmap-shadow-soft);
+}
+
+/* --- FIX-023 (2026-10-13) ---
+ * Sintoma: en los idiomas que se escriben de derecha a izquierda, «Retroceder»
+ *          quedaba a la derecha con su flecha hacia dentro, y la cifra se
+ *          pegaba a su rotulo.
+ * Causa: Anki pone toda la pagina de derecha a izquierda y la cabecera se
+ *        invertia, mientras la rejilla sigue el orden del calendario; el
+ *        hueco entre rotulo y cifra era un margen fijo a la derecha.
+ * Regla: el eje del tiempo (cabecera, rejilla y leyenda) va siempre de
+ *        izquierda a derecha, y los huecos entre textos usan margenes
+ *        logicos (margin-inline-*), que siguen la direccion del idioma.
+ */
+#gritmap-root .gritmap-head,
+#gritmap-root .gritmap-grid,
+#gritmap-root .gritmap-legend {
+    direction: ltr;
+}
+
+#gritmap-root .gritmap-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+#gritmap-root .gritmap-nav,
+#gritmap-root .gritmap-tools {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#gritmap-root .gritmap-year {
+    min-width: 3.2em;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--gritmap-fg);
+}
+
+/* Botones de icono, sin relleno hasta pasar el raton por encima. Se anulan
+ * los estilos que Anki da a todos los <button> de sus paginas. */
 #gritmap-root .gritmap-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 27px;
-    height: 27px;
+    width: 28px;
+    height: 28px;
+    margin: 0;
     padding: 0;
-    border-radius: 7px;
-    background: var(--gritmap-btn);
-    border: 1px solid var(--gritmap-btnb);
-    margin: 0 3px;
-    cursor: pointer;
-    color: inherit;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
+    color: var(--gritmap-muted);
     font: inherit;
-    vertical-align: middle;
-    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
-    box-shadow: 0 1px 2px var(--gritmap-shadow-soft);
+    cursor: pointer;
+    transition: transform 0.1s ease;
 }
 
 #gritmap-root .gritmap-btn:hover {
     background: var(--gritmap-btnh);
-    box-shadow: 0 2px 6px var(--gritmap-shadow);
+    border-color: var(--gritmap-btnb);
+    color: var(--gritmap-fg);
+    box-shadow: none;
 }
 
 #gritmap-root .gritmap-btn:active {
     transform: translateY(1px);
+    box-shadow: none;
 }
 
 /* Solo se ve al navegar con el teclado, nunca al hacer clic con el raton. */
 #gritmap-root .gritmap-btn:focus-visible {
-    outline: 2px solid var(--border-focus, var(--gritmap-icon));
-    outline-offset: 2px;
+    outline: 2px solid var(--gritmap-focus);
+    outline-offset: 1px;
 }
 
-#gritmap-root .gritmap-btn[disabled] {
-    opacity: 0.3;
-    cursor: default;
-    box-shadow: none;
-}
-
+#gritmap-root .gritmap-btn[disabled],
 #gritmap-root .gritmap-btn[disabled]:hover {
-    background: var(--gritmap-btn);
-    box-shadow: none;
+    opacity: 0.35;
+    cursor: default;
+    background: transparent;
+    border-color: transparent;
+    color: var(--gritmap-muted);
 }
 
+#gritmap-root .gritmap-btn svg {
+    display: block;
+}
+
+/* La barra de desplazamiento, si hace falta, es la de Anki. */
 #gritmap-root .gritmap-grid {
-    display: inline-block;
+    display: block;
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-width: thin;
 }
 
 #gritmap-root .gritmap-grid svg {
     display: block;
 }
 
+#gritmap-root .gritmap-month {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    fill: var(--gritmap-muted);
+}
+
+#gritmap-root .gritmap-wd {
+    fill: var(--gritmap-muted);
+}
+
+#gritmap-root .gritmap-cell[data-gritmap-today] {
+    stroke: var(--gritmap-today);
+    stroke-width: 1.5px;
+}
+
 #gritmap-root .gritmap-cell[data-gritmap-cmd] {
     cursor: pointer;
 }
 
-#gritmap-root .gritmap-yl {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.09em;
-    color: var(--gritmap-muted);
+#gritmap-root .gritmap-cell:hover {
+    stroke: var(--gritmap-hover);
+    stroke-width: 1.5px;
+}
+
+#gritmap-root .gritmap-cell:focus {
+    outline: none;
+}
+
+#gritmap-root .gritmap-cell:focus-visible {
+    stroke: var(--gritmap-focus);
+    stroke-width: 2px;
+}
+
+/* Marca de las fechas clave: punto con aro, visible sobre cualquier tono. */
+#gritmap-root .gritmap-kd {
+    fill: var(--gritmap-kd);
+    stroke: var(--gritmap-kd-ring);
+    stroke-width: 1.5px;
+    pointer-events: none;
+}
+
+#gritmap-root .gritmap-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
     margin-top: 8px;
+    font-size: 11px;
+    color: var(--gritmap-muted);
+}
+
+#gritmap-root .gritmap-legend svg {
+    display: block;
 }
 
 #gritmap-root .gritmap-stats {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    column-gap: 44px;
-    row-gap: 8px;
-    margin-top: 14px;
-    font-size: 13.5px;
-    letter-spacing: 0.01em;
+    justify-content: space-between;
+    gap: 10px 28px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--gritmap-card-border);
 }
 
 #gritmap-root .gritmap-stat {
-    white-space: nowrap;
-}
-
-#gritmap-root .gritmap-label {
-    color: var(--gritmap-muted);
-    margin-right: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
 }
 
 #gritmap-root .gritmap-value {
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 650;
+    line-height: 1.3;
+    white-space: nowrap;
     font-variant-numeric: tabular-nums;
+    color: var(--gritmap-fg);
 }
 
-#gritmap-root .gritmap-cm {
+/* Cuadrito del tono de cada cifra: el color de fondo lo pone la paleta. */
+#gritmap-root .gritmap-value::before {
+    content: "";
+    display: inline-block;
+    width: 0.62em;
+    height: 0.62em;
+    margin-inline-end: 0.42em;
+    border-radius: 2px;
+    vertical-align: 0.04em;
+}
+
+#gritmap-root .gritmap-value.gritmap-cm {
+    color: var(--gritmap-muted);
+}
+
+#gritmap-root .gritmap-value.gritmap-cm::before {
+    content: none;
+}
+
+#gritmap-root .gritmap-label {
+    margin-top: 2px;
+    font-size: 11.5px;
+    white-space: nowrap;
     color: var(--gritmap-muted);
 }
 
 #gritmap-root .gritmap-msg {
-    margin: 14px 0;
-    text-align: center;
+    margin: 2px 2px 4px 2px;
     font-size: 13px;
     color: var(--gritmap-muted);
 }
@@ -196,18 +333,29 @@ body.nightMode #gritmap-root {
     font-weight: 400;
     line-height: 1.45;
     padding: 8px 11px;
-    border-radius: 7px;
+    border-radius: 8px;
     text-align: center;
-    max-width: 240px;
+    max-width: 260px;
     pointer-events: none;
     z-index: 9999;
     border: 1px solid var(--gritmap-tipb);
     box-shadow: 0 6px 18px var(--gritmap-shadow);
 }
 
-/* Cifras de las estadisticas que muestran un globo al pasar el raton. */
+/* Cifras de las estadisticas que muestran un globo al pasar el raton (o al
+ * llegar a ellas con el tabulador). */
 #gritmap-root .gritmap-stat[data-gritmap-info] {
     cursor: default;
+}
+
+#gritmap-root .gritmap-stat:focus {
+    outline: none;
+}
+
+#gritmap-root .gritmap-stat:focus-visible {
+    outline: 2px solid var(--gritmap-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
 }
 
 /* Comparativa semanal: va junto al texto de Anki, fuera de #gritmap-root. */

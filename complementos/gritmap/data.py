@@ -41,16 +41,22 @@ sin tiempo y la cifra resultaba incoherente.
 #                        el mapa general segun hubiera mazos excluidos.
 # FIX-010 (2026-10-08) — El promedio diario mostraba 0 cuando la ventana no
 #                        tenia ningun dia completo estudiado.
+# FIX-011 (2026-10-13) — La medida «Nuevas» daba 0 en todo el historial
+#                        anterior al planificador v3.
+# FIX-012 (2026-10-13) — Con la hora de cambio de dia a las 12 o mas tarde,
+#                        cada cuadrito llevaba la fecha del dia siguiente.
+# FIX-013 (2026-10-13) — En la pantalla de un mazo grande, el calculo tardaba
+#                        segundos y Anki se quedaba esperando.
 
 from __future__ import annotations
 
 import math
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from anki.collection import Collection
-from anki.dbproxy import DBProxy
+from anki.dbproxy import DBProxy, Row
 
 from .decks import DeckScope
 
@@ -72,13 +78,33 @@ SCALE_MINIMUM: dict[str, float] = {"reviews": 20.0, "cards": 20.0, "new": 10.0}
 # (type 4) y reprogramar (type 5).
 _NOT_A_REVIEW = "type not in (4, 5)"
 
-# Primera respuesta de una tarjeta nueva: Anki la guarda como aprendizaje
-# (type 0) con intervalo anterior 0 (lastIvl = 0); los pasos siguientes llevan
-# un intervalo anterior negativo (segundos). Tras «Olvidar», la tarjeta vuelve
-# a ser nueva y su siguiente respuesta es otra vez type 0 con lastIvl 0, igual
-# que la cuenta Anki en su limite diario de nuevas. Comprobado con una
-# coleccion de prueba en Anki 26.09.3 (2026-10-08).
-_STARTS_NEW_CARD = "type = 0 and lastIvl = 0 and ease > 0"
+# Primera respuesta de una tarjeta nueva. Con el planificador v3 Anki la guarda
+# como aprendizaje (type 0) con intervalo anterior 0 (lastIvl = 0); los pasos
+# siguientes llevan un intervalo anterior negativo (segundos). Tras «Olvidar»,
+# la tarjeta vuelve a ser nueva y su siguiente respuesta es otra vez type 0
+# con lastIvl 0, igual que la cuenta Anki en su limite diario de nuevas.
+# Comprobado con una coleccion de prueba en Anki 26.09.3 (2026-10-08).
+# --- FIX-011 (2026-10-13) --------------------------------------
+# Sintoma: con la medida «Nuevas», todos los dias anteriores al planificador
+#          v3 salian en gris y el promedio decia «N/A».
+# Causa: los planificadores v1 y v2 guardaban la primera respuesta con
+#        lastIvl negativo (el primer paso, en segundos), nunca 0.
+# Regla: una respuesta de aprendizaje empieza una tarjeta nueva si lleva
+#        lastIvl 0 o si es la primera respuesta que tuvo esa tarjeta, el
+#        mismo criterio que la busqueda introduced: de Anki. La subconsulta
+#        mira solo el registro, asi que las tarjetas borradas siguen contando
+#        (Regla de FIX-004).
+# ---------------------------------------------------------------
+_STARTS_NEW_CARD = (
+    "type = 0 and ease > 0 and (lastIvl = 0 or id = "
+    "(select min(r2.id) from revlog r2 where r2.cid = revlog.cid and r2.ease > 0))"
+)
+
+# Tramo de cada consulta al registro, en dias. Anki atiende una consulta cada
+# vez: partir la lectura en tramos de un ano deja huecos entre ellos para lo
+# que Anki necesite hacer mientras tanto (por ejemplo, empezar a estudiar).
+_CHUNK_DAYS = 365
+_MAX_CHUNKS = 60
 
 # Definicion literal de "repaso que cuenta para la retencion" en Anki, tal como
 # la aplica su pantalla de estadisticas (fila Ultimo mes, columna Todas):
@@ -119,6 +145,8 @@ class HeatmapData:
     # Clave: dias hacia atras. Valor: (repasos medibles para la retencion,
     # de ellos acertados). Solo dias con algun repaso medible.
     retention_days: dict[int, tuple[int, int]] = field(default_factory=dict)
+    # El mapa es el de un mazo que esta entre los excluidos.
+    deck_excluded: bool = False
 
 
 @dataclass(frozen=True)
@@ -182,24 +210,47 @@ def revlog_deck_filter(scope: DeckScope) -> str:
     #        (2026-10-08) las borradas cuentan siempre en el mapa general; en
     #        el de un mazo no pueden contar porque ya no tienen mazo.
     # ---------------------------------------------------------------
+    # --- FIX-013 (2026-10-13) --------------------------------------
+    # Sintoma: en la pantalla de un mazo con casi todas las tarjetas, el mapa
+    #          tardaba segundos y, mientras, Anki no respondia al pulsar
+    #          «Estudiar ahora».
+    # Causa: con «cid in (...)» SQLite buscaba en el indice una vez por cada
+    #        tarjeta del mazo, mucho mas lento que leer el registro de corrido.
+    # Regla: la condicion de inclusion se escribe «+cid in (...)», para que el
+    #        peor caso sea una lectura seguida, como el mapa general.
+    # ---------------------------------------------------------------
     parts: list[str] = []
     if scope.include_ids is not None:
         ids = _id_list(scope.include_ids)
-        parts.append(f" and cid in (select id from cards where did in {ids} or odid in {ids})")
+        parts.append(f" and +cid in (select id from cards where did in {ids} or odid in {ids})")
     if scope.exclude_ids:
         ids = _id_list(scope.exclude_ids)
         parts.append(f" and cid not in (select id from cards where did in {ids} or odid in {ids})")
     return "".join(parts)
 
 
-def anki_today(cutoff_seconds: int) -> date:
+def anki_today(cutoff_seconds: int, utc_offset: timedelta | None = None) -> date:
     """Dia de hoy segun el calendario de Anki.
 
-    day_cutoff es el instante en que empieza el dia siguiente (a la hora de
-    reinicio configurada). Retroceder doce horas cae siempre dentro del dia
-    actual, sea cual sea esa hora.
+    day_cutoff es el instante en que empieza el dia siguiente, a la hora de
+    cambio de dia configurada y con el desfase horario de este momento. Se
+    lee con ese mismo desfase y se resta un dia.
     """
-    return date.fromtimestamp(cutoff_seconds - 43200)
+    # --- FIX-012 (2026-10-13) --------------------------------------
+    # Sintoma: con la hora de cambio de dia a las 12 o mas tarde, cada
+    #          cuadrito llevaba la fecha del dia siguiente, el borde de hoy
+    #          caia en manana y la cuenta atras de las fechas clave se quedaba
+    #          corta en un dia.
+    # Causa: se restaban doce horas al corte, y eso solo cae dentro del dia
+    #        actual cuando la hora de cambio es anterior a mediodia.
+    # Regla: el dia de Anki se calcula con aritmetica de calendario: fecha
+    #        local del corte, con el desfase con que Anki lo calcula, menos un
+    #        dia. Vale para las 24 horas de cambio y los cambios de horario.
+    # ---------------------------------------------------------------
+    if utc_offset is None:
+        utc_offset = datetime.now().astimezone().utcoffset() or timedelta(0)
+    cutoff = datetime.fromtimestamp(cutoff_seconds, timezone(utc_offset))
+    return cutoff.date() - timedelta(days=1)
 
 
 def _db(col: Collection) -> DBProxy:
@@ -209,29 +260,74 @@ def _db(col: Collection) -> DBProxy:
     return db
 
 
-def fetch_data(col: Collection, scope: DeckScope) -> HeatmapData:
+def _rows_by_day(
+    db: DBProxy, columns: str, condition: str, cutoff_seconds: int
+) -> list[Row]:
+    """Filas agrupadas por dia (dias hacia atras desde hoy), por tramos.
+
+    Cada tramo abarca _CHUNK_DAYS dias completos del calendario de Anki, asi
+    que un dia nunca queda repartido entre dos tramos y los recuentos de
+    tarjetas distintas salen igual que con una sola consulta.
+    """
+    oldest = db.scalar("select min(id) from revlog")
+    if oldest is None:
+        return []
+    rows: list[Row] = []
+    high = cutoff_seconds
+    chunks = 0
+    while high * 1000 > int(oldest):
+        chunks += 1
+        # Un registro con fechas imposibles (siglos atras) no debe alargar el
+        # bucle: pasado el limite, lo que quede se lee de una vez.
+        low = high - _CHUNK_DAYS * 86400 if chunks < _MAX_CHUNKS else int(oldest) // 1000 - 1
+        rows.extend(
+            db.all(
+                f"select (? - 1 - id / 1000) / 86400 as days_ago, {columns}"
+                f" from revlog where {condition} and id >= ? and id < ?"
+                " group by days_ago",
+                cutoff_seconds,
+                low * 1000,
+                high * 1000,
+            )
+        )
+        high = low
+    return rows
+
+
+def fetch_data(col: Collection, scope: DeckScope, measure: str = "reviews") -> HeatmapData:
+    """Actividad por dia, vencimientos y repasos medibles para la retencion.
+
+    Solo se cuentan las tarjetas distintas que pide la medida: es la parte
+    mas costosa de la consulta y la medida por defecto (repasos) no la usa.
+    """
     db = _db(col)
     cutoff_seconds = int(col.sched.day_cutoff)
     today = anki_today(cutoff_seconds)
+    if scope.current_excluded:
+        return HeatmapData(past={}, future_counts={}, today=today, deck_excluded=True)
     revlog_filter = revlog_deck_filter(scope)
     cards_filter = cards_deck_filter(scope)
 
-    # Una sola pasada por el registro da las tres medidas de cada dia. Las
-    # nuevas se cuentan como tarjetas distintas, no como filas del registro.
-    past_rows = db.all(
-        "select (? - 1 - id / 1000) / 86400 as days_ago, count(*), count(distinct cid),"
-        f" count(distinct case when {_STARTS_NEW_CARD} then cid end)"
-        f" from revlog where {_NOT_A_REVIEW} and id < ?" + revlog_filter + " group by days_ago",
-        cutoff_seconds,
-        cutoff_seconds * 1000,
-    )
+    # Las nuevas se cuentan como tarjetas distintas, no como filas del registro.
+    if measure == "cards":
+        extra = "count(distinct cid)"
+    elif measure == "new":
+        extra = f"count(distinct case when {_STARTS_NEW_CARD} then cid end)"
+    else:
+        extra = "0"
     past: dict[int, DayActivity] = {}
-    for row in past_rows:
+    for row in _rows_by_day(
+        db, f"count(*), {extra}", _NOT_A_REVIEW + revlog_filter, cutoff_seconds
+    ):
         days_ago = int(row[0])
-        if days_ago >= 0:
-            past[days_ago] = DayActivity(
-                reviews=int(row[1]), cards=int(row[2]), new=int(row[3])
-            )
+        if days_ago < 0:
+            continue
+        reviews, counted = int(row[1]), int(row[2])
+        past[days_ago] = DayActivity(
+            reviews=reviews,
+            cards=counted if measure == "cards" else 0,
+            new=counted if measure == "new" else 0,
+        )
 
     # --- FIX-003 (2026-10-08) --------------------------------------
     # Sintoma: una tarjeta prestada a un mazo filtrado no contaba en el cuadrito
@@ -260,12 +356,11 @@ def fetch_data(col: Collection, scope: DeckScope) -> HeatmapData:
     # despues sin volver a consultar. El limite superior (final de hoy) deja
     # fuera las marcas de tiempo futuras (reloj desajustado o coleccion
     # importada).
-    retention_rows = db.all(
-        "select (? - 1 - id / 1000) / 86400 as days_ago, count(*), coalesce(sum(ease > 1), 0)"
-        f" from revlog where {_RETENTION_REVIEW} and id < ?" + revlog_filter
-        + " group by days_ago",
+    retention_rows = _rows_by_day(
+        db,
+        "count(*), coalesce(sum(ease > 1), 0)",
+        _RETENTION_REVIEW + revlog_filter,
         cutoff_seconds,
-        cutoff_seconds * 1000,
     )
     retention_days: dict[int, tuple[int, int]] = {}
     for row in retention_rows:

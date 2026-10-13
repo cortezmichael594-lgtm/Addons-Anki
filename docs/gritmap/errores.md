@@ -54,6 +54,67 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   cuando la ventana no tenía ningún día completo estudiado. Por qué: «sin días» se trataba como cero.
   Regla: sin días que promediar se escribe «N/A», y el globo explica por qué.
 
+Las trece siguientes salieron de la revisión completa del 2026-10-12 y se corrigieron en la versión
+3.2.0.
+
+- FIX-011 · 2026-10-13 · versión 3.2.0 · Qué pasaba: con la medida «Nuevas», todos los días anteriores
+  al planificador actual de Anki (v3) salían en gris y el promedio decía «N/A». Por qué: los
+  planificadores antiguos anotaban la primera respuesta de otra manera. Regla: una tarjeta empieza
+  ese día si es su primera respuesta, se anotara como se anotara, igual que la búsqueda de Anki de
+  tarjetas introducidas.
+- FIX-012 · 2026-10-13 · versión 3.2.0 · Qué pasaba: con la hora de cambio de día de Anki a las 12 o
+  más tarde, cada cuadrito llevaba la fecha del día siguiente, el borde de hoy caía en mañana y la
+  cuenta atrás de las fechas clave se quedaba corta en un día. Por qué: el cálculo del «hoy» de Anki
+  solo acertaba con horas de cambio anteriores a mediodía. Regla: el día se calcula con el
+  calendario, a partir del corte de Anki, y vale para las 24 horas de cambio y los cambios de hora.
+- FIX-013 · 2026-10-13 · versión 3.2.0 · Qué pasaba: en la pantalla de un mazo que reúne casi todas
+  las tarjetas, el mapa tardaba segundos y, mientras, Anki no respondía al pulsar «Estudiar ahora».
+  Por qué: la consulta buscaba tarjeta por tarjeta en lugar de leer el historial de corrido. Regla:
+  el peor caso es siempre una lectura seguida, y la lectura va por años para dejar pasar a Anki
+  entre medias.
+- FIX-014 · 2026-10-13 · versión 3.2.0 · Qué pasaba: tras sincronizar, el mapa no mostraba una fecha
+  clave añadida en otro ordenador y, al pulsar Aceptar en Opciones, esa fecha se borraba aquí y
+  después también en el otro ordenador. Por qué: los mazos excluidos y las fechas clave se
+  guardaban en memoria y nada los refrescaba al sincronizar. Regla: lo que vive en la colección se
+  lee de ella cada vez; en memoria solo queda la apariencia, que no cambia al sincronizar.
+- FIX-015 · 2026-10-13 · versión 3.2.0 · Qué pasaba: una tarjeta con código preparado a propósito
+  podía leer archivos de otros complementos a través de GritMap. Por qué: la regla que dice qué
+  archivos sirve GritMap a la página era demasiado abierta. Regla: solo se sirven los dos archivos
+  propios del mapa, con un patrón cerrado.
+- FIX-016 · 2026-10-13 · versión 3.2.0 · Qué pasaba: al excluir un mazo, sus submazos seguían sin
+  marcar en la lista aunque el mapa ya no los contaba, y el botón contaba mazos que ya no existían.
+  Por qué: cada mazo tenía su casilla suelta y la cifra contaba lo guardado, no lo que existe.
+  Regla: la ventana enseña exactamente lo que excluye el mapa: un mazo marcado marca y bloquea a
+  sus submazos, y solo se cuentan y se nombran mazos que existen.
+- FIX-017 · 2026-10-13 · versión 3.2.0 · Qué pasaba: con el teclado, Intro sobre «Seleccionar mazos»
+  o sobre «Restaurar» cerraba Opciones y guardaba, y en Fechas clave, Intro sobre Aceptar intentaba
+  añadir una fecha. Por qué: a esos botones se les había quitado la respuesta a Intro. Regla: Intro
+  pulsa el botón que tiene el foco; solo se elige cuál es el botón por defecto.
+- FIX-018 · 2026-10-13 · versión 3.2.0 · Qué pasaba: con Opciones abierta, al pasar Anki de modo día a
+  noche, las muestras de color de los temas se quedaban con los tonos del modo anterior. Por qué: se
+  pintaban una sola vez. Regla: todo color que depende del modo se vuelve a pintar al cambiar de
+  modo.
+- FIX-019 · 2026-10-13 · versión 3.2.0 · Qué pasaba: en español salía «1240 repasos» pero «12.240
+  repasos». Por qué: la costumbre del navegador no separa los millares con cuatro cifras. Regla: en
+  español, toda cifra lleva punto de millar desde 1.000.
+- FIX-020 · 2026-10-13 · versión 3.2.0 · Qué pasaba: al cambiar de año con el teclado, el foco
+  saltaba al principio de la página y el mapa volvía a enero. Por qué: el mapa se sustituye entero y
+  se perdían el botón con el foco y el desplazamiento. Regla: antes de sustituir el mapa se anotan
+  el foco y el desplazamiento, y se devuelven después.
+- FIX-021 · 2026-10-13 · versión 3.2.0 · Qué pasaba: en persa y en tailandés los meses y el año del
+  globo salían de su propio calendario, distinto del de la rejilla. Por qué: el navegador usa el
+  calendario de cada idioma. Regla: toda fecha del mapa se escribe en el calendario gregoriano, el
+  de la rejilla y el de Anki.
+- FIX-022 · 2026-10-13 · versión 3.2.0 · Qué pasaba: en ruso, polaco, checo, árabe y otros nueve
+  idiomas, días, repasos, tarjetas y cuentas atrás salían con la forma de plural equivocada (por
+  ejemplo, «22 дней» en lugar de «22 дня»). Por qué: fuera de «Nuevas» solo había dos formas. Regla:
+  toda cifra con unidad elige su forma con las reglas de plural de su idioma.
+- FIX-023 · 2026-10-13 · versión 3.2.0 · Qué pasaba: en árabe, hebreo, persa y uigur, las flechas de
+  año salían invertidas y la cifra se pegaba a su rótulo. Por qué: Anki pone esas páginas de derecha
+  a izquierda y el mapa no lo tenía en cuenta. Regla: la cabecera, la rejilla y la leyenda van
+  siempre de izquierda a derecha, como el calendario, y los huecos entre textos siguen la dirección
+  del idioma.
+
 ## Así a propósito
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
@@ -69,9 +130,18 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - La retención no tiene globo explicativo. Lo retiró el cliente el 2026-10-09.
 - Las ventanas de excluir mazos y de fechas clave no llevan textos de ayuda. Lo decidió el cliente.
 - Las siete escalas de los temas y la escala gris de los días futuros son colores propios, fuera de
-  la paleta Nocturne, que no tiene escalas de diez tonos. Lo aprobó el cliente el 2026-10-08.
+  la paleta Nocturne, que no tiene escalas de diez tonos. Lo aprobó el cliente el 2026-10-08; el
+  2026-10-13 aprobó rehacerlas a partir de los tonos de Nocturne, con escalones iguales.
 - Los mazos excluidos y las fechas clave se guardan sin paso de deshacer, porque son ajustes y no
   estudio, como hace Anki con sus búsquedas guardadas. Criterio del complemento original.
 - Las cifras del mapa se leen directamente de la base de datos, solo para leer, porque Anki no ofrece
-  ninguna función que dé la actividad por día. Criterio del complemento original; se revisa en la
-  auditoría de 2026-10-12.
+  ninguna función que dé la actividad por día. Criterio del complemento original, confirmado en la
+  revisión del 2026-10-12: Anki 26.09.3 sigue sin esa función.
+- Las cifras de debajo del mapa se escriben en el color del texto, con un cuadrito del tono delante,
+  y no en el tono del tema. Lo eligió el cliente el 2026-10-13: los tonos claros no se leían.
+- Los botones del mapa ya no funden el color al pasar el ratón; solo se hunden un instante al
+  pulsarlos. La guía del taller pide no animar el color (versión 3.2.0, plan aprobado el
+  2026-10-13).
+- Al cambiar de año o una opción de aspecto, el mapa no se vuelve a calcular: usa los datos que ya tiene
+  hasta que Anki redibuja la pantalla (al volver del repaso, sincronizar o deshacer, y cada 10
+  minutos). Así cambiar de año es inmediato (versión 3.2.0).
