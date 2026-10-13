@@ -93,8 +93,8 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(reviews.current_streak, 3)
         self.assertEqual(reviews.studied_pct, 100)
 
-    def test_ninety_days_is_no_longer_a_period(self) -> None:
-        self.assertEqual(data.WINDOWS, (7, 30, 365, 0))
+    def test_three_periods(self) -> None:
+        self.assertEqual(data.WINDOWS, (30, 365, 0))
 
     def test_retention_needs_enough_reviews(self) -> None:
         # Regresion de FIX-002: sin repasos que medir es N/A, no 0 %.

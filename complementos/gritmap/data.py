@@ -68,9 +68,9 @@ WEEK_DAYS = 7
 MEASURES: tuple[str, ...] = ("reviews", "cards", "new")
 # Ventanas del promedio (y de los dias estudiados y la retencion), en dias;
 # 0 significa todo el historial.
-# 90 se retiro el 2026-10-13 al poner los botones rapidos (peticion del
-# cliente); quien lo tuviera guardado pasa al valor por defecto.
-WINDOWS: tuple[int, ...] = (7, 30, 365, 0)
+# 7 y 90 se retiraron el 2026-10-13 al poner los botones rapidos junto al ano
+# (peticion del cliente); quien los tuviera guardados pasa al valor por defecto.
+WINDOWS: tuple[int, ...] = (30, 365, 0)
 
 # Referencia minima de la escala de colores, en la unidad de cada medida: asi
 # quien empieza no ve el mapa oscurisimo con muy poco esfuerzo.

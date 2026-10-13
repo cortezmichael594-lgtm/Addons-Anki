@@ -360,17 +360,26 @@ def year_total(data: HeatmapData, year: int, measure: str) -> int:
     return int(total)
 
 
-def _year_label(data: HeatmapData, year: int, measure: str) -> str:
-    """El ano, debajo del mapa; al pasar el raton, lo hecho ese ano («12.480 repasos»)."""
-    info = count_html(year_total(data, year, measure), measure)
+def _year_label(data: HeatmapData, year: int, cfg: Config) -> str:
+    """El ano, debajo del mapa, con los botones de periodo a su lado.
+
+    Al pasar el raton por el ano, lo hecho ese ano con el signo de
+    exclamacion de cada idioma: «¡12.480 repasos!».
+    """
+    total = count_html(year_total(data, year, cfg.measure), cfg.measure)
+    info = fill_html("year_total", total=total)
     return (
         f'<div class="gritmap-yl"><span class="gritmap-yv" data-gritmap-tip="1"'
-        f' data-gritmap-info="{html.escape(info, quote=True)}" tabindex="0">{year}</span></div>'
+        f' data-gritmap-info="{html.escape(info, quote=True)}" tabindex="0">{year}</span>'
+        + _build_periods(cfg.avg_window)
+        + "</div>"
     )
 
 
 def _period_label(days: int) -> str:
     """Texto corto de cada boton de periodo: «7 días», «Todo»."""
+    if days == 365 and STRINGS[lang()].get("window_year"):
+        return html.escape(t("window_year"))
     if days:
         return fill_html("window_days", count=num_html(days))
     own = STRINGS[lang()].get("window_all_short") or t("window_all")
@@ -378,7 +387,7 @@ def _period_label(days: int) -> str:
 
 
 def _build_periods(window: int) -> str:
-    """Botones rapidos del periodo de las cifras, unidos en una sola pieza."""
+    """Botones rapidos del periodo de las cifras: texto pequeno junto al ano."""
     buttons = []
     for days in WINDOWS:
         chosen = days == window
@@ -528,8 +537,7 @@ def build_widget_html(data: HeatmapData, cfg: Config, offset: int) -> str:
         + '<div class="gritmap-grid">'
         + _build_year_svg(data, cfg, year, past_thresholds, future_thresholds, key_labels)
         + "</div>"
-        + _year_label(data, year, cfg.measure)
-        + _build_periods(cfg.avg_window)
+        + _year_label(data, year, cfg)
         + build_stats(stats, cfg.measure, cfg.avg_window)
         + _TIP
     )
@@ -548,11 +556,11 @@ def _estimated_height(cfg: Config) -> int:
 
     Sirve para que el contenedor reserve el hueco y la lista de mazos no de un
     salto cuando llegan los datos: botones (29 px mas 10 de margen), rejilla
-    (20 de meses y siete filas de cuadritos), ano (25), botones de periodo
-    (34), cifras (52) y un margen por si aparece la barra de desplazamiento (6).
+    (20 de meses y siete filas de cuadritos), ano con los periodos (25), cifras
+    (52) y un margen por si aparece la barra de desplazamiento (6).
     """
     svg_height = _TOP_MARGIN + 7 * (cfg.cell_size + _CELL_GAP)
-    return 39 + svg_height + 25 + 34 + 52 + 6
+    return 39 + svg_height + 25 + 52 + 6
 
 
 def placeholder_html(cfg: Config) -> str:

@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 3.4.0 · 2026-10-13
+Versión 3.4.1 · 2026-10-13
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub: un cuadrito por día del año,
 más oscuro (de día) o más luminoso (de noche) cuanto más estudió ese día, y en gris los días que
@@ -22,7 +22,9 @@ repasos. Lo único que guarda son sus opciones.
 
 - Encima del mapa, cuatro botones pequeños centrados (véase el apartado 5). Debajo del mapa, el año
   que se ve; al pasar el ratón por él (o llegar con el tabulador) dice lo hecho ese año en la unidad
-  de la medida: «12.480 repasos», «9.300 tarjetas» o «850 nuevas» (los días futuros no cuentan).
+  de la medida, con el signo de exclamación de cada idioma: «¡12.480 repasos!», «¡9.300 tarjetas!»
+  o «¡850 nuevas!» (los días futuros no cuentan). A su derecha, tras una raya fina, los botones de
+  periodo (véase el apartado 6).
 - Un año entero, de enero a diciembre, en columnas de semanas que empiezan en lunes, con los nombres
   de los meses encima en el idioma de Anki y siempre con el calendario gregoriano.
 - Días pasados y hoy: el color sale del tema elegido, en diez tonos. Sin estudio, el cuadrito queda
@@ -96,10 +98,10 @@ el foco se queda en el botón pulsado (o en «Hoy», si ese botón se apaga).
 
 ## 6. Las cifras de debajo
 
-Debajo del año, cuatro botones unidos para elegir el periodo de las cifras: «7 días», «30 días»,
-«365 días» y «Todo». El elegido va resaltado en el azul de acción; al pulsar otro, las cifras cambian
-al momento y la elección se guarda (es la misma opción «Periodo de las cifras» de la ventana de
-opciones). Al pasar el ratón por ellos dice «Periodo de las cifras».
+Junto al año, tras una raya fina, tres botones de texto pequeño y gris para elegir el periodo de las
+cifras: «30 días · 1 año · Todo». El elegido va en el color del texto y en negrita; al pulsar otro,
+las cifras cambian al momento y la elección se guarda (es la misma opción «Periodo de las cifras» de
+la ventana de opciones). Al pasar el ratón por ellos dice «Periodo de las cifras».
 
 Debajo, las cinco cifras, centradas. Cada cifra va arriba, en el color del texto y con un cuadrito
 delante del tono del tema que le corresponde según lo buena que es; su nombre va debajo, en gris.
@@ -143,7 +145,7 @@ tamaño y su posición. Al aceptar, el mapa se redibuja en su sitio, sin recarga
 | El color mide | Repasos, Tarjetas, Nuevas | Repasos |
 | Tamaño de celda | 8 a 60 px | 25 px |
 | Redondeo de esquinas | 0 a 15 px | 1 px |
-| Periodo de las cifras | 7, 30 o 365 días, o Todo el historial (vale para el promedio, los días estudiados y la retención; también se cambia con los botones de debajo del año). Si tenía 90 días, pasa a 30 | 30 días |
+| Periodo de las cifras | 30 o 365 días, o Todo el historial (vale para el promedio, los días estudiados y la retención; también se cambia con los botones junto al año). Si tenía 7 o 90 días, pasa a 30 | 30 días |
 | Excluir mazos | Botón «Seleccionar mazos» (o «1 mazo excluido», «2 mazos excluidos», con hasta 15 nombres al pasar el ratón y «…» si hay más) | Ninguno |
 | Fechas clave | Botón «Gestionar fechas» (o «1 fecha marcada», «3 fechas marcadas», con la lista al pasar el ratón) | Ninguna |
 | Mostrar comparativa semanal | Casilla, en la columna de los campos | Marcada |
