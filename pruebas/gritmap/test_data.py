@@ -72,6 +72,30 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(data.streaks({1, 2, 3, 10, 11}), (3, 3))
         self.assertEqual(data.streaks({0, 1, 5, 6, 7, 8}), (2, 4))
 
+    def test_stats_follow_the_measure(self) -> None:
+        """Con «Nuevas», un dia cuenta como estudiado solo si empezo alguna nueva
+        (peticion del cliente, 2026-10-13)."""
+        sample = HeatmapData(
+            past={
+                1: DayActivity(reviews=50, cards=40, new=5),
+                2: DayActivity(reviews=30, cards=20, new=0),
+                3: DayActivity(reviews=10, cards=10, new=3),
+            },
+            future_counts={},
+            today=date(2026, 10, 13),
+        )
+        new = data.full_stats(sample, "new", 30)
+        self.assertEqual(new.current_streak, 1)
+        self.assertEqual(new.longest_streak, 1)
+        self.assertEqual(new.average, 4)
+        self.assertEqual(new.studied_pct, 67)
+        reviews = data.full_stats(sample, "reviews", 30)
+        self.assertEqual(reviews.current_streak, 3)
+        self.assertEqual(reviews.studied_pct, 100)
+
+    def test_ninety_days_is_no_longer_a_period(self) -> None:
+        self.assertEqual(data.WINDOWS, (7, 30, 365, 0))
+
     def test_retention_needs_enough_reviews(self) -> None:
         # Regresion de FIX-002: sin repasos que medir es N/A, no 0 %.
         sample = HeatmapData(past={}, future_counts={}, today=date(2026, 10, 13), retention_days={1: (5, 0)})

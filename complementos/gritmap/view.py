@@ -42,6 +42,7 @@ from aqt import mw
 
 from .config import Config, KeyDate
 from .data import (
+    WINDOWS,
     DayActivity,
     FullStats,
     HeatmapData,
@@ -54,6 +55,7 @@ from .data import (
 )
 from .i18n import (
     PLURAL_CATEGORIES,
+    STRINGS,
     anki_text,
     lang,
     locale_code,
@@ -367,6 +369,33 @@ def _year_label(data: HeatmapData, year: int, measure: str) -> str:
     )
 
 
+def _period_label(days: int) -> str:
+    """Texto corto de cada boton de periodo: «7 días», «Todo»."""
+    if days:
+        return fill_html("window_days", count=num_html(days))
+    own = STRINGS[lang()].get("window_all_short") or t("window_all")
+    return html.escape(own)
+
+
+def _build_periods(window: int) -> str:
+    """Botones rapidos del periodo de las cifras, unidos en una sola pieza."""
+    buttons = []
+    for days in WINDOWS:
+        chosen = days == window
+        cmd = f"window:{days}"
+        buttons.append(
+            f'<button type="button" class="gritmap-period{" gritmap-on" if chosen else ""}"'
+            f' data-gritmap-btn="{cmd}" data-gritmap-cmd="{cmd}"'
+            f' aria-pressed="{"true" if chosen else "false"}">{_period_label(days)}</button>'
+        )
+    label = html.escape(t("opt_window"), quote=True)
+    return (
+        f'<div class="gritmap-periods" role="group" aria-label="{label}" title="{label}">'
+        + "".join(buttons)
+        + "</div>"
+    )
+
+
 def _stat_entry(label: str, value_html: str, level: int, info_html: str = "") -> str:
     """Una cifra de la fila de estadisticas: la cifra arriba y su rotulo debajo.
 
@@ -500,6 +529,7 @@ def build_widget_html(data: HeatmapData, cfg: Config, offset: int) -> str:
         + _build_year_svg(data, cfg, year, past_thresholds, future_thresholds, key_labels)
         + "</div>"
         + _year_label(data, year, cfg.measure)
+        + _build_periods(cfg.avg_window)
         + build_stats(stats, cfg.measure, cfg.avg_window)
         + _TIP
     )
@@ -518,11 +548,11 @@ def _estimated_height(cfg: Config) -> int:
 
     Sirve para que el contenedor reserve el hueco y la lista de mazos no de un
     salto cuando llegan los datos: botones (29 px mas 10 de margen), rejilla
-    (20 de meses y siete filas de cuadritos), ano (25), cifras (52) y un margen
-    por si aparece la barra de desplazamiento (6).
+    (20 de meses y siete filas de cuadritos), ano (25), botones de periodo
+    (34), cifras (52) y un margen por si aparece la barra de desplazamiento (6).
     """
     svg_height = _TOP_MARGIN + 7 * (cfg.cell_size + _CELL_GAP)
-    return 39 + svg_height + 25 + 52 + 6
+    return 39 + svg_height + 25 + 34 + 52 + 6
 
 
 def placeholder_html(cfg: Config) -> str:

@@ -68,7 +68,9 @@ WEEK_DAYS = 7
 MEASURES: tuple[str, ...] = ("reviews", "cards", "new")
 # Ventanas del promedio (y de los dias estudiados y la retencion), en dias;
 # 0 significa todo el historial.
-WINDOWS: tuple[int, ...] = (7, 30, 90, 365, 0)
+# 90 se retiro el 2026-10-13 al poner los botones rapidos (peticion del
+# cliente); quien lo tuviera guardado pasa al valor por defecto.
+WINDOWS: tuple[int, ...] = (7, 30, 365, 0)
 
 # Referencia minima de la escala de colores, en la unidad de cada medida: asi
 # quien empieza no ve el mapa oscurisimo con muy poco esfuerzo.
@@ -385,6 +387,22 @@ def days_offset(col: Collection, day: date) -> int:
 # ---------------------------------------------------------------------------
 
 
+def is_active(day: DayActivity, measure: str) -> bool:
+    """Si el dia cuenta como estudiado en la medida elegida.
+
+    Con «Nuevas», solo los dias en que se empezo alguna tarjeta nueva; con
+    repasos y tarjetas, cualquier dia con repasos (peticion del cliente,
+    2026-10-13: todas las cifras siguen la medida).
+    """
+    if measure == "new":
+        return day.new > 0
+    return day.reviews > 0
+
+
+def active_days(data: "HeatmapData", measure: str) -> set[int]:
+    return {days_ago for days_ago, day in data.past.items() if is_active(day, measure)}
+
+
 def measure_value(day: DayActivity, measure: str) -> float:
     """Cantidad de un dia en la unidad de la medida."""
     if measure == "cards":
@@ -408,7 +426,7 @@ def scale_reference(data: HeatmapData, measure: str) -> float:
     con estudio. No depende de la ventana del promedio, para que los colores
     de los meses pasados no cambien al cambiar esa opcion.
     """
-    values = [measure_value(day, measure) for day in data.past.values() if day.reviews > 0]
+    values = [measure_value(day, measure) for day in data.past.values() if is_active(day, measure)]
     average = sum(values) / len(values) if values else 0.0
     return max(SCALE_MINIMUM.get(measure, SCALE_MINIMUM["reviews"]), average)
 
@@ -424,7 +442,7 @@ def window_average(data: HeatmapData, measure: str, window: int) -> float | None
     values = [
         measure_value(day, measure)
         for days_ago, day in data.past.items()
-        if 1 <= days_ago <= last and day.reviews > 0
+        if 1 <= days_ago <= last and is_active(day, measure)
     ]
     # --- FIX-010 (2026-10-08) --------------------------------------
     # Sintoma: con la ventana sin ningun dia completo estudiado (por ejemplo,
@@ -454,7 +472,7 @@ def window_retention(data: HeatmapData, window: int) -> tuple[int, int]:
     return total, passed
 
 
-def studied_pct(data: HeatmapData, window: int) -> int:
+def studied_pct(data: HeatmapData, window: int, measure: str = "reviews") -> int:
     """Porcentaje de dias con estudio dentro de la ventana.
 
     Si hoy ya hay repasos, la ventana son los N dias que terminan hoy; si no,
@@ -462,7 +480,7 @@ def studied_pct(data: HeatmapData, window: int) -> int:
     tenido ocasion de estudiar. La ventana nunca empieza antes del primer
     repaso, porque los dias anteriores a usar Anki no son dias sin estudio.
     """
-    active = {days_ago for days_ago, day in data.past.items() if day.reviews > 0}
+    active = active_days(data, measure)
     if not active:
         return 0
     start = 0 if 0 in active else 1
@@ -529,7 +547,7 @@ def streaks(studied_days_ago: set[int]) -> tuple[int, int]:
 
 
 def full_stats(data: HeatmapData, measure: str = "reviews", window: int = 30) -> FullStats:
-    studied_days = {days_ago for days_ago, day in data.past.items() if day.reviews > 0}
+    studied_days = active_days(data, measure)
     current_streak, longest_streak = streaks(studied_days)
     # --- FIX-002 (2026-07-27) --------------------------------------
     # Sintoma: la retencion aparecia como 0%, como si se hubiera fallado todo,
@@ -552,7 +570,7 @@ def full_stats(data: HeatmapData, measure: str = "reviews", window: int = 30) ->
     )
     return FullStats(
         average=window_average(data, measure, window),
-        studied_pct=studied_pct(data, window),
+        studied_pct=studied_pct(data, window, measure),
         retention=retention,
         retention_reviews=total_reviews,
         current_streak=current_streak,

@@ -15,6 +15,7 @@ instante cuando Anki la redibuja, mientras se calculan los datos al dia.
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from datetime import date
 
 import aqt
@@ -27,7 +28,7 @@ from aqt.webview import WebContent
 
 from . import config, i18n, view
 from .config import Config, load_config
-from .data import HeatmapData, days_offset, fetch_data, year_bounds
+from .data import WINDOWS, HeatmapData, days_offset, fetch_data, year_bounds
 from .decks import build_scope, day_search
 from .errors import guarded, guarded_filter, log_exception
 from .options import open_options
@@ -271,6 +272,10 @@ def _on_js_message(
         _redraw_in_place()
         return (True, None)
 
+    if action.startswith("window:"):
+        _set_window(action[len("window:"):])
+        return (True, None)
+
     if action == "opts":
         # Se aplaza para que el mensaje de la pagina termine antes de abrir
         # una ventana modal.
@@ -290,6 +295,23 @@ def _on_js_message(
 
 # Perfil y configuracion
 # ---------------------------------------------------------------------------
+
+
+def _set_window(raw: str) -> None:
+    """Boton rapido de periodo: guarda la eleccion y redibuja sin recalcular.
+
+    El texto llega de la pagina, asi que se comprueba antes de usarlo.
+    """
+    try:
+        days = int(raw)
+    except ValueError:
+        return
+    cfg = load_config()
+    if days not in WINDOWS or days == cfg.avg_window:
+        return
+    config.save_appearance(replace(cfg, avg_window=days))
+    state.pages.clear()
+    _redraw_in_place()
 
 
 @guarded()

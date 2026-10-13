@@ -53,6 +53,13 @@ class WidgetTest(unittest.TestCase):
         self.assertEqual(view.year_total(sample(), 2026, "new"), 4)
         self.assertEqual(view.year_total(sample(), 2025, "reviews"), 0)
 
+    def test_period_buttons(self) -> None:
+        html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, avg_window=365), 0)
+        self.assertEqual(len(re.findall(r'class="gritmap-period[ "]', html)), 4)
+        self.assertIn('class="gritmap-period gritmap-on" data-gritmap-btn="window:365"', html)
+        self.assertIn(">Todo<", html)
+        self.assertNotIn("window:90", html)
+
     def test_tooltip_texts_have_no_date(self) -> None:
         # La fecha va en su propia linea, la pone el navegador (peticion del cliente).
         for code, texts in i18n.STRINGS.items():

@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 3.3.0 · 2026-10-13
+Versión 3.4.0 · 2026-10-13
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub: un cuadrito por día del año,
 más oscuro (de día) o más luminoso (de noche) cuanto más estudió ese día, y en gris los días que
@@ -46,6 +46,7 @@ repasos. Lo único que guarda son sus opciones.
 - Si no hay nada que dibujar (ni repasos, ni vencimientos, ni fechas clave), en su lugar dice «No
   hay datos de actividad para mostrar.». En la pantalla de un mazo excluido dice «Este mazo está
   excluido del mapa.». En los dos casos queda el botón de opciones.
+- Al pulsar uno de los botones de periodo tampoco se vuelve a calcular el mapa.
 - La primera vez que se abre una pantalla muestra «…» en el hueco que ocupará el mapa, para que la
   pantalla no dé un salto. Después, cada vez que Anki vuelve a dibujar esa pantalla (al volver del
   repaso, sincronizar, deshacer, plegar un mazo o cada 10 minutos), se ve al instante el último mapa
@@ -95,9 +96,18 @@ el foco se queda en el botón pulsado (o en «Hoy», si ese botón se apaga).
 
 ## 6. Las cifras de debajo
 
-Centradas debajo del año. Cada cifra va arriba, en el color del texto y con un cuadrito
+Debajo del año, cuatro botones unidos para elegir el periodo de las cifras: «7 días», «30 días»,
+«365 días» y «Todo». El elegido va resaltado en el azul de acción; al pulsar otro, las cifras cambian
+al momento y la elección se guarda (es la misma opción «Periodo de las cifras» de la ventana de
+opciones). Al pasar el ratón por ellos dice «Periodo de las cifras».
+
+Debajo, las cinco cifras, centradas. Cada cifra va arriba, en el color del texto y con un cuadrito
 delante del tono del tema que le corresponde según lo buena que es; su nombre va debajo, en gris.
 Sin dato, la cifra va en gris y sin cuadrito.
+
+Todas siguen la medida elegida: con «Repasos» y «Tarjetas», un día estudiado es un día con repasos;
+con «Nuevas», solo un día en que empezó alguna tarjeta nueva. Así cambian el promedio, los días
+estudiados, las dos rachas y la última sesión. La retención no depende de la medida.
 
 - «Promedio diario»: lo hecho por día estudiado, en la unidad de la medida («85 repasos»,
   «60 tarjetas», «8 nuevas»), dentro del periodo de las cifras, contando solo días completos (el
@@ -133,7 +143,7 @@ tamaño y su posición. Al aceptar, el mapa se redibuja en su sitio, sin recarga
 | El color mide | Repasos, Tarjetas, Nuevas | Repasos |
 | Tamaño de celda | 8 a 60 px | 25 px |
 | Redondeo de esquinas | 0 a 15 px | 1 px |
-| Periodo de las cifras | 7, 30, 90 o 365 días, o Todo el historial (vale para el promedio, los días estudiados y la retención) | 30 días |
+| Periodo de las cifras | 7, 30 o 365 días, o Todo el historial (vale para el promedio, los días estudiados y la retención; también se cambia con los botones de debajo del año). Si tenía 90 días, pasa a 30 | 30 días |
 | Excluir mazos | Botón «Seleccionar mazos» (o «1 mazo excluido», «2 mazos excluidos», con hasta 15 nombres al pasar el ratón y «…» si hay más) | Ninguno |
 | Fechas clave | Botón «Gestionar fechas» (o «1 fecha marcada», «3 fechas marcadas», con la lista al pasar el ratón) | Ninguna |
 | Mostrar comparativa semanal | Casilla, en la columna de los campos | Marcada |

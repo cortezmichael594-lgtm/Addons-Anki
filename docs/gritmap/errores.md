@@ -126,7 +126,11 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - La medida «minutos» se retiró: hay días con cientos de repasos guardados sin tiempo y la cifra no
   era coherente. Lo decidió el cliente el 2026-10-08.
 - Con la medida «Nuevas», un día estudiado sin nuevas sale en gris, y un promedio que se queda en 0
-  se escribe «N/A». Lo decidió el cliente el 2026-10-08 y el 2026-10-09.
+  se escribe «N/A». Lo decidió el cliente el 2026-10-08 y el 2026-10-09. Desde la versión 3.4.0
+  (cliente, 2026-10-13), todas las cifras siguen la medida: con «Nuevas», un día cuenta como
+  estudiado solo si empezó alguna nueva (promedio, días estudiados, rachas y última sesión).
+- El periodo de 90 días se retiró al poner los botones rápidos de periodo debajo del año, para no
+  tener demasiados botones. Lo pidió el cliente el 2026-10-13.
 - La retención no tiene globo explicativo. Lo retiró el cliente el 2026-10-09.
 - Las ventanas de excluir mazos y de fechas clave no llevan textos de ayuda. Lo decidió el cliente.
 - Las siete escalas de los temas y la escala gris de los días futuros son colores propios, fuera de
