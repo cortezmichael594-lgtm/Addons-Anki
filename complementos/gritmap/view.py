@@ -387,7 +387,7 @@ def _period_label(days: int) -> str:
 
 
 def _build_periods(window: int) -> str:
-    """Botones rapidos del periodo de las cifras: texto pequeno junto al ano."""
+    """Botones rapidos del periodo de las cifras, junto al ano (control segmentado)."""
     buttons = []
     for days in WINDOWS:
         chosen = days == window

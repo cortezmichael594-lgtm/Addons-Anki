@@ -130,7 +130,8 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   (cliente, 2026-10-13), todas las cifras siguen la medida: con «Nuevas», un día cuenta como
   estudiado solo si empezó alguna nueva (promedio, días estudiados, rachas y última sesión).
 - Los periodos de 7 y 90 días se retiraron al poner los botones rápidos de periodo junto al año,
-  como texto pequeño y discreto («30 días · 1 año · Todo»). Lo pidió el cliente el 2026-10-13.
+  como control segmentado sin marco: el elegido con fondo suave de pastilla y negrita, como en la
+  imagen que aportó («30 días», «1 año», «Todo»). Lo pidió el cliente el 2026-10-13.
 - El globo del año lleva el signo de exclamación de cada idioma; en español, los dos («¡…!»). Lo
   pidió el cliente el 2026-10-13.
 - La retención no tiene globo explicativo. Lo retiró el cliente el 2026-10-09.
