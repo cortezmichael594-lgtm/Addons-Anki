@@ -512,6 +512,24 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Comprobado: 2026-10-12, en la documentación oficial.
 - Origen: petición del cliente al aportar las notas de versión.
 
+### APR-056 · Guion en línea en la lista de mazos y en la pantalla de un mazo
+- Qué es: las páginas de la lista de mazos y de la pantalla de un mazo se sirven con la política de seguridad de las páginas propias de Anki, que solo prohíbe incrustarlas en otra página: un <script> en línea dentro del HTML que se añade con deck_browser_will_render_content u overview_will_render_content se ejecuta. Anki pone los JS de web_content.js al principio del cuerpo, antes de ese contenido, así que sus funciones ya existen cuando el guion se lee. El editor clásico, en cambio, no ejecuta guiones en línea (APR-044). Además, Anki rellena su plantilla con % y mete el HTML añadido como valor ya hecho: un «%» dentro de ese HTML no rompe nada.
+- Por qué es buena práctica: permite enseñar el último resultado ya calculado mientras la página se construye, antes de mostrarse, en lugar de un hueco que se rellena después (guía de interfaz, apartado 4).
+- Para qué sirve: complementos que dibujan algo en la pantalla principal o en la de un mazo y lo recalculan en segundo plano.
+- Cómo se aplica: guarde el último resultado preparado (JSON) por pantalla; en el gancho, añada el contenedor y un <script> que llame a la función de su JS con ese JSON, tras cambiar «</» por «<\/» y «<!--» por «<\u0021--». Siga pidiendo los datos al día y, al llegar, no repinte si son iguales.
+- Fuente: aqt/mediasrv.py (legacy_page_data y TRUSTED_PAGE_CSP), aqt/webview.py (stdHtml: {jstxt} antes de {web_content.body}), aqt/deckbrowser.py y aqt/overview.py (self._body % content.__dict__)
+- Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado) y una prueba en Chromium con la página de GritMap 3.2.0.
+- Origen: rediseño de GritMap 3.2.0.
+
+### APR-057 · Lecturas largas de la colección, por tramos y con memoria
+- Qué es: el gestor de tareas de Anki ejecuta de una en una las operaciones en segundo plano que usan la colección, y su propio comentario avisa de que la interfaz se queda colgada hasta que termine una operación larga si necesita la colección mientras tanto. En la revisión de GritMap, una sola consulta de todo el historial (1,5 millones de repasos) tenía la colección ocupada más de un segundo; partida en tramos de un año, la espera de la interfaz bajó a unas décimas.
+- Por qué es buena práctica: cumple la prioridad 2 (Anki nunca se bloquea ni se entrecorta) sin renunciar a leer todo el historial.
+- Para qué sirve: mapas, estadísticas o informes que recorren el registro de repasos o muchas tarjetas.
+- Cómo se aplica: parta la lectura en tramos que no partan un día (por ejemplo, años alineados con day_cutoff) y junte los resultados; guarde en memoria lo calculado para redibujar al cambiar de año o de aspecto sin volver a leer, y olvídelo cuando Anki vuelva a dibujar la pantalla (tras repasar, sincronizar o deshacer). No lance un cálculo nuevo si ya hay uno en marcha: que el que termina dibuje el estado actual.
+- Fuente: aqt/taskman.py (run_in_background: «Tasks that access the collection are serialized» y el aviso sobre la interfaz colgada) y aqt/operations/__init__.py (QueryOp)
+- Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado) y las pruebas de pruebas/gritmap/test_data.py (los tramos dan los mismos días que una sola consulta).
+- Origen: revisión de GritMap, 2026-10-12.
+
 ## Retirados
 
 Aprendizajes que dejaron de valer, con fecha y motivo («- APR-NNN (AAAA-MM-DD): motivo»). Su número no
