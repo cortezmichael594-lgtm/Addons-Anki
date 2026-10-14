@@ -21,6 +21,8 @@ o un meta.json editado a mano nunca provocan un error.
 # Historial de correcciones de este archivo:
 # FIX-005 (2026-10-08) — Un valor imposible escrito a mano en la configuracion
 #                        (Infinity o NaN) hacia desaparecer el mapa sin aviso.
+# FIX-014 (2026-10-13) — Tras sincronizar, Opciones podia borrar fechas clave
+#                        y mazos excluidos puestos en otro ordenador.
 
 from __future__ import annotations
 
@@ -29,6 +31,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import TypeGuard
 
+from anki.collection import Collection
 from aqt import mw
 
 from .data import MEASURES, WINDOWS
@@ -209,9 +212,10 @@ def _addon_config() -> dict[str, object]:
     return {}
 
 
-def _collection_config() -> dict[str, object] | None:
-    """Ajustes propios de la coleccion abierta, o None si no hay ninguna."""
-    col = mw.col
+def _collection_config(col: Collection | None = None) -> dict[str, object] | None:
+    """Ajustes propios de la coleccion (la abierta si no se indica otra), o None."""
+    if col is None:
+        col = mw.col
     if col is None:
         return None
     try:
@@ -225,31 +229,37 @@ def _collection_config() -> dict[str, object] | None:
 # Cache
 # ---------------------------------------------------------------------------
 # getConfig abre dos archivos del disco en cada llamada, y el mapa se dibuja
-# muchas veces por sesion. Se guarda el resultado ya validado y se invalida al
-# guardar opciones, al editar la configuracion desde Anki y al abrir o cerrar
-# un perfil.
-_cache: Config | None = None
+# muchas veces por sesion. Se guarda la apariencia y se invalida al guardar
+# opciones y al abrir o cerrar un perfil.
+# --- FIX-014 (2026-10-13) --------------------------------------
+# Sintoma: tras sincronizar, el mapa no mostraba una fecha clave anadida en
+#          otro ordenador y, al pulsar Aceptar en Opciones, se borraba aqui y
+#          despues tambien en el otro ordenador.
+# Causa: la cache guardaba tambien los mazos excluidos y las fechas clave, que
+#        viven en la coleccion y cambian al sincronizar, sin que nada la
+#        vaciara.
+# Regla: en cache solo va lo que no cambia por debajo (la apariencia, que
+#        esta en este ordenador); lo de la coleccion se lee de ella cada vez.
+# ---------------------------------------------------------------
+_addon_cache: dict[str, object] | None = None
 
 
 def invalidate_cache() -> None:
-    global _cache
-    _cache = None
+    global _addon_cache
+    _addon_cache = None
 
 
-def load_config() -> Config:
-    global _cache
-    if _cache is not None:
-        return _cache
-
-    stored = _addon_config()
-    collection = _collection_config()
+def load_config(col: Collection | None = None) -> Config:
+    """Configuracion validada. Con col, lee la coleccion indicada (por ejemplo,
+    la que recibe una operacion en segundo plano)."""
+    global _addon_cache
+    if _addon_cache is None:
+        _addon_cache = _addon_config()
+    collection = _collection_config(col)
     # Sin coleccion abierta no hay mazos ni fechas que aplicar: mejor vacio
     # que arrastrar los del perfil anterior.
     scoped: dict[str, object] = collection if collection is not None else {}
-
-    config = build_config(stored, scoped)
-    _cache = config
-    return config
+    return build_config(_addon_cache, scoped)
 
 
 def build_config(stored: dict[str, object], scoped: dict[str, object]) -> Config:
@@ -273,8 +283,8 @@ def build_config(stored: dict[str, object], scoped: dict[str, object]) -> Config
     )
 
 
-def save_config(cfg: Config) -> None:
-    """Guarda cada ajuste en su almacen y refresca la cache."""
+def save_appearance(cfg: Config) -> None:
+    """Guarda la apariencia en la configuracion del complemento y vacia la cache."""
     appearance: dict[str, object] = dict(_addon_config())
     appearance.update(
         {
@@ -286,31 +296,39 @@ def save_config(cfg: Config) -> None:
             "show_week_diff": cfg.show_week_diff,
         }
     )
+    # Las claves de versiones antiguas (mazos y fechas guardados fuera de la
+    # coleccion) se quitan cuando ya no guardan nada que copiar a un perfil:
+    # asi no se arrastran para siempre, y lo que si guardan sigue a salvo
+    # para los perfiles que aun no se hayan abierto.
+    if not _as_deck_ids(appearance.get("excluded_decks")):
+        appearance.pop("excluded_decks", None)
+    if not _as_key_dates(appearance.get("key_dates")):
+        appearance.pop("key_dates", None)
     try:
         mw.addonManager.writeConfig(__name__, appearance)
     except Exception as exc:
-        log_exception("config.save_config/addon", exc)
-
-    col = mw.col
-    if col is not None:
-        try:
-            # set_config directo, sin CollectionOp, y sin entrada de deshacer:
-            # es un ajuste de la interfaz, no contenido de estudio. Es lo mismo
-            # que hace Anki con las busquedas guardadas, el orden de columnas
-            # del navegador o los nombres de las banderas. Envolverlo en una
-            # operacion deshacible ensuciaria el menu Editar -> Deshacer con
-            # un paso que la persona no espera poder revertir.
-            col.set_config(
-                COL_KEY,
-                {
-                    "excluded_decks": list(cfg.excluded_decks),
-                    "key_dates": _key_dates_to_json(cfg.key_dates),
-                },
-            )
-        except Exception as exc:
-            log_exception("config.save_config/collection", exc)
-
+        log_exception("config.save_appearance", exc)
     invalidate_cache()
+
+
+def save_scoped(col: Collection, cfg: Config) -> None:
+    """Guarda en la coleccion los mazos excluidos y las fechas clave.
+
+    Se llama desde una operacion en segundo plano, que recibe la coleccion.
+    """
+    # set_config directo, sin CollectionOp, y sin entrada de deshacer: es un
+    # ajuste de la interfaz, no contenido de estudio. Es lo mismo que hace
+    # Anki con las busquedas guardadas, el orden de columnas del navegador o
+    # los nombres de las banderas. Envolverlo en una operacion deshacible
+    # ensuciaria el menu Editar -> Deshacer con un paso que la persona no
+    # espera poder revertir.
+    col.set_config(
+        COL_KEY,
+        {
+            "excluded_decks": list(cfg.excluded_decks),
+            "key_dates": _key_dates_to_json(cfg.key_dates),
+        },
+    )
 
 
 def migrate_to_collection() -> None:

@@ -45,6 +45,9 @@ class DeckScope:
     exclude_ids: tuple[int, ...]
     include_names: tuple[str, ...]
     exclude_names: tuple[str, ...]
+    # En la pantalla de un mazo: el mazo entero (con sus submazos) esta entre
+    # los excluidos, asi que su mapa no puede mostrar nada.
+    current_excluded: bool = False
 
 
 WHOLE_COLLECTION = DeckScope(
@@ -164,15 +167,19 @@ def build_scope(
     exclude_names_map = _drop_redundant(_existing_names(entries, excluded_decks))
     exclude_ids = _expand(col, tuple(exclude_names_map))
 
+    current_excluded = False
     if include_ids is not None and exclude_ids:
         excluded_set = set(exclude_ids)
+        had_decks = bool(include_ids)
         include_ids = tuple(did for did in include_ids if did not in excluded_set)
+        current_excluded = had_decks and not include_ids
 
     return DeckScope(
         include_ids=include_ids,
         exclude_ids=exclude_ids,
         include_names=include_names,
         exclude_names=tuple(exclude_names_map.values()),
+        current_excluded=current_excluded,
     )
 
 

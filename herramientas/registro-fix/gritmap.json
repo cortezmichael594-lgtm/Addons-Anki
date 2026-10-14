@@ -1,0 +1,80 @@
+{
+  "complemento": "gritmap",
+  "fix": {
+    "FIX-001": [
+      "data.py"
+    ],
+    "FIX-002": [
+      "data.py",
+      "view.py"
+    ],
+    "FIX-003": [
+      "data.py"
+    ],
+    "FIX-004": [
+      "data.py"
+    ],
+    "FIX-005": [
+      "config.py"
+    ],
+    "FIX-006": [
+      "view.py"
+    ],
+    "FIX-007": [
+      "options.py"
+    ],
+    "FIX-008": [
+      "palettes.py",
+      "view.py",
+      "web/gritmap.css",
+      "web/gritmap.js"
+    ],
+    "FIX-009": [
+      "web/gritmap.js"
+    ],
+    "FIX-010": [
+      "data.py",
+      "view.py"
+    ],
+    "FIX-011": [
+      "data.py"
+    ],
+    "FIX-012": [
+      "data.py"
+    ],
+    "FIX-013": [
+      "data.py"
+    ],
+    "FIX-014": [
+      "config.py"
+    ],
+    "FIX-015": [
+      "view.py"
+    ],
+    "FIX-016": [
+      "options.py"
+    ],
+    "FIX-017": [
+      "options.py"
+    ],
+    "FIX-018": [
+      "options.py"
+    ],
+    "FIX-019": [
+      "web/gritmap.js"
+    ],
+    "FIX-020": [
+      "web/gritmap.js"
+    ],
+    "FIX-021": [
+      "web/gritmap.js"
+    ],
+    "FIX-022": [
+      "i18n.py",
+      "view.py"
+    ],
+    "FIX-023": [
+      "web/gritmap.css"
+    ]
+  }
+}

@@ -5,8 +5,9 @@ de error estandar, y una excepcion sin capturar dentro de un hook puede dejar
 el complemento inservible hasta reiniciar. Por eso:
 
   * el detalle tecnico va al registro propio del complemento
-    (mw.addonManager.get_logger), que la persona puede abrir desde
-    Herramientas -> Complementos si alguna vez hace falta;
+    (AddonManager.get_logger), un archivo de texto en la carpeta logs/addons
+    del perfil de Anki; ningun menu de Anki lo abre, pero se puede leer con
+    cualquier editor de texto si alguna vez hace falta;
   * cada funcion conectada a un hook se envuelve con @guarded, que atrapa la
     excepcion, la registra y devuelve un valor de reserva.
 """
@@ -18,33 +19,14 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar, cast
 
-F = TypeVar("F", bound=Callable[..., Any])
+from aqt.addons import AddonManager
 
-_LOGGER_NAME = "addon.gritmap"
-_logger: logging.Logger | None = None
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 def logger() -> logging.Logger:
-    """Registro propio del complemento.
-
-    get_logger existe en Anki 26.09; si una version distinta no lo expusiera,
-    se cae al logger equivalente por nombre, que es exactamente lo que Anki
-    construye internamente ("addon." + nombre del paquete).
-    """
-    global _logger
-    if _logger is not None:
-        return _logger
-    try:
-        from aqt import mw
-
-        get_logger = getattr(mw.addonManager, "get_logger", None)
-        if callable(get_logger):
-            _logger = get_logger(__name__)
-            return _logger
-    except Exception:
-        pass
-    _logger = logging.getLogger(_LOGGER_NAME)
-    return _logger
+    """Registro propio del complemento (APR-040)."""
+    return AddonManager.get_logger(__name__)
 
 
 def log_exception(where: str, exc: BaseException) -> None:

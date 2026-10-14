@@ -4,8 +4,17 @@ Los siete temas (diez tonos para los dias pasados) y los diez grises de los
 dias futuros son una excepcion a la paleta Nocturne aprobada por el cliente el
 2026-10-08: Nocturne no tiene escalas de diez tonos y cada escala ya trae su
 pareja de dia y de noche. El resto de colores del mapa (botones, globo, borde
-de hoy y de las fechas clave, comparativa) sale de los tokens de Nocturne, en
-web/gritmap.css.
+de hoy y marca de las fechas clave, comparativa) sale de los tokens de
+Nocturne, en web/gritmap.css.
+
+Version 3.2.0 (aprobada por el cliente el 2026-10-13): las escalas se rehacen
+a partir de los tonos de Nocturne. Cada tema toma el matiz de su token
+(ACCENT_NOTE, STATE_NEW, STATE_MARKED, ACCENT_DANGER, STATE_LEARN, FLAG_5 y
+FLAG_6) y reparte sus diez tonos en escalones iguales de luminosidad
+percibida (OKLCH): de dia, de claro (0,82) a oscuro (0,34); de noche, al
+reves (0,40 a 0,88), para que mas estudio sea siempre mas contraste con el
+fondo. Los grises de los dias futuros siguen la misma idea, con el matiz
+azulado de los grises de Nocturne.
 """
 
 # Historial de correcciones de este archivo:
@@ -16,77 +25,81 @@ from __future__ import annotations
 
 PAST_LIGHT: dict[str, tuple[str, ...]] = {
     "classic_green": (
-        "#a6d99e", "#8fd08a", "#77c476", "#60b763", "#4aa852",  # colores-ok: escala aprobada (2026-10-08)
-        "#379a45", "#278a39", "#1a782e", "#106425", "#0a511d",  # colores-ok: escala aprobada (2026-10-08)
+        "#a8d1aa", "#8fc392", "#75b57a", "#5aa663", "#3c984a",  # colores-ok: escala aprobada (2026-10-13)
+        "#0f8a30", "#007826", "#00671f", "#005619", "#004512",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "fire_red": (
-        "#f4a9a0", "#f09287", "#ea7b6e", "#e36557", "#d95043",  # colores-ok: escala aprobada (2026-10-08)
-        "#cb3f33", "#b93327", "#a2281f", "#881e19", "#6d1613",  # colores-ok: escala aprobada (2026-10-08)
+        "#f8aea6", "#f3968d", "#ec7e73", "#e4645a", "#dc4640",  # colores-ok: escala aprobada (2026-10-13)
+        "#d11e24", "#bb0617", "#a10011", "#88000c", "#6f0008",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "ocean_blue": (
-        "#a3cfec", "#88c1e6", "#6db2df", "#54a2d6", "#4090ca",  # colores-ok: escala aprobada (2026-10-08)
-        "#2f7ebc", "#226cab", "#185a97", "#104a80", "#0b3a68",  # colores-ok: escala aprobada (2026-10-08)
+        "#a7c8ec", "#8eb7e6", "#74a7de", "#5a96d7", "#3e85cf",  # colores-ok: escala aprobada (2026-10-13)
+        "#1c74c6", "#0b64b1", "#00559a", "#004682", "#00386a",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "royal_purple": (
-        "#c9b4ea", "#b8a0e3", "#a78bdb", "#9676d1", "#8562c6",  # colores-ok: escala aprobada (2026-10-08)
-        "#7450b8", "#6440a8", "#543295", "#452680", "#371c6a",  # colores-ok: escala aprobada (2026-10-08)
+        "#c0bbff", "#afa6fc", "#9f92f9", "#8f7cf6", "#8065f1",  # colores-ok: escala aprobada (2026-10-13)
+        "#734cec", "#643dd4", "#562ebd", "#481ea6", "#3b0a8f",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "sunset_orange": (
-        "#f6bd8b", "#f3ab70", "#ef9958", "#e98643", "#e07331",  # colores-ok: escala aprobada (2026-10-08)
-        "#d36123", "#c25118", "#ab4210", "#90350b", "#762b08",  # colores-ok: escala aprobada (2026-10-08)
+        "#f2b39c", "#eb9d7f", "#e48662", "#db6f43", "#d2561c",  # colores-ok: escala aprobada (2026-10-13)
+        "#bf4600", "#a63c00", "#8f3200", "#782800", "#611f00",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "rose_pink": (
-        "#f7b3cd", "#f39cbe", "#ee85af", "#e76e9f", "#dd598f",  # colores-ok: escala aprobada (2026-10-08)
-        "#cf477e", "#bd386c", "#a62c5b", "#8c214a", "#71183a",  # colores-ok: escala aprobada (2026-10-08)
+        "#f3afbb", "#ec97a8", "#e47f96", "#db6683", "#d24b71",  # colores-ok: escala aprobada (2026-10-13)
+        "#c72b60", "#b11c52", "#9c0744", "#840038", "#6c002c",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "lagoon_turquoise": (
-        "#9adcd6", "#7dd1cb", "#61c4bf", "#48b5b1", "#35a4a1",  # colores-ok: escala aprobada (2026-10-08)
-        "#279290", "#1c7f7e", "#146a6a", "#0e5757", "#0a4444",  # colores-ok: escala aprobada (2026-10-08)
+        "#9bd2bf", "#7cc4ad", "#5ab79b", "#2da98a", "#00987a",  # colores-ok: escala aprobada (2026-10-13)
+        "#00866b", "#00755d", "#00644f", "#005341", "#004334",  # colores-ok: escala aprobada (2026-10-13)
     ),
 }
 
 PAST_DARK: dict[str, tuple[str, ...]] = {
     "classic_green": (
-        "#12482c", "#125532", "#136337", "#15723c", "#1a8340",  # colores-ok: escala aprobada (2026-10-08)
-        "#219544", "#2ba74a", "#3aba54", "#4ecd62", "#69df78",  # colores-ok: escala aprobada (2026-10-08)
+        "#2a522f", "#2d6435", "#2f763b", "#318941", "#319c46",  # colores-ok: escala aprobada (2026-10-13)
+        "#31b04c", "#4ec061", "#66d075", "#7de189", "#93f19e",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "fire_red": (
-        "#521712", "#621c15", "#742118", "#88281b", "#9c301f",  # colores-ok: escala aprobada (2026-10-08)
-        "#b13a24", "#c6462b", "#da5535", "#ec6743", "#fb7d55",  # colores-ok: escala aprobada (2026-10-08)
+        "#6b3634", "#843e3c", "#9e4544", "#b84d4d", "#d35455",  # colores-ok: escala aprobada (2026-10-13)
+        "#ef5c5e", "#fe7170", "#ff918d", "#ffaea9", "#ffc8c4",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "ocean_blue": (
-        "#123a58", "#154668", "#185378", "#1c6189", "#22709b",  # colores-ok: escala aprobada (2026-10-08)
-        "#2a80ad", "#3491bf", "#42a3d1", "#55b6e2", "#6fc9f1",  # colores-ok: escala aprobada (2026-10-08)
+        "#274b67", "#2a5b80", "#2b6a99", "#2b7bb3", "#2a8bce",  # colores-ok: escala aprobada (2026-10-13)
+        "#299ce8", "#47adf7", "#69beff", "#91ceff", "#b4ddff",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "royal_purple": (
-        "#31205c", "#3a276c", "#44307c", "#4f3a8d", "#5b459e",  # colores-ok: escala aprobada (2026-10-08)
-        "#6851af", "#775fc1", "#886fd2", "#9a81e2", "#ae95f1",  # colores-ok: escala aprobada (2026-10-08)
+        "#4a4166", "#594d7e", "#695997", "#7965b1", "#8a72cb",  # colores-ok: escala aprobada (2026-10-13)
+        "#9b7fe6", "#ab91f4", "#bba4ff", "#cabaff", "#dad0ff",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "sunset_orange": (
-        "#54260e", "#642d10", "#753512", "#883e15", "#9c4817",  # colores-ok: escala aprobada (2026-10-08)
-        "#b0531a", "#c45f1e", "#d76d26", "#e97d33", "#f99046",  # colores-ok: escala aprobada (2026-10-08)
+        "#5f4021", "#754c20", "#8b581e", "#a2641a", "#ba7011",  # colores-ok: escala aprobada (2026-10-13)
+        "#d27d02", "#e18f32", "#f1a14e", "#ffb469", "#ffcd9d",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "rose_pink": (
-        "#5a1734", "#6b1c3e", "#7e2249", "#922955", "#a73162",  # colores-ok: escala aprobada (2026-10-08)
-        "#bc3b70", "#d0497f", "#e05b91", "#ec73a5", "#f58fba",  # colores-ok: escala aprobada (2026-10-08)
+        "#6b3341", "#843a4d", "#9e4159", "#b94766", "#d44e73",  # colores-ok: escala aprobada (2026-10-13)
+        "#f05481", "#ff6b92", "#ff8da7", "#ffabbc", "#ffc6d0",  # colores-ok: escala aprobada (2026-10-13)
     ),
     "lagoon_turquoise": (
-        "#0d3c3c", "#11494a", "#155758", "#1a6667", "#207677",  # colores-ok: escala aprobada (2026-10-08)
-        "#288788", "#33999a", "#41abac", "#55bdbe", "#70cfd0",  # colores-ok: escala aprobada (2026-10-08)
+        "#1c5344", "#156451", "#00775f", "#00896d", "#009b7c",  # colores-ok: escala aprobada (2026-10-13)
+        "#00ad8b", "#00c09b", "#38d1ab", "#5ae1bd", "#76f2ce",  # colores-ok: escala aprobada (2026-10-13)
     ),
 }
 
 FUTURE_LIGHT: tuple[str, ...] = (
-    "#dadde2", "#ced2d8", "#c2c7ce", "#b6bbc4", "#aab0ba",  # colores-ok: escala aprobada (2026-10-08)
-    "#9ea5b0", "#929aa6", "#858e9b", "#788290", "#6a7484",  # colores-ok: escala aprobada (2026-10-08)
+    "#d3dae4", "#cbd2dc", "#c3cad4", "#bbc2cc", "#b3bac4",  # colores-ok: escala aprobada (2026-10-13)
+    "#acb2bc", "#a4abb5", "#9da3ad", "#959ca5", "#8e949e",  # colores-ok: escala aprobada (2026-10-13)
 )
 
 FUTURE_DARK: tuple[str, ...] = (
-    "#31353a", "#363b40", "#3c4147", "#42474e", "#484e55",  # colores-ok: escala aprobada (2026-10-08)
-    "#4f555d", "#565c64", "#5d646c", "#646b74", "#6c737d",  # colores-ok: escala aprobada (2026-10-08)
+    "#454b53", "#4c515a", "#525861", "#595f68", "#60666f",  # colores-ok: escala aprobada (2026-10-13)
+    "#676d76", "#6e747d", "#757b84", "#7c828c", "#838a93",  # colores-ok: escala aprobada (2026-10-13)
 )
 
 THEME_NAMES: tuple[str, ...] = tuple(PAST_LIGHT)
+# Temas sobre los que el borde naranja de las fechas clave no se distingue.
+WARM_THEMES: frozenset[str] = frozenset({"fire_red", "sunset_orange", "rose_pink"})
+KEY_BLUE_LIGHT = "#1971C2"  # colores-ok: reserva de STATE_NEW de Nocturne (dia)
+KEY_BLUE_DARK = "#74C0FC"  # colores-ok: reserva de STATE_NEW de Nocturne (noche)
 LEGEND_FACTORS: tuple[float, ...] = (0.125, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 4.0)
 STREAK_COLOR_LEVELS: tuple[tuple[int, int], ...] = ((14, 1), (30, 3), (90, 5), (180, 8), (365, 9))
 AVG_COLOR_LEVELS: tuple[tuple[int, int], ...] = ((10, 1), (25, 3), (60, 5), (150, 7), (300, 8))
@@ -143,6 +156,11 @@ def _vars_block(theme: str, dark: bool) -> str:
     future = FUTURE_DARK if dark else FUTURE_LIGHT
     parts = [f"--gritmap-p{i + 1}:{color};" for i, color in enumerate(past)]
     parts += [f"--gritmap-f{i + 1}:{color};" for i, color in enumerate(future)]
+    if theme in WARM_THEMES:
+        # El borde naranja de las fechas clave no se distingue sobre estos
+        # temas: pasa al azul de Nocturne (decision del cliente, 2026-10-13).
+        fallback = KEY_BLUE_DARK if dark else KEY_BLUE_LIGHT
+        parts.append(f"--gritmap-key:var(--state-new,{fallback});")
     return "".join(parts)
 
 
@@ -173,7 +191,10 @@ def palette_css(theme: str) -> str:
     light = _vars_block(theme, dark=False)
     dark = _vars_block(theme, dark=True)
     dark_selector = ",".join(_DARK_SELECTORS)
-    color_classes = "".join(
-        f"#gritmap-root .gritmap-c{i}{{color:var(--gritmap-p{i});}}" for i in range(1, 11)
+    # Las cifras se escriben en el color del texto, que siempre se lee; el
+    # tono del tema va en el cuadrito que llevan delante.
+    swatches = "".join(
+        f"#gritmap-root .gritmap-c{i}::before{{background:var(--gritmap-p{i});}}"
+        for i in range(1, 11)
     )
-    return f"#gritmap-root{{{light}}}{dark_selector}{{{dark}}}{color_classes}"
+    return f"#gritmap-root{{{light}}}{dark_selector}{{{dark}}}{swatches}"

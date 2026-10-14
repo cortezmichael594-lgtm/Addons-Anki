@@ -7,11 +7,15 @@ normalidad, en lugar de mostrar un volcado tecnico.
 
 El calculo del mapa siempre ocurre en segundo plano (QueryOp), nunca en el
 hilo de la interfaz, de modo que la ventana no se queda congelada ni con una
-coleccion muy grande.
+coleccion muy grande. Los datos calculados se reutilizan para cambiar de ano
+o de aspecto, y el ultimo mapa de cada pantalla se vuelve a ensenar al
+instante cuando Anki la redibuja, mientras se calculan los datos al dia.
 """
 
 from __future__ import annotations
 
+import json
+from dataclasses import replace
 from datetime import date
 
 import aqt
@@ -20,19 +24,16 @@ from aqt import gui_hooks, mw
 from aqt.deckbrowser import DeckBrowser, DeckBrowserContent
 from aqt.operations import QueryOp
 from aqt.overview import Overview, OverviewContent
-from aqt.qt import QTimer
 from aqt.webview import WebContent
 
 from . import config, i18n, view
-from .config import load_config
-from .data import HeatmapData, days_offset, fetch_data, year_bounds
+from .config import Config, load_config
+from .data import WINDOWS, HeatmapData, days_offset, fetch_data, year_bounds
 from .decks import build_scope, day_search
 from .errors import guarded, guarded_filter, log_exception
 from .options import open_options
-from .state import state
-from .view import MSG_PREFIX
-
-WEB_PATTERN = r"web/.*\.(css|js)"
+from .state import DataEntry, state
+from .view import MSG_PREFIX, WEB_PATTERN
 
 
 def _package() -> str:
@@ -41,50 +42,6 @@ def _package() -> str:
 
 # Dibujado del mapa
 # ---------------------------------------------------------------------------
-
-
-def _schedule_render(current_deck_only: bool) -> None:
-    """Pide los datos en segundo plano y dibuja el mapa cuando lleguen."""
-    if mw.col is None:
-        return
-    cfg = load_config()
-    token, generation = state.new_render_token()
-    screen = mw.state
-    show_week = (not current_deck_only) and cfg.show_week_diff
-    excluded = cfg.excluded_decks
-
-    def op(col: Collection) -> HeatmapData:
-        scope = build_scope(col, excluded, current_deck_only)
-        return fetch_data(col, scope)
-
-    def on_success(data: HeatmapData) -> None:
-        # Descarta el resultado si entretanto se pidio otro dibujado, si se
-        # cambio de perfil o si la persona ya no esta en la misma pantalla.
-        if not state.is_current(token, generation) or mw.col is None or mw.state != screen:
-            return
-        try:
-            key_days = tuple(kd.day for kd in cfg.key_dates)
-            min_year, max_year = year_bounds(data, key_days)
-            offset = max(
-                data.today.year - max_year,
-                min(state.year_offset, data.today.year - min_year),
-            )
-            state.year_offset = offset
-            view.render(
-                view.build_widget_html(data, cfg, offset),
-                measure=cfg.measure,
-                week=view.week_payload(data, cfg.measure, show_week),
-            )
-        except Exception as exc:
-            log_exception("controller.on_success", exc)
-            view.render_error()
-
-    def on_failure(exc: Exception) -> None:
-        log_exception("controller.fetch_data", exc)
-        if state.is_current(token, generation) and mw.state == screen:
-            view.render_error()
-
-    QueryOp(parent=mw, op=op, success=on_success).failure(on_failure).run_in_background()
 
 
 def _current_deck_only() -> bool | None:
@@ -96,19 +53,100 @@ def _current_deck_only() -> bool | None:
     return None
 
 
-def _rerender_in_place() -> None:
-    """Redibuja el mapa dentro del hueco que ya ocupa.
+def _usable(entry: DataEntry | None, current_deck_only: bool, cfg: Config) -> bool:
+    """Si los datos guardados sirven para dibujar esta pantalla con estas opciones."""
+    return (
+        entry is not None
+        and entry.generation == state.generation
+        and entry.current_deck_only == current_deck_only
+        and set(entry.excluded_decks) == set(cfg.excluded_decks)
+        and entry.measure == cfg.measure
+    )
 
-    A diferencia de recargar la pantalla completa, el mapa anterior permanece
-    visible mientras se calculan los datos nuevos y se sustituye de una vez.
-    Asi no hay parpadeo al cambiar de ano, de tema o de cualquier opcion.
+
+def _draw(entry: DataEntry, cfg: Config) -> None:
+    """Dibuja el ano que toca con datos ya calculados, sin leer la coleccion."""
+    data = entry.data
+    try:
+        key_days = tuple(kd.day for kd in cfg.key_dates)
+        min_year, max_year = year_bounds(data, key_days)
+        state.year_offset = max(
+            data.today.year - max_year,
+            min(state.year_offset, data.today.year - min_year),
+        )
+        show_week = (not entry.current_deck_only) and cfg.show_week_diff
+        payload = view.payload_json(
+            view.build_widget_html(data, cfg, state.year_offset),
+            measure=cfg.measure,
+            week=view.week_payload(data, cfg.measure, show_week),
+        )
+    except Exception as exc:
+        log_exception("controller.draw", exc)
+        payload = view.error_payload()
+    view.send(payload)
+    state.remember_page((entry.current_deck_only, entry.deck_id), payload)
+
+
+def _request_data(current_deck_only: bool, cfg: Config) -> None:
+    """Pide los datos en segundo plano y dibuja el mapa cuando lleguen."""
+    if mw.col is None:
+        return
+    token, generation = state.new_render_token()
+    screen = mw.state
+    excluded = cfg.excluded_decks
+    measure = cfg.measure
+
+    def op(col: Collection) -> tuple[HeatmapData, int]:
+        deck_id = int(col.decks.get_current_id()) if current_deck_only else 0
+        scope = build_scope(col, excluded, current_deck_only)
+        return fetch_data(col, scope, measure), deck_id
+
+    @guarded()
+    def on_success(result: tuple[HeatmapData, int]) -> None:
+        state.finish(token)
+        # Descarta el resultado si entretanto se pidio otro dibujado, si se
+        # cambio de perfil o si la persona ya no esta en la misma pantalla.
+        if not state.is_current(token, generation) or mw.col is None or mw.state != screen:
+            return
+        data, deck_id = result
+        entry = DataEntry(generation, current_deck_only, deck_id, excluded, measure, data)
+        # Las opciones se leen de nuevo: pudieron cambiar durante el calculo.
+        cfg_now = load_config()
+        if not _usable(entry, current_deck_only, cfg_now):
+            # Cambiaron la medida o los mazos excluidos: estos datos ya no
+            # valen y se calculan otra vez, con el mapa anterior a la vista.
+            _request_data(current_deck_only, cfg_now)
+            return
+        state.data = entry
+        _draw(entry, cfg_now)
+
+    @guarded()
+    def on_failure(exc: Exception) -> None:
+        state.finish(token)
+        log_exception("controller.fetch_data", exc)
+        if state.is_current(token, generation) and mw.state == screen:
+            view.send(view.error_payload())
+
+    QueryOp(parent=mw, op=op, success=on_success).failure(on_failure).run_in_background()
+
+
+def _redraw_in_place() -> None:
+    """Redibuja el mapa en el hueco que ya ocupa.
+
+    El mapa anterior sigue a la vista y se sustituye de una vez. Si los datos
+    guardados sirven, ni siquiera se lee la coleccion; si hay un calculo en
+    marcha, sera el quien dibuje al terminar.
     """
     if mw.col is None:
         return
     current_deck_only = _current_deck_only()
     if current_deck_only is None:
         return
-    _schedule_render(current_deck_only)
+    cfg = load_config()
+    if state.data is not None and _usable(state.data, current_deck_only, cfg):
+        _draw(state.data, cfg)
+    elif state.pending_token is None:
+        _request_data(current_deck_only, cfg)
 
 
 # Hooks de contenido
@@ -130,20 +168,33 @@ def _on_webview_will_set_content(web_content: WebContent, context: object) -> No
     web_content.head += view.palette_style_tag(load_config())
 
 
+def _page_html(current_deck_only: bool, cfg: Config) -> str:
+    """Contenedor del mapa para una pantalla que Anki esta construyendo.
+
+    Lleva dentro el ultimo mapa de esa pantalla, si lo hay, y pide los datos
+    al dia: el cambio, si lo hay, es de mapa a mapa y sin hueco intermedio.
+    """
+    deck_id = int(mw.col.decks.get_current_id()) if current_deck_only and mw.col else 0
+    remembered = state.pages.get((current_deck_only, deck_id))
+    # Una pantalla nueva puede traer datos nuevos (tras repasar, sincronizar
+    # o deshacer): los guardados ya no valen.
+    state.data = None
+    _request_data(current_deck_only, cfg)
+    return view.container_html(cfg, remembered)
+
+
 @guarded()
 def _on_deck_browser_render(_deck_browser: DeckBrowser, content: DeckBrowserContent) -> None:
     if mw.col is None:
         return
-    content.stats += view.placeholder_html(load_config())
-    _schedule_render(current_deck_only=False)
+    content.stats += _page_html(False, load_config())
 
 
 @guarded()
 def _on_overview_render(_overview: Overview, content: OverviewContent) -> None:
     if mw.col is None:
         return
-    content.table += view.placeholder_html(load_config())
-    _schedule_render(current_deck_only=True)
+    content.table += _page_html(True, load_config())
 
 
 # Apertura del navegador de tarjetas
@@ -173,6 +224,7 @@ def _open_day_in_browser(day_iso: str, current_deck_only: bool, future: bool) ->
             return day_search(col, scope, -offset, future=True)
         return day_search(col, scope, offset, future=False)
 
+    @guarded()
     def on_success(search: str) -> None:
         # Si entretanto se cambio de usuario, la busqueda pertenece a otra
         # coleccion y no debe abrirse.
@@ -184,6 +236,7 @@ def _open_day_in_browser(day_iso: str, current_deck_only: bool, future: bool) ->
         except Exception as exc:
             log_exception("controller.open_browser", exc)
 
+    @guarded()
     def on_failure(exc: Exception) -> None:
         log_exception("controller.day_search", exc)
 
@@ -205,6 +258,9 @@ def _on_js_message(
 
     action = message[len(MSG_PREFIX):]
     current_deck_only = isinstance(context, Overview)
+    if current_deck_only != _current_deck_only():
+        # Mensaje de una pagina que ya no es la que se ve.
+        return (True, None)
 
     if action in ("prev", "next", "today"):
         if action == "prev":
@@ -213,13 +269,17 @@ def _on_js_message(
             state.year_offset -= 1
         else:
             state.year_offset = 0
-        _schedule_render(current_deck_only)
+        _redraw_in_place()
+        return (True, None)
+
+    if action.startswith("window:"):
+        _set_window(action[len("window:"):])
         return (True, None)
 
     if action == "opts":
         # Se aplaza para que el mensaje de la pagina termine antes de abrir
         # una ventana modal.
-        QTimer.singleShot(0, open_options)
+        mw.progress.single_shot(0, open_options)
         return (True, None)
 
     if action.startswith("past:"):
@@ -235,6 +295,23 @@ def _on_js_message(
 
 # Perfil y configuracion
 # ---------------------------------------------------------------------------
+
+
+def _set_window(raw: str) -> None:
+    """Boton rapido de periodo: guarda la eleccion y redibuja sin recalcular.
+
+    El texto llega de la pagina, asi que se comprueba antes de usarlo.
+    """
+    try:
+        days = int(raw)
+    except ValueError:
+        return
+    cfg = load_config()
+    if days not in WINDOWS or days == cfg.avg_window:
+        return
+    config.save_appearance(replace(cfg, avg_window=days))
+    state.pages.clear()
+    _redraw_in_place()
 
 
 @guarded()
@@ -261,22 +338,26 @@ def _on_profile_will_close() -> None:
 def _apply_config_change() -> None:
     """Aplica un cambio de opciones sin recargar la pantalla.
 
-    Se llama tanto al guardar en el dialogo propio como al editar la
-    configuracion desde Anki. Si en ese momento no se esta en una pantalla con
-    mapa no hay nada que hacer: al volver, la pagina se construye ya con los
-    colores nuevos.
+    Si en ese momento no se ve el mapa (otra pantalla, o la de «Has terminado
+    este mazo», que es de Anki) no hay nada que hacer: al volver, la pagina se
+    construye ya con las opciones nuevas.
     """
     config.invalidate_cache()
     state.year_offset = 0
-    if _current_deck_only() is None:
+    state.pages.clear()
+    if mw.col is None or _current_deck_only() is None:
         return
-    view.update_palette(load_config())
-    _rerender_in_place()
+    mw.web.evalWithCallback(
+        f"!!document.getElementById({json.dumps(view.ROOT_ID)})", _on_map_presence
+    )
 
 
 @guarded()
-def _on_config_updated(_new_config: dict[str, object]) -> None:
-    _apply_config_change()
+def _on_map_presence(has_map: object) -> None:
+    if has_map is not True:
+        return
+    view.update_palette(load_config())
+    _redraw_in_place()
 
 
 # Registro
@@ -292,5 +373,6 @@ def register() -> None:
     gui_hooks.webview_did_receive_js_message.append(_on_js_message)
     gui_hooks.profile_did_open.append(_on_profile_did_open)
     gui_hooks.profile_will_close.append(_on_profile_will_close)
+    # Con su propia ventana de opciones, Anki nunca abre su editor de JSON
+    # para este complemento.
     mw.addonManager.setConfigAction(__name__, open_options)
-    mw.addonManager.setConfigUpdatedAction(__name__, _on_config_updated)
