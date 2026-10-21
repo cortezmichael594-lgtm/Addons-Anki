@@ -265,3 +265,14 @@ Versión 4.2.0 (correcciones del cliente del 2026-10-21 sobre la 4.1.0):
 - En lugar de la vista previa, el propio mapa cambia en vivo mientras se mueven las barras, y vuelve a
   como estaba al cancelar. Criterio técnico para «más intuitivo».
 - Sin meta, la línea de «Hoy» da lo hecho en los 7 últimos días completos (Regla de FIX-001).
+
+Versión 4.3.0 (correcciones del cliente del 2026-10-21 sobre la 4.2.0):
+
+- La ventana de opciones vuelve a ser una sola lista, como en las primeras versiones, sin grupos con
+  título, con el cuadrito de muestra de cada tema y con campos numéricos con flechas para el tamaño de
+  celda y el redondeo («Tamaño de celda (px)»), en lugar de barras deslizantes. Lo pidió el cliente con
+  una captura. El alto de la ventana se ajusta siempre a su contenido: una altura guardada por otra
+  versión dejaba un hueco entre «Apariencia» y «Qué se cuenta».
+- Sobre el mapa no hay título «Actividad» ni la cifra del año («22.129 repasos en 2026»); los botones
+  quedan centrados y «Hoy» siempre a la vista, como en las primeras versiones. Lo pidió el cliente.
+- «Próxima fecha» dice solo el nombre, sin la fecha al lado. Lo pidió el cliente.

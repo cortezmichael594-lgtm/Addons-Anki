@@ -213,19 +213,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         }
     }
 
-    /* Fechas cortas sueltas («13 nov»), como la de la tarjeta de la proxima
-     * fecha clave: las escribe el navegador en el idioma de Anki (4.2.0). */
-    function localizeDates(container) {
-        var spans = container.querySelectorAll("[data-gritmap-date]");
-        var fmt = spans.length ? formatter({ day: "numeric", month: "short" }) : null;
-        for (var i = 0; fmt && i < spans.length; i++) {
-            var day = parseDay(spans[i].getAttribute("data-gritmap-date"));
-            if (day) {
-                spans[i].textContent = fmt.format(day);
-            }
-        }
-    }
-
     /* Globo de un dia: la fecha y, en la linea de abajo, lo hecho («lunes,
      * 22 de junio de 2026» / «9 tarjetas»), igual en todos los idiomas.
      * Python ya ha decidido que plantilla toca (data-t) segun la medida y la
@@ -412,10 +399,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         container.addEventListener("mouseleave", hideTip);
         /* Si el mapa se desplaza lateralmente, el globo dejaria de apuntar a
          * su celda: se oculta en cuanto empieza el desplazamiento. */
-        container.addEventListener("scroll", function () {
-            hideTip();
-            updateTodayButton(container);
-        }, true);
+        container.addEventListener("scroll", hideTip, true);
     }
 
     /* Desde 4.0.0 la comparativa semanal vive en la tarjeta de estadisticas:
@@ -426,33 +410,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         if (span && span.parentNode) {
             span.parentNode.removeChild(span);
         }
-    }
-
-    /* «Hoy» solo aparece cuando sirve: en otro ano (lo decide Python) o, con
-     * cuadritos grandes, cuando la semana de hoy queda fuera de la vista. Su
-     * hueco esta siempre reservado, asi que nada salta. */
-    function updateTodayButton(container) {
-        var button = container.querySelector(".gritmap-textbtn[data-gritmap-btn='today']");
-        var grid = container.querySelector(".gritmap-grid");
-        var today = grid ? grid.querySelector("[data-gritmap-today]") : null;
-        if (!button || !grid || !today) {
-            return;
-        }
-        var cellBox = today.getBoundingClientRect();
-        var gridBox = grid.getBoundingClientRect();
-        var away = cellBox.right < gridBox.left || cellBox.left > gridBox.right;
-        button.classList.toggle("gritmap-hidden", !away);
-    }
-
-    /* Centra un dia en la rejilla si no cabe entera a lo ancho. */
-    function centreCell(grid, cell) {
-        if (grid.scrollWidth <= grid.clientWidth) {
-            return;
-        }
-        var cellBox = cell.getBoundingClientRect();
-        var gridBox = grid.getBoundingClientRect();
-        var centre = cellBox.left - gridBox.left + grid.scrollLeft - grid.clientWidth / 2;
-        grid.scrollLeft = Math.max(0, centre);
     }
 
     /* Al abrir un ano se ensena la semana de hoy aunque la ventana sea
@@ -512,7 +469,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         container.removeAttribute("aria-busy");
         state.lastHtml = html;
         localizeCalendar(container);
-        localizeDates(container);
         localizeNumbers(container);
         bind(container);
         removeOldWeekDiff();
@@ -540,7 +496,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
                 focusCell(container, cell);
             }
         }
-        updateTodayButton(container);
     }
 
     return { render: render };

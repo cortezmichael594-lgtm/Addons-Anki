@@ -1,9 +1,9 @@
 # Qué hace «GritMap»
 
-Versión 4.2.0 · 2026-10-21
+Versión 4.3.0 · 2026-10-21
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub, en tarjetas. Arriba, centrada y
-del tamaño que piden sus cuadritos, la tarjeta «Actividad», con el año entero (un cuadrito por día: gris sin estudio y cuatro tonos
+del tamaño que piden sus cuadritos, la tarjeta del mapa, con el año entero (un cuadrito por día: gris sin estudio y cuatro tonos
 del tema; los días que vienen, en cuatro grises según las tarjetas que vencen). Debajo, cinco tarjetas
 pequeñas del mismo ancho entre todas, que responden de un vistazo: «Hoy», «Racha», «Promedio
 diario», «Retención» y «Próxima fecha». Tiene una meta diaria opcional, comodines que perdonan días
@@ -94,19 +94,16 @@ deseada de su configuración: «· objetivo 90 %».
 ### Próxima fecha
 
 La próxima fecha clave de hoy en adelante: «faltan 23 días», «falta 1 día» o «es hoy», sin estrella.
-Debajo, su nombre (varias el mismo día, separadas por « · ») y la fecha corta en el idioma de Anki:
-«Examen de Anatomía · 13 nov». Sin fechas por venir: «Sin fechas clave». Las fechas se añaden en
+Debajo, solo su nombre (varias el mismo día, separadas por « · »): «Examen de Anatomía». Sin fechas
+por venir: «Sin fechas clave». Las fechas se añaden en
 Opciones > «Gestionar fechas». La tarjeta nunca desaparece.
 
-## 4. La tarjeta «Actividad»
+## 4. La tarjeta del mapa
 
-- Título «Actividad» y, a su lado, en gris, lo hecho en el año que se ve: «12.480 repasos en 2026»
-  (los días futuros no cuentan). En una colección sin repasos no lleva esa cifra.
-- A la derecha: «‹ 2026 ›» (año anterior y siguiente, con su nombre al pasar el ratón), el botón
-  «Hoy» y el botón de opciones. Las flechas se apagan en el primer año con repasos y en el último con
-  vencimientos o fechas clave. «Hoy» solo se ve cuando sirve: en otro año o cuando, con el mapa
-  desplazado, la semana de hoy queda fuera de la vista; su hueco está siempre reservado. «Hoy» vuelve al
-  año actual y a la semana de hoy.
+- Sin título ni cifras encima: solo los botones, centrados sobre el mapa: «‹ 2026 ›» (año anterior y
+  siguiente, con su nombre al pasar el ratón), «Hoy» y el botón de opciones. Las flechas se apagan en
+  el primer año con repasos y en el último con vencimientos o fechas clave. «Hoy», siempre a la vista,
+  vuelve al año actual y a la semana de hoy.
 - El año entero, de enero a diciembre, en columnas de semanas que empiezan en lunes, con los nombres
   de los meses encima en el idioma de Anki (siempre con el calendario gregoriano). Cada cuadrito mide
   el tamaño de celda elegido, con el redondeo de esquinas elegido y 3 px de hueco. Si el año no cabe,
@@ -154,7 +151,7 @@ Opciones > «Gestionar fechas». La tarjeta nunca desaparece.
   gris con hoy marcado y, debajo, «Cada día que estudie se pintará aquí.», sin leyenda y con las
   flechas de año apagadas; y debajo, las tarjetas («0 repasos» con «0 repasos en 7 días», «0 días»
   con «hoy pendiente», promedio y retención «N/A» y «Sin fechas clave»).
-- En la pantalla de un mazo excluido: una tarjeta «Actividad» con «Este mazo está excluido del mapa.»
+- En la pantalla de un mazo excluido: una tarjeta con «Este mazo está excluido del mapa.»
   y el botón de opciones.
 - Si algo falla: una tarjeta con «No se pudo cargar el mapa de calor.» y el botón de opciones.
 
@@ -198,30 +195,30 @@ ver las que vencen ese día». El globo no dice nada de la meta. La tecla Esc lo
 ## 8. Ventana de opciones
 
 Título «GritMap». Se abre después de leer los mazos y las opciones sin congelar Anki (un segundo clic
-mientras tanto no abre otra), delante de la ventana desde la que se pidió. Tres grupos con título y
-los botones «Restaurar apariencia» (a la izquierda; al pasar el ratón, «No cambia los mazos
+mientras tanto no abre otra), delante de la ventana desde la que se pidió. Una sola lista de opciones,
+como en las primeras versiones, con controles estándar de Anki, y los botones «Restaurar apariencia» (a la izquierda; al pasar el ratón, «No cambia los mazos
 excluidos ni las fechas clave»), Aceptar y Cancelar. Intro pulsa el botón que tiene el foco. Recuerda
-su tamaño y su posición. Al aceptar, el mapa se redibuja en su sitio, sin recargar la pantalla.
+su ancho y su posición; el alto es siempre el que piden sus opciones, sin huecos. Al aceptar, el mapa se redibuja en su sitio, sin recargar la pantalla.
 
-| Grupo | Opción | Valores | Por defecto |
-|---|---|---|---|
-| Apariencia | Tema de color | Azul océano, Naranja atardecer, Púrpura real y Verde clásico, cada uno con su tira de cuatro tonos del modo activo (cambia si Anki pasa de día a noche) | Verde clásico |
-| | Tamaño de celda | Barra deslizante de 8 a 60 px, con el valor a su lado («25 px») | 25 px |
-| | Redondeo de esquinas | Barra deslizante de 0 a 15 px, con el valor a su lado | 1 px |
-| Qué se cuenta | El color mide | Repasos, Tarjetas, Nuevas; debajo, «Cada respuesta cuenta una», «Cada tarjeta cuenta una vez por día» o «Solo las tarjetas que empezó ese día» | Repasos |
-| | Periodo de las cifras | 30 o 365 días, o Todo el historial (vale para el promedio diario y la retención) | 30 días |
-| | Excluir mazos | Botón «Seleccionar mazos» (o «1 mazo excluido», «2 mazos excluidos», con hasta 15 nombres al pasar el ratón y «…» si hay más) | Ninguno |
-| Metas y fechas | Meta diaria | «Sin meta», «Un número» (con el número, de 1 a 9.999, en la unidad de la medida) o «Terminar lo de hoy» | Sin meta (50 si elige «Un número») |
-| | Comodines | Casilla «Perdonar días sueltos con comodines» (al pasar el ratón, la regla) | Marcada |
-| | Pausa | Casilla «Pausar la racha» con las fechas de inicio y fin (el fin, como mucho 29 días después del inicio; al pasar el ratón, «La pausa dura 30 días como máximo.») | Desmarcada |
-| | Fechas clave | Botón «Gestionar fechas» (o «1 fecha marcada», «3 fechas marcadas», con la lista al pasar el ratón) | Ninguna |
-| | Mostrar racha y meta | Casilla | Marcada |
+En este orden:
 
-- Mientras mueve el tema, el tamaño de celda o el redondeo, el mapa de detrás cambia al momento (un
-  instante después de parar la barra), sin guardar nada; si cancela, vuelve a como estaba. La medida
+| Opción | Valores | Por defecto |
+|---|---|---|
+| Tema de color | Azul océano, Naranja atardecer, Púrpura real y Verde clásico, cada uno con un cuadrito de su tono en el modo activo (cambia si Anki pasa de día a noche) | Verde clásico |
+| El color mide | Repasos, Tarjetas, Nuevas; debajo, «Cada respuesta cuenta una», «Cada tarjeta cuenta una vez por día» o «Solo las tarjetas que empezó ese día» | Repasos |
+| Tamaño de celda (px) | Campo numérico con flechas, de 8 a 60 | 25 |
+| Redondeo de esquinas (px) | Campo numérico con flechas, de 0 a 15 | 1 |
+| Periodo de las cifras | 30 o 365 días, o Todo el historial (vale para el promedio diario y la retención) | 30 días |
+| Excluir mazos | Botón «Seleccionar mazos» (o «1 mazo excluido», «2 mazos excluidos», con hasta 15 nombres al pasar el ratón y «…» si hay más) | Ninguno |
+| Fechas clave | Botón «Gestionar fechas» (o «1 fecha marcada», «3 fechas marcadas», con la lista al pasar el ratón) | Ninguna |
+| Meta diaria | «Sin meta», «Un número» (con el número, de 1 a 9.999, en la unidad de la medida) o «Terminar lo de hoy» | Sin meta (50 si elige «Un número») |
+| Comodines | Casilla «Perdonar días sueltos con comodines» (al pasar el ratón, la regla) | Marcada |
+| Pausa | Casilla «Pausar la racha» con las fechas de inicio y fin (el fin, como mucho 29 días después del inicio; al pasar el ratón, «La pausa dura 30 días como máximo.») | Desmarcada |
+| Mostrar racha y meta | Casilla | Marcada |
+
+- Mientras cambia el tema, el tamaño de celda o el redondeo, el mapa de detrás cambia al momento (un
+  instante después de soltar la flecha), sin guardar nada; si cancela, vuelve a como estaba. La medida
   y los mazos excluidos se ven al aceptar, porque piden leer la colección.
-- Las barras se mueven con el ratón o con las flechas del teclado (de uno en uno) y Re Pág / Av Pág
-  (de dos en dos).
 - «Restaurar apariencia» repone el tema, el tamaño de celda, el redondeo y la medida; no toca los
   mazos excluidos, las fechas clave, la meta, los comodines, la pausa ni el periodo.
 - Si tenía Rojo fuego, Rosa suave o Turquesa laguna, retirados en esta versión, pasa sin preguntar a

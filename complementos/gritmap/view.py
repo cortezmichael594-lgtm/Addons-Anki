@@ -234,9 +234,13 @@ def _card(css: str, title: str, tools: str, body: str, subtitle: str = "", extra
     """Tarjeta: titulo arriba a la izquierda, su control a la derecha, en la
     misma linea (Norman: el control junto a lo que controla)."""
     sub = f'<span class="gritmap-card-sub">{subtitle}</span>' if subtitle else ""
+    if title:
+        head = f'<div class="gritmap-card-head"><h3 class="gritmap-card-title">{html.escape(title)}{sub}</h3>'
+    else:
+        # Sin titulo (la tarjeta del mapa, 4.3.0): los botones, centrados.
+        head = '<div class="gritmap-card-head gritmap-notitle">'
     return (
-        f'<section class="gritmap-card {css}"{extra}>'
-        f'<div class="gritmap-card-head"><h3 class="gritmap-card-title">{html.escape(title)}{sub}</h3>'
+        f'<section class="gritmap-card {css}"{extra}>{head}'
         f'<div class="gritmap-card-tools">{tools}</div></div>'
         f'<div class="gritmap-card-body">{body}</div></section>'
     )
@@ -398,15 +402,13 @@ def _average_card(stats: FullStats, measure: str, window: int) -> str:
 def _next_card(key_dates: tuple[KeyDate, ...], today: date) -> str:
     """¿Que tengo por delante? La tarjeta nunca desaparece, para que la fila no
     cambie de forma de un dia a otro. Sin enlaces (4.2.0, peticion del
-    cliente): el nombre y la fecha, que escribe el navegador en el idioma de
-    Anki («13 nov»)."""
+    cliente): solo el nombre (4.3.0: sin la fecha al lado)."""
     upcoming = sorted(kd.day for kd in key_dates if kd.day >= today)
     if not upcoming:
         return _mini(t("card_next"), html.escape(t("no_key_dates")), "", "gritmap-muted gritmap-big-small")
     day = upcoming[0]
     names = " · ".join(html.escape(kd.label) for kd in key_dates if kd.day == day)
-    when = f'<span class="gritmap-date" data-gritmap-date="{day.isoformat()}">{day.isoformat()}</span>'
-    return _mini(t("card_next"), countdown_html((day - today).days), f"{names} · {when}")
+    return _mini(t("card_next"), countdown_html((day - today).days), names)
 
 
 def build_summary(
@@ -618,15 +620,6 @@ def build_year(
     )
 
 
-def year_total(data: HeatmapData, year: int, measure: str) -> int:
-    """Lo hecho en un ano, en la unidad de la medida (los dias futuros no cuentan)."""
-    total = 0.0
-    for days_ago, day in data.past.items():
-        if (data.today - timedelta(days=days_ago)).year == year:
-            total += measure_value(day, measure)
-    return int(total)
-
-
 def legend_ranges(thresholds: list[float]) -> list[tuple[int, int | None]]:
     """Cifras que cubre cada tono: (desde, hasta); el ultimo no tiene techo.
 
@@ -729,13 +722,8 @@ def build_activity(
     # tarjetas que vencen, con la escala de siempre (la de los repasos).
     future_thresholds = legend_thresholds(scale_reference(data, "reviews"))
     forgiven = stats.forgiven if stats is not None else {}
-    subtitle = ""
-    if data.past:
-        total = count_html(year_total(data, year, cfg.measure), cfg.measure)
-        subtitle = fill_html("year_total_in", total=total, year=str(year))
-    # «Hoy» solo cuando sirve (otro ano, o el mapa desplazado lejos de hoy);
-    # mientras, su hueco queda reservado para que nada salte.
-    today_hidden = " gritmap-hidden" if year == data.today.year else ""
+    # «Hoy» siempre a la vista, como en las primeras versiones (4.3.0): los
+    # botones quedan centrados y nada aparece ni desaparece.
     # En el mapa vacio no hay otro ano al que ir.
     first, last = (True, True) if message else (year <= min_year, year >= max_year)
     tools = (
@@ -744,7 +732,7 @@ def build_activity(
         + f'<span class="gritmap-yv">{year}</span>'
         + _icon_button("next", t("nav_forward"), "right", last)
         + "</div>"
-        + f'<button type="button" class="gritmap-textbtn{today_hidden}" data-gritmap-btn="today"'
+        + '<button type="button" class="gritmap-textbtn" data-gritmap-btn="today"'
         f' data-gritmap-cmd="today">{html.escape(t("nav_today"))}</button>'
         + _icon_button("opts", t("nav_opts"), "sliders")
     )
@@ -759,7 +747,8 @@ def build_activity(
         f'<div class="gritmap-grid">{grid}</div>'
         f'<div class="gritmap-foot"><div class="gritmap-foot-left">{left}</div>{legend}</div>'
     )
-    return _card("gritmap-activity", t("card_activity"), tools, body, subtitle)
+    # Sin titulo ni cifra del ano encima (peticion del cliente, 4.3.0).
+    return _card("gritmap-activity", "", tools, body)
 
 
 # Promedio diario
@@ -804,7 +793,7 @@ def _message_card(key: str, action: str = "") -> str:
     """Aviso en una tarjeta, con el boton de opciones para poder cambiarlas."""
     tools = _icon_button("opts", t("nav_opts"), "sliders")
     body = f'<div class="gritmap-msg">{html.escape(t(key))}{action}</div>'
-    return _card("gritmap-activity", t("card_activity"), tools, body) + _TIP
+    return _card("gritmap-activity", "", tools, body) + _TIP
 
 
 def build_widget_html(

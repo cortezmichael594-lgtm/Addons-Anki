@@ -44,19 +44,15 @@ from aqt.qt import (
     QDialog,
     QDialogButtonBox,
     QFormLayout,
-    QGroupBox,
     QHBoxLayout,
     QIcon,
     QKeySequence,
     QLabel,
     QLineEdit,
     QLocale,
-    QPainter,
     QPixmap,
     QPushButton,
     QShortcut,
-    QSize,
-    QSlider,
     QSpinBox,
     Qt,
     QTimer,
@@ -149,17 +145,11 @@ def _theme_swatch(name: str) -> QIcon:
     # Regla: toda muestra de color se toma de la escala del modo activo, leido
     #        en el momento de construir la ventana.
     # ---------------------------------------------------------------
-    # Desde 4.0.0, una tira con los cuatro tonos del tema.
+    # Un solo cuadrito, como antes de la 4.0 (peticion del cliente, 4.3.0),
+    # con el tercero de los cuatro tonos del tema.
     scale = PAST_DARK if theme_manager.night_mode else PAST_LIGHT
-    tones = scale.get(name, scale[DEFAULT_CONFIG.theme])
-    pixmap = QPixmap(4 * 12, 12)
-    pixmap.fill(Qt.GlobalColor.transparent)
-    painter = QPainter(pixmap)
-    try:
-        for index, tone in enumerate(tones):
-            painter.fillRect(index * 12 + 1, 1, 10, 10, QColor(tone))
-    finally:
-        painter.end()
+    pixmap = QPixmap(16, 16)
+    pixmap.fill(QColor(scale.get(name, scale[DEFAULT_CONFIG.theme])[2]))
     return QIcon(pixmap)
 
 
@@ -190,33 +180,19 @@ def _standard_buttons(
     return box
 
 
-class _PxSlider(QWidget):
-    """Barra deslizante con su valor a la vista («25 px»): se ve lo que se
-    elige y se cambia con el raton o con las flechas del teclado."""
+def _spin_box(minimum: int, maximum: int) -> QSpinBox:
+    """Campo numerico con sus flechas, como antes de la 4.2 (peticion del
+    cliente, 4.3.0); la unidad va en el rotulo («Tamano de celda (px)»)."""
+    box = QSpinBox()
+    box.setRange(minimum, maximum)
+    box.setSingleStep(1)
+    box.setAccelerated(True)
+    return box
 
-    def __init__(self, minimum: int, maximum: int, label: str) -> None:
-        super().__init__()
-        self.slider = QSlider(Qt.Orientation.Horizontal)
-        self.slider.setRange(minimum, maximum)
-        self.slider.setPageStep(2)
-        self.slider.setAccessibleName(label)
-        self._value = QLabel()
-        self._value.setMinimumWidth(48)
-        row = QHBoxLayout(self)
-        row.setContentsMargins(0, 0, 0, 0)
-        row.addWidget(self.slider, 1)
-        row.addWidget(self._value)
-        qconnect(self.slider.valueChanged, self._show_value)
 
-    def _show_value(self, value: int) -> None:
-        self._value.setText(f"{value} px")
-
-    def value(self) -> int:
-        return self.slider.value()
-
-    def setValue(self, value: int) -> None:
-        self.slider.setValue(value)
-        self._show_value(self.slider.value())
+def _px_label(key: str) -> str:
+    """Rotulo con la unidad: «Tamano de celda (px)»."""
+    return f"{_without_px(key)} (px)"
 
 
 class ExcludeDecksDialog(QDialog):
@@ -492,9 +468,9 @@ class KeyDatesDialog(QDialog):
 
 
 class HeatmapOptionsDialog(QDialog):
-    """Opciones en tres grupos con titulo (4.0.0): Apariencia, Que se cuenta y
-    Metas y fechas. Tres grupos de tres a cinco controles encajan con lo que
-    la memoria abarca (Weinschenk, P1); sin palabras en pixeles."""
+    """Opciones en una sola lista, como antes de la 4.0 (peticion del cliente,
+    4.3.0): primero el aspecto, despues que se cuenta y al final las metas y
+    las fechas."""
 
     def __init__(self, parent: QWidget, cfg: Config, decks: _Decks) -> None:
         super().__init__(parent)
@@ -504,14 +480,13 @@ class HeatmapOptionsDialog(QDialog):
         self._decks = decks
 
         self._theme = QComboBox()
-        self._theme.setIconSize(QSize(48, 12))
         for name in _sorted_theme_names():
             self._theme.addItem(_theme_swatch(name), t(f"theme_{name}"), name)
-        # Tamano de celda y redondeo (4.2.0): barras deslizantes con su valor a
-        # la vista; mientras se mueven, el propio mapa cambia al momento (y
-        # vuelve a como estaba si se cancela). Sustituyen a la vista previa.
-        self._cell_size = _PxSlider(CELL_SIZE_MIN, CELL_SIZE_MAX, _without_px("opt_cell"))
-        self._border_radius = _PxSlider(BORDER_RADIUS_MIN, BORDER_RADIUS_MAX, _without_px("opt_radius"))
+        # Tamano de celda y redondeo: campos numericos con flechas. Mientras
+        # se cambian, el propio mapa cambia al momento (y vuelve a como estaba
+        # si se cancela).
+        self._cell_size = _spin_box(CELL_SIZE_MIN, CELL_SIZE_MAX)
+        self._border_radius = _spin_box(BORDER_RADIUS_MIN, BORDER_RADIUS_MAX)
         self._preview_timer = QTimer(self)
         self._preview_timer.setSingleShot(True)
         self._preview_timer.setInterval(80)
@@ -578,7 +553,7 @@ class HeatmapOptionsDialog(QDialog):
         self._key_dates_button = QPushButton()
         qconnect(self._key_dates_button.clicked, self._open_key_dates)
 
-        look = QFormLayout()
+        form = QFormLayout()
         if cfg.retired_theme:
             # El tema guardado se retiro en la 4.0.0: se dice una vez, sin
             # preguntar (Hopkins, M3: avisar al cambiar las reglas).
@@ -590,21 +565,19 @@ class HeatmapOptionsDialog(QDialog):
                 )
             )
             notice.setWordWrap(True)
-            look.addRow(notice)
-        look.addRow(t("opt_theme"), self._theme)
-        look.addRow(_without_px("opt_cell"), self._cell_size)
-        look.addRow(_without_px("opt_radius"), self._border_radius)
-        counted = QFormLayout()
-        counted.addRow(t("opt_measure"), self._measure)
-        counted.addRow("", self._measure_help)
-        counted.addRow(t("opt_window"), self._avg_window)
-        counted.addRow(t("opt_exclude"), self._exclude_button)
-        goals = QFormLayout()
-        goals.addRow(t("opt_goal"), goal_box)
-        goals.addRow("", self._freezes)
-        goals.addRow("", pause_box)
-        goals.addRow(t("opt_key_dates"), self._key_dates_button)
-        goals.addRow("", self._show_streak)
+            form.addRow(notice)
+        form.addRow(t("opt_theme"), self._theme)
+        form.addRow(t("opt_measure"), self._measure)
+        form.addRow("", self._measure_help)
+        form.addRow(_px_label("opt_cell"), self._cell_size)
+        form.addRow(_px_label("opt_radius"), self._border_radius)
+        form.addRow(t("opt_window"), self._avg_window)
+        form.addRow(t("opt_exclude"), self._exclude_button)
+        form.addRow(t("opt_key_dates"), self._key_dates_button)
+        form.addRow(t("opt_goal"), goal_box)
+        form.addRow("", self._freezes)
+        form.addRow("", pause_box)
+        form.addRow("", self._show_streak)
 
         buttons = _standard_buttons(
             self,
@@ -620,8 +593,8 @@ class HeatmapOptionsDialog(QDialog):
             restore_button.setToolTip(t("opt_restore_tip"))
             qconnect(restore_button.clicked, self._restore_defaults)
         qconnect(self._theme.currentIndexChanged, self._schedule_preview)
-        qconnect(self._cell_size.slider.valueChanged, self._schedule_preview)
-        qconnect(self._border_radius.slider.valueChanged, self._schedule_preview)
+        qconnect(self._cell_size.valueChanged, self._schedule_preview)
+        qconnect(self._border_radius.valueChanged, self._schedule_preview)
         qconnect(self._preview_timer.timeout, self._send_preview)
         qconnect(self._measure.currentIndexChanged, self._update_measure_help)
         qconnect(self._goal_mode.currentIndexChanged, self._update_goal_state)
@@ -629,16 +602,17 @@ class HeatmapOptionsDialog(QDialog):
         qconnect(self._pause_start.dateChanged, self._limit_pause)
 
         layout = QVBoxLayout()
-        for title, form in ((t("grp_look"), look), (t("grp_count"), counted), (t("grp_goals"), goals)):
-            group = QGroupBox(title)
-            group.setLayout(form)
-            layout.addWidget(group)
-        layout.addSpacing(4)
+        layout.addLayout(form)
+        layout.addSpacing(6)
         layout.addWidget(buttons)
         self.setLayout(layout)
 
         self._apply(cfg)
         restoreGeom(self, "gritmapOptions")
+        # Se recuerda el ancho y la posicion, pero el alto es siempre el que
+        # pide el contenido: una altura guardada por otra version (con mas o
+        # menos opciones) dejaba un hueco en medio.
+        self.resize(self.width(), self.sizeHint().height())
         gui_hooks.theme_did_change.append(self._refresh_swatches)
 
     # --- FIX-018 (2026-10-13) --------------------------------------
@@ -658,8 +632,8 @@ class HeatmapOptionsDialog(QDialog):
                 self._theme.setItemIcon(index, _theme_swatch(name))
 
     def _schedule_preview(self, _value: object = None) -> None:
-        # Se espera un instante: al arrastrar la barra no se redibuja el mapa
-        # en cada pixel, solo cuando se para un momento.
+        # Se espera un instante: al mantener pulsada una flecha no se
+        # redibuja el mapa en cada paso, solo cuando se para un momento.
         self._preview_timer.start()
 
     @guarded()
@@ -925,7 +899,7 @@ def _save(selected: Config) -> None:
 
 
 def _without_px(key: str) -> str:
-    """Rotulo sin «(px)»: el valor ya lo dice al lado de la barra."""
+    """Rotulo sin «(px)», si el texto ya lo traia."""
     return re.sub(r"\s*\(px\)", "", t(key))
 
 

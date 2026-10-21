@@ -39,6 +39,7 @@ class WidgetTest(unittest.TestCase):
         self.assertNotIn("gritmap-statscard", html)
         self.assertEqual(html.count('class="gritmap-card gritmap-mini"'), 5)
         order = [html.index(t) for t in (">Hoy<", ">Racha<", ">Promedio diario<", ">Retención<", ">Próxima fecha<")]
+        self.assertNotIn(">Actividad<", html)
         self.assertEqual(order, sorted(order))
         # El dia de hoy se marca y es el que recibe el tabulador.
         self.assertRegex(html, r'data-d="2026-10-13"[^>]*data-gritmap-today="1"[^>]*tabindex="0"')
@@ -59,20 +60,18 @@ class WidgetTest(unittest.TestCase):
         levels = set(re.findall(r'fill="var\(--gritmap-p(\d+)\)"', html))
         self.assertTrue(levels <= {"1", "2", "3", "4"}, levels)
 
-    def test_title_shows_the_year_total(self) -> None:
+    def test_map_card_has_no_title_or_year_total(self) -> None:
+        # 4.3.0: sin «Actividad» ni «1.275 repasos en 2026» encima del mapa.
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        # 5 + 1240 + 30 repasos en 2026, en la unidad de la medida.
-        head = html[html.index(">Actividad<"):html.index("gritmap-card-tools", html.index(">Actividad<"))]
-        self.assertIn('data-n="1275"', head)
-        self.assertIn("en 2026", head)
-        self.assertEqual(view.year_total(sample(), 2026, "new"), 4)
-        self.assertEqual(view.year_total(sample(), 2025, "reviews"), 0)
+        head = html[:html.index("gritmap-card-body")]
+        self.assertIn("gritmap-notitle", head)
+        self.assertNotIn("Actividad", head)
+        self.assertNotIn("en 2026", head)
 
-    def test_today_button_only_in_another_year(self) -> None:
-        current = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        self.assertIn('class="gritmap-textbtn gritmap-hidden" data-gritmap-btn="today"', current)
-        past = view.build_widget_html(sample(past={400: DayActivity(3, 3, 0), 0: DayActivity(1, 1, 0)}), DEFAULT_CONFIG, 1)
-        self.assertIn('class="gritmap-textbtn" data-gritmap-btn="today"', past)
+    def test_today_button_always_visible(self) -> None:
+        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        self.assertIn('class="gritmap-textbtn" data-gritmap-btn="today"', html)
+        self.assertNotIn("gritmap-hidden", html)
 
     def test_no_period_buttons_on_the_page(self) -> None:
         # El periodo se elige en Opciones (cliente, 2026-10-21); las tarjetas lo dicen.
@@ -91,11 +90,13 @@ class WidgetTest(unittest.TestCase):
         self.assertIn("N/A", card)
         self.assertIn("Sin días completos", card)
 
-    def test_next_date_card_has_name_and_date(self) -> None:
+    def test_next_date_card_has_only_the_name(self) -> None:
         cfg = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 11, 20), "Examen"),))
         html = view.build_widget_html(sample(), cfg, 0)
         card = html[html.index(">Próxima fecha<"):]
-        self.assertIn('Examen · <span class="gritmap-date" data-gritmap-date="2026-11-20">', card)
+        # 4.3.0: solo el nombre, sin la fecha al lado.
+        self.assertIn('<div class="gritmap-line" title="Examen">Examen</div>', card)
+        self.assertNotIn("gritmap-date", card)
         self.assertNotIn("key:", html)
 
     def test_map_at_its_own_size(self) -> None:

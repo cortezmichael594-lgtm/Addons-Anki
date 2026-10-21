@@ -151,6 +151,10 @@ body.nightMode #gritmap-root {
     margin-bottom: 16px;
 }
 
+#gritmap-root .gritmap-card-head.gritmap-notitle {
+    justify-content: center;
+}
+
 #gritmap-root .gritmap-card-title {
     margin: 0;
     padding: 0;
@@ -385,10 +389,6 @@ body.nightMode #gritmap-root {
     transition: transform 0.1s ease;
 }
 
-/* El hueco de «Hoy» queda reservado aunque no se vea: nada salta. */
-#gritmap-root .gritmap-hidden {
-    visibility: hidden;
-}
 
 
 /* «‹ 2026 ›»: las flechas, pegadas al ano que cambian. */
