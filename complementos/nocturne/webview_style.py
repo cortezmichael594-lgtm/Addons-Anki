@@ -184,6 +184,26 @@ def _surface_css() -> str:
                 " rgba(99, 144, 255, 0.07), transparent 60%);"
                 "}"
             ),
+            # Tipografía (versión 3.0.0). Cifras de igual ancho en tablas y
+            # recuentos, para que se alineen en columna (Practical UI, C12).
+            (
+                f"{_SURFACE} :is(table, .new-count, .learn-count, .review-count,"
+                " .bury-count, .zero-count) { font-variant-numeric: tabular-nums; }"
+            ),
+            # Títulos en seminegrita y algo más ceñidos (Refactoring UI, R2;
+            # vídeo de Tim Gabe sobre tipografía, P2).
+            f"{_SURFACE} :is(h1, h2, h3) {{ font-weight: 600; letter-spacing: -0.01em; }}",
+            # Descripción del mazo: interlineado cómodo y líneas de 70 caracteres como
+            # mucho (Practical UI, P15; Refactoring UI, R8).
+            f"{_SURFACE} .description {{ line-height: 1.5; max-width: 70ch; margin-inline: auto; }}",
+            # Foco del teclado visible en los botones de las páginas clásicas: Anki lo
+            # quita a todos con outline: none !important (APR-061).
+            (
+                f"html {_SURFACE} button:is(:not([class]), .but):focus-visible {{"
+                " outline: 2px solid var(--border-focus) !important;"
+                " outline-offset: 2px;"
+                "}"
+            ),
         ]
     )
 

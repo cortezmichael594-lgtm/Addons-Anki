@@ -47,7 +47,8 @@ class TextContrastTest(unittest.TestCase):
     """Regresión de FIX-002: de día, «Aprendiendo», «Para repasar», «Nuevas» y el
     rojo de aviso quedaban por debajo de 4,5:1 (hasta 3,0:1)."""
 
-    TEXT = ("FG", "FG_SUBTLE", "FG_FAINT", "FG_LINK", "STATE_NEW", "STATE_LEARN", "STATE_REVIEW", "ACCENT_DANGER")
+    TEXT = ("FG", "FG_SUBTLE", "FG_FAINT", "FG_LINK", "STATE_NEW", "STATE_LEARN", "STATE_REVIEW", "ACCENT_DANGER",
+            "ACCENT_CARD", "ACCENT_NOTE")
 
     def test_text_reads_on_every_surface(self) -> None:
         for mode in MODES:
@@ -133,17 +134,84 @@ class NightComfortTest(unittest.TestCase):
             self.assertEqual(color("SELECTED_FG", mode), color("FG", mode))
 
 
+def _apca_y(value: str) -> float:
+    r, g, b = _rgb(value)
+    y = 0.2126729 * r**2.4 + 0.7151522 * g**2.4 + 0.0721750 * b**2.4
+    return y + (0.022 - y) ** 1.414 if y < 0.022 else y
+
+
+def apca(text: str, background: str) -> float:
+    """Contraste APCA (APCA-W3 0.0.98G), en valor absoluto: tiene en cuenta que el
+    texto claro sobre fondo oscuro se percibe distinto que al revés."""
+    yt, yb = _apca_y(text), _apca_y(background)
+    if abs(yb - yt) < 0.0005:
+        return 0.0
+    if yb > yt:
+        sapc = (yb**0.56 - yt**0.57) * 1.14
+        return 0.0 if sapc < 0.1 else (sapc - 0.027) * 100
+    sapc = (yb**0.65 - yt**0.62) * 1.14
+    return 0.0 if sapc > -0.1 else abs(sapc + 0.027) * 100
+
+
+class PerceivedContrastTest(unittest.TestCase):
+    """Versión 3.0.0: además de WCAG 2, el texto se mide con APCA. Mínimos de
+    Practical UI (cifras del cap. 3): 75 para el texto principal, 60 para el
+    secundario y 45 para lo menos importante."""
+
+    TEXT_SURFACES = SURFACES + ("CANVAS_CODE",)
+
+    def test_text_levels(self) -> None:
+        for mode in MODES:
+            for name, minimum in (("FG", 75), ("FG_SUBTLE", 60), ("FG_FAINT", 45), ("FG_LINK", 60)):
+                for surface in self.TEXT_SURFACES:
+                    value = apca(color(name, mode), color(surface, mode))
+                    self.assertGreaterEqual(value, minimum, f"{name} sobre {surface} ({mode}): {value:.1f}")
+
+    def test_text_on_buttons(self) -> None:
+        for mode in MODES:
+            for surface in ("BUTTON_BG", "BUTTON_HOVER"):
+                self.assertGreaterEqual(contrast(color("FG", mode), color(surface, mode)), 4.5, surface)
+                self.assertGreaterEqual(apca(color("FG", mode), color(surface, mode)), 75, surface)
+
+    def test_three_distinct_text_levels(self) -> None:
+        # La jerarquía se nota: cada nivel de texto pierde contraste frente al anterior.
+        for mode in MODES:
+            levels = [contrast(color(n, mode), color("CANVAS", mode)) for n in ("FG", "FG_SUBTLE", "FG_FAINT")]
+            self.assertGreater(levels[0], levels[1] * 1.15, mode)
+            self.assertGreater(levels[1], levels[2] * 1.15, mode)
+
+
+class NightDepthTest(unittest.TestCase):
+    """Versión 3.0.0: de noche, lo que está más arriba es más claro (Practical UI,
+    M3; Refactoring UI, P24). Antes, los menús eran más oscuros que los recuadros."""
+
+    ORDER = ("CANVAS_INSET", "CANVAS", "CANVAS_ELEVATED", "BUTTON_BG", "CANVAS_OVERLAY", "BUTTON_HOVER")
+
+    def test_higher_is_lighter(self) -> None:
+        values = [_luminance(color(name, "dark")) for name in self.ORDER]
+        for lower, upper, a, b in zip(values, values[1:], self.ORDER, self.ORDER[1:]):
+            self.assertLess(lower, upper, f"{a} debería ser más oscuro que {b}")
+
+    def test_menu_border_and_boxes_visible(self) -> None:
+        for surface in ("CANVAS", "CANVAS_ELEVATED", "CANVAS_OVERLAY"):
+            self.assertGreaterEqual(contrast(color("NOCTURNE_CONTROL_BORDER", "dark"), color(surface, "dark")), 3.0, surface)
+
+
 class IdentityTest(unittest.TestCase):
-    """El aspecto original se conserva: fondos y azul de acción sin cambios, y los
-    colores corregidos mantienen su tono (±6°): solo cambia su luminosidad."""
+    """El aspecto original se conserva: mismo fondo, mismo azul de acción y una sola
+    familia de grises azulados; los colores con significado mantienen su tono."""
 
     ORIGINAL = {
         "CANVAS": ("#F7F8FA", "#12161F"),
-        "CANVAS_ELEVATED": ("#FFFFFF", "#212836"),
         "BUTTON_PRIMARY_BG": ("#3B6FE0", "#4066E6"),
         "HIGHLIGHT_BG": ("#3B6FE0", "#4066E6"),
-        "BORDER_SUBTLE": ("#E9ECF0", "#202836"),
     }
+    NEUTRALS = (
+        "CANVAS_INSET", "CANVAS_CODE", "CANVAS", "CANVAS_ELEVATED", "CANVAS_OVERLAY", "BUTTON_BG",
+        "BUTTON_HOVER", "BORDER_SUBTLE", "BORDER", "BORDER_STRONG", "NOCTURNE_CONTROL_BORDER",
+        "SCROLLBAR_BG", "SCROLLBAR_BG_HOVER", "SCROLLBAR_BG_ACTIVE", "FG_DISABLED", "FG_FAINT",
+        "FG_SUBTLE", "FG",
+    )
     HUES = {
         "STATE_NEW": ("#1971C2", "#74C0FC"),
         "STATE_LEARN": ("#E8590C", "#FFA94D"),
@@ -156,12 +224,18 @@ class IdentityTest(unittest.TestCase):
         "FLAG_6": ("#099268", "#63E6BE"),
         "FLAG_7": ("#7048E8", "#B197FC"),
         "STATE_MARKED": ("#7048E8", "#B197FC"),
-        "FG": ("#1B2430", "#E9EDF4"),
     }
 
-    def test_surfaces_and_accent_unchanged(self) -> None:
+    def test_background_and_accent_unchanged(self) -> None:
         for name, (light, dark) in self.ORIGINAL.items():
             self.assertEqual((color(name, "light"), color(name, "dark")), (light, dark), name)
+
+    def test_one_family_of_bluish_greys(self) -> None:
+        for name in self.NEUTRALS:
+            for mode in MODES:
+                value = color(name, mode)
+                self.assertLessEqual(abs(hue(value) - 220), 6, f"{name} ({mode}): {hue(value):.0f}°")
+                self.assertNotIn(value[:7].upper(), ("#FFFFFF", "#000000"), name)
 
     def test_corrected_colors_keep_their_hue(self) -> None:
         for name, originals in self.HUES.items():

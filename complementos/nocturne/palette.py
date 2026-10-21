@@ -49,6 +49,19 @@ class Token(TypedDict):
 #   HIGHLIGHT_BG   dark    -> #4066E6  (la selección resalta un punto más)
 # El resto conserva la identidad original: azul sereno sobre grises azulados.
 #
+# Versión 3.0.0: los neutros son un sistema (Refactoring UI, M5; Practical UI, M2 y M3).
+#   - Una sola familia de grises azulados (tono 220°), con más saturación en los
+#     extremos para que no se vean apagados; sin blanco ni negro puros.
+#   - Tres niveles de texto bien separados: FG (principal), FG_SUBTLE (secundario) y
+#     FG_FAINT (lo menos importante), todos a 4,5:1 o más sobre cualquier superficie y
+#     también medidos con APCA (75, 60 y 45 como mínimo), el método que tiene en
+#     cuenta cómo percibe el ojo el texto claro sobre fondo oscuro.
+#   - De noche, lo que está más arriba es más claro: hundido (CANVAS_INSET) < fondo
+#     (CANVAS) < recuadros (CANVAS_ELEVATED) < botones (BUTTON_BG) < menús
+#     (CANVAS_OVERLAY) < botón con el ratón encima (BUTTON_HOVER).
+#   - Los acentos de tarjeta y nota (ACCENT_CARD, ACCENT_NOTE) usan de día los mismos
+#     tonos que las cifras «Nuevas» y «Para repasar», legibles como texto.
+#
 # Versión 2.1.0: de noche, el texto principal (FG y SELECTED_FG) pasa de #E9EDF4 a
 # #D6DAE1, del mismo tono, para que no deslumbre en sesiones largas: 13:1 sobre el
 # fondo en vez de 15,4:1, y al menos 10,6:1 sobre cualquier superficie.
@@ -80,32 +93,32 @@ class Token(TypedDict):
 # Causa: el degradado de «pasar el ratón» empezaba en un azul más claro que el del botón.
 # Regla: todo el azul de acción, en cualquier estado, da 4,5:1 con texto blanco (APR-061).
 PALETTE: dict[str, Token] = {
-    "ACCENT_CARD":                   {"css": ("--accent-card",),                                   "light": "#1971C2",   "dark": "#74C0FC"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "ACCENT_CARD":                   {"css": ("--accent-card",),                                   "light": "#186EBC",   "dark": "#74C0FC"},  # colores-ok: paleta del tema, origen de todos sus colores
     "ACCENT_DANGER":                 {"css": ("--accent-danger",),                                 "light": "#CC2D2D",   "dark": "#FF6B6B"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "ACCENT_NOTE":                   {"css": ("--accent-note",),                                   "light": "#2F9E44",   "dark": "#57D06B"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "BORDER":                        {"css": ("--border",),                                        "light": "#DCE0E6",   "dark": "#2C3545"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "ACCENT_NOTE":                   {"css": ("--accent-note",),                                   "light": "#257B35",   "dark": "#57D06B"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "BORDER":                        {"css": ("--border",),                                        "light": "#DADEE7",   "dark": "#2C3444"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BORDER_FOCUS":                  {"css": ("--border-focus",),                                  "light": "#3B6FE0",   "dark": "#6390FF"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "BORDER_STRONG":                 {"css": ("--border-strong",),                                 "light": "#C2C9D2",   "dark": "#3D485C"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "BORDER_SUBTLE":                 {"css": ("--border-subtle",),                                 "light": "#E9ECF0",   "dark": "#202836"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "BUTTON_BG":                     {"css": ("--button-bg",),                                     "light": "#FFFFFF",   "dark": "#212836"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "BORDER_STRONG":                 {"css": ("--border-strong",),                                 "light": "#C0C6D3",   "dark": "#3D475C"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "BORDER_SUBTLE":                 {"css": ("--border-subtle",),                                 "light": "#E8EAF0",   "dark": "#1F2635"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "BUTTON_BG":                     {"css": ("--button-bg",),                                     "light": "#FBFCFE",   "dark": "#242C3A"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_DISABLED":               {"css": ("--button-disabled",),                               "light": "#FFFFFF80", "dark": "#21283680"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "BUTTON_HOVER":                  {"css": ("--button-gradient-start", "--button-gradient-end"), "light": "#F0F2F6",   "dark": "#2A3342"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "BUTTON_HOVER_BORDER":           {"css": ("--button-hover-border",),                           "light": "#C2C9D2",   "dark": "#3D485C"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "BUTTON_HOVER":                  {"css": ("--button-gradient-start", "--button-gradient-end"), "light": "#EDF0F5",   "dark": "#2E3747"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "BUTTON_HOVER_BORDER":           {"css": ("--button-hover-border",),                           "light": "#C0C6D3",   "dark": "#3D475C"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_PRIMARY_BG":             {"css": ("--button-primary-bg",),                             "light": "#3B6FE0",   "dark": "#4066E6"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_PRIMARY_DISABLED":       {"css": ("--button-primary-disabled",),                       "light": "#3B6FE059", "dark": "#4066E659"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_PRIMARY_GRADIENT_END":   {"css": ("--button-primary-gradient-end",),                   "light": "#2F5BC7",   "dark": "#3452C8"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_PRIMARY_GRADIENT_START": {"css": ("--button-primary-gradient-start",),                 "light": "#3B6FE0",   "dark": "#4066E6"},  # colores-ok: paleta del tema, origen de todos sus colores
     "CANVAS":                        {"css": ("--canvas", "--bs-body-bg"),                         "light": "#F7F8FA",   "dark": "#12161F"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "CANVAS_CODE":                   {"css": ("--canvas-code",),                                   "light": "#F1F3F7",   "dark": "#141924"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "CANVAS_ELEVATED":               {"css": ("--canvas-elevated",),                               "light": "#FFFFFF",   "dark": "#212836"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "CANVAS_GLASS":                  {"css": ("--canvas-glass",),                                  "light": "#FFFFFFCC", "dark": "#212836CC"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "CANVAS_CODE":                   {"css": ("--canvas-code",),                                   "light": "#F2F4F7",   "dark": "#141924"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "CANVAS_ELEVATED":               {"css": ("--canvas-elevated",),                               "light": "#FBFCFE",   "dark": "#212836"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "CANVAS_GLASS":                  {"css": ("--canvas-glass",),                                  "light": "#FBFCFECC", "dark": "#212836CC"},  # colores-ok: paleta del tema, origen de todos sus colores
     "CANVAS_INSET":                  {"css": ("--canvas-inset",),                                  "light": "#EEF0F4",   "dark": "#0F131B"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "CANVAS_OVERLAY":                {"css": ("--canvas-overlay",),                                "light": "#FFFFFF",   "dark": "#191E2A"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "CANVAS_OVERLAY":                {"css": ("--canvas-overlay",),                                "light": "#FBFCFE",   "dark": "#293040"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FG":                            {"css": ("--fg", "--bs-body-color"),                          "light": "#1B2430",   "dark": "#D6DAE1"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "FG_DISABLED":                   {"css": ("--fg-disabled",),                                   "light": "#A9B1BD",   "dark": "#5B6676"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "FG_FAINT":                      {"css": ("--fg-faint",),                                      "light": "#626D7B",   "dark": "#8894A6"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "FG_LINK":                       {"css": ("--fg-link",),                                       "light": "#2F63D8",   "dark": "#8DB2FF"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "FG_SUBTLE":                     {"css": ("--fg-subtle",),                                     "light": "#5C6675",   "dark": "#9FABBB"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "FG_DISABLED":                   {"css": ("--fg-disabled",),                                   "light": "#A9AFBC",   "dark": "#5B6476"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "FG_FAINT":                      {"css": ("--fg-faint",),                                      "light": "#646C7D",   "dark": "#9AA3B4"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "FG_LINK":                       {"css": ("--fg-link",),                                       "light": "#2F63D8",   "dark": "#9DBEFF"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "FG_SUBTLE":                     {"css": ("--fg-subtle",),                                     "light": "#4E576A",   "dark": "#B7BECC"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_1":                        {"css": ("--flag-1",),                                        "light": "#E03131",   "dark": "#EA6262"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_2":                        {"css": ("--flag-2",),                                        "light": "#E8590C",   "dark": "#C07F3A"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_3":                        {"css": ("--flag-3",),                                        "light": "#2F9E44",   "dark": "#4C9E5A"},  # colores-ok: paleta del tema, origen de todos sus colores
@@ -115,9 +128,9 @@ PALETTE: dict[str, Token] = {
     "FLAG_7":                        {"css": ("--flag-7",),                                        "light": "#7048E8",   "dark": "#9680D6"},  # colores-ok: paleta del tema, origen de todos sus colores
     "HIGHLIGHT_BG":                  {"css": ("--highlight-bg",),                                  "light": "#3B6FE0",   "dark": "#4066E6"},  # colores-ok: paleta del tema, origen de todos sus colores
     "HIGHLIGHT_FG":                  {"css": ("--highlight-fg",),                                  "light": "#FFFFFF",   "dark": "#FFFFFF"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "SCROLLBAR_BG":                  {"css": ("--scrollbar-bg",),                                  "light": "#D6DBE2",   "dark": "#273040"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "SCROLLBAR_BG_ACTIVE":           {"css": ("--scrollbar-bg-active",),                           "light": "#AAB3C0",   "dark": "#3D485C"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "SCROLLBAR_BG_HOVER":            {"css": ("--scrollbar-bg-hover",),                            "light": "#C2C9D2",   "dark": "#313C4E"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "SCROLLBAR_BG":                  {"css": ("--scrollbar-bg",),                                  "light": "#D5D9E2",   "dark": "#272F3F"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "SCROLLBAR_BG_ACTIVE":           {"css": ("--scrollbar-bg-active",),                           "light": "#AAB1C0",   "dark": "#3D475C"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "SCROLLBAR_BG_HOVER":            {"css": ("--scrollbar-bg-hover",),                            "light": "#C0C6D3",   "dark": "#353E50"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SELECTED_BG":                   {"css": ("--selected-bg",),                                   "light": "#3B6FE022", "dark": "#6390FF2E"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SELECTED_FG":                   {"css": ("--selected-fg",),                                   "light": "#1B2430",   "dark": "#D6DAE1"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SHADOW":                        {"css": ("--shadow",),                                        "light": "#1B243026", "dark": "#05080F66"},  # colores-ok: paleta del tema, origen de todos sus colores
@@ -130,7 +143,7 @@ PALETTE: dict[str, Token] = {
     "STATE_NEW":                     {"css": ("--state-new",),                                     "light": "#186EBC",   "dark": "#74C0FC"},  # colores-ok: paleta del tema, origen de todos sus colores
     "STATE_REVIEW":                  {"css": ("--state-review",),                                  "light": "#257B35",   "dark": "#57D06B"},  # colores-ok: paleta del tema, origen de todos sus colores
     "STATE_SUSPENDED":               {"css": ("--state-suspended",),                              "light": "#868E96",   "dark": "#848E9C"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "NOCTURNE_CONTROL_BORDER":       {"css": (),                                                   "light": "#898E95",   "dark": "#6B7483"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "NOCTURNE_CONTROL_BORDER":       {"css": (),                                                   "light": "#878C97",   "dark": "#727B8C"},  # colores-ok: paleta del tema, origen de todos sus colores
 }
 
 # Anki mantiene dos alias de gradiente que deben seguir al color de hover.

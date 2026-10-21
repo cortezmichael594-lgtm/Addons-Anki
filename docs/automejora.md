@@ -609,7 +609,7 @@ docs.ankiweb.net (solo en inglés: la portada en español dice que no está trad
 Cambios a las reglas que esperan el visto bueno del cliente. Al decidirse, pasan a «Cambios aprobados»
 o a «Propuestas rechazadas».
 
-(Ninguna.)
+- PROP-011 · 2026-10-21 · Poner docs/paleta-nocturne.md al día con los colores de Nocturne 3.0.0 (tabla de día y noche, el borde propio de las casillas NOCTURNE_CONTROL_BORDER, los tres niveles de texto, el orden de profundidad nocturno y los mínimos de contraste WCAG y APCA). El cliente lo aprobó el 2026-10-21 con una condición: aplicarlo cuando dé por buenos los colores al probar la 3.0.0 en Anki. Motivo: el documento es la referencia de colores de los complementos futuros y no coincide con Nocturne desde la 2.1.0. Fuente: las pruebas de pruebas/nocturne y el código de Anki 26.09.3.
 
 ## Propuestas rechazadas
 

@@ -48,3 +48,7 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   texto de las filas de Explorar se lea bien (FIX-004); el cliente aprobó el plan el 2026-10-21.
 - 2.1.0 · Con el ratón encima o con el foco, el borde de las casillas es azul y no gris oscuro, para que
   se note el cambio. Decisión del taller dentro del plan aprobado.
+- 3.0.0 · El fondo, el azul de acción y el tono de los colores con significado no cambian respecto a la
+  versión original; las pruebas lo vigilan. Es la identidad que el cliente quiere conservar.
+- 3.0.0 · No se cambian el tamaño de la letra, las esquinas redondeadas ni el botón por defecto de las
+  ventanas: cambiarlos alteraría el aspecto de todo Anki, como pasó con la 2.0.0. Decisión del taller.
