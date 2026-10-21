@@ -93,15 +93,15 @@ class Token(TypedDict):
 # Causa: el degradado de «pasar el ratón» empezaba en un azul más claro que el del botón.
 # Regla: todo el azul de acción, en cualquier estado, da 4,5:1 con texto blanco (APR-061).
 PALETTE: dict[str, Token] = {
-    "ACCENT_CARD":                   {"css": ("--accent-card",),                                   "light": "#186EBC",   "dark": "#74C0FC"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "ACCENT_DANGER":                 {"css": ("--accent-danger",),                                 "light": "#CC2D2D",   "dark": "#FF6B6B"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "ACCENT_NOTE":                   {"css": ("--accent-note",),                                   "light": "#257B35",   "dark": "#57D06B"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "ACCENT_CARD":                   {"css": ("--accent-card",),                                   "light": "#186CB9",   "dark": "#7EBFF4"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "ACCENT_DANGER":                 {"css": ("--accent-danger",),                                 "light": "#CA2D2D",   "dark": "#F37777"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "ACCENT_NOTE":                   {"css": ("--accent-note",),                                   "light": "#257A35",   "dark": "#57D06B"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BORDER":                        {"css": ("--border",),                                        "light": "#DADEE7",   "dark": "#2C3444"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BORDER_FOCUS":                  {"css": ("--border-focus",),                                  "light": "#3B6FE0",   "dark": "#6390FF"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BORDER_STRONG":                 {"css": ("--border-strong",),                                 "light": "#C0C6D3",   "dark": "#3D475C"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BORDER_SUBTLE":                 {"css": ("--border-subtle",),                                 "light": "#E8EAF0",   "dark": "#1F2635"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_BG":                     {"css": ("--button-bg",),                                     "light": "#FBFCFE",   "dark": "#242C3A"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "BUTTON_DISABLED":               {"css": ("--button-disabled",),                               "light": "#FFFFFF80", "dark": "#21283680"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "BUTTON_DISABLED":               {"css": ("--button-disabled",),                               "light": "#FBFCFE80", "dark": "#242C3A80"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_HOVER":                  {"css": ("--button-gradient-start", "--button-gradient-end"), "light": "#EDF0F5",   "dark": "#2E3747"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_HOVER_BORDER":           {"css": ("--button-hover-border",),                           "light": "#C0C6D3",   "dark": "#3D475C"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_PRIMARY_BG":             {"css": ("--button-primary-bg",),                             "light": "#3B6FE0",   "dark": "#4066E6"},  # colores-ok: paleta del tema, origen de todos sus colores
@@ -117,13 +117,13 @@ PALETTE: dict[str, Token] = {
     "FG":                            {"css": ("--fg", "--bs-body-color"),                          "light": "#1B2430",   "dark": "#D6DAE1"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FG_DISABLED":                   {"css": ("--fg-disabled",),                                   "light": "#A9AFBC",   "dark": "#5B6476"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FG_FAINT":                      {"css": ("--fg-faint",),                                      "light": "#646C7D",   "dark": "#9AA3B4"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "FG_LINK":                       {"css": ("--fg-link",),                                       "light": "#2F63D8",   "dark": "#9DBEFF"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "FG_LINK":                       {"css": ("--fg-link",),                                       "light": "#2F63D8",   "dark": "#A3C1F7"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FG_SUBTLE":                     {"css": ("--fg-subtle",),                                     "light": "#4E576A",   "dark": "#B7BECC"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "FLAG_1":                        {"css": ("--flag-1",),                                        "light": "#E03131",   "dark": "#EA6262"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "FLAG_1":                        {"css": ("--flag-1",),                                        "light": "#D92121",   "dark": "#D13939"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_2":                        {"css": ("--flag-2",),                                        "light": "#E8590C",   "dark": "#C07F3A"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_3":                        {"css": ("--flag-3",),                                        "light": "#2F9E44",   "dark": "#4C9E5A"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_4":                        {"css": ("--flag-4",),                                        "light": "#1971C2",   "dark": "#5993C2"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "FLAG_5":                        {"css": ("--flag-5",),                                        "light": "#C2255C",   "dark": "#B378C1"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "FLAG_5":                        {"css": ("--flag-5",),                                        "light": "#C62FAD",   "dark": "#B378C1"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_6":                        {"css": ("--flag-6",),                                        "light": "#099268",   "dark": "#439C81"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_7":                        {"css": ("--flag-7",),                                        "light": "#7048E8",   "dark": "#9680D6"},  # colores-ok: paleta del tema, origen de todos sus colores
     "HIGHLIGHT_BG":                  {"css": ("--highlight-bg",),                                  "light": "#3B6FE0",   "dark": "#4066E6"},  # colores-ok: paleta del tema, origen de todos sus colores
@@ -131,19 +131,22 @@ PALETTE: dict[str, Token] = {
     "SCROLLBAR_BG":                  {"css": ("--scrollbar-bg",),                                  "light": "#D5D9E2",   "dark": "#272F3F"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SCROLLBAR_BG_ACTIVE":           {"css": ("--scrollbar-bg-active",),                           "light": "#AAB1C0",   "dark": "#3D475C"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SCROLLBAR_BG_HOVER":            {"css": ("--scrollbar-bg-hover",),                            "light": "#C0C6D3",   "dark": "#353E50"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "SELECTED_BG":                   {"css": ("--selected-bg",),                                   "light": "#3B6FE022", "dark": "#6390FF2E"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "SELECTED_BG":                   {"css": ("--selected-bg",),                                   "light": "#3B6FE038", "dark": "#6390FF40"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SELECTED_FG":                   {"css": ("--selected-fg",),                                   "light": "#1B2430",   "dark": "#D6DAE1"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SHADOW":                        {"css": ("--shadow",),                                        "light": "#1B243026", "dark": "#05080F66"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SHADOW_FOCUS":                  {"css": ("--shadow-focus",),                                  "light": "#3B6FE040", "dark": "#6390FF4D"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SHADOW_INSET":                  {"css": ("--shadow-inset",),                                  "light": "#1B24301A", "dark": "#05080F4D"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SHADOW_SUBTLE":                 {"css": ("--shadow-subtle",),                                 "light": "#1B243012", "dark": "#05080F33"},  # colores-ok: paleta del tema, origen de todos sus colores
     "STATE_BURIED":                  {"css": ("--state-buried",),                                  "light": "#9A7B3F",   "dark": "#A98754"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "STATE_LEARN":                   {"css": ("--state-learn",),                                   "light": "#BA470A",   "dark": "#FFA94D"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "STATE_LEARN":                   {"css": ("--state-learn",),                                   "light": "#B8460A",   "dark": "#F1A95B"},  # colores-ok: paleta del tema, origen de todos sus colores
     "STATE_MARKED":                  {"css": ("--state-marked",),                                  "light": "#7048E8",   "dark": "#9680D6"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "STATE_NEW":                     {"css": ("--state-new",),                                     "light": "#186EBC",   "dark": "#74C0FC"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "STATE_REVIEW":                  {"css": ("--state-review",),                                  "light": "#257B35",   "dark": "#57D06B"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "STATE_NEW":                     {"css": ("--state-new",),                                     "light": "#186CB9",   "dark": "#7EBFF4"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "STATE_REVIEW":                  {"css": ("--state-review",),                                  "light": "#257A35",   "dark": "#57D06B"},  # colores-ok: paleta del tema, origen de todos sus colores
     "STATE_SUSPENDED":               {"css": ("--state-suspended",),                              "light": "#868E96",   "dark": "#848E9C"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_CONTROL_BORDER":       {"css": (),                                                   "light": "#878C97",   "dark": "#727B8C"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "NOCTURNE_ROW_HIGHLIGHT":        {"css": ("--nocturne-row-highlight",),                          "light": "#EAEEF8",   "dark": "#19233F"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "NOCTURNE_PRIMARY_PRESSED":      {"css": (),                                                     "light": "#284EAA",   "dark": "#2B45AA"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "NOCTURNE_PRIMARY_RING":         {"css": (),                                                     "light": "#1C3A8A",   "dark": "#A9C4FF"},  # colores-ok: paleta del tema, origen de todos sus colores
 }
 
 # Anki mantiene dos alias de gradiente que deben seguir al color de hover.

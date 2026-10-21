@@ -41,7 +41,8 @@ from aqt.utils import tr
 from aqt.webview import AnkiWebView, WebContent
 
 from .errors import get_logger, guard
-from .palette import PALETTE, Mode
+from . import themes
+from .palette import Mode
 
 # Identificadores separados para el estilo definitivo y el temprano: los dos
 # pueden convivir en la misma página (el definitivo, más tardío, es el que
@@ -133,9 +134,14 @@ def _ui_font_stack() -> str:
 
 def _var_block(selector: str, mode: Mode) -> str:
     lines = [f"{selector} {{"]
-    for entry in PALETTE.values():
+    for entry in themes.colors().values():
         for css_name in entry["css"]:
             lines.append(f"  {css_name}: {entry[mode]};")
+    # Esquinas de la paleta: las mismas variables que usan las páginas de Anki.
+    look = themes.look()
+    lines.append(f"  --border-radius: {look['radius']}px;")
+    lines.append(f"  --border-radius-medium: {look['radius_medium']}px;")
+    lines.append(f"  --border-radius-large: {look['radius_large']}px;")
     lines.append("}")
     return "\n".join(lines)
 
@@ -161,55 +167,79 @@ def _surface_css() -> str:
     El degradado se ancla a la ventana con ``background-attachment: fixed`` para
     que sea una sola mancha en la esquina superior derecha. ``fixed`` solo hace
     falta declararlo en la primera regla: como no lo pisa la regla del modo
-    noche, sigue vigente cuando esta solo cambia el color del degradado.
+    noche, sigue vigente cuando esta solo cambia el color del degradado. Las
+    paletas sin degradado (Grafito y Alto contraste) no llevan ninguna de las dos.
+    Todo sale de la paleta elegida (``themes``).
     """
-    return "\n".join(
-        [
-            "html button { background: var(--button-bg); }",
-            (
-                f"{_SURFACE} {{"
-                f" font-family: {_ui_font_stack()};"
-                " -webkit-font-smoothing: antialiased;"
-                " text-rendering: optimizeLegibility;"
-                "}"
-            ),
-            (
-                f"{_SURFACE} {{"  # colores-ok: degradado del acabado, el azul de acción casi transparente
-                " background-image: radial-gradient(1100px 700px at 82% -8%,"
-                " rgba(59, 111, 224, 0.04), transparent 60%);"
-                " background-attachment: fixed;"
-                "}"
-                f"{_DARK_SURFACE} {{"  # colores-ok: degradado del acabado, el azul de acción casi transparente
-                " background-image: radial-gradient(1100px 700px at 82% -8%,"
-                " rgba(99, 144, 255, 0.07), transparent 60%);"
-                "}"
-            ),
-            # Tipografía (versión 3.0.0). Cifras de igual ancho en tablas y
-            # recuentos, para que se alineen en columna (Practical UI, C12).
-            (
-                f"{_SURFACE} :is(table, .new-count, .learn-count, .review-count,"
-                " .bury-count, .zero-count) { font-variant-numeric: tabular-nums; }"
-            ),
-            # Títulos en seminegrita y algo más ceñidos (Refactoring UI, R2;
-            # vídeo de Tim Gabe sobre tipografía, P2).
-            f"{_SURFACE} :is(h1, h2, h3) {{ font-weight: 600; letter-spacing: -0.01em; }}",
-            # Descripción del mazo: interlineado cómodo y líneas de 70 caracteres como
-            # mucho (Practical UI, P15; Refactoring UI, R8).
-            f"{_SURFACE} .description {{ line-height: 1.5; max-width: 70ch; margin-inline: auto; }}",
-            # Foco del teclado visible en los botones de las páginas clásicas: Anki lo
-            # quita a todos con outline: none !important (APR-061).
-            (
-                f"html {_SURFACE} button:is(:not([class]), .but):focus-visible {{"
-                " outline: 2px solid var(--border-focus) !important;"
-                " outline-offset: 2px;"
-                "}"
-            ),
-        ]
-    )
+    look = themes.look()
+    rules = [
+        "html button { background: var(--button-bg); }",
+        (
+            f"{_SURFACE} {{"
+            f" font-family: {_ui_font_stack()};"
+            " -webkit-font-smoothing: antialiased;"
+            " text-rendering: optimizeLegibility;"
+            "}"
+        ),
+    ]
+    gradient = look["gradient"]
+    if gradient is not None:
+        light, dark = gradient
+        rules.append(
+            f"{_SURFACE} {{"
+            f" background-image: radial-gradient(1100px 700px at 82% -8%, {light}, transparent 60%);"
+            " background-attachment: fixed;"
+            "}"
+            f"{_DARK_SURFACE} {{"
+            f" background-image: radial-gradient(1100px 700px at 82% -8%, {dark}, transparent 60%);"
+            "}"
+        )
+    heading_family = look["heading_family"]
+    family = f" font-family: {heading_family};" if heading_family else ""
+    rules += [
+        # Tipografía (versión 3.0.0). Cifras de igual ancho en tablas y
+        # recuentos, para que se alineen en columna (Practical UI, C12).
+        (
+            f"{_SURFACE} :is(table, .new-count, .learn-count, .review-count,"
+            " .bury-count, .zero-count) { font-variant-numeric: tabular-nums; }"
+        ),
+        # Títulos con el peso, la separación entre letras y, en Papel, la letra de
+        # la paleta (Refactoring UI, R2 y M4; vídeo de Tim Gabe sobre tipografía, P2).
+        (
+            f"{_SURFACE} :is(h1, h2, h3) {{{family}"
+            f" font-weight: {look['heading_weight']};"
+            f" letter-spacing: {look['heading_tracking']}; }}"
+        ),
+        # Descripción del mazo: interlineado cómodo y líneas de 70 caracteres como
+        # mucho (Practical UI, P15; Refactoring UI, R8).
+        (
+            f"{_SURFACE} .description {{ line-height: {look['reading_line_height']};"
+            " max-width: 70ch; margin-inline: auto; }"
+        ),
+        # Lista de mazos (versión 3.1.0): separación de las filas según la paleta y
+        # resaltado del mazo actual y del que tiene el ratón encima con un tinte del
+        # color de acción en vez de gris (Practical UI, M5 y M7).
+        f"{_SURFACE} tr[id] > td {{ padding-block: {look['row_padding']}px; }}",
+        (
+            f"html {_SURFACE} :is(.current, tr:hover:not(.top-level-drag-row)) td"
+            " { background: var(--nocturne-row-highlight); }"
+        ),
+        # Texto seleccionado en las páginas de Anki (no en las tarjetas).
+        f"{_SURFACE} ::selection {{ background: var(--selected-bg); }}",
+        # Foco del teclado visible en los botones de las páginas clásicas: Anki lo
+        # quita a todos con outline: none !important (APR-061).
+        (
+            f"html {_SURFACE} button:is(:not([class]), .but):focus-visible {{"
+            f" outline: {look['focus_width']}px solid var(--border-focus) !important;"
+            " outline-offset: 2px;"
+            "}"
+        ),
+    ]
+    return "\n".join(rules)
 
 
 def _css_text() -> str:
-    """CSS completo (sin la etiqueta ``<style>``), armado una sola vez."""
+    """CSS completo (sin la etiqueta ``<style>``), armado una vez por paleta."""
     global _css_cache
     if _css_cache is None:
         _css_cache = "\n".join(
@@ -238,16 +268,20 @@ def _install_js(style_id: str, guard_existing: bool) -> str:
     """JS que inserta el ``<style>``; idempotente en los dos modos de uso.
 
     Con ``guard_existing`` no hace nada si el bloque ya está (estilo temprano,
-    que solo debe llegar el primero); sin él retira el bloque anterior y añade
-    el nuevo al final, de modo que Anki puede reinyectar el contenido sin dejar
-    copias sueltas y nuestro estilo queda siempre el último de la página.
+    que solo debe llegar el primero); sin él retira el bloque anterior
+    (y el temprano, que podría ser de otra paleta) y añade el nuevo al final, de
+    modo que Anki puede reinyectar el contenido sin dejar copias sueltas y
+    nuestro estilo queda siempre el último de la página.
     """
     id_json = json.dumps(style_id)
     css_json = json.dumps(_css_text())
     action = (
         "if (document.getElementById(id)) { return; }"
         if guard_existing
-        else "const old = document.getElementById(id); if (old) { old.remove(); }"
+        else (
+            "for (const oldId of [id, " + json.dumps(_EARLY_STYLE_ID) + "]) {"
+            "const old = document.getElementById(oldId); if (old) { old.remove(); } }"
+        )
     )
     return (
         "(() => {"
@@ -317,9 +351,39 @@ def ensure_early_style(webview: AnkiWebView) -> None:
     if scripts is None:
         return
     script = _get_early_script()
-    if scripts.contains(script):
+    current = scripts.find(_SCRIPT_NAME)
+    if len(current) == 1 and current[0].sourceCode() == script.sourceCode():
         return
+    # Falta, o es de una paleta anterior: se sustituye.
+    for old in current:
+        scripts.remove(old)
     scripts.insert(script)
+
+
+def reset() -> None:
+    """Olvida el CSS armado, para que se rehaga con la paleta elegida."""
+    global _css_cache, _style_block_cache, _inject_js_cache, _early_script
+    _css_cache = _style_block_cache = _inject_js_cache = None
+    _early_script = None
+
+
+def refresh_open_pages() -> None:
+    """Aplica la paleta elegida a las páginas abiertas, sin recargarlas.
+
+    Sustituye el estilo de cada página (lista de mazos, repaso, editor, Explorar,
+    estadísticas...) y el estilo temprano de su perfil web, para que las páginas
+    que se abran después nazcan ya con la paleta nueva.
+    """
+    from aqt.qt import QApplication
+
+    for widget in QApplication.allWidgets():
+        if not isinstance(widget, AnkiWebView):
+            continue
+        try:
+            ensure_early_style(widget)
+            widget.eval(_inject_js())
+        except Exception:
+            get_logger().exception("no se pudo cambiar la paleta de una página")
 
 
 def install_early_style() -> None:

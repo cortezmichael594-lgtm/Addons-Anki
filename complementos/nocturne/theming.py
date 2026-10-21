@@ -2,8 +2,9 @@
 
 Anki guarda sus colores en ``aqt.colors`` como diccionarios ``{"light", "dark"}``
 y los lee en todas partes: la paleta Qt, los menús, las tablas y su propia hoja
-de estilo. Si reescribimos esos diccionarios con la paleta Nocturne y pedimos a
+de estilo. Si reescribimos esos diccionarios con la paleta elegida y pedimos a
 Anki que vuelva a aplicar su estilo, toda la interfaz nativa adopta los colores.
+Lo mismo con sus medidas (``aqt.props``): el radio de las esquinas.
 
 Reescribir tokens (en vez de mantener una paleta Qt propia y paralela) hace el
 complemento más resistente a futuras versiones: Anki sigue encargándose de armar
@@ -18,22 +19,34 @@ controles en las preferencias— vuelve a leer los nuestros sin que hagamos nada
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import aqt.colors
+import aqt.props
 from aqt import mw
 from aqt.theme import WidgetStyle, theme_manager
 
+from . import themes
 from .errors import get_logger, guard, guard_filter
-from .palette import GRADIENT_ALIASES, PALETTE, to_css_rgba
+from .palette import GRADIENT_ALIASES, to_css_rgba
+
+# Medidas de Anki que fija cada paleta (aqt.props) y la clave de su «Look».
+PROPS = {
+    "BORDER_RADIUS": "radius",
+    "BORDER_RADIUS_MEDIUM": "radius_medium",
+    "BORDER_RADIUS_LARGE": "radius_large",
+}
 
 
 def write_theme_colors() -> None:
-    """Vuelca la paleta Nocturne sobre los tokens de color de Anki.
+    """Vuelca la paleta elegida sobre los tokens de color y las medidas de Anki.
 
-    Es idempotente: puede llamarse varias veces (arranque, cambio de perfil) sin
-    efectos secundarios. Si algún token no existiera en esta versión de Anki, se
-    omite sin fallar.
+    Es idempotente: puede llamarse varias veces (arranque, cambio de perfil o de
+    paleta) sin efectos secundarios. Si algún token no existiera en esta versión de
+    Anki, se omite sin fallar.
     """
-    for name, entry in PALETTE.items():
+    palette = themes.colors()
+    for name, entry in palette.items():
         token = getattr(aqt.colors, name, None)
         if not isinstance(token, dict):
             continue
@@ -41,13 +54,20 @@ def write_theme_colors() -> None:
         token["dark"] = to_css_rgba(entry["dark"])
 
     # Los dos alias de gradiente siguen al color de hover de los botones.
-    hover = PALETTE["BUTTON_HOVER"]
+    hover = palette["BUTTON_HOVER"]
     for alias in GRADIENT_ALIASES:
         token = getattr(aqt.colors, alias, None)
         if not isinstance(token, dict):
             continue
         token["light"] = hover["light"]
         token["dark"] = hover["dark"]
+
+    look = themes.look()
+    for name, key in PROPS.items():
+        token = getattr(aqt.props, name, None)
+        if not isinstance(token, dict):
+            continue
+        token["light"] = token["dark"] = f"{look[key]}px"  # type: ignore[literal-required]
 
 
 def _clear_icon_caches() -> None:
@@ -110,12 +130,13 @@ def on_style_did_init(style: str) -> str:
     """
     if mw is None or mw.pm.get_widget_style() != WidgetStyle.ANKI:
         return style
-    border_token = PALETTE["NOCTURNE_CONTROL_BORDER"]
-    focus_token = PALETTE["BORDER_FOCUS"]
-    if theme_manager.night_mode:
-        border, focus = border_token["dark"], focus_token["dark"]
-    else:
-        border, focus = border_token["light"], focus_token["light"]
+    palette = themes.colors()
+
+    def pick(name: str) -> str:
+        entry = palette[name]
+        return to_css_rgba(entry["dark"] if theme_manager.night_mode else entry["light"])
+
+    border, focus = pick("NOCTURNE_CONTROL_BORDER"), pick("BORDER_FOCUS")
     return (
         style
         + f"""
@@ -132,7 +153,45 @@ def on_style_did_init(style: str) -> str:
         border-color: {focus};
     }}
 """
+        + _buttons_css(pick)
     )
+
+
+def _buttons_css(pick: Callable[[str], str]) -> str:
+    """Botones de las ventanas (versión 3.1.0): esquinas de la paleta y el botón
+    principal relleno del color de acción.
+
+    Un solo botón principal por ventana, relleno y con el mayor contraste, y el
+    resto con su aspecto normal (Practical UI, P17; Refactoring UI, P11). En Qt, el
+    botón «por defecto» es el que se pulsa con Intro, así que el relleno sigue a esa
+    tecla. Como en la regla de FIX-003, borde más margen se mantienen: 1px sin
+    foco y 2px (margen 0, que pone Anki) con el ratón encima o con el foco.
+    """
+    radius = themes.look()["button_radius"]
+    return f"""
+    QPushButton {{
+        border-radius: {radius}px;
+    }}
+    QPushButton:default {{
+        background: {pick("BUTTON_PRIMARY_BG")};
+        color: {pick("HIGHLIGHT_FG")};
+        border: 1px solid {pick("BUTTON_PRIMARY_BG")};
+    }}
+    QPushButton:default:hover,
+    QPushButton:default:focus {{
+        background: {pick("BUTTON_PRIMARY_GRADIENT_END")};
+        border: 2px solid {pick("NOCTURNE_PRIMARY_RING")};
+    }}
+    QPushButton:default:pressed {{
+        background: {pick("NOCTURNE_PRIMARY_PRESSED")};
+        border: 2px solid {pick("NOCTURNE_PRIMARY_RING")};
+    }}
+    QPushButton:default:disabled {{
+        background: {pick("BUTTON_BG")};
+        color: {pick("FG_DISABLED")};
+        border: 1px solid {pick("BORDER_SUBTLE")};
+    }}
+"""
 
 
 @guard

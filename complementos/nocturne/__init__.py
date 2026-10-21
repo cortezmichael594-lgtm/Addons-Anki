@@ -1,20 +1,25 @@
-"""Nocturne — tema de colores para Anki (modo día y modo noche).
+"""Nocturne — temas de color para Anki (modo día y modo noche).
 
-Este archivo solo orquesta: reafirma la paleta y registra los enganches. Toda la
-lógica vive en los módulos vecinos. El complemento no tiene configuración: se
-instala y aplica su apariencia, y no muestra ni un texto propio, de modo que
-funciona igual con Anki en cualquier idioma.
+Este archivo solo orquesta: aplica la paleta elegida y registra los enganches,
+el menú y la configuración. Toda la lógica vive en los módulos vecinos. Desde la
+versión 3.1.0 hay cinco paletas (Nocturne por defecto) y una ventana para
+elegirla: Herramientas > «Paletas de Nocturne…» o el botón «Configuración» del
+complemento. Sus textos están en español (strings.py).
 """
 
 from __future__ import annotations
 
 from aqt import gui_hooks, mw
+from aqt.qt import QAction
 
-from . import theming, webview_style
+from . import config, dialogs, strings, theming, themes, webview_style
 from .errors import get_logger
 
 
 def _setup() -> None:
+    # 0) La paleta elegida en la configuración (Nocturne si no hay ninguna válida).
+    themes.select(config.load())
+
     # 1) Volcar la paleta sobre los tokens de color de Anki. Se hace lo primero,
     #    y al importar el complemento, para que todo lo que Anki construya a
     #    partir de aquí nazca ya con estos colores.
@@ -38,6 +43,14 @@ def _setup() -> None:
     # 4) Aplicar la paleta a la interfaz nativa ya mismo. Anki construye su hoja
     #    de estilo antes de cargar los complementos, así que hay que rehacerla.
     theming.restyle()
+
+    # 5) Elegir paleta: Herramientas > «Paletas de Nocturne…» y el botón
+    #    «Configuración» de la ventana de complementos.
+    action = QAction(strings.MENU_ACTION, mw)
+    # La señal pasa «marcado sí/no»; la ventana no lo necesita.
+    action.triggered.connect(lambda _checked=False: dialogs.open_dialog())
+    mw.form.menuTools.addAction(action)
+    mw.addonManager.setConfigAction(__name__, dialogs.open_dialog)
 
 
 if mw is not None:

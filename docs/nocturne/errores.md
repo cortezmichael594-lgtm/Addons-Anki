@@ -40,15 +40,30 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
 
-- 2026.07.28 · «Aprendiendo» va en naranja y no en el rojo de Anki. Es parte del aspecto original que
-  el cliente quiere conservar (2026-10-21).
+- 2026.07.28 · En la paleta Nocturne, «Aprendiendo» va en naranja y no en el rojo de Anki. Es parte del
+  aspecto original que el cliente quiere conservar (2026-10-21). Las otras paletas usan el rojo de Anki.
 - 2026.07.28 · Los bordes de campos, listas y tablas son muy suaves. Es parte del aspecto original; la
-  versión 2.0.0 los reforzó y el cliente la descartó por perder atractivo (2026-10-21).
+  versión 2.0.0 los reforzó y el cliente la descartó por perder atractivo (2026-10-21). Vale para todas
+  las paletas salvo Alto contraste (véase 3.1.0).
 - 2.1.0 · De noche, las banderas son algo menos vivas que en la versión original. Es el precio de que el
   texto de las filas de Explorar se lea bien (FIX-004); el cliente aprobó el plan el 2026-10-21.
 - 2.1.0 · Con el ratón encima o con el foco, el borde de las casillas es azul y no gris oscuro, para que
   se note el cambio. Decisión del taller dentro del plan aprobado.
 - 3.0.0 · El fondo, el azul de acción y el tono de los colores con significado no cambian respecto a la
   versión original; las pruebas lo vigilan. Es la identidad que el cliente quiere conservar.
-- 3.0.0 · No se cambian el tamaño de la letra, las esquinas redondeadas ni el botón por defecto de las
-  ventanas: cambiarlos alteraría el aspecto de todo Anki, como pasó con la 2.0.0. Decisión del taller.
+- 3.0.0 · No se cambia el tamaño de la letra: manda el que el cliente tenga elegido en Anki. Decisión
+  del taller. (En 3.0.0 tampoco se tocaban las esquinas ni el botón por defecto; desde 3.1.0 sí, porque
+  el cliente lo pidió.)
+- 3.1.0 · Alto contraste tiene bordes marcados en campos, listas y recuadros, al contrario que la regla
+  de FIX-003 para las demás paletas. Lo eligió el cliente al pedir esa paleta («bordes marcados»,
+  2026-10-21); las pruebas la tratan como excepción.
+- 3.1.0 · En Nocturne, la bandera rosa pasa de un rosa frambuesa a un rosa de verdad (tono 310°), porque
+  se confundía con la roja. Es el único cambio de tono respecto al aspecto original; lo vigilan las
+  pruebas.
+- 3.1.0 · El relleno del botón principal de las ventanas sigue al botón que respondería a Intro: al
+  moverse con Tab entre botones, el relleno se mueve con el foco. Así funciona Qt y así se avisa de lo
+  que hará Intro. Decisión del taller.
+- 3.1.0 · Solo se elige la paleta; no hay ajustes sueltos de esquinas, letra o separación. Lo decidió el
+  cliente (2026-10-21).
+- 3.1.0 · Los botones de las ventanas tienen como mucho 9px de radio: con más, Qt los dibuja cuadrados
+  (comprobado al construir Bosque). Decisión del taller.
