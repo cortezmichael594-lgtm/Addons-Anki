@@ -93,6 +93,22 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(reviews.current_streak, 3)
         self.assertEqual(reviews.studied_pct, 100)
 
+    def test_week_totals_give_the_reference(self) -> None:
+        # 3.6.0: el total de los 7 dias acompana a la diferencia (FIX-001: hoy no entra).
+        sample = self.make({0: 500, **{d: 10 for d in range(1, 8)}, **{d: 5 for d in range(8, 15)}})
+        self.assertEqual(data.week_totals(sample, "reviews"), (70.0, 35.0, True))
+
+    def test_today_done_and_previous_best(self) -> None:
+        # Racha actual 0-1-2 (3 dias, hoy incluido) y otra anterior de 2.
+        stats = data.full_stats(self.make({0: 5, 1: 5, 2: 5, 6: 5, 7: 5}), "reviews", 30)
+        self.assertEqual((stats.current_streak, stats.longest_streak), (3, 3))
+        self.assertTrue(stats.today_done)
+        self.assertEqual(stats.previous_best, 2)
+        # Sin estudiar hoy, la racha sigue (1-2) y hoy queda pendiente.
+        pending = data.full_stats(self.make({1: 5, 2: 5, 6: 5, 7: 5, 8: 5}), "reviews", 30)
+        self.assertEqual((pending.current_streak, pending.previous_best), (2, 3))
+        self.assertFalse(pending.today_done)
+
     def test_three_periods(self) -> None:
         self.assertEqual(data.WINDOWS, (30, 365, 0))
 

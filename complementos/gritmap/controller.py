@@ -276,10 +276,16 @@ def _on_js_message(
         _set_window(action[len("window:"):])
         return (True, None)
 
-    if action == "opts":
+    if action.startswith("key:"):
+        _go_to_key_date(action[len("key:"):])
+        return (True, None)
+
+    if action in ("opts", "opts:exclude"):
         # Se aplaza para que el mensaje de la pagina termine antes de abrir
-        # una ventana modal.
-        mw.progress.single_shot(0, open_options)
+        # una ventana modal. Desde el aviso de mazo excluido se abre ademas
+        # la lista de mazos excluidos.
+        start_exclude = action == "opts:exclude"
+        mw.progress.single_shot(0, lambda: open_options(start_exclude=start_exclude))
         return (True, None)
 
     if action.startswith("past:"):
@@ -295,6 +301,22 @@ def _on_js_message(
 
 # Perfil y configuracion
 # ---------------------------------------------------------------------------
+
+
+def _go_to_key_date(raw: str) -> None:
+    """La proxima fecha clave, pulsada: el mapa pasa al ano de esa fecha.
+
+    La semana la busca la pagina en cuanto el ano esta dibujado. El texto
+    llega de la pagina, asi que se comprueba antes de usarlo.
+    """
+    try:
+        day = date.fromisoformat(raw)
+    except ValueError:
+        return
+    if state.data is None:
+        return
+    state.year_offset = state.data.data.today.year - day.year
+    _redraw_in_place()
 
 
 def _set_window(raw: str) -> None:

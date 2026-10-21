@@ -165,6 +165,11 @@ class FullStats:
     longest_streak: int
     # Dias desde el ultimo repaso; None si nunca se ha estudiado.
     last_session: int | None
+    # Si hoy ya cuenta para la racha (version 3.6.0).
+    today_done: bool = False
+    # La racha mas larga sin contar la actual: sirve para saber si la actual
+    # acaba de batir el record.
+    previous_best: int = 0
 
 
 def round_half_up(value: float) -> int:
@@ -512,6 +517,19 @@ def week_diff(data: HeatmapData, measure: str) -> tuple[float, bool]:
     #        cifra no cambia a lo largo del dia. Lo pidio el cliente el
     #        2026-10-08 y sustituye a la decision del 2026-07-27.
     # ---------------------------------------------------------------
+    recent, previous, studied_before = week_totals(data, measure)
+    return recent - previous, studied_before
+
+
+def week_totals(data: HeatmapData, measure: str) -> tuple[float, float, bool]:
+    """Lo hecho en los 7 ultimos dias completos y en los 7 anteriores.
+
+    Mismos periodos que week_diff (Regla de FIX-001): terminan ayer. Devuelve
+    tambien si en los 7 anteriores se estudio. La comparativa de la 3.6.0
+    ensena el total junto a la diferencia, para que la cifra tenga su punto
+    de referencia.
+    """
+
     def total(first: int, last: int) -> float:
         return sum(
             measure_value(data.past[days_ago], measure)
@@ -519,14 +537,12 @@ def week_diff(data: HeatmapData, measure: str) -> tuple[float, bool]:
             if days_ago in data.past
         )
 
-    recent = total(1, WEEK_DAYS)
-    previous = total(WEEK_DAYS + 1, 2 * WEEK_DAYS)
     studied_before = any(
         data.past[days_ago].reviews > 0
         for days_ago in range(WEEK_DAYS + 1, 2 * WEEK_DAYS + 1)
         if days_ago in data.past
     )
-    return recent - previous, studied_before
+    return total(1, WEEK_DAYS), total(WEEK_DAYS + 1, 2 * WEEK_DAYS), studied_before
 
 
 def streaks(studied_days_ago: set[int]) -> tuple[int, int]:
@@ -544,6 +560,14 @@ def streaks(studied_days_ago: set[int]) -> tuple[int, int]:
         longest = max(longest, run)
         previous = day
     return current, longest
+
+
+def previous_best(studied_days_ago: set[int], current: int) -> int:
+    """La racha mas larga sin contar la actual (cero si no hay otra)."""
+    start = 0 if 0 in studied_days_ago else 1
+    current_run = set(range(start, start + current))
+    _current, longest = streaks(studied_days_ago - current_run)
+    return longest
 
 
 def full_stats(data: HeatmapData, measure: str = "reviews", window: int = 30) -> FullStats:
@@ -576,6 +600,8 @@ def full_stats(data: HeatmapData, measure: str = "reviews", window: int = 30) ->
         current_streak=current_streak,
         longest_streak=longest_streak,
         last_session=min(studied_days) if studied_days else None,
+        today_done=0 in studied_days,
+        previous_best=previous_best(studied_days, current_streak),
     )
 
 

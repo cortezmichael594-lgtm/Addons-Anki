@@ -22,6 +22,8 @@ plano: Anki nunca se queda esperando a la coleccion por esta ventana.
 #                        cerraba Opciones o anadia una fecha.
 # FIX-018 (2026-10-13) — Las muestras de color de los temas no cambiaban al
 #                        pasar entre modo dia y noche con la ventana abierta.
+# FIX-025 (2026-10-21) — Abierta desde la ventana Complementos, Opciones podia
+#                        quedar detras de ella en Windows.
 
 from __future__ import annotations
 
@@ -30,7 +32,7 @@ from dataclasses import dataclass
 from datetime import date
 
 from anki.collection import Collection
-from aqt import gui_hooks, mw
+from aqt import colors, gui_hooks, mw
 from aqt.operations import QueryOp
 from aqt.qt import (
     QCheckBox,
@@ -46,8 +48,13 @@ from aqt.qt import (
     QIcon,
     QKeySequence,
     QLineEdit,
+    QLabel,
     QLocale,
+    QPainter,
+    QPaintEvent,
     QPixmap,
+    QRectF,
+    QSize,
     QPushButton,
     QShortcut,
     QSpinBox,
@@ -57,6 +64,7 @@ from aqt.qt import (
     QVBoxLayout,
     QWidget,
     qconnect,
+    sip,
 )
 from aqt.theme import theme_manager
 from aqt.utils import disable_help_button, restoreGeom, saveGeom, tooltip
@@ -88,6 +96,7 @@ from .state import state
 # Nombres que caben en el globo del boton de mazos excluidos.
 _TOOLTIP_MAX_NAMES = 15
 _SPIN_WIDTH = 110
+_PREVIEW_GAP = 3  # el mismo hueco que entre los cuadritos del mapa
 _DECK_ROLE = Qt.ItemDataRole.UserRole
 _OWN_STATE_ROLE = Qt.ItemDataRole.UserRole + 1
 
@@ -184,6 +193,57 @@ def _standard_buttons(
             if button is not None:
                 button.setText(t(key))
     return box
+
+
+class PreviewStrip(QWidget):
+    """Vista previa en las opciones (3.6.0): una tira con el dia sin estudio y
+    los diez tonos del tema, al tamano y con el redondeo elegidos.
+
+    Cambia al momento al mover esos controles, para no tener que aceptar y
+    mirar el mapa para saber como queda (Norman, respuesta inmediata). Es el
+    unico control dibujado a mano de la ventana; lo aprobo el cliente en el
+    plan de la 3.6.0. Los colores se leen al pintar (modo activo).
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._theme = DEFAULT_CONFIG.theme
+        self._size = DEFAULT_CONFIG.cell_size
+        self._radius = DEFAULT_CONFIG.border_radius
+        # Alto fijo para el cuadrito mas grande: la ventana no cambia de
+        # tamano al mover el control.
+        self.setFixedHeight(CELL_SIZE_MAX)
+        self.setAccessibleName(t("opt_preview"))
+
+    def sizeHint(self) -> QSize:
+        return QSize(11 * (DEFAULT_CONFIG.cell_size + _PREVIEW_GAP), CELL_SIZE_MAX)
+
+    def set_look(self, theme: str, size: int, radius: int) -> None:
+        if (theme, size, radius) != (self._theme, self._size, self._radius):
+            self._theme, self._size, self._radius = theme, size, radius
+            self.update()
+
+    def paintEvent(self, _event: QPaintEvent | None) -> None:
+        # Regla de FIX-007: los tonos salen de la escala del modo activo.
+        scale = PAST_DARK if theme_manager.night_mode else PAST_LIGHT
+        tones = scale.get(self._theme, scale[DEFAULT_CONFIG.theme])
+        fills = [theme_manager.qcolor(colors.BORDER_SUBTLE)] + [QColor(tone) for tone in tones]
+        painter = QPainter(self)
+        try:
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            painter.setPen(Qt.PenStyle.NoPen)
+            size = float(self._size)
+            # Arriba, a la altura de su rotulo; el hueco sobrante queda debajo.
+            top = 0.0
+            left = 0.0
+            for fill in fills:
+                if left + size > self.width():
+                    break
+                painter.setBrush(fill)
+                painter.drawRoundedRect(QRectF(left, top, size, size), self._radius, self._radius)
+                left += size + _PREVIEW_GAP
+        finally:
+            painter.end()
 
 
 class ExcludeDecksDialog(QDialog):
@@ -479,6 +539,10 @@ class HeatmapOptionsDialog(QDialog):
             label = t("window_all") if days == 0 else fill("window_days", count=days)
             self._avg_window.addItem(label, days)
         self._show_week = QCheckBox(t("opt_show_week"))
+        # Una frase bajo «El color mide» dice que cuenta cada medida (3.6.0).
+        self._measure_help = QLabel()
+        self._measure_help.setWordWrap(True)
+        self._preview = PreviewStrip()
 
         # --- FIX-017 (2026-10-13) --------------------------------------
         # Sintoma: con el foco en «Seleccionar mazos» o en Restaurar, Intro
@@ -500,8 +564,10 @@ class HeatmapOptionsDialog(QDialog):
         form = QFormLayout()
         form.addRow(t("opt_theme"), self._theme)
         form.addRow(t("opt_measure"), self._measure)
+        form.addRow("", self._measure_help)
         form.addRow(_without_px("opt_cell"), self._cell_size)
         form.addRow(_without_px("opt_radius"), self._border_radius)
+        form.addRow(t("opt_preview"), self._preview)
         form.addRow(t("opt_window"), self._avg_window)
         form.addRow(t("opt_exclude"), self._exclude_button)
         form.addRow(t("opt_key_dates"), self._key_dates_button)
@@ -515,7 +581,15 @@ class HeatmapOptionsDialog(QDialog):
         )
         restore_button = buttons.button(QDialogButtonBox.StandardButton.RestoreDefaults)
         if restore_button is not None:
+            # Dice que restaura y que no toca (3.6.0): quien teme perder sus
+            # mazos excluidos o sus fechas clave puede pulsarlo tranquilo.
+            restore_button.setText(t("opt_restore_look"))
+            restore_button.setToolTip(t("opt_restore_tip"))
             qconnect(restore_button.clicked, self._restore_defaults)
+        qconnect(self._theme.currentIndexChanged, self._update_preview)
+        qconnect(self._cell_size.valueChanged, self._update_preview)
+        qconnect(self._border_radius.valueChanged, self._update_preview)
+        qconnect(self._measure.currentIndexChanged, self._update_measure_help)
 
         layout = QVBoxLayout()
         layout.addLayout(form)
@@ -542,6 +616,21 @@ class HeatmapOptionsDialog(QDialog):
             name = self._theme.itemData(index)
             if isinstance(name, str):
                 self._theme.setItemIcon(index, _theme_swatch(name))
+        self._preview.update()
+
+    def _update_preview(self, _value: int = 0) -> None:
+        theme = self._theme.currentData()
+        self._preview.set_look(
+            theme if isinstance(theme, str) else DEFAULT_CONFIG.theme,
+            self._cell_size.value(),
+            self._border_radius.value(),
+        )
+
+    def _update_measure_help(self, _index: int = 0) -> None:
+        measure = self._measure.currentData()
+        if measure not in MEASURES:
+            measure = DEFAULT_CONFIG.measure
+        self._measure_help.setText(t(f"measure_{measure}_help"))
 
     # Sub-ventanas
     def _open_exclude(self, _checked: bool = False) -> None:
@@ -598,6 +687,8 @@ class HeatmapOptionsDialog(QDialog):
         self._update_exclude_label()
         self._key_dates = cfg.key_dates
         self._update_key_dates_label()
+        self._update_preview()
+        self._update_measure_help()
 
     def _restore_defaults(self, _checked: bool = False) -> None:
         """Vuelve a los valores recomendados.
@@ -650,8 +741,26 @@ _dialog: HeatmapOptionsDialog | None = None
 _opening = False
 
 
-def open_options() -> None:
-    """Lee mazos y opciones en segundo plano y abre la ventana con ellos."""
+def _parent_window() -> QWidget:
+    """Ventana sobre la que se abre Opciones."""
+    # --- FIX-025 (2026-10-21) --------------------------------------
+    # Sintoma: abierta desde Herramientas > Complementos > Configuracion, la
+    #          ventana de opciones podia quedar detras de la ventana
+    #          Complementos en Windows.
+    # Causa: se creaba siempre con la ventana principal de Anki como padre.
+    # Regla: una ventana que se abre desde otra toma como padre la ventana
+    #        activa (mw.app.activeWindow() or mw), comprobando antes de usarla
+    #        que no se haya cerrado entretanto (APR-063).
+    # ---------------------------------------------------------------
+    return mw.app.activeWindow() or mw
+
+
+def open_options(start_exclude: bool = False) -> None:
+    """Lee mazos y opciones en segundo plano y abre la ventana con ellos.
+
+    Con start_exclude (el boton del aviso de mazo excluido), al abrirse
+    muestra ademas la lista de mazos excluidos.
+    """
     global _opening
     if _dialog is not None and _dialog.isVisible():
         _dialog.raise_()
@@ -661,6 +770,7 @@ def open_options() -> None:
         return
     _opening = True
     generation = state.generation
+    parent = _parent_window()
 
     def op(col: Collection) -> tuple[Config, _Decks]:
         selectable = all_deck_entries(col, skip_empty_default=True, include_filtered=False)
@@ -675,7 +785,7 @@ def open_options() -> None:
             return
         # Se aplaza para no abrir una ventana modal dentro de la respuesta
         # de la operacion.
-        mw.progress.single_shot(0, lambda: _show(*result), False)
+        mw.progress.single_shot(0, lambda: _show(*result, parent, start_exclude), False)
 
     @guarded()
     def on_failure(exc: Exception) -> None:
@@ -686,10 +796,16 @@ def open_options() -> None:
     QueryOp(parent=mw, op=op, success=on_success).failure(on_failure).run_in_background()
 
 
-def _show(cfg: Config, decks: _Decks) -> None:
+def _show(cfg: Config, decks: _Decks, parent: QWidget, start_exclude: bool) -> None:
     global _dialog
     try:
-        _dialog = HeatmapOptionsDialog(mw, cfg, decks)
+        # FIX-025: si la ventana de origen se cerro mientras se leian los
+        # mazos, se abre sobre la principal.
+        if sip.isdeleted(parent) or not parent.isVisible():
+            parent = mw
+        _dialog = HeatmapOptionsDialog(parent, cfg, decks)
+        if start_exclude:
+            mw.progress.single_shot(0, _dialog._open_exclude, False)
         accepted = _dialog.exec() == QDialog.DialogCode.Accepted
         selected = _dialog.selected_config() if accepted else None
         _dialog.deleteLater()

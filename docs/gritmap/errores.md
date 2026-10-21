@@ -115,6 +115,19 @@ Las trece siguientes salieron de la revisión completa del 2026-10-12 y se corri
   siempre de izquierda a derecha, como el calendario, y los huecos entre textos siguen la dirección
   del idioma.
 
+Las dos siguientes salieron de la revisión de la versión 3.6.0 (2026-10-21).
+
+- FIX-024 · 2026-10-21 · versión 3.6.0 · Qué pasaba: al recorrer el mapa con el tabulador, los
+  botones de encima y los de periodo no mostraban ningún contorno, así que no se sabía dónde estaba
+  el foco. Por qué: Anki quita a propósito el contorno de todos los botones de sus páginas, y el del
+  mapa no tenía fuerza suficiente para imponerse. Regla: el contorno de foco de cada botón del mapa
+  se impone al de Anki y solo aparece con el teclado, nunca al hacer clic.
+- FIX-025 · 2026-10-21 · versión 3.6.0 · Qué pasaba: abierta desde Herramientas > Complementos >
+  «Configuración», la ventana de opciones podía quedarse detrás de la ventana Complementos en
+  Windows. Por qué: se abría siempre sobre la ventana principal de Anki. Regla: una ventana que se
+  abre desde otra se abre sobre la ventana activa (y, si esta se cerró entretanto, sobre la
+  principal).
+
 ## Así a propósito
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
@@ -131,7 +144,9 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   estudiado solo si empezó alguna nueva (promedio, días estudiados, rachas y última sesión).
 - Los periodos de 7 y 90 días se retiraron al poner los botones rápidos de periodo junto al año,
   como control segmentado sin marco: el elegido con fondo suave de pastilla y negrita, como en la
-  imagen que aportó («30 días», «1 año», «Todo»). Lo pidió el cliente el 2026-10-13.
+  imagen que aportó («30 días», «1 año», «Todo»). Lo pidió el cliente el 2026-10-13. Desde la 3.6.0
+  (cliente, 2026-10-21) el selector está encima de las tres cifras que cambia (promedio, días
+  estudiados y retención) y no junto al año; las rachas forman aparte el grupo «Rachas».
 - Versión 3.5.0 (plan aprobado por el cliente el 2026-10-13, con criterios de diseño citados en la
   entrega): cifras en dos grupos (constancia y rendimiento) con la racha actual primero, número
   grande y unidad pequeña, misma letra que Anki, globos con la fecha en gris y cierre con Esc, y
@@ -151,7 +166,24 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   revisión del 2026-10-12: Anki 26.09.3 sigue sin esa función.
 - Versión 3.3.0 (pedido del cliente el 2026-10-13, tras ver la 3.2.0): sin recuadro alrededor del
   mapa, sin leyenda y sin las iniciales de los días; los cuatro botones encima y el año debajo, como
-  en la 3.1.1; la muestra del tema en Opciones vuelve a ser un solo cuadrito.
+  en la 3.1.1; la muestra del tema en Opciones vuelve a ser un solo cuadrito. La leyenda volvió en
+  la 3.6.0, ahora con la cifra de cada tono: el cliente la pidió de nuevo el 2026-10-21, avisado de
+  que la había quitado en la 3.3.0. Siguen sin recuadro y sin iniciales de los días.
+- Versión 3.6.0 (propuesta de mejoras del cliente del 14-10-2026, aprobada el 2026-10-21):
+  leyenda, cifras agrupadas por periodo, comparativa con su total, notas de la racha, próxima fecha
+  clave a la vista, línea «Pulse para ver…» en el globo, mapa vacío que orienta, vista previa y
+  frase de la medida en Opciones y «Restaurar apariencia». La comparativa dice «en 7 días» y «los
+  7 anteriores», no «esta semana», porque mide los 7 días completos que terminan ayer (FIX-001); lo
+  eligió el cliente el 2026-10-21.
+- Las notas de la racha solo informan: «hoy pendiente» u «hoy hecho», la distancia al récord solo
+  si está a 7 días o menos, y «nuevo récord» solo el día en que se bate. No hay avisos, cuentas
+  atrás ni mensajes de pérdida: la propuesta del cliente los descarta por ser patrones que presionan
+  (versión 3.6.0).
+- Los días sin estudio usan el gris de borde suave de Nocturne y no el fondo hundido que proponía
+  el documento de mejoras: de noche ese fondo es más oscuro que la página y la rejilla vacía casi
+  desaparecería. Criterio técnico de la versión 3.6.0.
+- Los dos grupos de cifras ya no llevan una raya entre ellos: los separa el espacio, ahora que cada
+  uno tiene su cabecera (versión 3.6.0).
 - El globo de cada día lleva la fecha arriba (sin «el») y lo hecho debajo, en todos los idiomas. Lo
   pidió el cliente el 2026-10-13.
 - Las fechas clave llevan el borde naranja de siempre, y azul en los temas Rojo fuego, Naranja

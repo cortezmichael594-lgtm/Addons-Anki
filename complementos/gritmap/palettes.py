@@ -98,8 +98,14 @@ FUTURE_DARK: tuple[str, ...] = (
 THEME_NAMES: tuple[str, ...] = tuple(PAST_LIGHT)
 # Temas sobre los que el borde naranja de las fechas clave no se distingue.
 WARM_THEMES: frozenset[str] = frozenset({"fire_red", "sunset_orange", "rose_pink"})
-KEY_BLUE_LIGHT = "#1971C2"  # colores-ok: reserva de STATE_NEW de Nocturne (dia)
-KEY_BLUE_DARK = "#74C0FC"  # colores-ok: reserva de STATE_NEW de Nocturne (noche)
+# Desde 3.6.0 el borde de las fechas clave sale de las banderas de Nocturne:
+# naranja (FLAG_2) y, en los temas calidos, azul (FLAG_4), con su pareja de
+# noche. Son marcas, como las banderas de Anki, no colores de accion.
+KEY_BLUE_LIGHT = "#1971C2"  # colores-ok: reserva de FLAG_4 de Nocturne (dia)
+KEY_BLUE_DARK = "#5993C2"  # colores-ok: reserva de FLAG_4 de Nocturne (noche)
+# Tonos que ensena la leyenda: los diez se agrupan de dos en dos y cada
+# cuadrito lleva el mas intenso de su pareja (3.6.0).
+LEGEND_TONES: tuple[int, ...] = (2, 4, 6, 8, 10)
 LEGEND_FACTORS: tuple[float, ...] = (0.125, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 4.0)
 STREAK_COLOR_LEVELS: tuple[tuple[int, int], ...] = ((14, 1), (30, 3), (90, 5), (180, 8), (365, 9))
 AVG_COLOR_LEVELS: tuple[tuple[int, int], ...] = ((10, 1), (25, 3), (60, 5), (150, 7), (300, 8))
@@ -160,7 +166,7 @@ def _vars_block(theme: str, dark: bool) -> str:
         # El borde naranja de las fechas clave no se distingue sobre estos
         # temas: pasa al azul de Nocturne (decision del cliente, 2026-10-13).
         fallback = KEY_BLUE_DARK if dark else KEY_BLUE_LIGHT
-        parts.append(f"--gritmap-key:var(--state-new,{fallback});")
+        parts.append(f"--gritmap-key:var(--flag-4,{fallback});")
     return "".join(parts)
 
 
