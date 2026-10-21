@@ -35,6 +35,14 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
 - FIX-005 · 2026-10-21 · versión 2.1.0 · Qué pasaba: con el ratón encima del botón azul principal, su
   texto blanco perdía legibilidad. Por qué: el efecto de pasar el ratón aclaraba el azul. Regla: el
   azul de acción da 4,5 con texto blanco en todos sus estados. Prueba: «PrimaryButtonTest».
+- FIX-006 · 2026-10-21 · versión 3.2.0 · Qué pasaba: en la pantalla de estudio de un mazo, la tabla con
+  Nuevas, Aprendiendo y A repasar se teñía de color (azul en Nocturne) al pasar el ratón por encima,
+  como si fuera una fila de la lista de mazos. Por qué: el resaltado de la 3.1.0 se aplicaba a
+  cualquier fila de tabla con el ratón encima, y esa pantalla también usa una tabla; la separación de
+  las filas tenía el mismo defecto. Regla: lo que se añade para una pantalla concreta se limita a sus
+  propios elementos (aquí, las filas de mazo), nunca a etiquetas genéricas que comparten otras
+  pantallas. Prueba: «test_row_highlight_only_in_deck_list», que falló antes del arreglo y pasa
+  después.
 
 ## Así a propósito
 
@@ -43,8 +51,8 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 2026.07.28 · En la paleta Nocturne, «Aprendiendo» va en naranja y no en el rojo de Anki. Es parte del
   aspecto original que el cliente quiere conservar (2026-10-21). Las otras paletas usan el rojo de Anki.
 - 2026.07.28 · Los bordes de campos, listas y tablas son muy suaves. Es parte del aspecto original; la
-  versión 2.0.0 los reforzó y el cliente la descartó por perder atractivo (2026-10-21). Vale para todas
-  las paletas salvo Alto contraste (véase 3.1.0).
+  versión 2.0.0 los reforzó y el cliente la descartó por perder atractivo (2026-10-21). Vale para las
+  tres paletas.
 - 2.1.0 · De noche, las banderas son algo menos vivas que en la versión original. Es el precio de que el
   texto de las filas de Explorar se lea bien (FIX-004); el cliente aprobó el plan el 2026-10-21.
 - 2.1.0 · Con el ratón encima o con el foco, el borde de las casillas es azul y no gris oscuro, para que
@@ -54,9 +62,6 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 3.0.0 · No se cambia el tamaño de la letra: manda el que el cliente tenga elegido en Anki. Decisión
   del taller. (En 3.0.0 tampoco se tocaban las esquinas ni el botón por defecto; desde 3.1.0 sí, porque
   el cliente lo pidió.)
-- 3.1.0 · Alto contraste tiene bordes marcados en campos, listas y recuadros, al contrario que la regla
-  de FIX-003 para las demás paletas. Lo eligió el cliente al pedir esa paleta («bordes marcados»,
-  2026-10-21); las pruebas la tratan como excepción.
 - 3.1.0 · En Nocturne, la bandera rosa pasa de un rosa frambuesa a un rosa de verdad (tono 310°), porque
   se confundía con la roja. Es el único cambio de tono respecto al aspecto original; lo vigilan las
   pruebas.
@@ -67,3 +72,14 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   cliente (2026-10-21).
 - 3.1.0 · Los botones de las ventanas tienen como mucho 9px de radio: con más, Qt los dibuja cuadrados
   (comprobado al construir Bosque). Decisión del taller.
+- 3.2.0 · Grafito y Alto contraste ya no existen: el cliente no las quiso (2026-10-21). Una configuración
+  que aún las nombre vuelve a Nocturne sin avisar.
+- 3.2.0 · La ventana de paletas solo se abre desde el botón «Configuración» de la ventana de
+  complementos; no hay entrada en el menú Herramientas. Lo pidió el cliente (2026-10-21).
+- 3.2.0 · Papel de noche usa fondos azul petróleo («Tinta») con texto crema, en vez de marrón: no es la
+  misma familia que Papel de día. Lo eligió el cliente entre tres muestras (2026-10-21).
+- 3.2.0 · En Bosque y en Papel de noche, azul, rojo y verde giran su tono hacia azul petróleo, rojo
+  ladrillo y verde musgo. Nocturne y Papel de día no cambian. Aprobado por el cliente (2026-10-21).
+- 3.2.0 · En la pantalla de un mazo, «Comenzar a estudiar» aparece con su contorno de foco desde el
+  principio: Anki le da el foco al abrir la pantalla, y el contorno avisa de que Intro empieza el
+  estudio. Decisión del taller.

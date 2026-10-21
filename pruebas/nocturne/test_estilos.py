@@ -29,8 +29,8 @@ class ConfigTest(unittest.TestCase):
     def test_select_validates(self) -> None:
         try:
             self.assertEqual(themes.select("inexistente"), "nocturne")
-            self.assertEqual(themes.select("grafito"), "grafito")
-            self.assertEqual(themes.current_id(), "grafito")
+            self.assertEqual(themes.select("bosque"), "bosque")
+            self.assertEqual(themes.current_id(), "bosque")
         finally:
             themes.select("nocturne")
 
@@ -72,6 +72,24 @@ class WebStyleTest(unittest.TestCase):
         self.assertNotIn("Georgia", nocturne)
         self.assertIn("font-variant-numeric: tabular-nums", nocturne)
         self.assertIn("letter-spacing: -0.01em", nocturne)
+
+    def test_row_highlight_only_in_deck_list(self) -> None:
+        # Regresión de FIX-006: el resaltado de filas de la lista de mazos alcanzaba
+        # la tabla de datos de la pantalla de estudio (sus filas no son de mazos).
+        for theme_id in themes.THEMES:
+            css = self.css_for(theme_id)
+            self.assertNotIn("tr:hover:not(.top-level-drag-row)) td", css, theme_id)
+            self.assertNotIn("tr[id] > td", css, theme_id)
+            self.assertIn("tr.deck:is(.current, :hover) > td", css, theme_id)
+            self.assertIn("tr.deck > td { padding-block:", css, theme_id)
+
+    def test_toolbar_and_answer_buttons(self) -> None:
+        css = self.css_for("nocturne")
+        self.assertIn(".toolbar .hitem:hover", css)
+        for ease, value in ((1, "var(--accent-danger)"), (2, "color-mix(in srgb, var(--flag-2) 85%, var(--fg))"),
+                            (3, "var(--state-review)"), (4, "var(--state-new)")):
+            self.assertIn(f"button[data-ease='{ease}'] {{ background-image: linear-gradient(to top, {value}", css)
+            self.assertIn(f"button[data-ease='{ease}']:hover", css)
 
     def test_switching_changes_the_css(self) -> None:
         first = self.css_for("papel")

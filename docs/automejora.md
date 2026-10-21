@@ -566,6 +566,15 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado y maqueta en el navegador integrado), en otra copia del taller; vuelto a comprobar el 2026-10-21 en el código instalado de este taller.
 - Origen: rediseño de Nocturne 2.0.0, hecho en otra copia del taller; incorporado el 2026-10-21 con número nuevo (allí era APR-059).
 
+### APR-062 · Estilos de una pantalla, solo para sus elementos
+- Qué es: todas las páginas de Anki cargan el CSS que se inyecta con webview_will_set_content, y varias usan las mismas etiquetas. La lista de mazos dibuja cada mazo como una fila <tr class="deck"> (con «deck current» en el mazo actual) e id numérico; la pantalla de un mazo (overview) usa dos tablas anidadas sin clase para Nuevas, Aprendiendo y A repasar.
+- Por qué es buena práctica: una regla genérica (tr:hover, tr[id]) pensada para una pantalla se cuela en otras: en Nocturne 3.1.0, la tabla de la pantalla de estudio se teñía al pasar el ratón (FIX-006).
+- Para qué sirve: temas y complementos que retoquen la lista de mazos, la pantalla de un mazo o el repaso.
+- Cómo se aplica: apunte a las clases e ids propios de cada pantalla (tr.deck, .current, #study, button[data-ease], .toolbar .hitem) y añada una prueba que compruebe que el CSS no contiene el selector genérico.
+- Fuente: aqt/deckbrowser.py (_render_deck_node: klass «deck current»), aqt/overview.py (_table) y pruebas/nocturne/test_estilos.py (test_row_highlight_only_in_deck_list)
+- Comprobado: 2026-10-21, con Anki 26.09.3 (código instalado y prueba que falló antes del arreglo y pasa después).
+- Origen: FIX-006 de Nocturne 3.2.0.
+
 ## Retirados
 
 Aprendizajes que dejaron de valer, con fecha y motivo («- APR-NNN (AAAA-MM-DD): motivo»). Su número no

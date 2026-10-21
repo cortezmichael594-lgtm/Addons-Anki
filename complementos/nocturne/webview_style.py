@@ -29,6 +29,8 @@ así que la paleta se respeta siempre, llegue nuestro estilo antes o después.
 # Historial de correcciones de este archivo:
 # FIX-001 (2026-07-24) — En modo oscuro el degradado de fondo aparecía repetido,
 #                        apilado, en vez de uno solo anclado a la esquina.
+# FIX-006 (2026-10-21) — En la pantalla de estudio, los datos del mazo se resaltaban
+#                        al pasar el ratón, como si fueran una fila de la lista de mazos.
 
 from __future__ import annotations
 
@@ -167,8 +169,8 @@ def _surface_css() -> str:
     El degradado se ancla a la ventana con ``background-attachment: fixed`` para
     que sea una sola mancha en la esquina superior derecha. ``fixed`` solo hace
     falta declararlo en la primera regla: como no lo pisa la regla del modo
-    noche, sigue vigente cuando esta solo cambia el color del degradado. Las
-    paletas sin degradado (Grafito y Alto contraste) no llevan ninguna de las dos.
+    noche, sigue vigente cuando esta solo cambia el color del degradado. Una
+    paleta sin degradado no llevaría ninguna de las dos.
     Todo sale de la paleta elegida (``themes``).
     """
     look = themes.look()
@@ -219,11 +221,35 @@ def _surface_css() -> str:
         # Lista de mazos (versión 3.1.0): separación de las filas según la paleta y
         # resaltado del mazo actual y del que tiene el ratón encima con un tinte del
         # color de acción en vez de gris (Practical UI, M5 y M7).
-        f"{_SURFACE} tr[id] > td {{ padding-block: {look['row_padding']}px; }}",
+        #
+        # --- FIX-006 (2026-10-21) ---
+        # Síntoma: en la pantalla de estudio, la tabla con Nuevas, Aprendiendo y A repasar
+        #          se teñía de azul al pasar el ratón por encima.
+        # Causa: el resaltado se aplicaba a cualquier fila de tabla con el ratón encima
+        #        («tr:hover»), y esa pantalla también usa tablas; la separación de filas
+        #        («tr[id]») tenía el mismo defecto.
+        # Regla: todo lo que se inyecta para una pantalla concreta se limita a sus propios
+        #        elementos (aquí, las filas de mazo: «tr.deck»), nunca a etiquetas genéricas.
+        f"{_SURFACE} tr.deck > td {{ padding-block: {look['row_padding']}px; }}",
         (
-            f"html {_SURFACE} :is(.current, tr:hover:not(.top-level-drag-row)) td"
+            f"html {_SURFACE} tr.deck:is(.current, :hover) > td"
             " { background: var(--nocturne-row-highlight); }"
         ),
+        # Barra superior (versión 3.2.0): Mazos, Añadir, Explorar... con un fondo suave
+        # y redondeado al pasar el ratón, en lugar del subrayado, para que se vea qué
+        # se va a pulsar (Practical UI, M5). Solo color y esquinas: no cambia el tamaño
+        # ni la posición, y nada va en posición absoluta (APR-060).
+        (
+            f"html {_SURFACE} .toolbar .hitem:hover {{"
+            " background: var(--button-gradient-start);"
+            " border-radius: var(--border-radius);"
+            " text-decoration: none; }"
+        ),
+        # Botones de respuesta del repaso (versión 3.2.0): una raya fina de color al pie
+        # de «Otra vez», «Difícil», «Bien» y «Fácil». El texto sigue diciendo lo mismo;
+        # el color solo ayuda a reconocerlos de un vistazo (Norman, mapeo; Practical UI,
+        # P9). Va como capa de fondo para no tocar el tamaño ni las sombras de Anki.
+        *_answer_marks(),
         # Texto seleccionado en las páginas de Anki (no en las tarjetas).
         f"{_SURFACE} ::selection {{ background: var(--selected-bg); }}",
         # Foco del teclado visible en los botones de las páginas clásicas: Anki lo
@@ -236,6 +262,30 @@ def _surface_css() -> str:
         ),
     ]
     return "\n".join(rules)
+
+
+# Color de la raya de cada botón de respuesta (data-ease de Anki: 1 a 4). El naranja
+# de «Difícil» lleva un 15 % del color del texto para verse a 3:1 sobre el botón en
+# todas las paletas (las pruebas lo miden).
+_ANSWER_COLORS = {
+    1: "var(--accent-danger)",
+    2: "color-mix(in srgb, var(--flag-2) 85%, var(--fg))",
+    3: "var(--state-review)",
+    4: "var(--state-new)",
+}
+
+
+def _answer_marks() -> list[str]:
+    rules = []
+    for ease, value in _ANSWER_COLORS.items():
+        mark = f"linear-gradient(to top, {value} 0 3px, transparent 3px)"
+        button = f"html {_SURFACE} button[data-ease='{ease}']"
+        rules.append(f"{button} {{ background-image: {mark}; }}")
+        rules.append(
+            f"{button}:hover {{ background-image: {mark},"
+            " linear-gradient(180deg, var(--button-gradient-start), var(--button-gradient-end)); }"
+        )
+    return rules
 
 
 def _css_text() -> str:

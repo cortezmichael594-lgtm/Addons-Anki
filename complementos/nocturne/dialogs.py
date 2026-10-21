@@ -1,4 +1,4 @@
-"""Ventana de configuración: elegir una de las cinco paletas."""
+"""Ventana de configuración: elegir una de las tres paletas."""
 
 from __future__ import annotations
 
@@ -93,7 +93,7 @@ _dialog: PaletteDialog | None = None
 
 @guard
 def open_dialog() -> None:
-    """Abre la ventana (desde Herramientas o desde «Configuración» del complemento)."""
+    """Abre la ventana (botón «Configuración» de la ventana de complementos)."""
     global _dialog
     if mw is None:
         return

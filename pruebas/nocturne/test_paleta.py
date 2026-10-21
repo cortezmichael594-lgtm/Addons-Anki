@@ -1,6 +1,6 @@
-"""Pruebas de legibilidad de las cinco paletas de Nocturne: contraste medido con la
-fórmula de las WCAG 2 (texto 4,5:1; bordes de casillas e iconos 3:1) y con APCA.
-Alto contraste exige más: 7:1 (nivel AAA).
+"""Pruebas de legibilidad de las tres paletas de Nocturne (Nocturne, Papel y
+Bosque): contraste medido con la fórmula de las WCAG 2 (texto 4,5:1; bordes de
+casillas e iconos 3:1) y con APCA.
 
 Se ejecutan con herramientas/empaquetar.py, que añade complementos/ al
 PYTHONPATH.
@@ -17,7 +17,6 @@ from nocturne.themes import THEMES
 
 MODES = ("light", "dark")
 SURFACES = ("CANVAS", "CANVAS_ELEVATED", "CANVAS_INSET", "CANVAS_OVERLAY", "NOCTURNE_ROW_HIGHLIGHT")
-HIGH_CONTRAST = "alto_contraste"
 
 
 def _rgb(value: str) -> tuple[float, float, float]:
@@ -63,7 +62,7 @@ def color(name: str, mode: str, theme: str = "nocturne") -> str:
 
 
 def text_min(theme: str) -> float:
-    return 7.0 if theme == HIGH_CONTRAST else 4.5
+    return 4.5
 
 
 class StructureTest(unittest.TestCase):
@@ -161,20 +160,12 @@ class CheckboxBorderTest(unittest.TestCase):
 
     def test_soft_borders_stay_soft(self) -> None:
         # Aspecto elegido por el cliente: campos, listas, tablas y separadores con
-        # bordes suaves. Alto contraste es la excepción: el cliente la eligió con
-        # «bordes marcados» (2026-10-21).
+        # bordes suaves.
         for theme in THEMES:
-            if theme == HIGH_CONTRAST:
-                continue
             for mode in MODES:
                 for name in ("BORDER_SUBTLE", "BORDER"):
                     ratio = contrast(color(name, mode, theme), color("CANVAS", mode, theme))
                     self.assertLess(ratio, 2.0, f"{theme}: {name} ({mode}): {ratio:.2f}")
-
-    def test_marked_borders_in_high_contrast(self) -> None:
-        for mode in MODES:
-            ratio = contrast(color("BORDER_SUBTLE", mode, HIGH_CONTRAST), color("CANVAS", mode, HIGH_CONTRAST))
-            self.assertGreaterEqual(ratio, 3.0, mode)
 
     def test_text_reads_on_border_color(self) -> None:
         # Anki usa BORDER como fondo de algún aviso de la lista de mazos.
@@ -271,13 +262,10 @@ class HighlightTest(unittest.TestCase):
 
 class NightComfortTest(unittest.TestCase):
     """Mejora de 2.1.0: de noche, el texto principal no deslumbra (como mucho
-    13,5:1 sobre el fondo) y sigue muy por encima del mínimo en toda superficie.
-    En Alto contraste se busca justo lo contrario."""
+    13,5:1 sobre el fondo) y sigue muy por encima del mínimo en toda superficie."""
 
     def test_night_text_is_softer(self) -> None:
         for theme in THEMES:
-            if theme == HIGH_CONTRAST:
-                continue
             ratio = contrast(color("FG", "dark", theme), color("CANVAS", "dark", theme))
             self.assertLessEqual(ratio, 13.5, theme)
             for surface in SURFACES:
@@ -311,13 +299,11 @@ def apca(text: str, background: str) -> float:
 class PerceivedContrastTest(unittest.TestCase):
     """Versión 3.0.0: además de WCAG 2, el texto se mide con APCA. Mínimos de
     Practical UI (cifras del cap. 3): 75 para el texto principal, 60 para el
-    secundario y 45 para lo menos importante; en Alto contraste, 90, 75 y 60."""
+    secundario y 45 para lo menos importante."""
 
     TEXT_SURFACES = SURFACES + ("CANVAS_CODE",)
 
     def minimums(self, theme: str) -> tuple[tuple[str, int], ...]:
-        if theme == HIGH_CONTRAST:
-            return (("FG", 90), ("FG_SUBTLE", 75), ("FG_FAINT", 60), ("FG_LINK", 75))
         return (("FG", 75), ("FG_SUBTLE", 60), ("FG_FAINT", 45), ("FG_LINK", 60))
 
     def test_text_levels(self) -> None:
@@ -359,31 +345,67 @@ class NightDepthTest(unittest.TestCase):
 
 class FamilyTest(unittest.TestCase):
     """Cada paleta tiene una sola familia de neutros (Webflow, P4; Refactoring UI,
-    P20): grises azulados en Nocturne, cálidos en Papel, neutros en Grafito,
-    verdosos en Bosque y fríos y casi sin tinte en Alto contraste. Ninguno es
-    blanco ni negro puro."""
+    P20): grises azulados en Nocturne, cálidos en Papel de día, verdosos en Bosque.
+    Papel de noche («Tinta», 3.2.0) une fondos azul petróleo, de la familia del color
+    de acción, con texto crema. Ninguno es blanco ni negro puro."""
 
-    NEUTRALS = (
+    SURFACES_AND_LINES = (
         "CANVAS_INSET", "CANVAS_CODE", "CANVAS", "CANVAS_ELEVATED", "CANVAS_OVERLAY", "BUTTON_BG",
         "BUTTON_HOVER", "BORDER_SUBTLE", "BORDER", "BORDER_STRONG", "NOCTURNE_CONTROL_BORDER",
-        "SCROLLBAR_BG", "SCROLLBAR_BG_HOVER", "SCROLLBAR_BG_ACTIVE", "FG_DISABLED", "FG_FAINT",
-        "FG_SUBTLE", "FG",
+        "SCROLLBAR_BG", "SCROLLBAR_BG_HOVER", "SCROLLBAR_BG_ACTIVE", "FG_DISABLED",
     )
-    # Tono central y margen; None: sin tono (grises neutros, saturación casi nula).
-    FAMILY = {"nocturne": (220, 6), "papel": (36, 12), "grafito": None, "bosque": (138, 12), "alto_contraste": (216, 12)}
+    TEXT = ("FG_FAINT", "FG_SUBTLE", "FG")
+    # (paleta, modo): (tono central de fondos y líneas, tono central del texto), con un margen.
+    FAMILY = {
+        ("nocturne", "light"): (220, 220), ("nocturne", "dark"): (220, 220),
+        ("papel", "light"): (36, 36), ("papel", "dark"): (198, 38),
+        ("bosque", "light"): (138, 138), ("bosque", "dark"): (138, 138),
+    }
+    MARGIN = {"nocturne": 6, "papel": 12, "bosque": 12}
+
+    def check(self, theme: str, mode: str, names: tuple[str, ...], center: float) -> None:
+        for name in names:
+            value = color(name, mode, theme)
+            self.assertNotIn(value[:7].upper(), ("#FFFFFF", "#000000"), f"{theme}: {name}")
+            distance = min(abs(hue(value) - center), 360 - abs(hue(value) - center))
+            self.assertLessEqual(distance, self.MARGIN[theme], f"{theme}: {name} ({mode}): {hue(value):.0f}°")
 
     def test_one_family_of_neutrals(self) -> None:
-        for theme, family in self.FAMILY.items():
-            for name in self.NEUTRALS:
-                for mode in MODES:
-                    value = color(name, mode, theme)
-                    self.assertNotIn(value[:7].upper(), ("#FFFFFF", "#000000"), f"{theme}: {name}")
-                    if family is None:
-                        self.assertLessEqual(saturation(value), 2.0, f"{theme}: {name} ({mode})")
-                        continue
-                    center, margin = family
-                    distance = min(abs(hue(value) - center), 360 - abs(hue(value) - center))
-                    self.assertLessEqual(distance, margin, f"{theme}: {name} ({mode}): {hue(value):.0f}°")
+        self.assertEqual({theme for theme, _mode in self.FAMILY}, set(THEMES))
+        for (theme, mode), (lines, text) in self.FAMILY.items():
+            self.check(theme, mode, self.SURFACES_AND_LINES, lines)
+            self.check(theme, mode, self.TEXT, text)
+
+
+class AnkiScreensTest(unittest.TestCase):
+    """Versión 3.2.0: barra superior y botones de respuesta del repaso."""
+
+    def test_toolbar_hover_is_visible(self) -> None:
+        # El fondo al pasar el ratón por Mazos, Añadir... se distingue de la barra
+        # y el texto se sigue leyendo.
+        for theme in THEMES:
+            for mode in MODES:
+                hover, bar = color("BUTTON_HOVER", mode, theme), color("CANVAS_ELEVATED", mode, theme)
+                self.assertGreaterEqual(contrast(hover, bar), 1.05, f"{theme} ({mode})")
+                self.assertGreaterEqual(contrast(color("FG", mode, theme), hover), 4.5, f"{theme} ({mode})")
+
+    def test_answer_marks_are_visible(self) -> None:
+        # La raya de color de «Otra vez», «Difícil», «Bien» y «Fácil» se ve sobre el
+        # botón, en reposo y con el ratón encima (3:1, como un icono).
+        def mark(name: str, mode: str, theme: str) -> str:
+            value = color(name, mode, theme)
+            if name != "FLAG_2":
+                return value
+            # color-mix(in srgb, var(--flag-2) 85%, var(--fg)), como en la página.
+            mixed = (0.85 * a + 0.15 * b for a, b in zip(_rgb(value), _rgb(color("FG", mode, theme))))
+            return "#" + "".join(f"{round(c * 255):02X}" for c in mixed)
+
+        for theme in THEMES:
+            for mode in MODES:
+                for name in ("ACCENT_DANGER", "FLAG_2", "STATE_REVIEW", "STATE_NEW"):
+                    for surface in ("BUTTON_BG", "BUTTON_HOVER"):
+                        ratio = contrast(mark(name, mode, theme), color(surface, mode, theme))
+                        self.assertGreaterEqual(ratio, 3.0, f"{theme}: {name} sobre {surface} ({mode}): {ratio:.2f}")
 
 
 class IdentityTest(unittest.TestCase):

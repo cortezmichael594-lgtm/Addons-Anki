@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-MENU_ACTION = "Paletas de Nocturne…"
 DIALOG_TITLE = "Paletas de Nocturne"
 DIALOG_INTRO = (
     "Elija el aspecto de Anki. Cada paleta trae sus colores de día y de noche, "
@@ -15,16 +14,11 @@ APPLIED = "Paleta «{name}» aplicada."
 THEME_NAMES = {
     "nocturne": "Nocturne",
     "papel": "Papel",
-    "grafito": "Grafito",
     "bosque": "Bosque",
-    "alto_contraste": "Alto contraste",
 }
 THEME_DESCRIPTIONS = {
     "nocturne": "Serena: grises azulados y un azul de acción tranquilo. Esquinas suaves.",
     "papel": "Cálida: fondo marfil, texto color tinta, acento azul petróleo y títulos con remates, "
-    "como un libro. Pensada para leer mucho rato.",
-    "grafito": "Sobria: grises neutros, acento índigo, esquinas casi rectas y lista de mazos compacta.",
+    "como un libro. De noche, azul tinta con texto crema. Pensada para leer mucho rato.",
     "bosque": "Natural: verdes grisáceos, acento verde azulado, esquinas redondeadas y filas más holgadas.",
-    "alto_contraste": "Máxima legibilidad: texto casi negro o casi blanco, bordes marcados y foco del "
-    "teclado más grueso. Para vista cansada o pantallas con reflejos.",
 }

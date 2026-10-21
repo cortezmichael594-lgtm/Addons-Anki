@@ -16,6 +16,9 @@
     ],
     "FIX-005": [
       "palette.py"
+    ],
+    "FIX-006": [
+      "webview_style.py"
     ]
   }
 }

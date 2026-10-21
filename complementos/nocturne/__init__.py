@@ -1,18 +1,17 @@
 """Nocturne — temas de color para Anki (modo día y modo noche).
 
-Este archivo solo orquesta: aplica la paleta elegida y registra los enganches,
-el menú y la configuración. Toda la lógica vive en los módulos vecinos. Desde la
-versión 3.1.0 hay cinco paletas (Nocturne por defecto) y una ventana para
-elegirla: Herramientas > «Paletas de Nocturne…» o el botón «Configuración» del
-complemento. Sus textos están en español (strings.py).
+Este archivo solo orquesta: aplica la paleta elegida y registra los enganches
+y la configuración. Toda la lógica vive en los módulos vecinos. Hay tres paletas
+(Nocturne por defecto, Papel y Bosque) y una ventana para elegirla, que se abre
+solo desde el botón «Configuración» de la ventana de complementos (decisión del
+cliente, 2026-10-21). Sus textos están en español (strings.py).
 """
 
 from __future__ import annotations
 
 from aqt import gui_hooks, mw
-from aqt.qt import QAction
 
-from . import config, dialogs, strings, theming, themes, webview_style
+from . import config, dialogs, theming, themes, webview_style
 from .errors import get_logger
 
 
@@ -44,12 +43,8 @@ def _setup() -> None:
     #    de estilo antes de cargar los complementos, así que hay que rehacerla.
     theming.restyle()
 
-    # 5) Elegir paleta: Herramientas > «Paletas de Nocturne…» y el botón
-    #    «Configuración» de la ventana de complementos.
-    action = QAction(strings.MENU_ACTION, mw)
-    # La señal pasa «marcado sí/no»; la ventana no lo necesita.
-    action.triggered.connect(lambda _checked=False: dialogs.open_dialog())
-    mw.form.menuTools.addAction(action)
+    # 5) Elegir paleta: solo desde el botón «Configuración» de la ventana de
+    #    complementos (Herramientas > «Complementos»).
     mw.addonManager.setConfigAction(__name__, dialogs.open_dialog)
 
 
