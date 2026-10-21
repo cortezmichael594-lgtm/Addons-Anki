@@ -1301,13 +1301,51 @@ def reference_documents(project: Project) -> list[Path]:
         relative = path.relative_to(docs)
         if not path.is_file() or path.name.startswith(".") or path.name.lower() in ("thumbs.db", "desktop.ini"):
             continue
-        if relative.parts[0] == "ejemplo-referencia" or relative.as_posix() in ("aprendizajes.md", "automejora.md"):
+        if relative.parts[0] in ("ejemplo-referencia", REFERENCES_DIR) or relative.as_posix() in ("aprendizajes.md", "automejora.md"):
             continue
         top = docs / relative.parts[0]
         if len(relative.parts) > 1 and ((top / DESCRIPTION_FILE).exists() or (top / ERRORS_FILE).exists()):
             continue
         found.append(path)
     return found
+
+
+REFERENCES_DIR = "referencias"
+REFERENCES_INDEX = "indice.md"
+
+
+def check_reference_index(project: Project, report: Report) -> None:
+    """docs/referencias/: resúmenes de libros, artículos y vídeos. No se leen enteros al llegar;
+    cada uno lleva una línea en su índice, que es lo único que se consulta de entrada."""
+    folder = project.docs / REFERENCES_DIR
+    if not folder.is_dir():
+        return
+    files = sorted(
+        p.name for p in folder.iterdir()
+        if p.is_file() and not p.name.startswith(".") and p.name != REFERENCES_INDEX
+        and p.name.lower() not in ("thumbs.db", "desktop.ini")
+    )
+    if not files:
+        return
+    index = read_text(folder / REFERENCES_INDEX)
+    if index is None:
+        report.warn(
+            f"Falta docs/{REFERENCES_DIR}/{REFERENCES_INDEX}: créelo con una línea por documento "
+            "(archivo · qué es · fiabilidad · cuándo consultarlo), leyendo solo su ficha."
+        )
+        return
+    listed = set(re.findall(r"(?m)^- ([^\s·]+)\s·", index))
+    before = len(report.warnings)
+    for name in files:
+        if name not in listed:
+            report.warn(
+                f"Referencia sin anotar: docs/{REFERENCES_DIR}/{name}. Lea solo su ficha y añada su "
+                f"línea a docs/{REFERENCES_DIR}/{REFERENCES_INDEX}."
+            )
+    for name in sorted(listed - set(files)):
+        report.warn(f"docs/{REFERENCES_DIR}/{REFERENCES_INDEX} cita {name}, que ya no existe: quite su línea.")
+    if len(report.warnings) == before:
+        report.ok(f"Referencias: {len(files)} anotada(s) en su índice.")
 
 
 def check_reviewed_documents(project: Project, sections: dict[str, list[str]], report: Report) -> None:
@@ -1348,6 +1386,7 @@ def check_self_improvement(project: Project, report: Report) -> None:
     check_lock(project, report)
     check_learnings(project, sections, report)
     check_reviewed_documents(project, sections, report)
+    check_reference_index(project, report)
     pending = re.findall(r"(?m)^- (PROP-\d{3})\b", "\n".join(sections.get("Propuestas pendientes", [])))
     if pending:
         report.warn(
