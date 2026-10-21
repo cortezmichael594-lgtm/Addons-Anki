@@ -367,6 +367,16 @@ class TitleBarToneTest(unittest.TestCase):
             self.assertNotIn(night.upper(), ("#000000",), theme)
             self.assertLess(hue_distance(night, color("CANVAS", "dark", theme)), 20, theme)
 
+    def test_each_palette_has_its_own_bar(self) -> None:
+        # Petición del cliente: cada paleta, su barra, reconocible por su matiz.
+        themes = list(THEMES)
+        for mode in MODES:
+            for i, first in enumerate(themes):
+                for second in themes[i + 1 :]:
+                    a, b = color("NOCTURNE_TITLEBAR", mode, first), color("NOCTURNE_TITLEBAR", mode, second)
+                    self.assertNotEqual(a, b, f"{first}/{second} ({mode})")
+                    self.assertGreaterEqual(hue_distance(a, b), 15, f"{first}/{second} ({mode})")
+
     def test_title_text_reads(self) -> None:
         for theme in THEMES:
             for mode in MODES:

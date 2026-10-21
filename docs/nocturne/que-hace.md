@@ -88,10 +88,16 @@ musgo, sin dejar de ser azul, rojo y verde. En Papel y en Bosque, «Aprendiendo�
   encima. Así los menús se distinguen de lo que tapan.
 - De noche, los colores con significado son algo menos saturados, para que no «vibren» sobre el fondo
   oscuro.
-- Barra de título de las ventanas (solo Windows 11): con un tono propio de cada paleta, del mismo
-  matiz que el fondo de la ventana, pero más oscuro de noche y más claro de día, para que se distinga
-  de la ventana (por ejemplo, en Nocturne: #0B0E13 de noche frente al fondo #12161F, y #FCFCFD de día
-  frente a #F7F8FA). De día la diferencia es pequeña: el fondo ya es casi blanco y la barra no llega al
+- Barra de título de las ventanas (solo Windows 11): cada paleta tiene la suya, del matiz de su
+  fondo y con algo más de color, más oscura que la ventana de noche y más clara de día, para que se
+  distinga de la ventana y se reconozca la paleta:
+  - Nocturne: azul profundo #070C16 de noche (fondo #12161F) y blanco azulado #FAFBFE de día (fondo
+    #F7F8FA).
+  - Papel: azul petróleo profundo #070F12 de noche (fondo #10171A) y marfil #FFFCF7 de día (fondo
+    #FAF7F1).
+  - Bosque: verde profundo #08100C de noche (fondo #111814) y blanco menta #F8FEFA de día (fondo
+    #F3F7F4).
+  De día la diferencia con la ventana es pequeña: el fondo ya es casi blanco y la barra no llega al
   blanco puro. Título en el color del texto y borde suave, en vez de blanca de día y negra de noche. Cambia con el modo
   día o noche y con la paleta. El título de las ventanas que no están en primer plano va en el texto
   secundario, para distinguir cuál es la activa. Los botones de minimizar, maximizar y cerrar siguen
@@ -111,6 +117,10 @@ musgo, sin dejar de ser azul, rojo y verde. En Papel y en Bosque, «Aprendiendo�
   última línea no queda con una sola palabra (desde la 3.4.0).
 - Casillas, botones de opción y barras propias de las páginas de Anki que no tienen un color dado
   toman el color de acción de la paleta, para que haya un solo color de acción (desde la 3.4.0).
+- Al moverse con el teclado por la barra superior (Mazos, Añadir, Explorar...) y por los enlaces de
+  las páginas (el nombre de cada mazo, el engranaje de opciones), la opción con el foco lleva el
+  contorno del color de acción de la paleta. Anki lo oculta en la barra superior; el contorno no ocupa
+  sitio y nada se mueve. El subrayado de los enlaces va algo separado de las letras (desde la 3.4.0).
 - Barra superior (Mazos, Añadir, Explorar, Estadísticas, Sincronizar): al pasar el ratón, la opción
   toma un fondo suave con las esquinas de la paleta, en lugar del subrayado de Anki. No cambia de
   tamaño ni de sitio.

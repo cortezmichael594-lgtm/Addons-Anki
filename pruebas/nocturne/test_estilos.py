@@ -112,6 +112,9 @@ class WebStyleTest(unittest.TestCase):
             self.assertIn("text-wrap: pretty;", css, theme_id)
             self.assertIn("accent-color: var(--button-primary-bg);", css, theme_id)
             self.assertIn("html body.reduce-motion:not(.card) { --transition: 0ms; }", css, theme_id)
+            # Foco visible también en enlaces y en la barra superior (Anki lo oculta allí).
+            self.assertIn("a:focus-visible { outline:", css, theme_id)
+            self.assertIn("text-underline-offset: 0.18em;", css, theme_id)
 
     def test_switching_changes_the_css(self) -> None:
         first = self.css_for("papel")

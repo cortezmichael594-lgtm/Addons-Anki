@@ -290,6 +290,18 @@ def _surface_css() -> str:
             " outline-offset: 2px;"
             "}"
         ),
+        # Versión 3.4.0: el mismo contorno en los enlaces (nombres de mazo, engranaje de
+        # opciones) y en la barra superior, donde Anki lo quita (.hitem:focus { outline: 0 }),
+        # para saber siempre dónde está el teclado (Practical UI, estados; WCAG 2.4.7). El
+        # contorno no ocupa sitio: nada se mueve. Y el subrayado de los enlaces, algo
+        # separado de las letras para que no tape sus colas.
+        (
+            f"html {_SURFACE} a:focus-visible {{"
+            f" outline: {look['focus_width']}px solid var(--border-focus) !important;"
+            " outline-offset: 2px; border-radius: var(--border-radius);"
+            "}"
+        ),
+        f"html {_SURFACE} a {{ text-underline-offset: 0.18em; }}",
     ]
     return "\n".join(rules)
 
