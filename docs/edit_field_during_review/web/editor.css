@@ -1,0 +1,37 @@
+/* Historial de correcciones de este archivo:
+   FIX-001 (2026-07-24) — El recuadro de edición se partía por líneas en campos
+   largos (varias líneas) mostrados como texto en línea (p. ej. en cursiva). */
+
+/* !important: card templates (e.g. Nocturne) style these elements heavily and
+   would otherwise hide the outline; the reference add-on did the same. */
+.lfe-editing {
+  outline: 2px solid #1971c2 !important;
+  border-radius: 3px;
+  padding: 2px 4px;
+  min-height: 1em;
+}
+
+/* --- FIX-001 (2026-07-24) ----------------------------------------
+   Síntoma: al editar un campo largo, el recuadro salía troceado, una
+   caja por línea, en vez de un único recuadro.
+   Causa: el contorno de un elemento en línea (inline) que ocupa varias
+   líneas lo dibuja el navegador por fragmentos, uno por línea.
+   Regla: el elemento en edición debe ser una caja para que su recuadro
+   sea uno solo, pero esta clase se añade desde el JavaScript solo cuando
+   el elemento es inline: aplicarla a todo movería de sitio los campos
+   que ya son bloque.
+   ---------------------------------------------------------------- */
+.lfe-editing-box {
+  display: inline-block !important;
+  max-width: 100%;
+}
+
+body.night_mode .lfe-editing,
+body.nightMode .lfe-editing,
+.card.night_mode .lfe-editing {
+  outline-color: #4a9eff !important;
+}
+
+.lfe-wrap {
+  display: inline;
+}

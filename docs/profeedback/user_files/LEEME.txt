@@ -1,0 +1,17 @@
+Esta carpeta es la única del complemento que Anki NO borra al instalar una
+versión nueva. Todo lo que quieras conservar va aquí dentro.
+
+1) Los sonidos, en una carpeta llamada "sonidos", con esta estructura:
+
+   user_files/sonidos/correcto/          -> al acertar (Bien o Fácil)
+   user_files/sonidos/finalizado/mazo/   -> al terminar un mazo
+   user_files/sonidos/finalizado/todo/   -> al terminar todos los mazos
+   user_files/sonidos/perfecto-mazo/     -> al terminar un mazo sin fallos
+   user_files/sonidos/perfecto-todo/     -> al terminar el día sin fallos
+
+   Archivos .mp3. Si pones varios en una carpeta y no eliges ninguno en la
+   ventana de configuración, cada vez sonará uno al azar.
+
+2) La tipografía de los botones, si quieres una propia: un archivo .ttf
+   llamado ProFeedback.ttf (también se acepta "Feather Bold.ttf").
+   Si no hay ninguno, se usa la tipografía del sistema.

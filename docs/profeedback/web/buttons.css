@@ -1,0 +1,208 @@
+/* ProFeedback · botones de la barra inferior del repaso.
+
+   Esta hoja solo se carga en la barra inferior del repaso, así que el selector general
+   «button» no alcanza a ninguna otra parte de Anki.
+
+   Colores: solo variables de la paleta de Anki (las redefine Nocturne), cada una con su
+   valor de reserva. De día, el relleno toma el tono de la paleta algo asentado para que el
+   texto blanco se lea bien (contraste AA); de noche, el tono vivo tal cual con texto oscuro.
+
+   Forma: los seis botones (Otra vez, Difícil, Bien, Fácil, Editar y Más) comparten las
+   mismas dimensiones en todos los idiomas; si una traducción es larga, se aprieta el
+   texto dentro del botón, nunca se deforma el botón.
+
+   Movimiento: solo se anima transform y 100 ms; el canto se hunde al pulsar. */
+
+:root {
+  --profeedback-height: 44px;
+  --profeedback-width: 128px;
+  /* «Mostrar respuesta» nunca convive con los de respuesta, así que puede ser más largo. */
+  --profeedback-show-width: 160px;
+  --profeedback-radius: 14px;
+  --profeedback-lip: 3px;
+  --profeedback-size: 13.5px;
+
+  /* Con qué se asienta el relleno y el canto, cuánto se conserva del tono, y el color
+     del texto sobre el relleno. */
+  --profeedback-shade: var(--fg, #1B2430);
+  --profeedback-keep: 82%;
+  --profeedback-on-fill: var(--highlight-fg, #FFFFFF);
+}
+
+/* Modo noche: tonos vivos de la paleta tal cual, canto más oscuro que el fondo y texto
+   oscuro sobre el relleno. */
+:root.night-mode,
+.night_mode {
+  --profeedback-shade: var(--canvas-inset, #0F131B);
+  --profeedback-keep: 100%;
+  --profeedback-on-fill: var(--canvas, #12161F);
+}
+
+/* La fila central (Mostrar respuesta o los cuatro botones) va centrada. */
+#middle {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* ── Aspecto común de los seis botones ───────────────────────────────────── */
+button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: var(--profeedback-width);
+  min-width: var(--profeedback-width);
+  max-width: var(--profeedback-width);
+  height: var(--profeedback-height);
+  /* Aire entre botones y debajo, para el canto: nunca se tocan. */
+  margin: 10px 6px 13px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--profeedback-radius);
+  font-family: "ProFeedbackDisplay", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: var(--profeedback-size);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 100ms ease-out;
+}
+
+button:hover {
+  filter: brightness(1.07);
+}
+
+/* Aro de foco solo para quien navega con el teclado. */
+button:focus-visible {
+  outline: 2px solid var(--border-focus, #3B6FE0);
+  outline-offset: 3px;
+}
+
+/* El intervalo previsto («15 m», «3 d») y el recuento de tarjetas flotan fuera del
+   recuadro del botón: se dejan donde los coloca Anki, con el color normal del texto,
+   sin mayúsculas ni negrita. */
+button .nobold,
+button .stattxt {
+  color: var(--fg-subtle, #5C6675);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ── Botones de respuesta: relleno de la paleta con canto ────────────────── */
+:is(button[data-ease="1"], button[onclick*="ease1"]) {
+  --profeedback-token: var(--accent-danger, #E03131);
+}
+
+:is(button[data-ease="2"], button[onclick*="ease2"]) {
+  --profeedback-token: var(--flag-2, #E8590C);
+}
+
+:is(button[data-ease="3"], button[onclick*="ease3"]) {
+  --profeedback-token: var(--accent-note, #2F9E44);
+}
+
+:is(button[data-ease="4"], button[onclick*="ease4"]) {
+  --profeedback-token: var(--accent-card, #1971C2);
+}
+
+:is(button[data-ease], button[onclick*="ease1"], button[onclick*="ease2"],
+    button[onclick*="ease3"], button[onclick*="ease4"]) {
+  --profeedback-lip-color: color-mix(in srgb, var(--profeedback-token) 52%, var(--profeedback-shade));
+  background: color-mix(in srgb, var(--profeedback-token) var(--profeedback-keep), var(--profeedback-shade));
+  color: var(--profeedback-on-fill);
+  box-shadow: 0 var(--profeedback-lip) 0 var(--profeedback-lip-color);
+}
+
+/* ── «Mostrar respuesta»: el azul de acción de Anki ──────────────────────── */
+#ansbut {
+  --profeedback-lip-color: var(--button-primary-gradient-end, #2F5BC7);
+  width: var(--profeedback-show-width);
+  min-width: var(--profeedback-show-width);
+  max-width: var(--profeedback-show-width);
+  background: var(--button-primary-bg, #3B6FE0);
+  color: var(--highlight-fg, #FFFFFF);
+  box-shadow: 0 var(--profeedback-lip) 0 var(--profeedback-lip-color);
+}
+
+/* ── «Editar» y «Más»: discretos, con el contorno de la paleta ───────────── */
+/* Se identifican por la orden que ejecutan, no por su texto: así se ven igual en todos
+   los idiomas de Anki. */
+button[onclick*="edit"],
+button[onclick*="more"] {
+  --profeedback-lip-color: var(--border-strong, #C2C9D2);
+  background: var(--button-bg, #FFFFFF);
+  color: var(--fg-subtle, #5C6675);
+  box-shadow:
+    inset 0 0 0 1.5px var(--border, #DCE0E6),
+    0 var(--profeedback-lip) 0 var(--profeedback-lip-color);
+}
+
+button[onclick*="edit"]:hover,
+button[onclick*="more"]:hover {
+  background: var(--button-gradient-start, #F0F2F6);
+  color: var(--fg, #1B2430);
+  filter: none;
+}
+
+/* ── Pulsado: el botón se hunde sobre su canto ───────────────────────────── */
+/* .profeedback-pressed lo pone buttons.js mientras el clic viaja a Anki. */
+button:active,
+button.profeedback-pressed {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--profeedback-lip-color);
+  transition-duration: 70ms;
+}
+
+button[onclick*="edit"]:active,
+button[onclick*="more"]:active {
+  box-shadow:
+    inset 0 0 0 1.5px var(--border, #DCE0E6),
+    0 1px 0 var(--profeedback-lip-color);
+}
+
+/* ── Ventanas estrechas: los seis siguen idénticos, solo más compactos ───── */
+@media (max-width: 760px) {
+  :root {
+    --profeedback-width: 104px;
+    --profeedback-show-width: 130px;
+    --profeedback-size: 12px;
+  }
+
+  button {
+    margin: 10px 4px 13px;
+  }
+}
+
+@media (max-width: 560px) {
+  :root {
+    --profeedback-height: 40px;
+    --profeedback-width: 82px;
+    --profeedback-show-width: 104px;
+    --profeedback-size: 11px;
+    --profeedback-radius: 12px;
+  }
+
+  button {
+    margin: 8px 3px 11px;
+    padding: 0 5px;
+  }
+}
+
+/* ── Respeto por quien pide menos animación ──────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}

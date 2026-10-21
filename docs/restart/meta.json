@@ -1,0 +1,1 @@
+{"human_version": "2.0.0", "name": "Restart", "disabled": false, "config": {"restart_enabled": true, "restart_shortcut": "Ctrl+R", "close_enabled": true, "close_shortcut": "Ctrl+W"}, "mod": 0, "conflicts": [], "max_point_version": 0, "min_point_version": 0, "branch_index": 0, "update_enabled": true}
