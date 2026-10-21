@@ -43,6 +43,13 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   propios elementos (aquí, las filas de mazo), nunca a etiquetas genéricas que comparten otras
   pantallas. Prueba: «test_row_highlight_only_in_deck_list», que falló antes del arreglo y pasa
   después.
+- FIX-007 · 2026-10-21 · versión 3.3.0 · Qué pasaba: al pulsar «Configuración» en la ventana de
+  complementos, la ventana de paletas no aparecía delante: la de complementos no dejaba elegir nada y
+  solo al cerrarla con la X se veía la de paletas. Por qué: la ventana de paletas dependía de la
+  ventana principal de Anki y se abría sin bloquear, así que Windows la dejaba detrás de la de
+  complementos, que era la activa. Regla: toda ventana que se abre desde otra depende de la que la
+  pide (la activa, no la principal) y se abre delante de ella, bloqueándola mientras esté abierta,
+  como hace Anki con la suya. Prueba: «OwnerWindowTest», que falló antes del arreglo y pasa después.
 
 ## Así a propósito
 
@@ -83,3 +90,14 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 3.2.0 · En la pantalla de un mazo, «Comenzar a estudiar» aparece con su contorno de foco desde el
   principio: Anki le da el foco al abrir la pantalla, y el contorno avisa de que Intro empieza el
   estudio. Decisión del taller.
+- 3.3.0 · La ventana de configuración bloquea la de complementos mientras está abierta, como cualquier
+  diálogo de Anki, y la paleta elegida en la lista solo se aplica con «Aceptar» (no hay vista previa).
+  Decisión del taller: así no puede quedar escondida (FIX-007) y no se repinta Anki entera con cada
+  elección.
+- 3.3.0 · El aviso «Paleta «…» aplicada.» sale de día en amarillo con letra negra: es el aviso breve de
+  Anki, con sus colores fijos, y el complemento no lo cambia. Decisión del taller.
+- 3.3.0 · La barra de título solo cambia en Windows 11: Windows 10 no permite elegir su color, y en
+  macOS y Linux la dibuja el sistema. Decisión del taller.
+- 3.3.0 · De noche, el texto desactivado es algo más claro que antes en las tres paletas, también en
+  Nocturne, con el mismo tono: no llegaba al mínimo de APCA para texto. Decisión del taller, explicada
+  al cliente en la entrega.

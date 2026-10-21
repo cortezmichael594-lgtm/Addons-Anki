@@ -85,6 +85,9 @@ _PREFERRED_FAMILIES = (
 
 # El CSS no cambia durante la sesión, así que se arma una sola vez y se reparte:
 # las páginas se dibujan muchas veces y no tiene sentido rehacerlo cada vez.
+# Duración de las transiciones de las páginas de Anki, en milisegundos.
+TRANSITION_MS = 100
+
 _css_cache: str | None = None
 _style_block_cache: str | None = None
 _inject_js_cache: str | None = None
@@ -144,6 +147,10 @@ def _var_block(selector: str, mode: Mode) -> str:
     lines.append(f"  --border-radius: {look['radius']}px;")
     lines.append(f"  --border-radius-medium: {look['radius_medium']}px;")
     lines.append(f"  --border-radius-large: {look['radius_large']}px;")
+    # Versión 3.3.0: los cambios al pasar el ratón, en 100 ms en vez de 180: así se
+    # perciben instantáneos (Saffer, P4; Norman, retroalimentación). Solo esta
+    # duración: el fundido de las tarjetas (--transition-medium) es de Anki y no cambia.
+    lines.append(f"  --transition: {TRANSITION_MS}ms;")
     lines.append("}")
     return "\n".join(lines)
 
@@ -250,6 +257,18 @@ def _surface_css() -> str:
         # el color solo ayuda a reconocerlos de un vistazo (Norman, mapeo; Practical UI,
         # P9). Va como capa de fondo para no tocar el tamaño ni las sombras de Anki.
         *_answer_marks(),
+        # Cabeceras de la lista de mazos (Mazo, Nuevas...) y etiquetas de la pantalla
+        # de estudio (Nuevas:, Aprendiendo:, A repasar:) en el texto secundario, para
+        # que destaquen las cifras, que es lo que se viene a mirar (versión 3.3.0;
+        # Refactoring UI, P8 y P9). Cada regla, limitada a su tabla (regla de FIX-006).
+        (
+            f"html {_SURFACE} table:has(tr.deck) th"
+            " { color: var(--fg-subtle); font-weight: 600; }"
+        ),
+        (
+            f"html {_SURFACE} tr:has(> td > b > :is(.new-count, .learn-count, .review-count))"
+            " > td:first-child { color: var(--fg-subtle); }"
+        ),
         # Texto seleccionado en las páginas de Anki (no en las tarjetas).
         f"{_SURFACE} ::selection {{ background: var(--selected-bg); }}",
         # Foco del teclado visible en los botones de las páginas clásicas: Anki lo

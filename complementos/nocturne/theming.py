@@ -154,6 +154,7 @@ def on_style_did_init(style: str) -> str:
     }}
 """
         + _buttons_css(pick)
+        + _tooltip_css(pick)
     )
 
 
@@ -190,6 +191,23 @@ def _buttons_css(pick: Callable[[str], str]) -> str:
         background: {pick("BUTTON_BG")};
         color: {pick("FG_DISABLED")};
         border: 1px solid {pick("BORDER_SUBTLE")};
+    }}
+"""
+
+
+def _tooltip_css(pick: Callable[[str], str]) -> str:
+    """Ayudas emergentes (versión 3.3.0): el mismo fondo y borde que los menús.
+
+    Anki las pinta con el color del fondo de la ventana y sin borde, de modo que se
+    confunden con lo que tapan. Como los menús, flotan sobre la ventana: fondo de
+    superposición, borde suave y algo de aire alrededor del texto (Refactoring UI,
+    profundidad; Practical UI, M3).
+    """
+    return f"""
+    QToolTip {{
+        background-color: {pick("CANVAS_OVERLAY")};
+        border: 1px solid {pick("BORDER_SUBTLE")};
+        padding: 4px 6px;
     }}
 """
 

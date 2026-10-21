@@ -4,14 +4,15 @@ Este archivo solo orquesta: aplica la paleta elegida y registra los enganches
 y la configuración. Toda la lógica vive en los módulos vecinos. Hay tres paletas
 (Nocturne por defecto, Papel y Bosque) y una ventana para elegirla, que se abre
 solo desde el botón «Configuración» de la ventana de complementos (decisión del
-cliente, 2026-10-21). Sus textos están en español (strings.py).
+cliente, 2026-10-21). En Windows 11, también la barra de título de las ventanas
+toma los colores de la paleta. Sus textos están en español (strings.py).
 """
 
 from __future__ import annotations
 
 from aqt import gui_hooks, mw
 
-from . import config, dialogs, theming, themes, webview_style
+from . import config, dialogs, theming, themes, titlebar, webview_style
 from .errors import get_logger
 
 
@@ -34,6 +35,8 @@ def _setup() -> None:
     #    - Hoja de estilo de las ventanas: borde propio de las casillas. Va antes
     #      del paso 4, que es cuando Anki rehace la hoja y pasa por este filtro.
     gui_hooks.style_did_init.append(theming.on_style_did_init)
+    #    - Barra de título de las ventanas del color de la paleta (solo Windows 11).
+    titlebar.install()
 
     # 3) Dejar preparado el estilo temprano, que aplica la paleta antes del
     #    primer pintado de cada página y evita el fogonazo al abrirlas.

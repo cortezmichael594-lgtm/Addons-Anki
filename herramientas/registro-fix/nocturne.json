@@ -19,6 +19,9 @@
     ],
     "FIX-006": [
       "webview_style.py"
+    ],
+    "FIX-007": [
+      "dialogs.py"
     ]
   }
 }

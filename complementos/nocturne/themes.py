@@ -123,7 +123,7 @@ PAPEL: dict[str, Token] = _colors(
         "CANVAS_INSET": ("#F1ECE2", "#0C1215"),  # colores-ok: paleta del tema
         "CANVAS_OVERLAY": ("#FEFCF8", "#223139"),  # colores-ok: paleta del tema
         "FG": ("#2A2520", "#E3DAC9"),  # colores-ok: paleta del tema
-        "FG_DISABLED": ("#B0A796", "#556770"),  # colores-ok: paleta del tema
+        "FG_DISABLED": ("#B0A796", "#718893"),  # colores-ok: paleta del tema
         "FG_FAINT": ("#6E6557", "#ABA496"),  # colores-ok: paleta del tema
         "FG_LINK": ("#1B6378", "#8FCDE0"),  # colores-ok: paleta del tema
         "FG_SUBTLE": ("#544C40", "#C4BBAB"),  # colores-ok: paleta del tema
@@ -182,7 +182,7 @@ BOSQUE: dict[str, Token] = _colors(
         "CANVAS_INSET": ("#E9EFEA", "#0D130F"),  # colores-ok: paleta del tema
         "CANVAS_OVERLAY": ("#F9FCFA", "#26312A"),  # colores-ok: paleta del tema
         "FG": ("#17251C", "#D5E0D8"),  # colores-ok: paleta del tema
-        "FG_DISABLED": ("#A2AFA6", "#56645A"),  # colores-ok: paleta del tema
+        "FG_DISABLED": ("#A2AFA6", "#778A7C"),  # colores-ok: paleta del tema
         "FG_FAINT": ("#5E6E63", "#98A99E"),  # colores-ok: paleta del tema
         "FG_LINK": ("#0D6B64", "#7FD0C3"),  # colores-ok: paleta del tema
         "FG_SUBTLE": ("#45554A", "#B0BEB4"),  # colores-ok: paleta del tema

@@ -91,6 +91,17 @@ class WebStyleTest(unittest.TestCase):
             self.assertIn(f"button[data-ease='{ease}'] {{ background-image: linear-gradient(to top, {value}", css)
             self.assertIn(f"button[data-ease='{ease}']:hover", css)
 
+    def test_quick_transitions_and_quiet_labels(self) -> None:
+        # Versión 3.3.0: respuesta en 100 ms y etiquetas en el texto secundario, cada
+        # regla limitada a su propia tabla (regla de FIX-006).
+        css = self.css_for("bosque")
+        self.assertIn(f"--transition: {webview_style.TRANSITION_MS}ms;", css)
+        self.assertLessEqual(webview_style.TRANSITION_MS, 150)
+        self.assertNotIn("--transition-medium", css)
+        self.assertIn("table:has(tr.deck) th { color: var(--fg-subtle);", css)
+        self.assertIn("tr:has(> td > b > :is(.new-count, .learn-count, .review-count)) > td:first-child", css)
+        self.assertNotIn(" th { color", css.replace("table:has(tr.deck) th { color", ""))
+
     def test_switching_changes_the_css(self) -> None:
         first = self.css_for("papel")
         second = self.css_for("nocturne")
@@ -130,6 +141,15 @@ class QtStyleTest(unittest.TestCase):
                 self.assertIn(f"border-radius: {data['look']['button_radius']}px;", sheet, theme_id)
                 self.assertIn(f"background: {to_css_rgba(colors['BUTTON_PRIMARY_BG'][mode])};", sheet, theme_id)
                 self.assertIn(f"border-color: {to_css_rgba(colors['NOCTURNE_CONTROL_BORDER'][mode])};", sheet, theme_id)
+
+    def test_tooltips_float_like_menus(self) -> None:
+        for theme_id, data in themes.THEMES.items():
+            for night, mode in ((False, "light"), (True, "dark")):
+                sheet = self.qss(theme_id, night)
+                tooltip = sheet[sheet.index("QToolTip {") :]
+                colors = data["colors"]
+                self.assertIn(f"background-color: {to_css_rgba(colors['CANVAS_OVERLAY'][mode])};", tooltip, theme_id)
+                self.assertIn(f"border: 1px solid {to_css_rgba(colors['BORDER_SUBTLE'][mode])};", tooltip, theme_id)
 
     def test_other_widget_styles_untouched(self) -> None:
         theming.mw = types.SimpleNamespace(  # type: ignore[assignment]

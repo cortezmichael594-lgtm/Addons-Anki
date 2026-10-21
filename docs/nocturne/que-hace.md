@@ -1,11 +1,12 @@
 # Qué hace «Nocturne»
 
-Versión 3.2.0 · 2026-10-21
+Versión 3.3.0 · 2026-10-21
 
 Temas de color para Anki, en modo día y en modo noche. Trae tres paletas (Nocturne, Papel y Bosque), y
 Nocturne está elegida de serie. Cada paleta es un estilo completo: colores, letra de los títulos,
 esquinas, botones, separación de las filas de la lista de mazos, resaltados y banderas. La paleta se
-elige en una ventana propia y se aplica al momento, sin reiniciar. No toca su colección, sus tarjetas
+elige en la configuración del complemento y se aplica al momento, sin reiniciar. En Windows 11, también
+la barra de título de las ventanas toma los colores de la paleta. No toca su colección, sus tarjetas
 ni sus plantillas.
 
 La paleta Nocturne conserva el aspecto de la original que usted subió al taller (la del 28 de julio de
@@ -17,9 +18,10 @@ cliente.
 
 ## 1. Dónde aparece
 
-- Herramientas > «Complementos», con Nocturne seleccionado, botón «Configuración»: abre la ventana
-  para elegir paleta (no el editor de texto que Anki muestra con otros complementos). No hay entrada
-  en el menú Herramientas: así lo pidió el cliente (2026-10-21).
+- Herramientas > «Complementos», con Nocturne seleccionado, botón «Configuración» (o doble clic en
+  Nocturne): abre la ventana para elegir paleta, encima de la de complementos (no el editor de texto
+  que Anki muestra con otros complementos). No hay entrada en el menú Herramientas: así lo pidió el
+  cliente (2026-10-21).
 - La paleta elegida se nota en todas las ventanas de Anki (la principal, Explorar, Añadir, Editar,
   Preferencias, menús, listas, tablas, casillas, botones, barras de desplazamiento y diálogos) y en sus
   páginas (barra superior, lista de mazos, pantalla de un mazo, repaso alrededor de la tarjeta y sus
@@ -27,17 +29,26 @@ cliente.
 - No cambia el aspecto de las tarjetas, que decide su plantilla, ni toca páginas de internet que otro
   complemento abra dentro de Anki.
 
-## 2. La ventana «Paletas de Nocturne»
+## 2. La ventana de configuración
 
-- Arriba, el texto: «Elija el aspecto de Anki. Cada paleta trae sus colores de día y de noche, su letra
-  para los títulos, sus esquinas, sus botones y sus resaltados. El cambio se aplica al momento.»
-- Debajo, las tres paletas, cada una con un botón de opción y su descripción justo debajo (textos en
-  el apartado 3). Al abrirla, está marcada la paleta activa.
-- Botones «Aceptar» y «Cancelar» (los nombres que pone Anki en su idioma). Con «Aceptar», si ha
-  elegido otra paleta, se aplica al momento a todas las ventanas y páginas abiertas y aparece el aviso
-  «Paleta «Papel» aplicada.» (con el nombre que corresponda). Si deja la misma, no hace nada.
-  «Cancelar», Esc o la X la cierran sin cambiar nada.
-- Recuerda su tamaño y su posición, y nunca es tan estrecha que corte las descripciones.
+- Hecha como las de Anki (Preferencias > Interfaz de usuario), sin colores ni dibujos propios: hereda
+  el tema, el teclado y el idioma. Título: «Configurar 'Nocturne'», el mismo que Anki pone a la
+  configuración de cualquier complemento. Sin el botón «?» en la barra de título.
+- Se abre encima de la ventana de complementos y, mientras está abierta, esa ventana no responde
+  (como con cualquier diálogo de Anki). Aparece centrada sobre ella y con el tamaño justo para su
+  contenido.
+- Un recuadro «Apariencia» con la lista desplegable «Paleta» (Nocturne, Papel, Bosque) y, debajo, una
+  línea con la descripción de la paleta elegida en la lista (textos en el apartado 3), que cambia al
+  cambiar la elección. Al abrirla, está elegida la paleta activa. La ventana no cambia de tamaño al
+  cambiar de paleta en la lista.
+- Botones, con los nombres que pone Anki en su idioma: «Restaurar los valores predeterminados» (elige
+  Nocturne en la lista; no se aplica hasta «Aceptar»), «Aceptar» (también con Ctrl+Intro, como en la
+  configuración de Anki) y «Cancelar».
+- Con «Aceptar», si ha elegido otra paleta, se aplica al momento a todas las ventanas y páginas
+  abiertas y aparece el aviso «Paleta «Papel» aplicada.» (con el nombre que corresponda). Ese aviso es
+  el de Anki: de día sale en su amarillo de siempre. Si deja la misma, no hace nada. «Cancelar», Esc o
+  la X la cierran sin cambiar nada.
+- Elegir en la lista no cambia nada todavía: la paleta se aplica solo con «Aceptar».
 - Solo se elige la paleta: no hay ajustes sueltos. Así lo decidió el cliente (2026-10-21).
 
 ## 3. Las tres paletas
@@ -45,21 +56,22 @@ cliente.
 Todas siguen el modo día o noche que usted elija en Anki y cambian con él. Ningún color es blanco ni
 negro puro.
 
-- Nocturne (de serie). Descripción en la ventana: «Serena: grises azulados y un azul de acción
-  tranquilo. Esquinas suaves.». Fondo #F7F8FA de día y #12161F de noche; texto #1B2430 y #D6DAE1;
+Cada descripción ocupa una sola línea y las tres siguen la misma estructura: colores y acento, y
+después su forma. Valen para el día y para la noche.
+
+- Nocturne (de serie). Descripción en la ventana: «Grises azulados y acento azul. Letra del sistema y
+  esquinas suaves.». Fondo #F7F8FA de día y #12161F de noche; texto #1B2430 y #D6DAE1;
   azul de acción #3B6FE0 y #4066E6. Títulos en seminegrita con las letras un poco más juntas, esquinas
   de 6px en las ventanas, 12px en los recuadros de las páginas y 7px en los botones de las ventanas.
   Un degradado azul muy tenue en la esquina superior derecha del fondo de las páginas. «Aprendiendo»
   va en naranja.
-- Papel. «Cálida: fondo marfil, texto color tinta, acento azul petróleo y títulos con remates, como un
-  libro. De noche, azul tinta con texto crema. Pensada para leer mucho rato.». De día: fondo #FAF7F1,
+- Papel. «Papel y tinta con acento azul petróleo. Títulos con remates, como un libro.». De día: fondo #FAF7F1,
   texto #2A2520, acento #1F6A80. De noche («Tinta», elegida por el cliente el 2026-10-21): fondo azul
   petróleo muy oscuro #10171A, de la misma familia que el acento, y texto crema #E3DAC9; acento
   #1F6E85. Títulos de las páginas en Georgia (o Cambria), en negrita; descripciones con más espacio
   entre líneas; esquinas algo más redondeadas; filas de la lista de mazos un poco más holgadas;
   degradado azul petróleo muy tenue.
-- Bosque. «Natural: verdes grisáceos, acento verde azulado, esquinas redondeadas y filas más
-  holgadas.». Fondo #F3F7F4 y #111814; texto #17251C y #D5E0D8; acento #0F766E y #0E7068. Las esquinas
+- Bosque. «Verdes grisáceos y acento verde azulado. Esquinas redondeadas y filas amplias.». Fondo #F3F7F4 y #111814; texto #17251C y #D5E0D8; acento #0F766E y #0E7068. Las esquinas
   más redondeadas de las tres, las filas más holgadas y un degradado verde azulado muy tenue.
 
 Colores con significado (cifras de la lista de mazos, banderas, avisos): Nocturne y Papel de día usan
@@ -76,6 +88,20 @@ musgo, sin dejar de ser azul, rojo y verde. En Papel y en Bosque, «Aprendiendo�
   encima. Así los menús se distinguen de lo que tapan.
 - De noche, los colores con significado son algo menos saturados, para que no «vibren» sobre el fondo
   oscuro.
+- Barra de título de las ventanas (solo Windows 11): del color del fondo de la paleta, con el título
+  en el color del texto y un borde suave, en vez de blanca de día y negra de noche. Cambia con el modo
+  día o noche y con la paleta. El título de las ventanas que no están en primer plano va en el texto
+  secundario, para distinguir cuál es la activa. Los botones de minimizar, maximizar y cerrar siguen
+  el modo día o noche de Anki, aunque Windows esté en el otro. Cada ventana se tiñe antes de aparecer,
+  así que no se ve primero blanca. En Windows 10, macOS y Linux la barra queda como siempre.
+- Ayudas emergentes (el recuadro que aparece al dejar el ratón sobre un botón): con el mismo fondo, el
+  mismo borde suave y algo de margen que los menús, en vez de confundirse con la ventana.
+- Lista de mazos: las cabeceras de las columnas (Mazo, Nuevas, Aprendiendo...) van en el texto
+  secundario y algo menos gruesas. Pantalla de un mazo: las etiquetas «Nuevas:», «Aprendiendo:» y «A
+  repasar:» van en el texto secundario. Así destacan las cifras, que es lo que se viene a mirar. Solo en
+  esas dos tablas.
+- Al pasar el ratón por las páginas de Anki, los cambios de color tardan 100 milisegundos en vez de
+  180, y se perciben instantáneos. El fundido de las tarjetas no cambia.
 - Barra superior (Mazos, Añadir, Explorar, Estadísticas, Sincronizar): al pasar el ratón, la opción
   toma un fondo suave con las esquinas de la paleta, en lugar del subrayado de Anki. No cambia de
   tamaño ni de sitio.
@@ -127,6 +153,8 @@ musgo, sin dejar de ser azul, rojo y verde. En Papel y en Bosque, «Aprendiendo�
 
 - Ningún fallo abre la ventana de error ni interrumpe un repaso: Anki conserva su aspecto habitual en
   la parte afectada y el detalle queda en el registro propio del complemento.
+- Si Windows no acepta el color de la barra de título, la barra queda como siempre. Si al teñirla
+  ocurre un error, el complemento deja de teñir barras hasta el próximo arranque de Anki, sin avisar.
 
 ## 8. Qué no hace
 
@@ -146,6 +174,10 @@ paletas, de día y de noche.
 - Todo color que Anki usa como texto llega al menos a 4,5 sobre cualquier fondo, también sobre el
   resaltado de la fila.
 - El texto blanco de los botones de acción llega a 4,5 en todos sus estados.
+- De noche, el texto desactivado (botones apagados y la cifra de tarjetas enterradas, como «+3», de la
+  pantalla de un mazo) es algo más claro desde la 3.3.0, en las tres paletas: llega al mínimo de APCA
+  para texto (30) sobre el fondo, los recuadros y los botones, y sigue más apagado que el texto menos
+  importante, para que lo desactivado se vea desactivado.
 - Las casillas sin marcar llegan a 3 frente al fondo; las banderas, a 3 como icono; las rayas de los
   botones de respuesta, a 3 sobre el botón.
 - En Explorar, el texto de las filas con bandera o estado, y el de las filas seleccionadas, llega a 4,5.

@@ -1,83 +1,106 @@
-"""Ventana de configuración: elegir una de las tres paletas."""
+"""Ventana de configuración: elegir una de las tres paletas.
+
+Se hace como las de Anki (Preferencias > Interfaz de usuario): un recuadro con su
+título, una lista desplegable con su etiqueta y los botones estándar, sin colores
+ni hojas de estilo propias, para que herede el tema, el teclado y el idioma.
+"""
+
+# Historial de correcciones de este archivo:
+# FIX-007 (2026-10-21): la ventana de paletas quedaba detrás de la de complementos.
 
 from __future__ import annotations
 
+from anki.lang import without_unicode_isolation
 from aqt import mw
 from aqt.qt import (
-    QButtonGroup,
+    QComboBox,
     QDialog,
     QDialogButtonBox,
+    QFormLayout,
+    QGroupBox,
+    QKeySequence,
     QLabel,
-    QRadioButton,
+    QLayout,
+    Qt,
     QVBoxLayout,
     QWidget,
 )
-from aqt.utils import restoreGeom, saveGeom, tooltip
+from aqt.utils import disable_help_button, tooltip, tr
 
 from . import actions, strings, themes
 from .errors import guard
 
-_GEOMETRY_KEY = "nocturne_palettes"
-
 
 class PaletteDialog(QDialog):
-    """Se crea una vez y se muestra muchas: al abrirla, marca la paleta activa."""
+    """Elige la paleta; al abrirla, muestra la activa. Se aplica con «Aceptar»."""
 
     def __init__(self, parent: QWidget | None) -> None:
         super().__init__(parent)
-        self.setWindowTitle(strings.DIALOG_TITLE)
-        layout = QVBoxLayout(self)
-        layout.setSpacing(12)
+        # El mismo título que Anki pone a la configuración de cualquier complemento.
+        self.setWindowTitle(
+            without_unicode_isolation(tr.addons_config_window_title(name=strings.ADDON_NAME))
+        )
+        disable_help_button(self)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
-        intro = QLabel(strings.DIALOG_INTRO)
-        intro.setWordWrap(True)
-        layout.addWidget(intro)
-
-        self._group = QButtonGroup(self)
-        self._buttons: dict[str, QRadioButton] = {}
+        self._combo = QComboBox()
         for theme_id in themes.THEMES:
-            button = QRadioButton(strings.THEME_NAMES[theme_id])
-            description = QLabel(strings.THEME_DESCRIPTIONS[theme_id])
-            description.setWordWrap(True)
-            # La descripción, alineada con el texto del botón y no con el círculo.
-            description.setContentsMargins(24, 0, 0, 0)
-            description.setBuddy(button)
-            self._group.addButton(button)
-            self._buttons[theme_id] = button
-            # Cada descripción, más cerca de su paleta que de la siguiente
-            # (Practical UI, P12: espaciar según la relación).
-            option = QVBoxLayout()
-            option.setSpacing(2)
-            option.addWidget(button)
-            option.addWidget(description)
-            layout.addLayout(option)
+            self._combo.addItem(strings.THEME_NAMES[theme_id], theme_id)
+        self._description = QLabel()
+        # Ancho de la descripción más larga: al cambiar de paleta, la ventana no
+        # cambia de tamaño y ninguna línea se corta.
+        metrics = self._description.fontMetrics()
+        self._description.setMinimumWidth(
+            max(metrics.horizontalAdvance(text) for text in strings.THEME_DESCRIPTIONS.values())
+        )
+        self._combo.currentIndexChanged.connect(self._show_description)
 
-        layout.addStretch()  # el espacio sobrante, encima de los botones
+        label = QLabel(strings.PALETTE_LABEL)
+        label.setBuddy(self._combo)
+        form = QFormLayout()
+        form.addRow(label, self._combo)
+        form.addRow("", self._description)
+        group = QGroupBox(strings.GROUP_TITLE)
+        group.setLayout(form)
+
         box = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+            QDialogButtonBox.StandardButton.Ok
+            | QDialogButtonBox.StandardButton.Cancel
+            | QDialogButtonBox.StandardButton.RestoreDefaults
         )
         box.accepted.connect(self.accept)
         box.rejected.connect(self.reject)
-        layout.addWidget(box)
+        restore = box.button(QDialogButtonBox.StandardButton.RestoreDefaults)
+        if restore is not None:
+            restore.clicked.connect(self.restore_defaults)
+        ok = box.button(QDialogButtonBox.StandardButton.Ok)
+        if ok is not None:
+            ok.setShortcut(QKeySequence("Ctrl+Return"))  # como en la configuración de Anki
 
-        # Ancho suficiente para las descripciones y alto según su texto: así ninguna
-        # línea queda cortada aunque se abra por primera vez o se haya estrechado.
-        self.setMinimumWidth(460)
-        self.setMinimumHeight(self.sizeHint().height())
-        restoreGeom(self, _GEOMETRY_KEY)
-        self.finished.connect(lambda _result: saveGeom(self, _GEOMETRY_KEY))
+        layout = QVBoxLayout(self)
+        layout.addWidget(group)
+        layout.addWidget(box)
+        # Tamaño justo para su contenido, como los diálogos pequeños de Anki.
+        layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
+
+        self._select(themes.current_id())
+        self._show_description()
+
+    def _select(self, theme_id: str) -> None:
+        index = self._combo.findData(theme_id)
+        if index >= 0:
+            self._combo.setCurrentIndex(index)
+
+    def _show_description(self) -> None:
+        self._description.setText(strings.THEME_DESCRIPTIONS[self.selected_id()])
 
     def selected_id(self) -> str:
-        for theme_id, button in self._buttons.items():
-            if button.isChecked():
-                return theme_id
-        return themes.current_id()
+        theme_id = self._combo.currentData()
+        return theme_id if isinstance(theme_id, str) else themes.current_id()
 
-    def show_current(self) -> None:
-        self._buttons[themes.current_id()].setChecked(True)
-        self.show()
-        self.raise_()
-        self.activateWindow()
+    def restore_defaults(self) -> None:
+        """Elige Nocturne en la lista; como en Anki, no se aplica hasta «Aceptar»."""
+        self._select(themes.DEFAULT_THEME)
 
     @guard
     def accept(self) -> None:
@@ -88,15 +111,34 @@ class PaletteDialog(QDialog):
             tooltip(strings.APPLIED.format(name=strings.THEME_NAMES[applied]))
 
 
+# Referencia a la ventana abierta, para que el recolector de basura no la cierre.
 _dialog: PaletteDialog | None = None
+
+
+def _owner() -> QWidget | None:
+    """La ventana desde la que se pide la configuración (la de complementos)."""
+    if mw is None:
+        return None
+    return mw.app.activeWindow() or mw
 
 
 @guard
 def open_dialog() -> None:
-    """Abre la ventana (botón «Configuración» de la ventana de complementos)."""
+    """Abre la ventana (botón «Configuración» de la ventana de complementos).
+
+    # --- FIX-007 (2026-10-21) ---
+    # Síntoma: al pulsar «Configuración», la ventana de paletas no aparecía delante: la de
+    #          complementos no dejaba elegir nada y solo al cerrarla se veía la de paletas.
+    # Causa: la ventana tenía de padre la ventana principal de Anki y se abría sin bloquear,
+    #        así que Windows la dejaba detrás de la de complementos, que estaba activa.
+    # Regla: toda ventana que se abre desde otra la toma como padre (la ventana activa, no
+    #        la principal) y se abre con open(), que la deja delante y bloquea solo a su
+    #        padre; se crea en cada apertura, como hace Anki con la suya, porque la ventana
+    #        de complementos se destruye al cerrarse y se llevaría una ventana reutilizada.
+    """
     global _dialog
-    if mw is None:
+    owner = _owner()
+    if owner is None:
         return
-    if _dialog is None:
-        _dialog = PaletteDialog(mw)
-    _dialog.show_current()
+    _dialog = PaletteDialog(owner)
+    _dialog.open()

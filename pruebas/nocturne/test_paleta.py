@@ -330,6 +330,29 @@ class PerceivedContrastTest(unittest.TestCase):
                 self.assertGreater(levels[1], levels[2] * 1.15, f"{theme} ({mode})")
 
 
+class DisabledTextTest(unittest.TestCase):
+    """Versión 3.3.0: el texto desactivado (botones apagados y la cifra de tarjetas
+    enterradas de la pantalla de estudio) llega al mínimo absoluto de APCA, 30
+    (Practical UI, cap. 3), y sigue por debajo de lo menos importante (FG_FAINT)."""
+
+    BACKGROUNDS = ("CANVAS", "CANVAS_ELEVATED", "BUTTON_BG", "BUTTON_HOVER")
+
+    def test_readable(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                for surface in self.BACKGROUNDS:
+                    value = apca(color("FG_DISABLED", mode, theme), color(surface, mode, theme)[:7])
+                    self.assertGreaterEqual(value, 30, f"{theme}: sobre {surface} ({mode}): {value:.1f}")
+
+    def test_still_looks_disabled(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                canvas = color("CANVAS", mode, theme)
+                disabled = apca(color("FG_DISABLED", mode, theme), canvas)
+                faint = apca(color("FG_FAINT", mode, theme), canvas)
+                self.assertGreater(faint, disabled + 8, f"{theme} ({mode})")
+
+
 class NightDepthTest(unittest.TestCase):
     """Versión 3.0.0: de noche, lo que está más arriba es más claro (Practical UI,
     M3; Refactoring UI, P24). Antes, los menús eran más oscuros que los recuadros."""

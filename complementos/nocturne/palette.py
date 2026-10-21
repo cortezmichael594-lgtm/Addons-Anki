@@ -62,6 +62,12 @@ class Token(TypedDict):
 #   - Los acentos de tarjeta y nota (ACCENT_CARD, ACCENT_NOTE) usan de día los mismos
 #     tonos que las cifras «Nuevas» y «Para repasar», legibles como texto.
 #
+# Versión 3.3.0: de noche, FG_DISABLED pasa de #5B6476 a #7C869A, del mismo tono. Lo
+# usan los botones y textos desactivados y la cifra de tarjetas enterradas («+3») de la
+# pantalla de estudio, y no llegaba al mínimo absoluto de APCA para texto (30, Practical
+# UI, cap. 3): ahora llega a 30 o más sobre el fondo, los recuadros y los botones, y
+# sigue por debajo de FG_FAINT, para que lo desactivado se vea desactivado.
+#
 # Versión 2.1.0: de noche, el texto principal (FG y SELECTED_FG) pasa de #E9EDF4 a
 # #D6DAE1, del mismo tono, para que no deslumbre en sesiones largas: 13:1 sobre el
 # fondo en vez de 15,4:1, y al menos 10,6:1 sobre cualquier superficie.
@@ -115,7 +121,7 @@ PALETTE: dict[str, Token] = {
     "CANVAS_INSET":                  {"css": ("--canvas-inset",),                                  "light": "#EEF0F4",   "dark": "#0F131B"},  # colores-ok: paleta del tema, origen de todos sus colores
     "CANVAS_OVERLAY":                {"css": ("--canvas-overlay",),                                "light": "#FBFCFE",   "dark": "#293040"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FG":                            {"css": ("--fg", "--bs-body-color"),                          "light": "#1B2430",   "dark": "#D6DAE1"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "FG_DISABLED":                   {"css": ("--fg-disabled",),                                   "light": "#A9AFBC",   "dark": "#5B6476"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "FG_DISABLED":                   {"css": ("--fg-disabled",),                                   "light": "#A9AFBC",   "dark": "#7C869A"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FG_FAINT":                      {"css": ("--fg-faint",),                                      "light": "#646C7D",   "dark": "#9AA3B4"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FG_LINK":                       {"css": ("--fg-link",),                                       "light": "#2F63D8",   "dark": "#A3C1F7"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FG_SUBTLE":                     {"css": ("--fg-subtle",),                                     "light": "#4E576A",   "dark": "#B7BECC"},  # colores-ok: paleta del tema, origen de todos sus colores

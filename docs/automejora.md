@@ -575,6 +575,24 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Comprobado: 2026-10-21, con Anki 26.09.3 (código instalado y prueba que falló antes del arreglo y pasa después).
 - Origen: FIX-006 de Nocturne 3.2.0.
 
+### APR-063 · La ventana de configuración propia, delante de la de complementos
+- Qué es: el botón «Configuración» de la ventana de complementos (y el doble clic) llama a la función registrada con mw.addonManager.setConfigAction. Esa ventana de complementos (AddonsDialog) tiene de padre mw, se muestra con show() sin bloquear y se destruye al cerrarse; Anki abre su propio editor (ConfigEditor) con la ventana de complementos de padre.
+- Por qué es buena práctica: una ventana propia con padre mw, abierta con show(), quedó detrás de la de complementos en Windows y el cliente no podía usar ninguna de las dos (FIX-007 de Nocturne).
+- Para qué sirve: cualquier complemento con ventana de configuración propia.
+- Cómo se aplica: padre = mw.app.activeWindow() or mw; abrir con open(), que la deja delante y bloquea solo a su padre sin detener el programa; crearla en cada apertura (con WA_DeleteOnClose), porque si se reutilizara con la ventana de complementos de padre, se destruiría con ella; título nativo con without_unicode_isolation(tr.addons_config_window_title(name=...)), disable_help_button y los botones estándar de QDialogButtonBox.
+- Fuente: aqt/addons.py (AddonsDialog.__init__, onConfig y ConfigEditor.__init__), aqt/utils.py (disable_help_button) y pruebas/nocturne/test_ventana.py (OwnerWindowTest).
+- Comprobado: 2026-10-21, con Anki 26.09.3 (código instalado y prueba que falló antes del arreglo y pasa después). El comportamiento en Windows lo describió el cliente; está pendiente de que lo pruebe.
+- Origen: FIX-007 de Nocturne 3.3.0.
+
+### APR-064 · Traducciones en las pruebas y cuándo avisa theme_did_change
+- Qué es: tr (aqt.utils.tr, que es anki.lang.tr_legacyglobal) traduce con el motor de Anki, que fuera de Anki no existe hasta que se llama a anki.lang.set_lang. Por otro lado, theme_manager.apply_style termina siempre con gui_hooks.theme_did_change().
+- Por qué es buena práctica: sin set_lang, una prueba que construya una ventana con textos de Anki falla con «TypeError: 'NoneType' object is not callable», que no apunta a la causa. Y saber que theme_did_change llega en cada apply_style evita registrar un segundo aviso para el cambio de paleta o de estilo de controles.
+- Para qué sirve: pruebas de ventanas con textos de Anki; complementos que repintan algo propio con los colores del tema.
+- Cómo se aplica: en el módulo de pruebas, anki.lang.set_lang("es") después de crear la QApplication; para repintar lo propio, un solo gancho en theme_did_change (con guard: si falla, Anki lo quita y muestra el error).
+- Fuente: anki/_backend.py (_translate), anki/lang.py (set_lang), aqt/theme.py (apply_style, línea con gui_hooks.theme_did_change()) y _aqt/hooks.py (_ThemeDidChangeHook: quita el gancho que falla y relanza el error); prueba en pruebas/nocturne/test_ventana.py.
+- Comprobado: 2026-10-21, con Anki 26.09.3 (código instalado y ejecución de las pruebas con y sin set_lang).
+- Origen: Nocturne 3.3.0.
+
 ## Retirados
 
 Aprendizajes que dejaron de valer, con fecha y motivo («- APR-NNN (AAAA-MM-DD): motivo»). Su número no
