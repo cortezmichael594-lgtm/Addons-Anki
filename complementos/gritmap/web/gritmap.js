@@ -53,8 +53,8 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         locale: undefined,
         texts: {},
         lastHtml: null,
-        /* Meta diaria en la unidad de la medida (0 sin meta numerica). */
-        goal: 0,
+        /* Dia al que ir cuando llegue el mapa nuevo (proxima fecha clave). */
+        pendingDay: null,
     };
 
     function root() {
@@ -229,16 +229,10 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
          * puntero en forma de mano no se ve con el teclado (3.6.0). */
         var cmd = cell.getAttribute("data-gritmap-cmd") || "";
         var hint = state.texts[cmd.indexOf("future:") === 0 ? "click_future" : "click_past"];
-        /* 4.0.0: si el dia esta perdonado (comodin o pausa) y, con meta,
-         * si se cumplio ese dia. */
+        /* 4.0.0: si el dia esta perdonado (comodin o pausa). */
         var forgiven = cell.getAttribute("data-gritmap-forgiven");
         if (forgiven && state.texts["forgiven_" + forgiven]) {
             text += '<br><span class="gritmap-tip-hint">' + state.texts["forgiven_" + forgiven] + "</span>";
-        }
-        if (state.goal > 0 && count > 0 && cmd.indexOf("past:") === 0) {
-            var goalLine = count >= state.goal ? state.texts.goal_met
-                : fill(state.texts.goal_progress, { done: formatNumber(count), goal: formatNumber(state.goal) });
-            text += '<br><span class="gritmap-tip-hint">' + goalLine + "</span>";
         }
         if (cmd && hint) {
             text += '<br><span class="gritmap-tip-hint">' + hint + "</span>";
@@ -260,7 +254,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             /* La cabecera de una fecha clave viene ya escapada desde Python
              * (nombres y cuenta atras). */
             var keyLabel = cell.getAttribute("data-gritmap-key");
-            var head = keyLabel ? "<b>★ " + keyLabel + "</b><br>" : "";
+            var head = keyLabel ? "<b>" + keyLabel + "</b><br>" : "";
             bubble.innerHTML = head + tooltipText(cell);
         }
         localizeNumbers(bubble);
@@ -323,7 +317,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
     function plainTip(cell) {
         var box = document.createElement("div");
         var keyLabel = cell.getAttribute("data-gritmap-key");
-        box.innerHTML = (keyLabel ? "★ " + keyLabel + ". " : "") + tooltipText(cell).replace(/<br>/g, ". ");
+        box.innerHTML = (keyLabel ? keyLabel + ". " : "") + tooltipText(cell).replace(/<br>/g, ". ");
         return box.textContent || "";
     }
 
@@ -364,10 +358,11 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         container.addEventListener("click", function (event) {
             var target = closest(event.target, "[data-gritmap-cmd]");
             var cmd = target ? target.getAttribute("data-gritmap-cmd") : "";
-            /* Plegar o desplegar las estadisticas se ve al instante; Python
-             * solo guarda la eleccion. */
-            if (cmd === "stats:toggle") {
-                toggleStats(target);
+            /* El nombre de la proxima fecha lleva a su dia: si esta en el ano
+             * que se ve, ya; si no, cuando llegue el mapa de su ano. */
+            if (cmd.indexOf("key:") === 0) {
+                state.pendingDay = cmd.slice(4);
+                goToPendingDay(container);
             }
             send(target);
             /* «Hoy» en el mismo ano no cambia el mapa: basta con volver a la
@@ -428,16 +423,19 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         }
     }
 
-    function toggleStats(button) {
-        var card = closest(button, ".gritmap-statscard");
-        if (!card) {
+    /* Lleva al dia de la proxima fecha clave, lo centra si el mapa no cabe y
+     * le da el foco, que abre su globo con el nombre y la cuenta atras. Si
+     * su ano aun no esta dibujado, espera al mapa nuevo. */
+    function goToPendingDay(container) {
+        var cell = state.pendingDay
+            ? container.querySelector(".gritmap-cell[data-d='" + state.pendingDay + "']") : null;
+        var grid = container.querySelector(".gritmap-grid");
+        if (!cell || !grid) {
             return;
         }
-        var collapsed = card.classList.toggle("gritmap-collapsed");
-        var label = button.getAttribute(collapsed ? "data-gritmap-expand" : "data-gritmap-collapse") || "";
-        button.setAttribute("aria-expanded", collapsed ? "false" : "true");
-        button.setAttribute("title", label);
-        button.setAttribute("aria-label", label);
+        state.pendingDay = null;
+        centreCell(grid, cell);
+        focusCell(container, cell);
     }
 
     /* «Hoy» solo aparece cuando sirve: en otro ano (lo decide Python) o, con
@@ -491,7 +489,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         state.prefix = payload.prefix || state.prefix;
         state.locale = payload.locale || undefined;
         state.texts = payload.texts || {};
-        state.goal = payload.goal || 0;
         var html = payload.html || "";
 
         /* Los mismos datos que ya se ven (por ejemplo, al terminar el calculo
@@ -552,6 +549,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
                 focusCell(container, cell);
             }
         }
+        goToPendingDay(container);
         updateTodayButton(container);
     }
 

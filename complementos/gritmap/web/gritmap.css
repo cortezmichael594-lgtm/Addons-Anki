@@ -18,8 +18,10 @@
  * Esta hoja se carga junto con la pagina, antes de que se dibuje nada, para
  * que el mapa no aparezca primero sin estilo y luego se recoloque.
  *
- * Version 4.0.0 (informe de rediseno del cliente, 2026-10-21):
- *   - tres bandas de tarjetas: resumen, actividad y estadisticas;
+ * Version 4.0.0 (informe de rediseno del cliente, 2026-10-21) y 4.1.0
+ * (correcciones del cliente del mismo dia):
+ *   - el mapa a todo el ancho y, debajo, las tarjetas pequenas, que suman
+ *     exactamente el mismo ancho (simetria);
  *   - dos tamanos de letra: 20 px para el dato de cada tarjeta y 12 px para
  *     todo lo demas; la jerarquia, con el grosor (400 y 600) y el gris;
  *   - espacios de 4, 8, 16 y 32 px;
@@ -44,7 +46,6 @@
     --gritmap-empty: var(--border-subtle, #E8EAF0);
     --gritmap-fg: var(--fg, #1B2430);
     --gritmap-muted: var(--fg-subtle, #4E576A);
-    --gritmap-dot: var(--fg-disabled, #A9AFBC);
     --gritmap-link: var(--fg-link, #2F63D8);
     --gritmap-card: var(--canvas-elevated, #FBFCFE);
     --gritmap-card-border: var(--border-subtle, #E8EAF0);
@@ -55,8 +56,6 @@
     --gritmap-btnhb: var(--button-hover-border, #C0C6D3);
     --gritmap-today: var(--fg, #1B2430);
     --gritmap-focus: var(--border-focus, #3B6FE0);
-    --gritmap-period-on: var(--selected-bg, #3B6FE038);
-    --gritmap-period-hover: var(--button-gradient-start, #EDF0F5);
     --gritmap-tipbg: var(--canvas-overlay, #FBFCFE);
     --gritmap-tipfg: var(--fg, #1B2430);
     --gritmap-tipb: var(--border, #DADEE7);
@@ -72,7 +71,6 @@ body.nightMode #gritmap-root {
     --gritmap-empty: var(--canvas-inset, #0F131B);
     --gritmap-fg: var(--fg, #D6DAE1);
     --gritmap-muted: var(--fg-subtle, #B7BECC);
-    --gritmap-dot: var(--fg-disabled, #7C869A);
     --gritmap-link: var(--fg-link, #A3C1F7);
     --gritmap-card: var(--canvas-elevated, #212836);
     --gritmap-card-border: var(--border-subtle, #1F2635);
@@ -84,8 +82,6 @@ body.nightMode #gritmap-root {
     --gritmap-btnhb: var(--button-hover-border, #3D475C);
     --gritmap-today: var(--fg, #D6DAE1);
     --gritmap-focus: var(--border-focus, #6390FF);
-    --gritmap-period-on: var(--selected-bg, #6390FF40);
-    --gritmap-period-hover: var(--button-gradient-start, #2E3747);
     --gritmap-tipbg: var(--canvas-overlay, #293040);
     --gritmap-tipfg: var(--fg, #D6DAE1);
     --gritmap-tipb: var(--border, #2C3444);
@@ -96,8 +92,8 @@ body.nightMode #gritmap-root {
 #gritmap-root {
     position: relative;
     box-sizing: border-box;
-    max-width: 960px;
-    margin: 16px auto 8px auto;
+    width: 100%;
+    margin: 16px 0 8px 0;
     padding: 0 8px;
     text-align: start;
     font-size: 12px;
@@ -127,7 +123,7 @@ body.nightMode #gritmap-root {
 #gritmap-root .gritmap-yearnav,
 #gritmap-root .gritmap-grid,
 #gritmap-root .gritmap-foot,
-#gritmap-root .gritmap-blocks {
+#gritmap-root .gritmap-legend {
     direction: ltr;
 }
 
@@ -142,11 +138,7 @@ body.nightMode #gritmap-root {
     min-width: 0;
 }
 
-/* Solo entre las tarjetas grandes (actividad y estadisticas); las de la
- * fila de resumen las separa su rejilla. */
-#gritmap-root > .gritmap-card + .gritmap-card {
-    margin-top: 16px;
-}
+
 
 #gritmap-root .gritmap-card-head {
     display: flex;
@@ -179,29 +171,34 @@ body.nightMode #gritmap-root {
     gap: 8px;
 }
 
-/* Fila de resumen: cuatro columnas iguales; en una ventana estrecha, dos y
- * despues una. */
+/* Tarjetas pequenas, debajo del mapa: columnas iguales que suman su mismo
+ * ancho. En una ventana estrecha pasan a dos columnas (la quinta ocupa las
+ * dos, para que la fila quede cuadrada) y, mas estrecha aun, a una. */
 #gritmap-root .gritmap-summary {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 16px;
-    margin-bottom: 16px;
+    margin-top: 16px;
 }
 
-#gritmap-root .gritmap-summary.gritmap-n3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+#gritmap-root .gritmap-summary.gritmap-n4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-@media (max-width: 720px) {
+@media (max-width: 760px) {
     #gritmap-root .gritmap-summary,
-    #gritmap-root .gritmap-summary.gritmap-n3 {
+    #gritmap-root .gritmap-summary.gritmap-n4 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #gritmap-root .gritmap-summary.gritmap-n5 > :last-child {
+        grid-column: 1 / -1;
     }
 }
 
 @media (max-width: 420px) {
     #gritmap-root .gritmap-summary,
-    #gritmap-root .gritmap-summary.gritmap-n3 {
+    #gritmap-root .gritmap-summary.gritmap-n4 {
         grid-template-columns: minmax(0, 1fr);
     }
 }
@@ -226,9 +223,7 @@ body.nightMode #gritmap-root {
     text-overflow: ellipsis;
 }
 
-#gritmap-root .gritmap-big .gritmap-unit,
-#gritmap-root .gritmap-bar-value .gritmap-unit,
-#gritmap-root .gritmap-stats-foot .gritmap-unit {
+#gritmap-root .gritmap-big .gritmap-unit {
     font-size: 12px;
     font-weight: 400;
     color: var(--gritmap-muted);
@@ -247,18 +242,27 @@ body.nightMode #gritmap-root {
     font-weight: 400;
 }
 
+/* La linea gris usa hasta dos renglones; si aun no cabe, se corta con «…»
+ * y se lee entera al pasar el raton. */
 #gritmap-root .gritmap-line {
     margin-top: 4px;
     font-size: 12px;
     color: var(--gritmap-muted);
-    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
-#gritmap-root .gritmap-star,
-#gritmap-root .gritmap-kstar {
-    color: var(--gritmap-muted);
+/* El nombre de la proxima fecha es un enlace que lleva a su dia; si no
+ * cabe, se corta con «…». */
+#gritmap-root .gritmap-line .gritmap-link {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
 }
 
 #gritmap-root .gritmap-check {
@@ -349,7 +353,6 @@ body.nightMode #gritmap-root {
  */
 #gritmap-root button.gritmap-btn:focus-visible,
 #gritmap-root button.gritmap-textbtn:focus-visible,
-#gritmap-root button.gritmap-period:focus-visible,
 #gritmap-root button.gritmap-link:focus-visible {
     outline: 2px solid var(--gritmap-focus) !important;
     outline-offset: 2px;
@@ -369,9 +372,6 @@ body.nightMode #gritmap-root {
     display: block;
 }
 
-#gritmap-root .gritmap-fold[aria-expanded="true"] svg {
-    transform: rotate(180deg);
-}
 
 #gritmap-root .gritmap-textbtn {
     min-height: 28px;
@@ -424,7 +424,7 @@ body.nightMode #gritmap-root {
     color: var(--gritmap-fg);
 }
 
-/* El mapa: el ano entero en el ancho de la tarjeta, o mas ancho con
+/* El mapa: el ano entero a todo el ancho de la tarjeta, o mas ancho con
  * cuadritos grandes (entonces se desplaza de lado con la barra de Anki). */
 #gritmap-root .gritmap-grid {
     overflow-x: auto;
@@ -441,16 +441,10 @@ body.nightMode #gritmap-root {
     height: auto;
 }
 
-#gritmap-root .gritmap-months,
-#gritmap-root .gritmap-stars {
+#gritmap-root .gritmap-months {
     position: relative;
     height: 16px;
     margin-bottom: 4px;
-}
-
-#gritmap-root .gritmap-stars {
-    height: 12px;
-    margin-bottom: 2px;
 }
 
 #gritmap-root .gritmap-month {
@@ -461,14 +455,6 @@ body.nightMode #gritmap-root {
     white-space: nowrap;
 }
 
-#gritmap-root .gritmap-kstar {
-    position: absolute;
-    top: 0;
-    transform: translateX(-50%);
-    font-size: 12px;
-    line-height: 12px;
-    cursor: default;
-}
 
 #gritmap-root .gritmap-cell[data-gritmap-today] {
     stroke: var(--gritmap-today);
@@ -483,8 +469,12 @@ body.nightMode #gritmap-root {
     stroke-dasharray: 2 2;
 }
 
-#gritmap-root .gritmap-dot {
-    fill: var(--gritmap-dot);
+/* Fecha clave: una esquina doblada en su cuadrito, en el color del texto,
+ * con un filo del color de la tarjeta para que se vea sobre cualquier tono. */
+#gritmap-root .gritmap-kmark {
+    fill: var(--gritmap-fg);
+    stroke: var(--gritmap-card);
+    stroke-width: 1px;
     pointer-events: none;
 }
 
@@ -558,7 +548,11 @@ body.nightMode #gritmap-root {
 #gritmap-root .gritmap-lg-c4 { background: var(--gritmap-p4); }
 
 #gritmap-root .gritmap-lg-due {
-    background: radial-gradient(circle, var(--gritmap-dot) 1.6px, transparent 2px), var(--gritmap-empty);
+    background: var(--gritmap-f2);
+}
+
+#gritmap-root .gritmap-lg-key {
+    background: linear-gradient(225deg, var(--gritmap-fg) 0 32%, transparent 32%), var(--gritmap-empty);
 }
 
 #gritmap-root .gritmap-lg-forgiven {
@@ -570,180 +564,6 @@ body.nightMode #gritmap-root {
     align-items: center;
     gap: 4px;
     margin-inline-start: 8px;
-}
-
-/* Tarjeta de estadisticas: plegada, solo queda la cabecera. */
-#gritmap-root .gritmap-collapsed .gritmap-card-body {
-    display: none;
-}
-
-#gritmap-root .gritmap-collapsed .gritmap-card-head {
-    margin-bottom: 0;
-}
-
-#gritmap-root .gritmap-halves {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px 32px;
-}
-
-@media (max-width: 600px) {
-    #gritmap-root .gritmap-halves {
-        grid-template-columns: minmax(0, 1fr);
-    }
-}
-
-#gritmap-root .gritmap-subtitle {
-    margin-bottom: 8px;
-    color: var(--gritmap-muted);
-}
-
-#gritmap-root .gritmap-week {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-#gritmap-root .gritmap-blocks {
-    display: inline-flex;
-    gap: 4px;
-}
-
-#gritmap-root .gritmap-block {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    background: var(--gritmap-empty);
-}
-
-#gritmap-root .gritmap-block.gritmap-on {
-    background: var(--gritmap-p4);
-}
-
-#gritmap-root .gritmap-week-count,
-#gritmap-root .gritmap-bar-value,
-#gritmap-root .gritmap-ring-num {
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    color: var(--gritmap-fg);
-}
-
-/* Las dos barras comparten columnas: sus comienzos y sus cifras quedan
- * alineados. Mismo color del tema; la diferencia se ve en la longitud. */
-#gritmap-root .gritmap-bars {
-    display: grid;
-    grid-template-columns: max-content minmax(0, 1fr) max-content;
-    align-items: center;
-    gap: 8px;
-}
-
-#gritmap-root .gritmap-bar {
-    display: contents;
-}
-
-#gritmap-root .gritmap-bar-label {
-    color: var(--gritmap-muted);
-}
-
-#gritmap-root .gritmap-bar-track {
-    display: block;
-    height: 8px;
-    border-radius: 4px;
-    background: var(--gritmap-empty);
-    overflow: hidden;
-}
-
-#gritmap-root .gritmap-bar-fill {
-    display: block;
-    height: 100%;
-    border-radius: 4px;
-    background: var(--gritmap-p4);
-}
-
-#gritmap-root .gritmap-rings {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 16px 32px;
-}
-
-#gritmap-root .gritmap-ringbox {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
-#gritmap-root .gritmap-ringwrap {
-    position: relative;
-    width: 56px;
-    height: 56px;
-}
-
-#gritmap-root .gritmap-ring-text {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    line-height: 1.2;
-    white-space: nowrap;
-}
-
-#gritmap-root .gritmap-ring-of,
-#gritmap-root .gritmap-label {
-    color: var(--gritmap-muted);
-}
-
-#gritmap-root .gritmap-stats-foot {
-    margin-top: 16px;
-    color: var(--gritmap-muted);
-}
-
-#gritmap-root .gritmap-stats-foot .gritmap-n {
-    font-weight: 600;
-    color: var(--gritmap-fg);
-}
-
-/* Botones del periodo: control segmentado sin marco. El elegido lleva el
- * fondo de seleccion de Nocturne y letra mas gruesa (no solo otro color). */
-#gritmap-root .gritmap-periods {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-#gritmap-root .gritmap-period {
-    margin: 0;
-    min-height: 24px;
-    padding: 2px 8px;
-    border: none;
-    border-radius: 6px;
-    background: transparent;
-    box-shadow: none;
-    color: var(--gritmap-muted);
-    font: inherit;
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 20px;
-    cursor: pointer;
-}
-
-#gritmap-root .gritmap-period:hover {
-    background: var(--gritmap-period-hover);
-    border: none;
-    box-shadow: none;
-    color: var(--gritmap-fg);
-}
-
-#gritmap-root .gritmap-period.gritmap-on,
-#gritmap-root .gritmap-period.gritmap-on:hover {
-    background: var(--gritmap-period-on);
-    color: var(--gritmap-fg);
-    font-weight: 600;
-    cursor: default;
 }
 
 /* Textos con globo al pasar el raton o al llegar con el tabulador. */

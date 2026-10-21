@@ -29,7 +29,7 @@ from aqt.webview import WebContent
 
 from . import config, i18n, view
 from .config import DEFAULT_CONFIG, Config, load_config
-from .data import WINDOWS, HeatmapData, days_offset, fetch_data, window_average, year_bounds
+from .data import HeatmapData, days_offset, fetch_data, window_average, year_bounds
 from .decks import DeckScope, build_scope, day_search
 from .errors import guarded, guarded_filter, log_exception
 from .options import open_goal_dialog, open_options
@@ -80,13 +80,12 @@ def _draw(entry: DataEntry, cfg: Config) -> None:
         # despues de cruzarla (al volver a la lista de mazos tras repasar).
         met = not deck_only and cfg.show_streak and view.goal_met(data, cfg)
         celebrate = met and state.goal_celebrated != data.today
-        goal = cfg.goal if cfg.goal_mode == "number" and cfg.show_streak and not deck_only else 0
         inner = view.build_widget_html(data, cfg, state.year_offset, deck_only, celebrate)
-        payload = view.payload_json(inner, measure=cfg.measure, goal=goal)
+        payload = view.payload_json(inner, measure=cfg.measure)
         # Lo recordado no lleva la celebracion: al volver a la pantalla no se
         # repite.
         remembered = (
-            view.payload_json(inner.replace(" gritmap-celebrate", ""), measure=cfg.measure, goal=goal)
+            view.payload_json(inner.replace(" gritmap-celebrate", ""), measure=cfg.measure)
             if celebrate
             else payload
         )
@@ -319,8 +318,8 @@ def _on_js_message(
         _redraw_in_place()
         return (True, None)
 
-    if action.startswith("window:"):
-        _set_window(action[len("window:"):])
+    if action.startswith("key:"):
+        _go_to_key_date(action[len("key:"):])
         return (True, None)
 
     if action in ("opts", "opts:exclude", "opts:keydates"):
@@ -335,12 +334,6 @@ def _on_js_message(
         mw.progress.single_shot(0, _set_goal)
         return (True, None)
 
-    if action == "stats:toggle":
-        # La pagina ya la plego o desplego al instante; aqui solo se guarda.
-        cfg = load_config()
-        config.save_appearance(replace(cfg, stats_open=not cfg.stats_open))
-        state.pages.clear()
-        return (True, None)
 
     if action.startswith("past:"):
         _open_day_in_browser(action[len("past:"):], current_deck_only, future=False)
@@ -374,20 +367,19 @@ def _set_goal() -> None:
     _apply_config_change()
 
 
-def _set_window(raw: str) -> None:
-    """Boton rapido de periodo: guarda la eleccion y redibuja sin recalcular.
+def _go_to_key_date(raw: str) -> None:
+    """El nombre de la proxima fecha, pulsado: el mapa pasa al ano de esa fecha
+    y la pagina busca el dia en cuanto el ano esta dibujado.
 
     El texto llega de la pagina, asi que se comprueba antes de usarlo.
     """
     try:
-        days = int(raw)
+        day = date.fromisoformat(raw)
     except ValueError:
         return
-    cfg = load_config()
-    if days not in WINDOWS or days == cfg.avg_window:
+    if state.data is None:
         return
-    config.save_appearance(replace(cfg, avg_window=days))
-    state.pages.clear()
+    state.year_offset = state.data.data.today.year - day.year
     _redraw_in_place()
 
 

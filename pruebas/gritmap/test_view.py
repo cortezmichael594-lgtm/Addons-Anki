@@ -31,20 +31,21 @@ class WidgetTest(unittest.TestCase):
         anki.lang.current_lang = "es"
         i18n.reset()
 
-    def test_three_bands_of_cards(self) -> None:
+    def test_map_first_then_five_cards(self) -> None:
         cfg = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 11, 20), "Examen <b>"),))
         html = view.build_widget_html(sample(), cfg, 0)
-        order = [html.index(part) for part in ('class="gritmap-summary', "gritmap-activity", "gritmap-statscard")]
+        # 4.1.0: el mapa arriba y las tarjetas debajo; sin estadisticas.
+        self.assertLess(html.index("gritmap-activity"), html.index('class="gritmap-summary'))
+        self.assertNotIn("gritmap-statscard", html)
+        self.assertEqual(html.count('class="gritmap-card gritmap-mini"'), 5)
+        order = [html.index(t) for t in (">Hoy<", ">Racha<", ">Promedio diario<", ">Retención<", ">Próxima fecha<")]
         self.assertEqual(order, sorted(order))
-        # Fila de resumen: Hoy, Racha, Retencion y Proxima fecha.
-        self.assertEqual(html.count('class="gritmap-card gritmap-mini"'), 4)
-        for title in (">Hoy<", ">Racha<", ">Retención<", ">Próxima fecha<", ">Actividad<", ">Estadísticas<"):
-            self.assertIn(title, html)
         # El dia de hoy se marca y es el que recibe el tabulador.
         self.assertRegex(html, r'data-d="2026-10-13"[^>]*data-gritmap-today="1"[^>]*tabindex="0"')
-        # La fecha clave: nombre escapado y estrella en la fila de los meses.
+        # La fecha clave: nombre escapado y esquina doblada en su cuadrito.
         self.assertRegex(html, r'data-d="2026-11-20"[^>]*data-gritmap-key=')
-        self.assertIn('class="gritmap-kstar"', html)
+        self.assertIn('class="gritmap-kmark"', html)
+        self.assertNotIn("★", html)
         self.assertIn("Examen &amp;lt;b&amp;gt;", html)
         self.assertNotIn("<b>Examen", html)
         # Sin cuadritos de color delante de las cifras ni comparativa suelta.
@@ -72,20 +73,28 @@ class WidgetTest(unittest.TestCase):
         past = view.build_widget_html(sample(past={400: DayActivity(3, 3, 0), 0: DayActivity(1, 1, 0)}), DEFAULT_CONFIG, 1)
         self.assertIn('class="gritmap-textbtn" data-gritmap-btn="today"', past)
 
-    def test_period_buttons_sit_on_the_stats_card(self) -> None:
+    def test_no_period_buttons_on_the_page(self) -> None:
+        # El periodo se elige en Opciones (cliente, 2026-10-21); las tarjetas lo dicen.
         html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, avg_window=365), 0)
-        stats = html[html.index("gritmap-statscard"):]
-        self.assertEqual(len(re.findall(r'class="gritmap-period[ "]', stats)), 3)
-        self.assertIn('class="gritmap-period gritmap-on" data-gritmap-btn="window:365"', stats)
-        self.assertIn(">Todo<", stats)
-        self.assertNotIn("gritmap-periods", html[:html.index("gritmap-statscard")])
+        self.assertNotIn("gritmap-period", html)
+        self.assertIn("último año", html)
 
-    def test_stats_card_folds_and_remembers(self) -> None:
-        closed = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, stats_open=False), 0)
-        self.assertIn("gritmap-statscard gritmap-collapsed", closed)
-        self.assertIn('aria-expanded="false"', closed)
-        opened = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        self.assertIn('aria-expanded="true"', opened)
+    def test_average_card(self) -> None:
+        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        card = html[html.index(">Promedio diario<"):html.index(">Retención<")]
+        self.assertIn('data-n="1240"', card)
+        self.assertIn("últimos 30 días", card)
+        # Regla de FIX-010: sin dias completos, N/A con el motivo en el globo.
+        empty = view.build_widget_html(sample(past={0: DayActivity(5, 5, 1)}), DEFAULT_CONFIG, 0)
+        card = empty[empty.index(">Promedio diario<"):empty.index(">Retención<")]
+        self.assertIn("N/A", card)
+        self.assertIn("Sin días completos", card)
+
+    def test_next_date_name_links_to_the_map(self) -> None:
+        cfg = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 11, 20), "Examen"),))
+        html = view.build_widget_html(sample(), cfg, 0)
+        self.assertIn('data-gritmap-cmd="key:2026-11-20"', html)
+        self.assertIn('title="Ver en el mapa"', html)
 
     def test_goal_ring_and_set_goal_link(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
@@ -109,7 +118,7 @@ class WidgetTest(unittest.TestCase):
 
     def test_hidden_streak_and_goal(self) -> None:
         html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, show_streak=False), 0)
-        self.assertEqual(html.count('class="gritmap-card gritmap-mini"'), 3)
+        self.assertEqual(html.count('class="gritmap-card gritmap-mini"'), 4)
         self.assertNotIn(">Racha<", html)
         self.assertNotIn("goal:set", html)
 
@@ -120,7 +129,11 @@ class WidgetTest(unittest.TestCase):
         self.assertIn("del récord", card)
         back = view._streak_card(replace(stats, current_streak=1, longest_streak=45, previous_best=45), DEFAULT_CONFIG)
         self.assertIn("Día 1", back)
-        self.assertIn("Récord", back)
+        # «récord» en minuscula (cliente, 2026-10-21).
+        self.assertIn("récord:", back)
+        self.assertNotIn("Récord", back)
+        far = view._streak_card(replace(stats, current_streak=3, longest_streak=40), DEFAULT_CONFIG)
+        self.assertIn("récord:", far)
         freezes = view._streak_card(replace(stats, current_streak=9, longest_streak=9, freezes_left=1), DEFAULT_CONFIG)
         self.assertIn('data-n="1">1</span> comodín', freezes)
 
@@ -134,11 +147,12 @@ class WidgetTest(unittest.TestCase):
         self.assertIn("Sin fechas clave", html)
         self.assertIn('data-gritmap-cmd="opts:keydates"', html)
 
-    def test_pending_days_are_a_dot_not_a_tone(self) -> None:
+    def test_pending_days_in_four_greys(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        self.assertRegex(html, r'fill="var\(--gritmap-empty\)" data-gritmap-tip="1" data-d="2026-10-14"')
-        self.assertIn('class="gritmap-dot"', html)
-        self.assertNotIn("gritmap-f", re.sub(r"gritmap-(foot|fold|frame)", "", html))
+        levels = set(re.findall(r'fill="var\(--gritmap-f(\d+)\)"', html))
+        self.assertTrue(levels and levels <= {"1", "2", "3", "4"}, levels)
+        self.assertNotIn("gritmap-dot", html)
+        self.assertIn("--gritmap-f4:", palettes.palette_css("classic_green"))
 
     def test_forgiven_day_is_dashed(self) -> None:
         past = {d: DayActivity(5, 5, 0) for d in range(2, 12)}
@@ -170,7 +184,7 @@ class WidgetTest(unittest.TestCase):
         self.assertIn("Cada día que estudie se pintará aquí.", empty)
         self.assertRegex(empty, r'data-d="2026-10-13"[^>]*data-gritmap-today="1"')
         self.assertIn('data-gritmap-cmd="goal:set"', empty)
-        self.assertNotIn("gritmap-statscard", empty)
+        self.assertLess(empty.index("gritmap-activity"), empty.index('class="gritmap-summary'))
         self.assertNotIn("gritmap-legend", empty)
 
     def test_legend_ranges_cover_every_count(self) -> None:
@@ -200,11 +214,13 @@ class WidgetTest(unittest.TestCase):
         page = view.placeholder_html(DEFAULT_CONFIG)
         self.assertIn("gritmap-bone-grid", page)
         self.assertIn("aspect-ratio", page)
-        self.assertEqual(page.count('class="gritmap-card gritmap-mini"'), 4)
+        self.assertEqual(page.count('class="gritmap-card gritmap-mini"'), 5)
 
-    def test_payload_carries_goal_and_texts(self) -> None:
-        data = json.loads(view.payload_json("", "reviews", goal=40))
-        self.assertEqual(data["goal"], 40)
+    def test_payload_has_no_goal_line_for_the_map(self) -> None:
+        # «Meta cumplida» ya no sale en el globo del mapa (cliente, 2026-10-21).
+        data = json.loads(view.payload_json("", "reviews"))
+        self.assertNotIn("goal", data)
+        self.assertNotIn("goal_met", data["texts"])
         self.assertEqual(data["texts"]["click_past"], "Pulse para ver estas tarjetas")
         self.assertEqual(data["texts"]["forgiven_freeze"], "Perdonado con un comodín")
 

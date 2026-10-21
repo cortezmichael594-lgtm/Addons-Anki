@@ -109,6 +109,9 @@ class StatsTest(unittest.TestCase):
         self.assertEqual((pending.current_streak, pending.previous_best), (2, 3))
         self.assertFalse(pending.today_done)
 
+    def test_studied_fraction(self) -> None:
+        self.assertEqual(data.studied_fraction(self.make({1: 50, 2: 10, 3: 60}), 30, "reviews"), (3, 3))
+
     def test_freezes_forgive_single_days(self) -> None:
         # 8 dias seguidos (12 a 5) ganan un comodin; el dia 4 lo gasta.
         studied = {1, 2, 3, *range(5, 13)}
@@ -127,17 +130,6 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(paused, frozenset({2, 3}))
         state = data.streak_state({0, 1, 4, 5}, False, paused)
         self.assertEqual((state.current, state.forgiven), (4, {2: "pause", 3: "pause"}))
-
-    def test_goal_fraction(self) -> None:
-        sample = self.make({1: 50, 2: 10, 3: 60})
-        self.assertEqual(data.goal_fraction(sample, "reviews", 40, 30), (2, 3))
-        self.assertEqual(data.studied_fraction(sample, 30, "reviews"), (3, 3))
-
-    def test_last_week_blocks(self) -> None:
-        self.assertEqual(
-            data.last_week_studied(self.make({1: 5, 3: 5, 7: 5}), "reviews"),
-            [True, False, False, False, True, False, True],
-        )
 
     def test_surprises_are_real_and_one_at_a_time(self) -> None:
         # Nueva racha mas larga: hoy supera la mejor anterior.

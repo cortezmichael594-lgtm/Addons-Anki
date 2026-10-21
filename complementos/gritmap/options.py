@@ -54,6 +54,8 @@ from aqt.qt import (
     QPaintEvent,
     QPen,
     QPixmap,
+    QPointF,
+    QPolygonF,
     QPushButton,
     QRadioButton,
     QRectF,
@@ -87,11 +89,11 @@ from .config import (
     save_appearance,
     save_scoped,
 )
-from .data import MEASURES
+from .data import MEASURES, WINDOWS
 from .decks import DeckEntry, all_deck_entries
 from .errors import guarded, log_exception
 from .i18n import anki_text, fill, lang, plural_key, t
-from .palettes import PAST_DARK, PAST_LIGHT, THEME_NAMES
+from .palettes import FUTURE_DARK, FUTURE_LIGHT, PAST_DARK, PAST_LIGHT, THEME_NAMES
 from .state import state
 
 # Nombres que caben en el globo del boton de mazos excluidos.
@@ -189,8 +191,8 @@ def _standard_buttons(
 
 class PreviewMonth(QWidget):
     """Vista previa en las opciones (4.0.0): un mes de mapa en miniatura con
-    los tonos del tema, hoy, una estrella de fecha clave y dias pendientes,
-    al tamano y con la forma elegidos.
+    los tonos del tema, hoy, dias pendientes en gris y una fecha clave con su
+    esquina doblada (4.1.0), al tamano y con la forma elegidos.
 
     Cambia al momento al mover esos controles (Norman, respuesta inmediata).
     Es el unico control dibujado a mano de la ventana; lo aprobo el cliente.
@@ -198,16 +200,16 @@ class PreviewMonth(QWidget):
     """
 
     # Tono de cada dia del mes de muestra, por semanas: 0 sin estudio, 1-4 los
-    # tonos, -1 futuro sin nada y -2 futuro pendiente.
+    # tonos, -1 futuro sin nada y -2 a -4 futuro pendiente (grises 1 a 3).
     _LEVELS = (
         1, 2, 0, 3, 2, 4, 1,
         2, 3, 3, 0, 4, 2, 3,
         4, 1, 2, 3, 4, 3, 0,
-        3, 2, 4, -1, -2, -1, -2,
-        -1, -2, -1, -1, -2, -1, -1,
+        3, 2, 4, -1, -3, -2, -4,
+        -2, -3, -1, -2, -4, -1, -2,
     )
     _TODAY = 23
-    _STAR_WEEK = 4
+    _KEY_DAY = 30
 
     def __init__(self) -> None:
         super().__init__()
@@ -223,7 +225,7 @@ class PreviewMonth(QWidget):
         return 16 if size == "large" else 11
 
     def _height(self, size: str) -> int:
-        return 14 + 7 * (self._cell(size) + 3)
+        return 7 * (self._cell(size) + 3)
 
     def sizeHint(self) -> QSize:
         return QSize(5 * 19, self._height("large"))
@@ -237,6 +239,7 @@ class PreviewMonth(QWidget):
         # Regla de FIX-007: los tonos salen de la escala del modo activo.
         scale = PAST_DARK if theme_manager.night_mode else PAST_LIGHT
         tones = scale.get(self._theme, scale[DEFAULT_CONFIG.theme])
+        greys = FUTURE_DARK if theme_manager.night_mode else FUTURE_LIGHT
         empty = theme_manager.qcolor(colors.BORDER_SUBTLE)
         cell = float(self._cell(self._size))
         step = cell + 3
@@ -244,19 +247,32 @@ class PreviewMonth(QWidget):
         painter = QPainter(self)
         try:
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-            painter.setPen(theme_manager.qcolor(colors.FG_SUBTLE))
-            star_x = self._STAR_WEEK * step + cell / 2
-            painter.drawText(QRectF(star_x - 8, 0, 16, 12), Qt.AlignmentFlag.AlignCenter, "★")
             for index, level in enumerate(self._LEVELS):
                 week, row = divmod(index, 7)
-                rect = QRectF(week * step, 14 + row * step, cell, cell)
+                rect = QRectF(week * step, row * step, cell, cell)
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QColor(tones[level - 1]) if level > 0 else empty)
+                if level > 0:
+                    painter.setBrush(QColor(tones[level - 1]))
+                elif level < -1:
+                    painter.setBrush(QColor(greys[-level - 2]))
+                else:
+                    painter.setBrush(empty)
                 painter.drawRoundedRect(rect, radius, radius)
-                if level == -2:
-                    # Pendiente: el cuadrito vacio con un punto.
-                    painter.setBrush(theme_manager.qcolor(colors.FG_DISABLED))
-                    painter.drawEllipse(rect.center(), 1.8, 1.8)
+                if index == self._KEY_DAY:
+                    # Fecha clave: la esquina doblada, como en el mapa.
+                    corner = cell * 6 / 14
+                    edge = QPen(theme_manager.qcolor(colors.CANVAS_ELEVATED))
+                    painter.setPen(edge)
+                    painter.setBrush(theme_manager.qcolor(colors.FG))
+                    painter.drawPolygon(
+                        QPolygonF(
+                            [
+                                QPointF(rect.right() - corner, rect.top()),
+                                QPointF(rect.right(), rect.top()),
+                                QPointF(rect.right(), rect.top() + corner),
+                            ]
+                        )
+                    )
                 if index == self._TODAY:
                     pen = QPen(theme_manager.qcolor(colors.FG))
                     pen.setWidthF(1.5)
@@ -579,6 +595,12 @@ class HeatmapOptionsDialog(QDialog):
         # Una frase bajo «El color mide» dice que cuenta cada medida (3.6.0).
         self._measure_help = QLabel()
         self._measure_help.setWordWrap(True)
+        # Periodo del promedio diario y de la retencion (4.1.0: vuelve aqui al
+        # retirarse la tarjeta de estadisticas; peticion del cliente).
+        self._avg_window = QComboBox()
+        for days in WINDOWS:
+            label = t("window_all") if days == 0 else fill("window_days", count=days)
+            self._avg_window.addItem(label, days)
 
         self._goal_mode = QComboBox()
         for mode in ("none", "number", "due"):
@@ -648,6 +670,7 @@ class HeatmapOptionsDialog(QDialog):
         counted = QFormLayout()
         counted.addRow(t("opt_measure"), self._measure)
         counted.addRow("", self._measure_help)
+        counted.addRow(t("opt_window"), self._avg_window)
         counted.addRow(t("opt_exclude"), self._exclude_button)
         goals = QFormLayout()
         goals.addRow(t("opt_goal"), goal_box)
@@ -782,6 +805,7 @@ class HeatmapOptionsDialog(QDialog):
         (self._size_large if cfg.size == "large" else self._size_fit).setChecked(True)
         (self._shape_rounded if cfg.shape == "rounded" else self._shape_square).setChecked(True)
         self._measure.setCurrentIndex(max(self._measure.findData(cfg.measure), 0))
+        self._avg_window.setCurrentIndex(max(self._avg_window.findData(cfg.avg_window), 0))
         self._goal_mode.setCurrentIndex(max(self._goal_mode.findData(cfg.goal_mode), 0))
         self._goal.setValue(cfg.goal)
         self._freezes.setChecked(cfg.freezes)
@@ -821,12 +845,13 @@ class HeatmapOptionsDialog(QDialog):
 
     def selected_config(self, base: Config) -> Config:
         """Lo elegido, sobre la configuracion con la que se abrio (que conserva
-        lo que esta ventana no muestra, como el periodo de las cifras)."""
+        lo que esta ventana no muestra)."""
         theme_data = self._theme.currentData()
         theme = theme_data if isinstance(theme_data, str) else DEFAULT_CONFIG.theme
         measure_data = self._measure.currentData()
         measure = measure_data if measure_data in MEASURES else DEFAULT_CONFIG.measure
         mode = self._goal_mode.currentData()
+        window = self._avg_window.currentData()
         pause = None
         if self._pause_on.isChecked():
             start = self._pause_start.date().toPyDate()
@@ -835,6 +860,7 @@ class HeatmapOptionsDialog(QDialog):
             base,
             theme=theme,
             measure=str(measure),
+            avg_window=window if isinstance(window, int) and window in WINDOWS else DEFAULT_CONFIG.avg_window,
             size="large" if self._size_large.isChecked() else "fit",
             shape="rounded" if self._shape_rounded.isChecked() else "square",
             goal_mode=mode if isinstance(mode, str) else DEFAULT_CONFIG.goal_mode,

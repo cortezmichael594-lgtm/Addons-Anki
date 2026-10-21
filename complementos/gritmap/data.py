@@ -514,34 +514,12 @@ def studied_fraction(data: HeatmapData, window: int, measure: str = "reviews") -
     return sum(1 for days_ago in active if start <= days_ago <= end), end - start + 1
 
 
-def goal_fraction(data: HeatmapData, measure: str, goal: int, window: int) -> tuple[int, int]:
-    """Dias en que se cumplio la meta y dias de la ventana (los mismos que los
-    de los dias estudiados)."""
-    active = active_days(data, measure)
-    if not active or goal <= 0:
-        return 0, 0
-    start, end = _study_span(active, window)
-    met = sum(
-        1
-        for days_ago, day in data.past.items()
-        if start <= days_ago <= end and measure_value(day, measure) >= goal
-    )
-    return met, end - start + 1
-
-
 def _study_span(active: set[int], window: int) -> tuple[int, int]:
     """Primer y ultimo dia (contando hacia atras) de la ventana de estudio."""
     start = 0 if 0 in active else 1
     oldest = max(active)
     end = start + window - 1 if window > 0 else oldest
     return start, min(end, oldest)
-
-
-def last_week_studied(data: HeatmapData, measure: str) -> list[bool]:
-    """Si se estudio cada uno de los 7 ultimos dias completos, del mas antiguo
-    a ayer (los mismos dias que la comparativa, Regla de FIX-001)."""
-    active = active_days(data, measure)
-    return [days_ago in active for days_ago in range(WEEK_DAYS, 0, -1)]
 
 
 def studied_pct(data: HeatmapData, window: int, measure: str = "reviews") -> int:

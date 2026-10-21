@@ -13,8 +13,12 @@ Los cuatro tonos de cada tema son colores propios, fuera de la paleta
 Nocturne, que no tiene escalas: los aprobo el cliente con el informe, con su
 pareja de noche (mas luminoso cuanto mas estudio, para que mas estudio sea
 siempre mas contraste con el fondo). El resto de colores del mapa sale de los
-tokens de Nocturne, en web/gritmap.css. Los dias pendientes ya no tienen
-escala de grises: llevan un punto (una forma, no un tono).
+tokens de Nocturne, en web/gritmap.css.
+
+Version 4.1.0 (correccion del cliente, 2026-10-21): los dias pendientes
+vuelven a marcarse como antes, en grises segun las tarjetas que vencen, pero
+con cuatro tonos en lugar de diez (tomados de la escala gris aprobada el
+2026-10-13), y sin el punto de la 4.0.0.
 """
 
 # Historial de correcciones de este archivo:
@@ -36,6 +40,9 @@ PAST_DARK: dict[str, tuple[str, ...]] = {
     "royal_purple": ("#53446E", "#7E66A6", "#AA8DDE", "#D3BDFE"),  # colores-ok: escala aprobada (2026-10-21)
     "sunset_orange": ("#6A4225", "#A16336", "#D78951", "#FFB98A"),  # colores-ok: escala aprobada (2026-10-21)
 }
+
+FUTURE_LIGHT: tuple[str, ...] = ("#CBD2DC", "#B3BAC4", "#9DA3AD", "#8E949E")  # colores-ok: escala aprobada (2026-10-13)
+FUTURE_DARK: tuple[str, ...] = ("#4C515A", "#60666F", "#757B84", "#8C929B")  # colores-ok: escala aprobada (2026-10-13)
 
 THEME_NAMES: tuple[str, ...] = tuple(PAST_LIGHT)
 # Temas retirados en la 4.0.0 y el tema al que pasa quien los tenia.
@@ -67,7 +74,10 @@ def level_index(count: float, thresholds: list[float]) -> int:
 def _vars_block(theme: str, dark: bool) -> str:
     scales = PAST_DARK if dark else PAST_LIGHT
     past = scales.get(theme, scales["classic_green"])
-    return "".join(f"--gritmap-p{i + 1}:{color};" for i, color in enumerate(past))
+    future = FUTURE_DARK if dark else FUTURE_LIGHT
+    parts = [f"--gritmap-p{i + 1}:{color};" for i, color in enumerate(past)]
+    parts += [f"--gritmap-f{i + 1}:{color};" for i, color in enumerate(future)]
+    return "".join(parts)
 
 
 # Selectores de modo noche. Anki marca el modo oscuro de dos formas: con la

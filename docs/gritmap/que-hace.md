@@ -1,12 +1,13 @@
 # Qué hace «GritMap»
 
-Versión 4.0.0 · 2026-10-21
+Versión 4.1.0 · 2026-10-21
 
-Mapa de calor de su estudio, como el de las contribuciones de GitHub, ordenado en tres bandas de
-tarjetas. Arriba, cuatro tarjetas pequeñas que responden de un vistazo: «Hoy», «Racha», «Retención» y
-«Próxima fecha». Debajo, la tarjeta «Actividad», con el año entero (un cuadrito por día en cinco
-niveles: gris sin estudio y cuatro tonos del tema). Al final, la tarjeta «Estadísticas», que se puede
-plegar. Tiene una meta diaria opcional, comodines que perdonan días sueltos y una pausa de la racha.
+Mapa de calor de su estudio, como el de las contribuciones de GitHub, en tarjetas. Arriba, a todo el
+ancho, la tarjeta «Actividad», con el año entero (un cuadrito por día: gris sin estudio y cuatro tonos
+del tema; los días que vienen, en cuatro grises según las tarjetas que vencen). Debajo, cinco tarjetas
+pequeñas del mismo ancho entre todas, que responden de un vistazo: «Hoy», «Racha», «Promedio
+diario», «Retención» y «Próxima fecha». Tiene una meta diaria opcional, comodines que perdonan días
+sueltos y una pausa de la racha.
 Solo lee su colección: nunca cambia tarjetas, notas ni repasos. Lo único que guarda son sus opciones.
 
 ## 1. Dónde aparece
@@ -19,9 +20,10 @@ Solo lee su colección: nunca cambia tarjetas, notas ni repasos. Lo único que g
 - En Herramientas > Complementos, al seleccionarlo y pulsar «Configuración», se abre su ventana de
   opciones (la misma que el botón de opciones del mapa), delante de la ventana Complementos.
 - No aparece en el repaso, en Explorar, en las estadísticas ni en el editor. No añade menús.
-- Las tarjetas ocupan como mucho 960 px de ancho, centradas. Cada una tiene el fondo un punto más
-  claro que el de Anki, un borde suave, esquinas redondeadas y su título arriba a la izquierda; de
-  día llevan una sombra muy leve y de noche ninguna.
+- Las tarjetas ocupan todo el ancho de la ventana: el mapa arriba y, debajo, las cinco tarjetas
+  pequeñas, cuyos bordes coinciden con los del mapa. Cada tarjeta tiene el fondo un punto más claro
+  que el de Anki, un borde suave, esquinas redondeadas y su título arriba a la izquierda; de día
+  llevan una sombra muy leve y de noche ninguna.
 
 ## 2. Mientras se calcula
 
@@ -31,11 +33,13 @@ que Anki vuelve a dibujar esa pantalla (al volver del repaso, sincronizar, desha
 cada 10 minutos), se ve al instante lo último que se mostró y se sustituye, sin hueco, si los datos al
 día son distintos. El cálculo se hace sin congelar Anki.
 
-## 3. La fila de resumen
+## 3. Las tarjetas de debajo del mapa
 
-Cuatro tarjetas del mismo ancho (tres si se desactiva «Mostrar racha y meta»). Cada una tiene un
-título, un dato grande y una línea gris. Al pulsarlas no pasa nada, salvo en los enlaces azules. Si la
-ventana es estrecha, pasan a dos por fila y, más estrecha aún, a una.
+Cinco tarjetas del mismo ancho (cuatro si se desactiva «Mostrar racha y meta»), que suman el ancho
+del mapa. Cada una tiene un título, un dato grande y una línea gris de hasta dos renglones (si no
+cabe, se corta con «…» y se lee entera al pasar el ratón). Al pulsarlas no pasa nada, salvo en los
+enlaces azules. Si la ventana es estrecha, pasan a dos por fila, con la quinta a lo ancho de las dos
+para que la fila quede cuadrada, y, más estrecha aún, a una.
 
 ### Hoy
 
@@ -63,25 +67,37 @@ haber estudiado todavía hoy. La línea gris dice:
 - «· 1 comodín» o «· 2 comodines» si tiene comodines guardados (subrayado de puntos: al pasar el
   ratón o llegar con el tabulador, «Cada 7 días seguidos gana un comodín (2 como máximo). Un día sin
   estudiar gasta uno.»);
-- «· a 3 días del récord» si la racha más larga está a 7 días o menos;
+- «· a 3 días del récord» si la racha más larga está a 7 días o menos, o «· récord: 40 días» si
+  está más lejos (si la racha actual es la más larga, no se añade nada);
 - «· Un año seguido» el día en que la racha llega a 365 días (y a 730, 1.095…).
 
 Casos especiales: si nunca ha estudiado, «0 días» y «hoy pendiente»; si la racha está a cero,
-«0 días» y «Última sesión hace 3 días»; al volver tras romperla, «Día 1» y «Récord: 45 días».
+«0 días» y «Última sesión hace 3 días»; al volver tras romperla, «Día 1» y «récord: 45 días».
+
+### Promedio diario
+
+Lo hecho por día estudiado, en la unidad de la medida («72 repasos», «60 tarjetas», «8 nuevas»), en el
+periodo de las cifras, contando solo días completos (el periodo termina ayer). Debajo, el periodo:
+«últimos 30 días», «último año» o «todo el historial». Sin días completos estudiados escribe «N/A» en
+gris, subrayado de puntos: al pasar el ratón (o llegar con el tabulador), «Sin días completos
+estudiados en los últimos 30 días» (o «… en todo el historial»). Con «Nuevas», un promedio que se
+queda en 0 también es «N/A», con «Menos de una nueva por día estudiado…».
 
 ### Retención
 
 El porcentaje de respuestas que no fueron «Otra vez», con el criterio de la retención real de Anki
-(tarjetas con al menos un día de intervalo), en el periodo elegido en Estadísticas. Debajo, el periodo:
+(tarjetas con al menos un día de intervalo), en el periodo de las cifras (Opciones). Debajo, el periodo:
 «últimos 30 días», «último año» o «todo el historial». Con menos de 20 respuestas que contar escribe
 «N/A» (el texto de Anki), en gris. En la pantalla de un mazo con FSRS activado añade la retención
 deseada de su configuración: «· objetivo 90 %».
 
 ### Próxima fecha
 
-La próxima fecha clave de hoy en adelante: «★ faltan 23 días», «★ falta 1 día» o «★ es hoy», con su
-nombre debajo (varias el mismo día, separadas por « · »). Sin fechas por venir: «Sin fechas clave» y
-el enlace «Añadir», que abre las opciones y, sobre ellas, la lista de fechas clave. La tarjeta nunca
+La próxima fecha clave de hoy en adelante: «faltan 23 días», «falta 1 día» o «es hoy», con su nombre
+debajo (varias el mismo día, separadas por « · »). El nombre es un enlace (al pasar el ratón, «Ver en el
+mapa»): al pulsarlo, el mapa pasa al año de esa fecha, la centra si no cabe a lo ancho y le da el foco,
+de modo que se abre su globo con el nombre y la cuenta atrás. Sin fechas por venir: «Sin fechas clave»
+y el enlace «Añadir», que abre las opciones y, sobre ellas, la lista de fechas clave. La tarjeta nunca
 desaparece.
 
 ## 4. La tarjeta «Actividad»
@@ -95,19 +111,21 @@ desaparece.
   año actual y a la semana de hoy.
 - El año entero, de enero a diciembre, en columnas de semanas que empiezan en lunes, con los nombres
   de los meses encima en el idioma de Anki (siempre con el calendario gregoriano). Con el tamaño
-  «Ajustado al ancho», el año cabe en la tarjeta con cuadritos de 10 a 22 px; si la ventana es más
-  estrecha que los cuadritos de 10 px, se desplaza de lado. Con «Grande», cuadritos de 25 px y
+  «Ajustado al ancho» (el de serie), el año ocupa todo el ancho de la tarjeta: los cuadritos crecen
+  con la ventana; si es tan estrecha que bajarían de 10 px, el mapa se desplaza de lado. Con «Grande», cuadritos de 25 px y
   desplazamiento de lado. Al abrir un año se ve la semana de hoy; en un año pasado, diciembre, y en
   uno futuro, enero.
 - Días pasados y hoy: cinco niveles. Sin estudio, el gris vacío; con estudio, cuatro tonos del tema,
   repartidos según su promedio de siempre en los días que estudió (con un mínimo, para que al empezar
   no salga todo oscuro): hasta la mitad del promedio, hasta el promedio, hasta el doble y más del
   doble.
-- Días futuros con tarjetas que vencen: el cuadrito vacío con un punto gris (una forma, no un tono,
-  para que no se confunda con «estudió poco»). Lo atrasado no se dibuja.
+- Días futuros con tarjetas que vencen: en cuatro grises, más oscuros (de día) o más claros (de noche)
+  cuantas más tarjetas vencen, con los mismos cortes en proporción a su promedio de repasos. Lo
+  atrasado no se dibuja.
 - Hoy lleva un borde del color del texto.
-- Las fechas clave llevan una ★ pequeña y gris sobre la columna de su semana, en una fila bajo los
-  meses (solo si ese año tiene alguna); al pasar el ratón, su nombre y su cuenta atrás.
+- Las fechas clave llevan en su cuadrito una esquina doblada arriba a la derecha, en el color del
+  texto y con un filo del color de la tarjeta, que se ve sobre cualquier tono y es igual en todos los
+  temas; al pasar el ratón, su nombre y su cuenta atrás.
 - Un día perdonado por un comodín o por la pausa queda vacío (no estudió), con un borde fino
   discontinuo.
 - Al pasar el ratón por un día, el cuadrito se resalta; si se puede pulsar, el puntero cambia a una
@@ -119,8 +137,9 @@ desaparece.
 - Debajo, a la derecha, la leyenda: «Menos», los cinco cuadritos del mapa y «Más». Al pasar el ratón
   por cada uno, las cifras que cubre, calculadas con su promedio actual: «Ningún repaso», «de 1 a 20
   repasos», «de 21 a 40 repasos», «de 41 a 80 repasos» y «81 repasos o más» (con «Nuevas», «Ninguna
-  nueva»…). Detrás, «Pendientes» (el cuadrito con punto) si en el año que se ve hay días pendientes, y
-  «Perdonado» (el borde discontinuo) si hay días perdonados.
+  nueva»…). Detrás, «Pendientes» (un gris) si en el año que se ve hay días pendientes, «Fecha clave»
+  (la esquina doblada) si ese año tiene alguna, y «Perdonado» (el borde discontinuo) si hay días
+  perdonados.
 - Debajo, a la izquierda, como mucho una línea de sorpresa al día, solo cuando ocurre y con datos
   reales, por este orden: «Nueva racha más larga» (el día en que la racha supera la mejor anterior),
   «Su mejor día del año» (hoy supera a todos los demás días del año, con al menos 7 días estudiados
@@ -128,16 +147,16 @@ desaparece.
   (el día en que el total del año cruza 100, 500 o un múltiplo de 1.000). Solo si hoy ya cuenta.
 - En árabe, hebreo, persa y uigur, la navegación del año, el mapa y su pie van de izquierda a derecha,
   como el calendario; el resto sigue la dirección del idioma.
-- Cambiar de año o de tema, tamaño, forma, periodo, meta, comodines o pausa no vuelve a leer la
+- Cambiar de año o de tema, tamaño, forma, periodo de las cifras, meta, comodines o pausa no vuelve a leer la
   colección: es inmediato. Cambiar la medida o los mazos excluidos sí la vuelve a leer, sin quitar el
   mapa mientras tanto.
 
 ### Cuando no hay nada que dibujar
 
-- En una colección sin repasos, sin vencimientos y sin fechas clave: la fila de resumen («0 repasos»
-  con «Fijar meta», «0 días» con «hoy pendiente», retención «N/A» y «Sin fechas clave» con «Añadir»),
-  la cuadrícula del año actual en gris con hoy marcado y, debajo, «Cada día que estudie se pintará
-  aquí.». Sin leyenda y sin tarjeta de estadísticas; las flechas de año, apagadas.
+- En una colección sin repasos, sin vencimientos y sin fechas clave: la cuadrícula del año actual en
+  gris con hoy marcado y, debajo, «Cada día que estudie se pintará aquí.», sin leyenda y con las
+  flechas de año apagadas; y debajo, las tarjetas («0 repasos» con «Fijar meta», «0 días» con «hoy
+  pendiente», promedio y retención «N/A» y «Sin fechas clave» con «Añadir»).
 - En la pantalla de un mazo excluido: una tarjeta «Actividad» con «Este mazo está excluido del mapa.»,
   el enlace «Cambiar mazos excluidos» (abre las opciones y, sobre ellas, la lista de mazos excluidos) y
   el botón de opciones.
@@ -147,9 +166,8 @@ desaparece.
 
 Sale un globo con la fecha larga en el idioma de Anki (sin «el»), en gris, y, en la línea de abajo, lo
 hecho ese día. Después, en gris y según el caso: si el día está perdonado, «Perdonado con un comodín»
-o «Racha en pausa»; con la meta «Un número», en la lista de mazos y en los días pasados con estudio,
-«Meta cumplida» o «Meta: 60 de 100»; y en los días que se pueden pulsar, «Pulse para ver estas tarjetas» o «Pulse para ver las
-que vencen ese día». La tecla Esc lo cierra. En español:
+o «Racha en pausa»; y en los días que se pueden pulsar, «Pulse para ver estas tarjetas» o «Pulse para
+ver las que vencen ese día». El globo no dice nada de la meta. La tecla Esc lo cierra. En español:
 
 - «lunes, 22 de junio de 2026» / «**12** **repasos**» (o «1 repaso»).
 - Con la medida «Tarjetas»: «… / **9** **tarjetas**».
@@ -157,8 +175,8 @@ que vencen ese día». La tecla Esc lo cierra. En español:
 - Sin estudio: «… / **Ningún** **repaso**».
 - Días futuros: «… / **30** tarjetas **pendientes**», «**1** tarjeta **pendiente**» o «**Ninguna**
   tarjeta **pendiente**».
-- En una fecha clave, encima de todo, con una estrella: el nombre (varios, separados por « · ») y,
-  si no ha pasado, la cuenta atrás: «★ Examen de Anatomía (faltan 23 días)».
+- En una fecha clave, encima de todo, en negrita: el nombre (varios, separados por « · ») y, si no ha
+  pasado, la cuenta atrás: «Examen de Anatomía (faltan 23 días)».
 - Las cifras de 1.000 o más llevan punto de millar. Un lector de pantalla lee el mismo texto.
 
 ## 6. Al pulsar un día
@@ -168,34 +186,7 @@ que vencen ese día». La tecla Esc lo cierra. En español:
 - Un día futuro con vencimientos abre Explorar con las tarjetas que vencen ese día (prop:due).
 - Los días sin nada no responden al clic. Con el teclado, Intro o la barra espaciadora hacen lo mismo.
 
-## 7. La tarjeta «Estadísticas»
-
-- Cabecera: el título a la izquierda y, a la derecha, «30 días · 1 año · Todo» (el periodo elegido con
-  el fondo azul suave de selección de Anki y letra en negrita; los demás, texto gris que toma un fondo
-  suave al pasar el ratón) y el botón para plegarla («Plegar» / «Desplegar» al pasar el ratón).
-  Plegada, solo queda la cabecera. Se pliega al instante y GritMap recuerda cómo la dejó; la primera
-  vez aparece abierta. El periodo se guarda al pulsarlo y cambia los anillos, el promedio y la
-  retención de la fila de resumen.
-- Mitad izquierda, «Constancia · últimos 7 días»: siete bloques, uno por día (de hace 7 días a ayer),
-  en el tono 4 del tema si estudió y vacíos si no, con «6 de 7» al lado. Debajo, dos barras en el
-  color del tema, «Últimos 7 días» y «7 anteriores», con su cifra al final («448 repasos»): los 7 días
-  completos que terminan ayer frente a los 7 anteriores. La diferencia se ve en la longitud y en la
-  cifra, sin verde ni rojo.
-- Mitad derecha, anillos de 56 px con la cifra dentro («26» y «de 30»): «Días estudiados» (días con
-  estudio en el periodo; hoy cuenta solo si ya estudió, y el periodo no empieza antes de su primer
-  repaso) y, con la meta «Un número», «Meta cumplida» (días del periodo en que la alcanzó).
-- Al pie, en gris: «Promedio diario 72 repasos · Racha más larga 40 días». El promedio es lo hecho
-  por día estudiado en el periodo, contando solo días completos (termina ayer). Sin días completos
-  estudiados escribe «N/A», con el globo «Sin días completos estudiados en los últimos 30 días» (o «…
-  en todo el historial»); con «Nuevas», un promedio que se queda en 0 también es «N/A», con «Menos de
-  una nueva por día estudiado…». La racha más larga queda aquí aunque la actual se rompa.
-- En una ventana estrecha, las dos mitades se apilan.
-
-Todas las cifras siguen la medida elegida: con «Repasos» y «Tarjetas», un día estudiado es un día con
-repasos; con «Nuevas», solo un día en que empezó alguna tarjeta nueva. La retención no depende de la
-medida.
-
-## 8. Comodines y pausa
+## 7. Comodines y pausa## 8. Comodines y pausa
 
 - Comodines (activados por defecto; se desactivan en Opciones): cada 7 días seguidos estudiados se
   gana uno, con un máximo de 2 guardados. Un día sin estudiar gasta uno automáticamente al empezar el
@@ -208,7 +199,7 @@ medida.
 - El «hoy» de la racha y del mapa es el de Anki: el día empieza a la hora que marca Anki en
   Preferencias (por defecto, las 4 de la madrugada), y lo estudiado antes cuenta para el día anterior.
 
-## 9. Ventana de opciones
+## 8. Ventana de opciones
 
 Título «GritMap». Se abre después de leer los mazos y las opciones sin congelar Anki (un segundo clic
 mientras tanto no abre otra), delante de la ventana desde la que se pidió. Tres grupos con título y
@@ -221,8 +212,9 @@ su tamaño y su posición. Al aceptar, el mapa se redibuja en su sitio, sin reca
 | Apariencia | Tema de color | Azul océano, Naranja atardecer, Púrpura real y Verde clásico, cada uno con su tira de cuatro tonos del modo activo (cambia si Anki pasa de día a noche) | Verde clásico |
 | | Tamaño | «Ajustado al ancho» o «Grande» | Ajustado al ancho |
 | | Forma | «Cuadrado» o «Redondeado» | Cuadrado |
-| | Vista previa | Un mes de mapa en miniatura con los tonos del tema, hoy, una ★ y días pendientes; cambia al momento con el tema, el tamaño y la forma | — |
+| | Vista previa | Un mes de mapa en miniatura con los tonos del tema, hoy, días pendientes en gris y una fecha clave con su esquina doblada; cambia al momento con el tema, el tamaño y la forma | — |
 | Qué se cuenta | El color mide | Repasos, Tarjetas, Nuevas; debajo, «Cada respuesta cuenta una», «Cada tarjeta cuenta una vez por día» o «Solo las tarjetas que empezó ese día» | Repasos |
+| | Periodo de las cifras | 30 o 365 días, o Todo el historial (vale para el promedio diario y la retención) | 30 días |
 | | Excluir mazos | Botón «Seleccionar mazos» (o «1 mazo excluido», «2 mazos excluidos», con hasta 15 nombres al pasar el ratón y «…» si hay más) | Ninguno |
 | Metas y fechas | Meta diaria | «Sin meta», «Un número» (con el número, de 1 a 9.999, en la unidad de la medida) o «Terminar lo de hoy» | Sin meta (50 si elige «Un número») |
 | | Comodines | Casilla «Perdonar días sueltos con comodines» (al pasar el ratón, la regla) | Marcada |
@@ -237,7 +229,6 @@ su tamaño y su posición. Al aceptar, el mapa se redibuja en su sitio, sin reca
   fuego» se ha retirado; ahora usa «Naranja atardecer».».
 - Si tenía los cuadritos a 30 px o más pasa a «Grande», y si tenía el redondeo a 4 px o más, a
   «Redondeado»; si no, a los valores por defecto.
-- El periodo de las cifras ya no está aquí: se elige en la tarjeta de estadísticas.
 - Excluir mazos: árbol de mazos con casillas, como en la pantalla principal (sin mazos filtrados ni
   el mazo predeterminado vacío), con un buscador encima («Buscar», el texto de Anki). Marcar un mazo
   marca y bloquea (en gris) sus submazos; al desmarcarlo, cada submazo vuelve a su propia casilla. Lo
@@ -249,12 +240,12 @@ su tamaño y su posición. Al aceptar, el mapa se redibuja en su sitio, sin reca
   Avisos: «Falta el nombre de la fecha.», «Esa fecha con ese nombre ya está en la lista.» y «Caben
   hasta 50 fechas.».
 
-## 10. Qué guarda y dónde
+## 9. Qué guarda y dónde
 
-- La apariencia y las metas (tema, medida, tamaño, forma, periodo de las cifras, estadísticas
-  plegadas, meta, comodines y mostrar racha y meta), en la configuración de complementos de este
-  ordenador: vale para todos los perfiles y no se sincroniza. Los ajustes de la versión 3.x que ya no
-  existen (píxeles y comparativa semanal) se dejan de guardar al aceptar las opciones.
+- La apariencia y las metas (tema, medida, tamaño, forma, periodo de las cifras, meta, comodines y
+  mostrar racha y meta), en la configuración de complementos de este ordenador: vale para todos los
+  perfiles y no se sincroniza. Los ajustes de versiones anteriores que ya no existen (píxeles,
+  comparativa semanal y estadísticas plegadas) se dejan de guardar al aceptar las opciones.
 - Los mazos excluidos, las fechas clave y la pausa, dentro de cada colección: cada perfil tiene los
   suyos y viajan con la sincronización. Se leen de la colección cada vez. No se pueden deshacer desde
   Editar, porque son ajustes, no estudio.
@@ -262,7 +253,7 @@ su tamaño y su posición. Al aceptar, el mapa se redibuja en su sitio, sin reca
   que aún no los tenga.
 - Un valor que falte o no sirva (por ejemplo, escrito a mano) se sustituye por el predeterminado.
 
-## 11. Idiomas
+## 10. Idiomas
 
 Sus textos están en 51 idiomas, también los nuevos de la 4.0.0; si el de Anki no está, sale en
 inglés. Cada cifra con unidad usa la forma de plural de su idioma (por ejemplo, en ruso 1 день,
@@ -270,29 +261,29 @@ inglés. Cada cifra con unidad usa la forma de plural de su idioma (por ejemplo,
 los meses los escribe el navegador de Anki en su idioma; en español, con punto de millar desde 1.000.
 «N/A», «Añadir», «Eliminar» y «Buscar» usan los textos de Anki.
 
-## 12. Colores, letra y espacio
+## 11. Colores, letra y espacio
 
-- Cada color tiene una sola función: los cuatro tonos del tema significan «estudió» (mapa, anillos,
-  bloques y barras); el gris vacío, «no estudió»; el azul de Anki, «se puede pulsar o está elegido»
-  (foco del teclado, periodo elegido y enlaces). Las señales son formas, no colores: la estrella, el
-  punto y el borde discontinuo.
+- Cada color tiene una sola función: los cuatro tonos del tema significan «estudió» (mapa y anillo
+  de la meta); los cuatro grises, «vence»; el gris vacío, «no estudió»; el azul de Anki, «se puede
+  pulsar» (foco del teclado y enlaces). Las señales son formas, no colores: la esquina doblada y el
+  borde discontinuo.
 - Todo lo que no es la escala del tema sale de los colores de Anki, que la paleta Nocturne redefine,
   con su pareja de día y de noche: tarjeta (fondo de capa elevada y borde suave), textos (texto y texto
-  suave), punto de pendientes (texto desactivado), botones, periodo elegido (fondo de selección), foco
-  (azul de foco), enlaces (color de enlace) y globo. El gris de los días sin estudio es el borde suave
+  suave), botones, foco (azul de foco), enlaces (color de enlace) y globo. El gris de los días sin estudio es el borde suave
   de día y el fondo hundido de noche, para que se distinga sobre la tarjeta en los dos modos. Los
-  cuatro tonos de cada tema son colores propios (véase «Así a propósito» en errores).
+  cuatro tonos de cada tema y los cuatro grises de los pendientes son colores propios (véase «Así a
+  propósito» en errores).
 - Dos tamaños de letra: 20 px para el dato de cada tarjeta y 12 px para todo lo demás; la jerarquía se
   marca con el grosor y el gris. La letra es la de Anki.
 - Espacios de 4, 8, 16 y 32 px: 16 px dentro de las tarjetas y entre ellas.
 
-## 13. Si algo falla
+## 12. Si algo falla
 
 Nunca abre la ventana de error de Anki: el detalle queda en el registro del complemento (un archivo
 de texto en la carpeta de registros del perfil de Anki) y, en el sitio del mapa, sale «No se pudo
 cargar el mapa de calor.», con el botón de opciones. Anki sigue funcionando.
 
-## 14. Qué no hace
+## 13. Qué no hace
 
 - No se conecta a internet.
 - No cambia nada de su estudio: solo lee.

@@ -3,8 +3,7 @@
 Hay dos almacenes, y cada ajuste vive donde le corresponde:
 
   * Apariencia y metas (tema, medida del color, tamano, forma, periodo de las
-    cifras, estadisticas plegadas, meta diaria, comodines y mostrar racha y
-    meta) -> configuracion del complemento (mw.addonManager). Es comun a
+    cifras, meta diaria, comodines y mostrar racha y meta) -> configuracion del complemento (mw.addonManager). Es comun a
     todos los perfiles del equipo, que es justo lo que se espera de un ajuste
     visual.
 
@@ -62,14 +61,13 @@ APPEARANCE_KEYS = (
     "size",
     "shape",
     "avg_window",
-    "stats_open",
     "goal_mode",
     "goal",
     "freezes",
     "show_streak",
 )
 # Claves de versiones anteriores que se dejan de guardar (3.x).
-_OLD_APPEARANCE_KEYS = ("cell_size", "border_radius", "show_week_diff")
+_OLD_APPEARANCE_KEYS = ("cell_size", "border_radius", "show_week_diff", "stats_open")
 COLLECTION_KEYS = ("excluded_decks", "key_dates", "pause")
 
 
@@ -92,8 +90,6 @@ class Config:
     shape: str
     # Dias de la ventana del promedio; 0 = todo el historial (data.WINDOWS).
     avg_window: int
-    # Tarjeta de estadisticas abierta (True) o plegada.
-    stats_open: bool
     # Meta diaria: "none", "number" (goal en la unidad de la medida) o "due"
     # (terminar lo que vence hoy).
     goal_mode: str
@@ -117,7 +113,6 @@ DEFAULT_CONFIG = Config(
     size="fit",
     shape="square",
     avg_window=30,
-    stats_open=True,
     goal_mode="none",
     goal=50,
     freezes=True,
@@ -348,7 +343,6 @@ def build_config(stored: dict[str, object], scoped: dict[str, object]) -> Config
         size=_as_size(stored),
         shape=_as_shape(stored),
         avg_window=_as_window(stored.get("avg_window")),
-        stats_open=_as_bool(stored.get("stats_open"), DEFAULT_CONFIG.stats_open),
         goal_mode=_as_choice(stored.get("goal_mode"), GOAL_MODES, DEFAULT_CONFIG.goal_mode),
         goal=_as_int(stored.get("goal"), DEFAULT_CONFIG.goal, GOAL_MIN, GOAL_MAX),
         freezes=_as_bool(stored.get("freezes"), DEFAULT_CONFIG.freezes),
@@ -370,7 +364,6 @@ def save_appearance(cfg: Config) -> None:
             "size": cfg.size,
             "shape": cfg.shape,
             "avg_window": cfg.avg_window,
-            "stats_open": cfg.stats_open,
             "goal_mode": cfg.goal_mode,
             "goal": cfg.goal,
             "freezes": cfg.freezes,

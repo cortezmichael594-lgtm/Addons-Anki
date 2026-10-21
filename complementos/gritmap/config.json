@@ -4,7 +4,6 @@
     "size": "fit",
     "shape": "square",
     "avg_window": 30,
-    "stats_open": true,
     "goal_mode": "none",
     "goal": 50,
     "freezes": true,

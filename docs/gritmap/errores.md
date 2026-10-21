@@ -146,8 +146,9 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   como control segmentado sin marco: el elegido con fondo suave de pastilla y negrita, como en la
   imagen que aportó («30 días», «1 año», «Todo»). Lo pidió el cliente el 2026-10-13. Desde la 3.6.0
   (cliente, 2026-10-21) el selector está encima de las tres cifras que cambia (promedio, días
-  estudiados y retención) y no junto al año; las rachas forman aparte el grupo «Rachas». Desde la
-  4.0.0, en la cabecera de la tarjeta «Estadísticas», y ya no en Opciones.
+  estudiados y retención) y no junto al año; las rachas forman aparte el grupo «Rachas». En la 4.0.0
+  pasó a la tarjeta «Estadísticas»; desde la 4.1.0, al retirarse esa tarjeta, se elige solo en
+  Opciones (lo eligió el cliente el 2026-10-21).
 - Versión 3.5.0 (plan aprobado por el cliente el 2026-10-13, con criterios de diseño citados en la
   entrega): cifras en dos grupos (constancia y rendimiento) con la racha actual primero, número
   grande y unidad pequeña, misma letra que Anki, globos con la fecha en gris y cierre con Esc, y
@@ -161,7 +162,9 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - Las escalas de los temas son colores propios, fuera de la paleta Nocturne, que no tiene escalas.
   Lo aprobó el cliente el 2026-10-08 (siete temas de diez tonos) y el 2026-10-13 (rehechas a partir de
   Nocturne). Desde la 4.0.0 (informe del cliente, 2026-10-21) son cuatro temas de cuatro tonos, con
-  los valores del informe; los días futuros ya no tienen escala gris, sino un punto.
+  los valores del informe. Los días futuros llevaron un punto en la 4.0.0; desde la 4.1.0 vuelven a
+  ir en gris, con cuatro tonos tomados de la escala gris aprobada el 2026-10-13 (cliente,
+  2026-10-21).
 - Los mazos excluidos y las fechas clave se guardan sin paso de deshacer, porque son ajustes y no
   estudio, como hace Anki con sus búsquedas guardadas. Criterio del complemento original.
 - Las cifras del mapa se leen directamente de la base de datos, solo para leer, porque Anki no ofrece
@@ -190,9 +193,11 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   uno tiene su cabecera (versión 3.6.0).
 - El globo de cada día lleva la fecha arriba (sin «el») y lo hecho debajo, en todos los idiomas. Lo
   pidió el cliente el 2026-10-13.
-- Las fechas clave llevaron un borde naranja, o azul en tres temas (cliente, 2026-10-13). Desde la
-  4.0.0 llevan una ★ gris sobre su semana, la misma de la tarjeta «Próxima fecha»: el mismo dato ya
-  no cambia de color según el tema (informe del cliente, 2026-10-21).
+- Las fechas clave llevaron un borde naranja, o azul en tres temas (cliente, 2026-10-13), y en la
+  4.0.0 una ★ sobre su semana. Desde la 4.1.0 el cliente pidió otra manera de encontrarlas y quitar
+  la estrella de «Próxima fecha»: llevan una esquina doblada en su propio cuadrito, en el color del
+  texto con un filo del color de la tarjeta (igual en todos los temas), y el nombre de la próxima
+  fecha es un enlace que lleva a su día en el mapa. Criterio técnico para la forma, 2026-10-21.
 - Las cifras se escriben en el color del texto, no en el tono del tema (cliente, 2026-10-13: los
   tonos claros no se leían). Los cuadritos de color que llevaban delante se retiraron en la 4.0.0,
   porque usaban un color sin explicar (informe del cliente, 2026-10-21).
@@ -232,3 +237,16 @@ Versión 4.0.0 (informe de rediseño del cliente, aprobado el 2026-10-21, las tr
   vista; su hueco queda reservado.
 - Se retiraron Rojo fuego (el rojo significa error), Rosa suave y Turquesa laguna; quien los tenía
   pasa al tema más cercano y Opciones lo dice una vez.
+
+Versión 4.1.0 (correcciones del cliente del 2026-10-21 sobre la 4.0.0):
+
+- El mapa va arriba y a todo el ancho por defecto: los cuadritos crecen con la ventana (desde 10 px;
+  por debajo, desplazamiento de lado). Las tarjetas pequeñas van debajo del mapa y suman su mismo
+  ancho, para que el conjunto quede simétrico. Lo pidió el cliente; eligió «llenar todo el ancho».
+- La tarjeta «Estadísticas» se retiró, con su plegado, la constancia de la semana, las dos barras y
+  los anillos de días estudiados y meta cumplida. En su lugar hay una tarjeta «Promedio diario». La
+  racha más larga pasa a la línea de «Racha» («récord: 40 días»).
+- «récord» va en minúscula, también al principio de la línea («Día 1» / «récord: 45 días»). Lo pidió
+  el cliente; en alemán se conserva la mayúscula, porque allí los sustantivos la llevan.
+- El globo de los días ya no dice si se cumplió la meta. Lo pidió el cliente.
+- La tarjeta «Próxima fecha» ya no lleva estrella. Lo pidió el cliente.
