@@ -353,6 +353,38 @@ class DisabledTextTest(unittest.TestCase):
                 self.assertGreater(faint, disabled + 8, f"{theme} ({mode})")
 
 
+class TitleBarToneTest(unittest.TestCase):
+    """Versión 3.4.0 (petición del cliente): la barra de título tiene su propio tono, del
+    matiz del fondo: más oscuro de noche y más claro de día, sin negro ni blanco puros, y
+    con el título (activo e inactivo) legible."""
+
+    def test_darker_at_night_lighter_by_day(self) -> None:
+        for theme in THEMES:
+            day, night = color("NOCTURNE_TITLEBAR", "light", theme), color("NOCTURNE_TITLEBAR", "dark", theme)
+            self.assertGreater(_luminance(day), _luminance(color("CANVAS", "light", theme)), theme)
+            self.assertLess(_luminance(night), _luminance(color("CANVAS", "dark", theme)) * 0.8, theme)
+            self.assertNotIn(day.upper(), ("#FFFFFF",), theme)
+            self.assertNotIn(night.upper(), ("#000000",), theme)
+            self.assertLess(hue_distance(night, color("CANVAS", "dark", theme)), 20, theme)
+
+    def test_each_palette_has_its_own_bar(self) -> None:
+        # Petición del cliente: cada paleta, su barra, reconocible por su matiz.
+        themes = list(THEMES)
+        for mode in MODES:
+            for i, first in enumerate(themes):
+                for second in themes[i + 1 :]:
+                    a, b = color("NOCTURNE_TITLEBAR", mode, first), color("NOCTURNE_TITLEBAR", mode, second)
+                    self.assertNotEqual(a, b, f"{first}/{second} ({mode})")
+                    self.assertGreaterEqual(hue_distance(a, b), 15, f"{first}/{second} ({mode})")
+
+    def test_title_text_reads(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                bar = color("NOCTURNE_TITLEBAR", mode, theme)
+                self.assertGreaterEqual(contrast(color("FG", mode, theme), bar), 7, f"{theme} ({mode})")
+                self.assertGreaterEqual(contrast(color("FG_SUBTLE", mode, theme), bar), 4.5, f"{theme} ({mode})")
+
+
 class NightDepthTest(unittest.TestCase):
     """Versión 3.0.0: de noche, lo que está más arriba es más claro (Practical UI,
     M3; Refactoring UI, P24). Antes, los menús eran más oscuros que los recuadros."""

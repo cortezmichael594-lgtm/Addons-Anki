@@ -62,6 +62,11 @@ class Token(TypedDict):
 #   - Los acentos de tarjeta y nota (ACCENT_CARD, ACCENT_NOTE) usan de día los mismos
 #     tonos que las cifras «Nuevas» y «Para repasar», legibles como texto.
 #
+# Versión 3.4.0: NOCTURNE_TITLEBAR, la barra de título de las ventanas en Windows 11 (petición
+# del cliente, 2026-10-21): del matiz del fondo y con más color que él, para que cada paleta
+# tenga su barra: de noche, azul profundo #070C16, más oscuro que el fondo #12161F; de día,
+# blanco azulado #FAFBFE, más claro que #F7F8FA sin llegar al blanco puro.
+#
 # Versión 3.3.0: de noche, FG_DISABLED pasa de #5B6476 a #7C869A, del mismo tono. Lo
 # usan los botones y textos desactivados y la cifra de tarjetas enterradas («+3») de la
 # pantalla de estudio, y no llegaba al mínimo absoluto de APCA para texto (30, Practical
@@ -153,6 +158,7 @@ PALETTE: dict[str, Token] = {
     "NOCTURNE_ROW_HIGHLIGHT":        {"css": ("--nocturne-row-highlight",),                          "light": "#EAEEF8",   "dark": "#19233F"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_PRIMARY_PRESSED":      {"css": (),                                                     "light": "#284EAA",   "dark": "#2B45AA"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_PRIMARY_RING":         {"css": (),                                                     "light": "#1C3A8A",   "dark": "#A9C4FF"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "NOCTURNE_TITLEBAR":             {"css": (),                                                     "light": "#FAFBFE",   "dark": "#070C16"},  # colores-ok: paleta del tema, origen de todos sus colores
 }
 
 # Anki mantiene dos alias de gradiente que deben seguir al color de hover.

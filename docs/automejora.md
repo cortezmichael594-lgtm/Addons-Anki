@@ -610,7 +610,7 @@ nuevo, empaquetar.py --revision avisa.
 | docs/LEEME.txt | adb01e757c21 | 2026-10-21 | Índice de la carpeta; actualizado al crear la automejora, al sustituir la guía de complementos y con PROP-010 (carpeta de referencias). |
 | docs/guia-complementos.md | 4d1e797d6d1e | 2026-10-09 | Sustituida, con el visto bueno del cliente, por el original oficial (docs-site/addons, commit a13d8a6, Anki 26.09.3) con el código intacto. Leída entera: APR-007 a APR-020. |
 | docs/guia-interfaz.md | c2382e94cd10 | 2026-10-12 | Guía del taller; base desde el principio. Cambiada con PROP-006 (cómo buscar en .venv y setWebExports con patrón cerrado). |
-| docs/paleta-nocturne.md | c9c2fbc9e3a1 | 2026-10-21 | Documento del cliente, puesto al día con los colores de Nocturne 3.3.0 (PROP-011). Sin aprendizajes nuevos: sus datos salen del complemento y de sus pruebas. |
+| docs/paleta-nocturne.md | b342bbfb3571 | 2026-10-21 | Documento del cliente, puesto al día con los colores de Nocturne 3.3.0 (PROP-011) y con NOCTURNE_TITLEBAR de la 3.4.0, que el cliente pidió. Sin aprendizajes nuevos: sus datos salen del complemento y de sus pruebas. |
 | docs/preparar-entorno.md | fc4d9d999f58 | 2026-10-12 | Actualizado al crear la automejora (notas de versión y revisión de aprendizajes al cambiar Anki), con PROP-001 (sesiones en la nube) y con PROP-008 (no usar "aqt[qt6]"; cómo actualiza Anki el cliente). |
 
 Revisado también, sin guardarlo en el taller: el código fuente oficial de Anki que aportó el cliente

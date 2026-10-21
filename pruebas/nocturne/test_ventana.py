@@ -99,7 +99,7 @@ class TitleBarTest(unittest.TestCase):
             themes.select(theme_id)
             for night, mode in ((False, "light"), (True, "dark")):
                 colors = dict(titlebar.bar_colors(night, active=True))
-                self.assertEqual(colors[35], titlebar.colorref(data["colors"]["CANVAS"][mode]), theme_id)
+                self.assertEqual(colors[35], titlebar.colorref(data["colors"]["NOCTURNE_TITLEBAR"][mode]), theme_id)
                 self.assertEqual(colors[36], titlebar.colorref(data["colors"]["FG"][mode]), theme_id)
                 self.assertEqual(colors[34], titlebar.colorref(data["colors"]["BORDER"][mode]), theme_id)
                 # La ventana inactiva se distingue por su título, más suave.

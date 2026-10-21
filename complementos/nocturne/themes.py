@@ -155,6 +155,7 @@ PAPEL: dict[str, Token] = _colors(
         "NOCTURNE_ROW_HIGHLIGHT": ("#EBEDE9", "#13272D"),  # colores-ok: paleta del tema
         "NOCTURNE_PRIMARY_PRESSED": ("#154B5B", "#164F60"),  # colores-ok: paleta del tema
         "NOCTURNE_PRIMARY_RING": ("#0E3440", "#9FD6E4"),  # colores-ok: paleta del tema
+        "NOCTURNE_TITLEBAR": ("#FFFCF7", "#070F12"),  # colores-ok: paleta del tema
     }
 )
 
@@ -214,6 +215,7 @@ BOSQUE: dict[str, Token] = _colors(
         "NOCTURNE_ROW_HIGHLIGHT": ("#E3EEEB", "#112521"),  # colores-ok: paleta del tema
         "NOCTURNE_PRIMARY_PRESSED": ("#0A524C", "#0A4F4A"),  # colores-ok: paleta del tema
         "NOCTURNE_PRIMARY_RING": ("#063A36", "#7FD6C9"),  # colores-ok: paleta del tema
+        "NOCTURNE_TITLEBAR": ("#F8FEFA", "#08100C"),  # colores-ok: paleta del tema
     }
 )
 

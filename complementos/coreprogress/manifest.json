@@ -1,4 +1,5 @@
 {
     "name": "CoreProgress",
-    "package": "coreprogress"
+    "package": "coreprogress",
+    "human_version": "1.0.0"
 }

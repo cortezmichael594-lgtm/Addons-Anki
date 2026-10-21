@@ -220,11 +220,22 @@ def _surface_css() -> str:
             f" letter-spacing: {look['heading_tracking']}; }}"
         ),
         # Descripción del mazo: interlineado cómodo y líneas de 70 caracteres como
-        # mucho (Practical UI, P15; Refactoring UI, R8).
+        # mucho (Practical UI, P15; Refactoring UI, R8). Versión 3.4.0: sin palabras
+        # sueltas en la última línea (text-wrap: pretty).
         (
             f"{_SURFACE} .description {{ line-height: {look['reading_line_height']};"
-            " max-width: 70ch; margin-inline: auto; }"
+            " max-width: 70ch; margin-inline: auto; text-wrap: pretty; }"
         ),
+        # Versión 3.4.0: títulos de varias líneas repartidos en líneas parecidas, sin una
+        # palabra sola debajo (text-wrap: balance), y casillas, botones de opción y barras
+        # nativas de las páginas en el color de acción de la paleta (accent-color): un
+        # solo color de acción en todo Anki (Practical UI, P10).
+        f"{_SURFACE} :is(h1, h2, h3) {{ text-wrap: balance; }}",
+        f"{_SURFACE} {{ accent-color: var(--button-primary-bg); }}",
+        # Versión 3.4.0: con «Reducir movimiento» en las preferencias de Anki, que marca la
+        # página con reduce-motion, los cambios de color son inmediatos (WCAG 2.3.3). Gana
+        # a la duración de la paleta en los dos modos por ser más específica.
+        "html body.reduce-motion:not(.card) { --transition: 0ms; }",
         # Lista de mazos (versión 3.1.0): separación de las filas según la paleta y
         # resaltado del mazo actual y del que tiene el ratón encima con un tinte del
         # color de acción en vez de gris (Practical UI, M5 y M7).
@@ -279,6 +290,18 @@ def _surface_css() -> str:
             " outline-offset: 2px;"
             "}"
         ),
+        # Versión 3.4.0: el mismo contorno en los enlaces (nombres de mazo, engranaje de
+        # opciones) y en la barra superior, donde Anki lo quita (.hitem:focus { outline: 0 }),
+        # para saber siempre dónde está el teclado (Practical UI, estados; WCAG 2.4.7). El
+        # contorno no ocupa sitio: nada se mueve. Y el subrayado de los enlaces, algo
+        # separado de las letras para que no tape sus colas.
+        (
+            f"html {_SURFACE} a:focus-visible {{"
+            f" outline: {look['focus_width']}px solid var(--border-focus) !important;"
+            " outline-offset: 2px; border-radius: var(--border-radius);"
+            "}"
+        ),
+        f"html {_SURFACE} a {{ text-underline-offset: 0.18em; }}",
     ]
     return "\n".join(rules)
 
