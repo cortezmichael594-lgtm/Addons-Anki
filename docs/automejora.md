@@ -530,6 +530,42 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado) y las pruebas de pruebas/gritmap/test_data.py (los tramos dan los mismos días que una sola consulta).
 - Origen: revisión de GritMap, 2026-10-12.
 
+### APR-058 · Las filas de Explorar se pintan con el color de bandera o de estado
+- Qué es: en Explorar, StatusDelegate.paint rellena la fila con el color que da backend_color_to_aqt_color (FLAG_1 a FLAG_7, STATE_MARKED, STATE_SUSPENDED o STATE_BURIED) pasado por adjusted_bg_color: de día, QColor(color).lighter(150), que lo hace más luminoso y, si se sale de escala, menos saturado; de noche, darker(150). Encima va el texto normal de la tabla.
+- Por qué es buena práctica: un color que se lee bien como icono puede dejar ilegible el texto de la fila. Con los tonos pastel nocturnos de Anki y un texto claro, siete de las diez clases de fila quedan por debajo de 4,5:1, y la de suspendidas, en 2:1.
+- Para qué sirve: elegir los colores de bandera y de estado en cualquier tema o complemento que los redefina.
+- Cómo se aplica: en las pruebas, importe adjusted_bg_color de aqt.browser.table y mida el contraste del texto (FG) sobre su resultado en los dos modos (4,5:1 o más), además del color como icono sobre CANVAS (3:1 o más). Al usar la función de Anki, la prueba sigue a Anki si cambia el factor.
+- Fuente: aqt/browser/table/__init__.py y aqt/browser/table/table.py
+- Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado y pruebas de Nocturne 2.0.0), en otra copia del taller; vuelto a comprobar el 2026-10-21 en el código instalado de este taller.
+- Origen: rediseño de Nocturne 2.0.0, hecho en otra copia del taller; incorporado el 2026-10-21 con número nuevo (allí era APR-056).
+
+### APR-059 · Retocar la hoja de estilo Qt de Anki: style_did_init y aqt.props
+- Qué es: ThemeManager.apply_style arma la paleta y, con el estilo «Anki», la hoja de aqt/stylesheets.py, y antes de aplicarla la pasa por el filtro gui_hooks.style_did_init(style) -> str, puesto para que los complementos la modifiquen. Las medidas (BORDER_RADIUS, TRANSITION...) están en aqt.props, que reexporta _aqt.props, como diccionarios light/dark igual que aqt.colors, y la hoja las lee con tm.var en cada apply_style. En Windows, Preferencias solo ofrece el estilo «Anki».
+- Por qué es buena práctica: es la vía que Anki ofrece. Añadir reglas al final respeta el resto de su hoja y se rehace solo al cambiar de día a noche; reescribir aqt.props cambia todas las esquinas a la vez.
+- Para qué sirve: dar jerarquía (por ejemplo, el botón por defecto en el azul de acción), un estado de pulsado o más espacio a todas las ventanas sin dibujar controles a mano.
+- Cómo se aplica: registre el filtro antes de pedir a Anki que rehaga el estilo; lea el modo dentro del filtro (theme_manager.night_mode) y devuelva la hoja intacta si mw.pm.get_widget_style() no es WidgetStyle.ANKI o si algo falla. En :hover, :pressed, :focus y :default mantenga borde más margen constante (1px y 1px, o 2px y 0) y no cambie la letra, o el botón cambia de tamaño. Qt lee «#AARRGGBB»: las transparencias van en rgba(). No pase de 6px en BORDER_RADIUS: las casillas miden 16px y las barras de desplazamiento, 12px.
+- Fuente: aqt/theme.py, aqt/stylesheets.py, aqt/props.py, _aqt/props.py, _aqt/hooks.py y aqt/preferences.py
+- Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado y ventana de prueba dibujada fuera de pantalla con la hoja real), en otra copia del taller; vuelto a comprobar el 2026-10-21 en el código instalado de este taller.
+- Origen: rediseño de Nocturne 2.0.0, hecho en otra copia del taller; incorporado el 2026-10-21 con número nuevo (allí era APR-057).
+
+### APR-060 · Las clases de las páginas de Anki y su barra superior
+- Qué es: ThemeManager.body_class pone en el body isWin, isMac o isLin; nightMode y night_mode de noche; reduce-motion si se pide menos movimiento (salvo en tarjetas); y fancy si no está el «Modo minimalista». Las tarjetas suman card y cardN. La barra superior es un div de clase toolbar con los enlaces .hitem #decks, #add, #browse, #stats y #sync; updateSyncColor pone en #sync la clase normal-sync (color --state-new) o full-sync (--state-learn), y el icono #sync-spinner gira con la clase spin. Al cargar, toolbar.js lleva a la bandeja derecha todo hijo de .toolbar que esté en posición absoluta o tenga un nodo hijo así, porque lo toma por un complemento antiguo.
+- Por qué es buena práctica: con estas marcas se da estilo a cada pantalla sin tocar las tarjetas ni depender de JS, y se evita que un retoque inocente mande un enlace a la bandeja.
+- Para qué sirve: cualquier CSS que se inyecte en las páginas de Anki (temas, insignias, avisos).
+- Cómo se aplica: escriba los selectores con body:not(.card), o con html body:not(.card) para ganar a reglas de Anki de igual peso; para una señal en la barra, use un ::after (no es un nodo) dentro de un enlace con position: relative, nunca un hijo en posición absoluta.
+- Fuente: aqt/theme.py, aqt/toolbar.py, _aqt/data/web/js/toolbar.js y _aqt/data/web/css/toolbar.css
+- Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado y maqueta con las hojas reales de Anki en el navegador integrado), en otra copia del taller; vuelto a comprobar el 2026-10-21 en el código instalado de este taller.
+- Origen: rediseño de Nocturne 2.0.0, hecho en otra copia del taller; incorporado el 2026-10-21 con número nuevo (allí era APR-058).
+
+### APR-061 · El foco y el blanco fijo en los botones web de Anki
+- Qué es: webview.css declara button { outline: none !important }, así que ningún botón de las páginas clásicas muestra el foco del teclado. Además, Anki escribe en blanco fijo sobre el azul de acción: overview.css fija #study en #fff, la hoja Qt pone en «white» la pestaña seleccionada y el editor usa #fff en button.active. Los botones clásicos (barras inferiores de la lista de mazos y de la pantalla del mazo, y los del repaso) no tienen clase, y los creados con mw.button llevan «but»; los de las páginas nuevas tienen clases propias.
+- Por qué es buena práctica: el foco visible es un requisito AA (WCAG 2.4.7), y el texto sobre el azul debe llegar a 4,5:1 (WCAG 1.4.3) aunque Anki lo escriba en blanco fijo.
+- Para qué sirve: temas y complementos que cambien el azul de acción o el aspecto de los botones.
+- Cómo se aplica: un contorno con body:not(.card) button:is(:not([class]), .but):focus-visible, con !important y desplazado 2px; compruebe que BUTTON_PRIMARY_BG, sus degradados y el pulsado dan 4,5:1 con blanco puro además de con HIGHLIGHT_FG; deje como están los botones con clases de las páginas nuevas.
+- Fuente: _aqt/data/web/css/webview.css, _aqt/data/web/css/overview.css, aqt/stylesheets.py, aqt/main.py, aqt/deckbrowser.py y aqt/reviewer.py
+- Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado y maqueta en el navegador integrado), en otra copia del taller; vuelto a comprobar el 2026-10-21 en el código instalado de este taller.
+- Origen: rediseño de Nocturne 2.0.0, hecho en otra copia del taller; incorporado el 2026-10-21 con número nuevo (allí era APR-059).
+
 ## Retirados
 
 Aprendizajes que dejaron de valer, con fecha y motivo («- APR-NNN (AAAA-MM-DD): motivo»). Su número no
