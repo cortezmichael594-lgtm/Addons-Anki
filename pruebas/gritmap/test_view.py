@@ -10,7 +10,7 @@ from datetime import date
 
 import anki.lang
 from gritmap import i18n, palettes, view
-from gritmap.config import DEFAULT_CONFIG, KeyDate
+from gritmap.config import DEFAULT_CONFIG, FIT_WIDTH, KeyDate
 from gritmap.data import DayActivity, HeatmapData
 
 TODAY = date(2026, 10, 13)
@@ -74,17 +74,18 @@ class WidgetTest(unittest.TestCase):
         self.assertNotIn('data-gritmap-btn="today"', html)
         self.assertIn('data-gritmap-btn="opts"', html)
 
-    def test_default_map_fits_the_width_like_4_1(self) -> None:
-        # 4.4.0: de serie, cuadritos de 14 en el dibujo, esquinas de 2, a todo
-        # el ancho (10 px como minimo) y meses en porcentaje.
-        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+    def test_fit_to_width_like_4_1(self) -> None:
+        # 4.4.0: ajustado al ancho, cuadritos de 14 en el dibujo, esquinas de
+        # 2, a todo el ancho (10 px como minimo) y meses en porcentaje.
+        cfg = replace(DEFAULT_CONFIG, cell_size=FIT_WIDTH, border_radius=2)
+        html = view.build_widget_html(sample(), cfg, 0)
         width = view.grid_width(2026)
         self.assertEqual(width, 53 * 17 - 3)
         self.assertIn(f'class="gritmap-year gritmap-fit" style="min-width:{width * 10 / 14:.0f}px"', html)
         self.assertIn(f'<svg viewBox="0 0 {width} 116" xmlns=', html)
         self.assertRegex(html, r'<rect class="gritmap-cell" x="\d+" y="\d+" width="14" height="14" rx="2"')
         self.assertRegex(html, r'class="gritmap-month"[^>]*style="left:[\d.]+%"')
-        self.assertIn("aspect-ratio:", view.placeholder_html(DEFAULT_CONFIG))
+        self.assertIn("aspect-ratio:", view.placeholder_html(cfg))
 
     def test_no_period_buttons_on_the_page(self) -> None:
         # El periodo se elige en Opciones (cliente, 2026-10-21); las tarjetas lo dicen.
@@ -115,8 +116,9 @@ class WidgetTest(unittest.TestCase):
     def test_fixed_size_scales_everything(self) -> None:
         # 4.5.0: con un tamano, el dibujo entero se escala (huecos y esquinas
         # en proporcion), con el mismo dibujo que el ajustado al ancho.
-        fit = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, border_radius=3), 0)
-        html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=28, border_radius=3), 0)
+        # 4.6.0: el redondeo va en pixeles reales (6 px a 28 px = 3 a 14).
+        fit = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=FIT_WIDTH, border_radius=3), 0)
+        html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=28, border_radius=6), 0)
         self.assertEqual(re.findall(r"<svg viewBox[^>]*role=\"group\".*?</svg>", fit), re.findall(r"<svg viewBox[^>]*role=\"group\".*?</svg>", html))
         self.assertRegex(html, r'<rect class="gritmap-cell" x="\d+" y="\d+" width="14" height="14" rx="3"')
         self.assertIn(f'class="gritmap-year" style="width:{view.grid_width(2026) * 2}px"', html)

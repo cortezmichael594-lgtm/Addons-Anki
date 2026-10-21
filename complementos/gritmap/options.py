@@ -484,12 +484,12 @@ class HeatmapOptionsDialog(QDialog):
         # Un paso por debajo del minimo, el campo dice «Ajustado al ancho»
         # (el de serie, 4.4.0): el mapa ocupa todo el ancho, como en la 4.1.0.
         # Con un tamano, el mapa entero crece o encoge en proporcion (4.5.0):
-        # el campo es «Tamano», no «Tamano de celda», y el redondeo no lleva
-        # «(px)» porque va en la escala del cuadrito.
+        # el campo es «Tamano del mapa» (4.6.0), y los dos llevan «px» al final.
         self._cell_size = _spin_box(CELL_SIZE_MIN - 1, CELL_SIZE_MAX)
         self._cell_size.setSpecialValueText(t("size_fit"))
         self._cell_size.setSuffix(" px")
         self._border_radius = _spin_box(BORDER_RADIUS_MIN, BORDER_RADIUS_MAX)
+        self._border_radius.setSuffix(" px")
         self._preview_timer = QTimer(self)
         self._preview_timer.setSingleShot(True)
         self._preview_timer.setInterval(80)
@@ -570,7 +570,7 @@ class HeatmapOptionsDialog(QDialog):
             notice.setWordWrap(True)
             look.addRow(notice)
         look.addRow(t("opt_theme"), self._theme)
-        look.addRow(t("opt_size"), self._cell_size)
+        look.addRow(t("opt_map_size"), self._cell_size)
         look.addRow(_without_px("opt_radius"), self._border_radius)
         counted = QFormLayout()
         counted.addRow(t("opt_measure"), self._measure)

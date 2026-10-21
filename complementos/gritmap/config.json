@@ -1,8 +1,8 @@
 {
     "theme": "classic_green",
     "measure": "reviews",
-    "map_cell": 0,
-    "map_corners": 2,
+    "map_size": 24,
+    "map_radius": 3,
     "avg_window": 30,
     "goal_mode": "none",
     "goal": 50,

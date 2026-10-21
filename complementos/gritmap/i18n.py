@@ -5915,3 +5915,24 @@ for _code, _texts_of in STRINGS.items():
     _none = _texts_of.get("no_key_dates", "")
     if _none:
         _texts_of["no_key_dates"] = _none[0].lower() + _none[1:]
+
+# «Tamano del mapa» (4.6.0, peticion del cliente): el campo agranda o encoge
+# el mapa entero, no solo los cuadritos.
+_MAP_SIZE: dict[str, str] = {
+    "en": "Map size", "es": "Tamaño del mapa", "de": "Kartengröße", "fr": "Taille de la carte",
+    "it": "Dimensione della mappa", "pt": "Tamanho do mapa", "nl": "Grootte van de kaart",
+    "ru": "Размер карты", "pl": "Rozmiar mapy", "tr": "Harita boyutu", "ja": "マップのサイズ",
+    "ko": "지도 크기", "zh_CN": "地图大小", "zh_TW": "地圖大小", "ar": "حجم الخريطة",
+    "el": "Μέγεθος χάρτη", "sv": "Kartans storlek", "da": "Kortets størrelse", "nb": "Kartstørrelse",
+    "fi": "Kartan koko", "cs": "Velikost mapy", "sk": "Veľkosť mapy", "hu": "Térkép mérete",
+    "ro": "Mărimea hărții", "uk": "Розмір карти", "vi": "Kích thước bản đồ", "th": "ขนาดแผนที่",
+    "ms": "Saiz peta", "tl": "Laki ng mapa", "he": "גודל המפה", "hr": "Veličina karte",
+    "sr": "Величина мапе", "sl": "Velikost zemljevida", "bg": "Размер на картата",
+    "ca": "Mida del mapa", "eu": "Maparen tamaina", "gl": "Tamaño do mapa", "et": "Kaardi suurus",
+    "fa": "اندازهٔ نقشه", "mn": "Газрын зургийн хэмжээ", "be": "Памер карты", "eo": "Grandeco de la mapo",
+    "af": "Kaartgrootte", "ga": "Méid an léarscáil", "la": "Magnitudo tabulae", "oc": "Talha de la mapa",
+    "uz": "Xarita o'lchami", "jbo": "lo karni barda", "hy": "Քարտեզի չափ", "ug": "خەرىتە چوڭلۇقى",
+    "or": "ମାନଚିତ୍ରର ଆକାର",
+}
+for _code, _text in _MAP_SIZE.items():
+    STRINGS[_code]["opt_map_size"] = _text

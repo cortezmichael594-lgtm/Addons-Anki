@@ -296,3 +296,11 @@ Versión 4.5.0 (petición del cliente del 2026-10-21 sobre la 4.4.0):
   escala). Antes el hueco se quedaba en 3 px y el redondeo en píxeles, y el mapa dejaba de parecerse.
   Lo eligió el cliente entre dos opciones. El redondeo va de 0 a 7 (7 ya es un círculo); un valor
   mayor guardado antes se queda en 7.
+
+Versión 4.6.0 (petición del cliente del 2026-10-21 sobre la 4.5.0):
+
+- El campo se llama «Tamaño del mapa» y, de serie, mide 24 px (ya no «Ajustado al ancho», que sigue
+  como primer valor). Para que todos lo vean, el tamaño y el redondeo guardados por la 4.2 a la 4.5
+  se dejan de leer. Lo pidió el cliente.
+- El redondeo lleva «px» y va en píxeles reales del cuadrito, de 0 a 15 (3 px de serie, la misma
+  proporción que la 4.1.0 a 24 px). Lo pidió el cliente; los huecos siguen en proporción.

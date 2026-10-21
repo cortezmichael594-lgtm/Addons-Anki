@@ -45,12 +45,13 @@ KEY_DATE_MAX = date(2100, 12, 31)
 
 # Tamano de celda y redondeo de esquinas, en pixeles (vuelven en la 4.2.0,
 # peticion del cliente del 2026-10-21, en lugar de «Tamano» y «Forma»). Un
-# tamano FIT_WIDTH es «Ajustado al ancho», el de serie desde la 4.4.0: el mapa
-# se ve como en la 4.1.0.
+# tamano FIT_WIDTH es «Ajustado al ancho» (de serie en la 4.4 y la 4.5); desde
+# la 4.6.0 el de serie es 24 px (peticion del cliente).
 FIT_WIDTH = 0
 CELL_SIZE_MIN, CELL_SIZE_MAX = 8, 60
-# El redondeo va en la escala de un cuadrito de 14: 7 ya es un circulo.
-BORDER_RADIUS_MIN, BORDER_RADIUS_MAX = 0, 7
+# El redondeo va en pixeles reales del cuadrito (4.6.0); por encima de la
+# mitad del cuadrito ya es un circulo.
+BORDER_RADIUS_MIN, BORDER_RADIUS_MAX = 0, 15
 GOAL_MODES: tuple[str, ...] = ("none", "number", "due")
 GOAL_MIN, GOAL_MAX = 1, 9999
 MAX_PAUSE_DAYS = 30
@@ -63,8 +64,8 @@ COL_KEY = "gritmap"
 APPEARANCE_KEYS = (
     "theme",
     "measure",
-    "map_cell",
-    "map_corners",
+    "map_size",
+    "map_radius",
     "avg_window",
     "goal_mode",
     "goal",
@@ -73,8 +74,11 @@ APPEARANCE_KEYS = (
 )
 # Claves de versiones anteriores que se dejan de guardar (3.x, y el tamano y
 # el redondeo de la 4.2 y la 4.3, que se guardaban en pixeles fijos: la 4.4.0
-# los lee con otro nombre para que todos vuelvan al mapa de la 4.1.0).
-_OLD_APPEARANCE_KEYS = ("size", "shape", "show_week_diff", "stats_open", "cell_size", "border_radius")
+# los lee con otro nombre para que todos vuelvan al mapa de la 4.1.0; y los de
+# la 4.4 y la 4.5, para que todos pasen a los 24 px de serie de la 4.6.0).
+_OLD_APPEARANCE_KEYS = (
+    "size", "shape", "show_week_diff", "stats_open", "cell_size", "border_radius", "map_cell", "map_corners",
+)
 COLLECTION_KEYS = ("excluded_decks", "key_dates", "pause")
 
 
@@ -90,9 +94,9 @@ class Config:
     # Que mide el color: "reviews", "cards" o "new" (data.MEASURES). Un "minutes"
     # guardado por la version 3.0.0 vuelve a "reviews" al leerse.
     measure: str
-    # Lado de cada cuadrito en pixeles (FIT_WIDTH: ajustado al ancho) y
-    # redondeo de sus esquinas, en la escala de un cuadrito de 14 (el dibujo
-    # se escala entero, 4.5.0).
+    # Lado de cada cuadrito en pixeles (FIT_WIDTH: ajustado al ancho; el
+    # dibujo se escala entero, 4.5.0) y redondeo de sus esquinas en pixeles
+    # (con el ajustado al ancho, los de un cuadrito de 14).
     cell_size: int
     border_radius: int
     # Dias de la ventana del promedio; 0 = todo el historial (data.WINDOWS).
@@ -117,8 +121,8 @@ class Config:
 DEFAULT_CONFIG = Config(
     theme="classic_green",
     measure="reviews",
-    cell_size=FIT_WIDTH,
-    border_radius=2,
+    cell_size=24,
+    border_radius=3,
     avg_window=30,
     goal_mode="none",
     goal=50,
@@ -188,17 +192,17 @@ def _as_cell(value: object) -> int:
 
 def _as_radius(stored: dict[str, object]) -> int:
     """Redondeo; quien eligio «Redondeado» en la 4.0 o la 4.1 conserva esquinas
-    redondeadas (5) hasta que guarde las opciones.
+    redondeadas (8 px) hasta que guarde las opciones.
 
     Anki mezcla los valores por defecto de config.json con los guardados
-    (APR-065), asi que «map_corners» siempre esta; «shape», que ya no viene
+    (APR-065), asi que «map_radius» siempre esta; «shape», que ya no viene
     por defecto, solo existe si la guardo una de esas versiones.
     """
     radius = _as_int(
-        stored.get("map_corners"), DEFAULT_CONFIG.border_radius, BORDER_RADIUS_MIN, BORDER_RADIUS_MAX
+        stored.get("map_radius"), DEFAULT_CONFIG.border_radius, BORDER_RADIUS_MIN, BORDER_RADIUS_MAX
     )
     if stored.get("shape") == "rounded" and radius == DEFAULT_CONFIG.border_radius:
-        return 5
+        return 8
     return radius
 
 
@@ -347,7 +351,7 @@ def build_config(stored: dict[str, object], scoped: dict[str, object]) -> Config
     return Config(
         theme=_as_theme(raw_theme),
         measure=_as_measure(stored.get("measure")),
-        cell_size=_as_cell(stored.get("map_cell")),
+        cell_size=_as_cell(stored.get("map_size")),
         border_radius=_as_radius(stored),
         avg_window=_as_window(stored.get("avg_window")),
         goal_mode=_as_choice(stored.get("goal_mode"), GOAL_MODES, DEFAULT_CONFIG.goal_mode),
@@ -368,8 +372,8 @@ def save_appearance(cfg: Config) -> None:
         {
             "theme": cfg.theme,
             "measure": cfg.measure,
-            "map_cell": cfg.cell_size,
-            "map_corners": cfg.border_radius,
+            "map_size": cfg.cell_size,
+            "map_radius": cfg.border_radius,
             "avg_window": cfg.avg_window,
             "goal_mode": cfg.goal_mode,
             "goal": cfg.goal,

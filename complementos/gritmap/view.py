@@ -496,6 +496,14 @@ def _fit(cfg: Config) -> bool:
     return cfg.cell_size == FIT_WIDTH
 
 
+def _radius_units(cfg: Config) -> float:
+    """Redondeo en unidades del dibujo: el elegido en pixeles, pasado a la
+    escala del cuadrito de 14 (con «Ajustado al ancho», tal cual)."""
+    if _fit(cfg):
+        return float(cfg.border_radius)
+    return round(cfg.border_radius * _CELL / cfg.cell_size, 2)
+
+
 def _week_count(year: int) -> int:
     start = date(year, 1, 1)
     days = (date(year, 12, 31) - start).days + 1
@@ -567,7 +575,7 @@ def _build_cell(
     if focusable:
         attrs += ' tabindex="0"'
     return (
-        f'<rect class="{css}" x="{x}" y="{y}" width="{cell}" height="{cell}" rx="{cfg.border_radius}"'
+        f'<rect class="{css}" x="{x}" y="{y}" width="{cell}" height="{cell}" rx="{_radius_units(cfg):g}"'
         f' fill="{fill}" data-gritmap-tip="1" data-d="{day.isoformat()}" data-v="{shown}"'
         f' data-t="{template}"{attrs}></rect>{extra}'
     )
@@ -688,7 +696,7 @@ def build_legend(
     """«Menos ▢▣▣▣▣ Mas»: los cinco cuadritos del mapa, cada uno con sus cifras
     en el globo, y las muestras de lo que salga en el ano que se ve."""
     # El redondeo de la leyenda sigue al del mapa, a escala de su cuadrito.
-    radius = min(cfg.border_radius * 11 / _CELL, 5.5)
+    radius = min(_radius_units(cfg) * 11 / _CELL, 5.5)
     none_key = "tt_new_none" if cfg.measure == "new" else "tt_no_reviews"
     cells = [_legend_cell("gritmap-lg-c0", t(none_key), radius)]
     for index, (low, high) in enumerate(legend_ranges(thresholds)):
