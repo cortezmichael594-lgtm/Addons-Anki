@@ -412,6 +412,17 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         }
     }
 
+    /* Centra un dia en la rejilla si no cabe entera a lo ancho. */
+    function centreCell(grid, cell) {
+        if (grid.scrollWidth <= grid.clientWidth) {
+            return;
+        }
+        var cellBox = cell.getBoundingClientRect();
+        var gridBox = grid.getBoundingClientRect();
+        var centre = cellBox.left - gridBox.left + grid.scrollLeft - grid.clientWidth / 2;
+        grid.scrollLeft = Math.max(0, centre);
+    }
+
     /* Al abrir un ano se ensena la semana de hoy aunque la ventana sea
      * estrecha; en un ano pasado, su final, y en uno futuro, su principio. */
     function scrollToToday(container) {
