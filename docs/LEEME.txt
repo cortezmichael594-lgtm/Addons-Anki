@@ -14,6 +14,9 @@ Carpeta docs: documentos de consulta. Claude Code los lee cuando los necesita.
   automejora.md             la ficha de cada aprendizaje (qué es, por qué conviene, para qué sirve y de
                             dónde sale), los documentos ya revisados, las propuestas de cambio que
                             esperan su respuesta y los cambios que usted aprobó.
+  referencias/              sus resúmenes de libros, artículos y vídeos, con «indice.md» (una línea por
+                            documento). Claude Code solo lee el índice y, al diseñar, el apartado que
+                            venga al caso. Deje aquí cada resumen nuevo: lo anotará en el índice.
   <complemento>/            una carpeta por complemento con dos documentos: «que-hace.md» (todo lo que
                             hace, en lenguaje llano) y «errores.md» (fallos pendientes, corregidos y
                             lo que es así a propósito).

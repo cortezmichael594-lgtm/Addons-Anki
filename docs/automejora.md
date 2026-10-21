@@ -530,6 +530,69 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado) y las pruebas de pruebas/gritmap/test_data.py (los tramos dan los mismos días que una sola consulta).
 - Origen: revisión de GritMap, 2026-10-12.
 
+### APR-058 · Las filas de Explorar se pintan con el color de bandera o de estado
+- Qué es: en Explorar, StatusDelegate.paint rellena la fila con el color que da backend_color_to_aqt_color (FLAG_1 a FLAG_7, STATE_MARKED, STATE_SUSPENDED o STATE_BURIED) pasado por adjusted_bg_color: de día, QColor(color).lighter(150), que lo hace más luminoso y, si se sale de escala, menos saturado; de noche, darker(150). Encima va el texto normal de la tabla.
+- Por qué es buena práctica: un color que se lee bien como icono puede dejar ilegible el texto de la fila. Con los tonos pastel nocturnos de Anki y un texto claro, siete de las diez clases de fila quedan por debajo de 4,5:1, y la de suspendidas, en 2:1.
+- Para qué sirve: elegir los colores de bandera y de estado en cualquier tema o complemento que los redefina.
+- Cómo se aplica: en las pruebas, importe adjusted_bg_color de aqt.browser.table y mida el contraste del texto (FG) sobre su resultado en los dos modos (4,5:1 o más), además del color como icono sobre CANVAS (3:1 o más). Al usar la función de Anki, la prueba sigue a Anki si cambia el factor.
+- Fuente: aqt/browser/table/__init__.py y aqt/browser/table/table.py
+- Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado y pruebas de Nocturne 2.0.0), en otra copia del taller; vuelto a comprobar el 2026-10-21 en el código instalado de este taller.
+- Origen: rediseño de Nocturne 2.0.0, hecho en otra copia del taller; incorporado el 2026-10-21 con número nuevo (allí era APR-056).
+
+### APR-059 · Retocar la hoja de estilo Qt de Anki: style_did_init y aqt.props
+- Qué es: ThemeManager.apply_style arma la paleta y, con el estilo «Anki», la hoja de aqt/stylesheets.py, y antes de aplicarla la pasa por el filtro gui_hooks.style_did_init(style) -> str, puesto para que los complementos la modifiquen. Las medidas (BORDER_RADIUS, TRANSITION...) están en aqt.props, que reexporta _aqt.props, como diccionarios light/dark igual que aqt.colors, y la hoja las lee con tm.var en cada apply_style. En Windows, Preferencias solo ofrece el estilo «Anki».
+- Por qué es buena práctica: es la vía que Anki ofrece. Añadir reglas al final respeta el resto de su hoja y se rehace solo al cambiar de día a noche; reescribir aqt.props cambia todas las esquinas a la vez.
+- Para qué sirve: dar jerarquía (por ejemplo, el botón por defecto en el azul de acción), un estado de pulsado o más espacio a todas las ventanas sin dibujar controles a mano.
+- Cómo se aplica: registre el filtro antes de pedir a Anki que rehaga el estilo; lea el modo dentro del filtro (theme_manager.night_mode) y devuelva la hoja intacta si mw.pm.get_widget_style() no es WidgetStyle.ANKI o si algo falla. En :hover, :pressed, :focus y :default mantenga borde más margen constante (1px y 1px, o 2px y 0) y no cambie la letra, o el botón cambia de tamaño. Qt lee «#AARRGGBB»: las transparencias van en rgba(). No pase de 6px en BORDER_RADIUS: las casillas miden 16px y las barras de desplazamiento, 12px.
+- Fuente: aqt/theme.py, aqt/stylesheets.py, aqt/props.py, _aqt/props.py, _aqt/hooks.py y aqt/preferences.py
+- Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado y ventana de prueba dibujada fuera de pantalla con la hoja real), en otra copia del taller; vuelto a comprobar el 2026-10-21 en el código instalado de este taller.
+- Origen: rediseño de Nocturne 2.0.0, hecho en otra copia del taller; incorporado el 2026-10-21 con número nuevo (allí era APR-057).
+
+### APR-060 · Las clases de las páginas de Anki y su barra superior
+- Qué es: ThemeManager.body_class pone en el body isWin, isMac o isLin; nightMode y night_mode de noche; reduce-motion si se pide menos movimiento (salvo en tarjetas); y fancy si no está el «Modo minimalista». Las tarjetas suman card y cardN. La barra superior es un div de clase toolbar con los enlaces .hitem #decks, #add, #browse, #stats y #sync; updateSyncColor pone en #sync la clase normal-sync (color --state-new) o full-sync (--state-learn), y el icono #sync-spinner gira con la clase spin. Al cargar, toolbar.js lleva a la bandeja derecha todo hijo de .toolbar que esté en posición absoluta o tenga un nodo hijo así, porque lo toma por un complemento antiguo.
+- Por qué es buena práctica: con estas marcas se da estilo a cada pantalla sin tocar las tarjetas ni depender de JS, y se evita que un retoque inocente mande un enlace a la bandeja.
+- Para qué sirve: cualquier CSS que se inyecte en las páginas de Anki (temas, insignias, avisos).
+- Cómo se aplica: escriba los selectores con body:not(.card), o con html body:not(.card) para ganar a reglas de Anki de igual peso; para una señal en la barra, use un ::after (no es un nodo) dentro de un enlace con position: relative, nunca un hijo en posición absoluta.
+- Fuente: aqt/theme.py, aqt/toolbar.py, _aqt/data/web/js/toolbar.js y _aqt/data/web/css/toolbar.css
+- Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado y maqueta con las hojas reales de Anki en el navegador integrado), en otra copia del taller; vuelto a comprobar el 2026-10-21 en el código instalado de este taller.
+- Origen: rediseño de Nocturne 2.0.0, hecho en otra copia del taller; incorporado el 2026-10-21 con número nuevo (allí era APR-058).
+
+### APR-061 · El foco y el blanco fijo en los botones web de Anki
+- Qué es: webview.css declara button { outline: none !important }, así que ningún botón de las páginas clásicas muestra el foco del teclado. Además, Anki escribe en blanco fijo sobre el azul de acción: overview.css fija #study en #fff, la hoja Qt pone en «white» la pestaña seleccionada y el editor usa #fff en button.active. Los botones clásicos (barras inferiores de la lista de mazos y de la pantalla del mazo, y los del repaso) no tienen clase, y los creados con mw.button llevan «but»; los de las páginas nuevas tienen clases propias.
+- Por qué es buena práctica: el foco visible es un requisito AA (WCAG 2.4.7), y el texto sobre el azul debe llegar a 4,5:1 (WCAG 1.4.3) aunque Anki lo escriba en blanco fijo.
+- Para qué sirve: temas y complementos que cambien el azul de acción o el aspecto de los botones.
+- Cómo se aplica: un contorno con body:not(.card) button:is(:not([class]), .but):focus-visible, con !important y desplazado 2px; compruebe que BUTTON_PRIMARY_BG, sus degradados y el pulsado dan 4,5:1 con blanco puro además de con HIGHLIGHT_FG; deje como están los botones con clases de las páginas nuevas.
+- Fuente: _aqt/data/web/css/webview.css, _aqt/data/web/css/overview.css, aqt/stylesheets.py, aqt/main.py, aqt/deckbrowser.py y aqt/reviewer.py
+- Comprobado: 2026-10-13, con Anki 26.09.3 (código instalado y maqueta en el navegador integrado), en otra copia del taller; vuelto a comprobar el 2026-10-21 en el código instalado de este taller.
+- Origen: rediseño de Nocturne 2.0.0, hecho en otra copia del taller; incorporado el 2026-10-21 con número nuevo (allí era APR-059).
+
+### APR-062 · Estilos de una pantalla, solo para sus elementos
+- Qué es: todas las páginas de Anki cargan el CSS que se inyecta con webview_will_set_content, y varias usan las mismas etiquetas. La lista de mazos dibuja cada mazo como una fila <tr class="deck"> (con «deck current» en el mazo actual) e id numérico; la pantalla de un mazo (overview) usa dos tablas anidadas sin clase para Nuevas, Aprendiendo y A repasar.
+- Por qué es buena práctica: una regla genérica (tr:hover, tr[id]) pensada para una pantalla se cuela en otras: en Nocturne 3.1.0, la tabla de la pantalla de estudio se teñía al pasar el ratón (FIX-006).
+- Para qué sirve: temas y complementos que retoquen la lista de mazos, la pantalla de un mazo o el repaso.
+- Cómo se aplica: apunte a las clases e ids propios de cada pantalla (tr.deck, .current, #study, button[data-ease], .toolbar .hitem) y añada una prueba que compruebe que el CSS no contiene el selector genérico.
+- Fuente: aqt/deckbrowser.py (_render_deck_node: klass «deck current»), aqt/overview.py (_table) y pruebas/nocturne/test_estilos.py (test_row_highlight_only_in_deck_list)
+- Comprobado: 2026-10-21, con Anki 26.09.3 (código instalado y prueba que falló antes del arreglo y pasa después).
+- Origen: FIX-006 de Nocturne 3.2.0.
+
+### APR-063 · La ventana de configuración propia, delante de la de complementos
+- Qué es: el botón «Configuración» de la ventana de complementos (y el doble clic) llama a la función registrada con mw.addonManager.setConfigAction. Esa ventana de complementos (AddonsDialog) tiene de padre mw, se muestra con show() sin bloquear y se destruye al cerrarse; Anki abre su propio editor (ConfigEditor) con la ventana de complementos de padre.
+- Por qué es buena práctica: una ventana propia con padre mw, abierta con show(), quedó detrás de la de complementos en Windows y el cliente no podía usar ninguna de las dos (FIX-007 de Nocturne).
+- Para qué sirve: cualquier complemento con ventana de configuración propia.
+- Cómo se aplica: padre = mw.app.activeWindow() or mw; abrir con open(), que la deja delante y bloquea solo a su padre sin detener el programa; crearla en cada apertura (con WA_DeleteOnClose), porque si se reutilizara con la ventana de complementos de padre, se destruiría con ella; título nativo con without_unicode_isolation(tr.addons_config_window_title(name=...)), disable_help_button y los botones estándar de QDialogButtonBox.
+- Fuente: aqt/addons.py (AddonsDialog.__init__, onConfig y ConfigEditor.__init__), aqt/utils.py (disable_help_button) y pruebas/nocturne/test_ventana.py (OwnerWindowTest).
+- Comprobado: 2026-10-21, con Anki 26.09.3 (código instalado y prueba que falló antes del arreglo y pasa después). El comportamiento en Windows lo describió el cliente; está pendiente de que lo pruebe.
+- Origen: FIX-007 de Nocturne 3.3.0.
+
+### APR-064 · Traducciones en las pruebas y cuándo avisa theme_did_change
+- Qué es: tr (aqt.utils.tr, que es anki.lang.tr_legacyglobal) traduce con el motor de Anki, que fuera de Anki no existe hasta que se llama a anki.lang.set_lang. Por otro lado, theme_manager.apply_style termina siempre con gui_hooks.theme_did_change().
+- Por qué es buena práctica: sin set_lang, una prueba que construya una ventana con textos de Anki falla con «TypeError: 'NoneType' object is not callable», que no apunta a la causa. Y saber que theme_did_change llega en cada apply_style evita registrar un segundo aviso para el cambio de paleta o de estilo de controles.
+- Para qué sirve: pruebas de ventanas con textos de Anki; complementos que repintan algo propio con los colores del tema.
+- Cómo se aplica: en el módulo de pruebas, anki.lang.set_lang("es") después de crear la QApplication; para repintar lo propio, un solo gancho en theme_did_change (con guard: si falla, Anki lo quita y muestra el error).
+- Fuente: anki/_backend.py (_translate), anki/lang.py (set_lang), aqt/theme.py (apply_style, línea con gui_hooks.theme_did_change()) y _aqt/hooks.py (_ThemeDidChangeHook: quita el gancho que falla y relanza el error); prueba en pruebas/nocturne/test_ventana.py.
+- Comprobado: 2026-10-21, con Anki 26.09.3 (código instalado y ejecución de las pruebas con y sin set_lang).
+- Origen: Nocturne 3.3.0.
+
 ## Retirados
 
 Aprendizajes que dejaron de valer, con fecha y motivo («- APR-NNN (AAAA-MM-DD): motivo»). Su número no
@@ -544,10 +607,10 @@ nuevo, empaquetar.py --revision avisa.
 
 | Documento | Huella | Revisado | Resultado |
 | --- | --- | --- | --- |
-| docs/LEEME.txt | a7da4389791b | 2026-10-09 | Índice de la carpeta; actualizado al crear la automejora y al sustituir la guía de complementos. |
+| docs/LEEME.txt | adb01e757c21 | 2026-10-21 | Índice de la carpeta; actualizado al crear la automejora, al sustituir la guía de complementos y con PROP-010 (carpeta de referencias). |
 | docs/guia-complementos.md | 4d1e797d6d1e | 2026-10-09 | Sustituida, con el visto bueno del cliente, por el original oficial (docs-site/addons, commit a13d8a6, Anki 26.09.3) con el código intacto. Leída entera: APR-007 a APR-020. |
 | docs/guia-interfaz.md | c2382e94cd10 | 2026-10-12 | Guía del taller; base desde el principio. Cambiada con PROP-006 (cómo buscar en .venv y setWebExports con patrón cerrado). |
-| docs/paleta-nocturne.md | 4be1cf8b07be | 2026-10-09 | Documento del cliente; base desde el principio. No se ha releído en busca de aprendizajes nuevos. |
+| docs/paleta-nocturne.md | c9c2fbc9e3a1 | 2026-10-21 | Documento del cliente, puesto al día con los colores de Nocturne 3.3.0 (PROP-011). Sin aprendizajes nuevos: sus datos salen del complemento y de sus pruebas. |
 | docs/preparar-entorno.md | fc4d9d999f58 | 2026-10-12 | Actualizado al crear la automejora (notas de versión y revisión de aprendizajes al cambiar Anki), con PROP-001 (sesiones en la nube) y con PROP-008 (no usar "aqt[qt6]"; cómo actualiza Anki el cliente). |
 
 Revisado también, sin guardarlo en el taller: el código fuente oficial de Anki que aportó el cliente
@@ -579,7 +642,7 @@ o a «Propuestas rechazadas».
 
 Lo que el cliente no quiso, con fecha y motivo, para no volver a proponerlo sin un motivo nuevo.
 
-(Ninguna.)
+- PROP-009 · 2026-10-21 · Poner en docs/paleta-nocturne.md los colores, formas y reglas de Nocturne 2.0.0. Se aprobó el 2026-10-13 en otra copia del taller y no llegó a aplicarse; el 2026-10-21 el cliente descartó Nocturne 2.0.0 («hemos sacrificado que sea bonita y atractiva») y pidió partir de la versión original y corregir solo lo que se lea mal, midiéndolo. No se aplica aquí. Sus ideas comprobadas sobre Anki sí se conservan (APR-058 a APR-061).
 
 ## Cambios aprobados
 
@@ -590,3 +653,5 @@ Cada cambio de las reglas, con su aprobación, la copia previa y la huella de CL
 - 2026-10-09 · Cerradura: .claude/settings.json nuevo, con permisos «ask» para editar las reglas del taller y los documentos del cliente; CLAUDE.md (<carpetas> y <automejora>: la cerradura, la prohibición de rodearla y «ni ampliar lo que permite .claude/settings.json»); empaquetar.py (avisa si falta la cerradura, y su autoprueba lo verifica); aprendizaje APR-006. Motivo: que el visto bueno del cliente no dependa de que Claude lo recuerde. Aprobado por el cliente: 2026-10-09. Copia previa: herramientas/copias/CLAUDE-2026-10-09-3.md (y empaquetar-2026-10-09-2.py; .claude/settings.json no existía). Huella de CLAUDE.md: 86a117a4aaa9.
 - 2026-10-09 · PROP-003, PROP-004 y PROP-005, tras revisar el código fuente oficial de Anki que aportó el cliente (commit a13d8a6): docs/guia-complementos.md sustituida por el original oficial con el código intacto; empaquetar.py avisa de piezas de Anki obsoletas (funciones @deprecated, ganchos obsoletos, addHook y archivos *_pb2), con la lista leída del Anki instalado, y admite dev-docs.ankiweb.net y betas.ankiweb.net como fuentes oficiales; el ejemplo de referencia corrige «1 notas» (FIX-001, versión 1.0.1, con prueba de regresión); CLAUDE.md (<carpetas>, <automejora> y <comprobaciones>) y los LEEME al día. Aprobado por el cliente: 2026-10-09. Copia previa: herramientas/copias/CLAUDE-2026-10-09-4.md (y empaquetar-2026-10-09-3.py, guia-complementos-2026-10-09.md y ejemplo-referencia-2026-10-09/). Huella de CLAUDE.md: 63d7834a7f5c.
 - 2026-10-12 · PROP-006, PROP-007 y PROP-008, tras revisar el manual antiguo de Anki y las notas de versión 26.08–26.09.3 que aportó el cliente. PROP-006: CLAUDE.md (<fuentes_de_verdad> 1: Grep no entra en .venv ni indicándole la carpeta, así que se localiza el archivo con Glob y se busca en él, APR-021; <automejora>: el foro oficial, forums.ankiweb.net, entre las pistas, APR-055) y docs/guia-interfaz.md (lo mismo al principio, y setWebExports con patrón cerrado en el punto 8 del apartado 4, APR-049). PROP-007: empaquetar.py avisa de importar anki.importing, anki.exporting, aqt.importing o aqt.exporting, de nombres _Legacy*, de _() y ngettext(), y de un setWebExports que acepta rutas con «..», con su caso en la autoprueba (diez avisos esperados). PROP-008: el ejemplo de referencia pasa a 1.0.2 con FIX-002 (patrón de setWebExports cerrado, con la prueba WebExportsPatternTest, que falló antes del arreglo y pasa después; 19 pruebas) y docs/preparar-entorno.md avisa de no usar "aqt[qt6]" y explica cómo actualiza Anki el cliente. Aprobado por el cliente: 2026-10-12. Copia previa: herramientas/copias/CLAUDE-2026-10-12.md (y guia-interfaz-2026-10-12.md, empaquetar-2026-10-12.py, preparar-entorno-2026-10-12.md y ejemplo-referencia-2026-10-12/). Incidencia: la versión del manifiesto del ejemplo se cambió primero, por error, con un comando que no pasa por la cerradura; se deshizo y se rehízo con la herramienta de edición, y se le dijo al cliente. Huella de CLAUDE.md: 97b885c83fff.
+- 2026-10-21 · PROP-010: docs/referencias/ para resúmenes de libros, artículos y vídeos, con un índice (docs/referencias/indice.md, una línea por documento). CLAUDE.md (<carpetas>: la carpeta; <automejora>: las referencias no se leen enteras al llegar, solo su ficha y su línea en el índice, y al diseñar se lee solo el apartado que venga al caso) y empaquetar.py (esa carpeta deja de contar como documento de consulta y --revision comprueba que cada archivo tenga su línea en el índice). Motivo: el cliente quiere guardar referencias para complementos futuros sin gastar en leerlas enteras en cada sesión; no son fuentes oficiales y no dan aprendizajes. Aprobado por el cliente: 2026-10-21. Copia previa: herramientas/copias/CLAUDE-2026-10-21.md (y empaquetar-2026-10-21.py). Huella de CLAUDE.md: 84b6ffd2033a.
+- 2026-10-21 · PROP-011: docs/paleta-nocturne.md al día con los colores de Nocturne 3.3.0: tablas y bloque JSON generados de complementos/nocturne/palette.py, tokens propios NOCTURNE_*, nuevo apartado de identidad con los mínimos WCAG y APCA y el orden de profundidad nocturno. Aprobado por el cliente: 2026-10-21 («actualiza», tras probar las versiones 3.x). Copia previa: herramientas/copias/paleta-nocturne-2026-10-21.md. CLAUDE.md no cambia.

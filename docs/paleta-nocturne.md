@@ -11,8 +11,21 @@
 
 Azul sereno de acción sobre una base de grises ligeramente azulados. El modo día es
 luminoso y limpio; el modo noche es profundo pero no negro puro, para reducir el
-deslumbramiento. El contraste de todos los textos sobre su fondo cumple el nivel AA
-de accesibilidad (salvo el texto deshabilitado, atenuado a propósito).
+deslumbramiento. Valores de Nocturne 3.3.0 (2026-10-21), comprobados en cada entrega por las
+pruebas del taller:
+
+* Todo color que se use como texto llega a 4,5:1 sobre cualquier fondo (WCAG 2) y,
+  medido con APCA, a 75 el texto principal (`FG`), 60 el secundario (`FG_SUBTLE`) y
+  45 el menos importante (`FG_FAINT`). El texto desactivado (`FG_DISABLED`) llega
+  a 30 de APCA, el mínimo absoluto, y queda por debajo de `FG_FAINT` a propósito.
+* De noche, el texto principal queda en unos 13:1 frente al fondo, para no
+  deslumbrar, y lo que está «más arriba» es más claro: `CANVAS_INSET` < `CANVAS` <
+  `CANVAS_ELEVATED` < `BUTTON_BG` < `CANVAS_OVERLAY` < `BUTTON_HOVER`.
+* Bordes de casillas (`NOCTURNE_CONTROL_BORDER`) e iconos de bandera, 3:1 o más.
+  La bandera roja y la verde se distinguen además por su claridad.
+* Nocturne es una de las tres paletas del complemento (con Papel y Bosque); este
+  documento describe solo Nocturne, la de serie. Las otras están en
+  `complementos/nocturne/themes.py`.
 
 ## Cómo usar esta paleta en un complemento futuro
 
@@ -39,7 +52,7 @@ usa sin Nocturne:
 .mi-addon-boton {
   background: var(--button-primary-bg, #3B6FE0);
   color: var(--highlight-fg, #FFFFFF);
-  border: 1px solid var(--border, #DCE0E6);
+  border: 1px solid var(--border, #DADEE7);
   border-radius: 6px;
 }
 /* Para adaptarse al modo noche sin JS, apóyate en la clase de Anki: */
@@ -57,30 +70,30 @@ seguirá encajando aunque la paleta se ajuste en el futuro.
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`CANVAS`|`--canvas`|`#F7F8FA`|`#12161F`|
-|`CANVAS_ELEVATED`|`--canvas-elevated`|`#FFFFFF`|`#212836`|
-|`CANVAS_OVERLAY`|`--canvas-overlay`|`#FFFFFF`|`#191E2A`|
+|`CANVAS`|`--canvas`, `--bs-body-bg`|`#F7F8FA`|`#12161F`|
+|`CANVAS_ELEVATED`|`--canvas-elevated`|`#FBFCFE`|`#212836`|
+|`CANVAS_OVERLAY`|`--canvas-overlay`|`#FBFCFE`|`#293040`|
 |`CANVAS_INSET`|`--canvas-inset`|`#EEF0F4`|`#0F131B`|
-|`CANVAS_CODE`|`--canvas-code`|`#F1F3F7`|`#141924`|
-|`CANVAS_GLASS`|`--canvas-glass`|`#FFFFFFCC`|`#212836CC`|
+|`CANVAS_CODE`|`--canvas-code`|`#F2F4F7`|`#141924`|
+|`CANVAS_GLASS`|`--canvas-glass`|`#FBFCFECC`|`#212836CC`|
 
 ### Texto
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`FG`|`--fg`|`#1B2430`|`#E9EDF4`|
-|`FG_SUBTLE`|`--fg-subtle`|`#5C6675`|`#9FABBB`|
-|`FG_FAINT`|`--fg-faint`|`#626D7B`|`#8894A6`|
-|`FG_DISABLED`|`--fg-disabled`|`#A9B1BD`|`#5B6676`|
-|`FG_LINK`|`--fg-link`|`#2F63D8`|`#8DB2FF`|
+|`FG`|`--fg`, `--bs-body-color`|`#1B2430`|`#D6DAE1`|
+|`FG_SUBTLE`|`--fg-subtle`|`#4E576A`|`#B7BECC`|
+|`FG_FAINT`|`--fg-faint`|`#646C7D`|`#9AA3B4`|
+|`FG_DISABLED`|`--fg-disabled`|`#A9AFBC`|`#7C869A`|
+|`FG_LINK`|`--fg-link`|`#2F63D8`|`#A3C1F7`|
 
 ### Bordes
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`BORDER`|`--border`|`#DCE0E6`|`#2C3545`|
-|`BORDER_SUBTLE`|`--border-subtle`|`#E9ECF0`|`#202836`|
-|`BORDER_STRONG`|`--border-strong`|`#C2C9D2`|`#3D485C`|
+|`BORDER`|`--border`|`#DADEE7`|`#2C3444`|
+|`BORDER_SUBTLE`|`--border-subtle`|`#E8EAF0`|`#1F2635`|
+|`BORDER_STRONG`|`--border-strong`|`#C0C6D3`|`#3D475C`|
 |`BORDER_FOCUS`|`--border-focus`|`#3B6FE0`|`#6390FF`|
 
 ### Selección y resaltado
@@ -89,19 +102,19 @@ seguirá encajando aunque la paleta se ajuste en el futuro.
 |-|-|-|-|
 |`HIGHLIGHT_BG`|`--highlight-bg`|`#3B6FE0`|`#4066E6`|
 |`HIGHLIGHT_FG`|`--highlight-fg`|`#FFFFFF`|`#FFFFFF`|
-|`SELECTED_BG`|`--selected-bg`|`#3B6FE022`|`#6390FF2E`|
-|`SELECTED_FG`|`--selected-fg`|`#1B2430`|`#E9EDF4`|
+|`SELECTED_BG`|`--selected-bg`|`#3B6FE038`|`#6390FF40`|
+|`SELECTED_FG`|`--selected-fg`|`#1B2430`|`#D6DAE1`|
 
 ### Botones
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`BUTTON_BG`|`--button-bg`|`#FFFFFF`|`#212836`|
-|`BUTTON_HOVER`|`--button-gradient-start`|`#F0F2F6`|`#2A3342`|
-|`BUTTON_HOVER_BORDER`|`--button-hover-border`|`#C2C9D2`|`#3D485C`|
-|`BUTTON_DISABLED`|`--button-disabled`|`#FFFFFF80`|`#21283680`|
+|`BUTTON_BG`|`--button-bg`|`#FBFCFE`|`#242C3A`|
+|`BUTTON_HOVER`|`--button-gradient-start`, `--button-gradient-end`|`#EDF0F5`|`#2E3747`|
+|`BUTTON_HOVER_BORDER`|`--button-hover-border`|`#C0C6D3`|`#3D475C`|
+|`BUTTON_DISABLED`|`--button-disabled`|`#FBFCFE80`|`#242C3A80`|
 |`BUTTON_PRIMARY_BG`|`--button-primary-bg`|`#3B6FE0`|`#4066E6`|
-|`BUTTON_PRIMARY_GRADIENT_START`|`--button-primary-gradient-start`|`#4A7CEA`|`#5480FF`|
+|`BUTTON_PRIMARY_GRADIENT_START`|`--button-primary-gradient-start`|`#3B6FE0`|`#4066E6`|
 |`BUTTON_PRIMARY_GRADIENT_END`|`--button-primary-gradient-end`|`#2F5BC7`|`#3452C8`|
 |`BUTTON_PRIMARY_DISABLED`|`--button-primary-disabled`|`#3B6FE059`|`#4066E659`|
 
@@ -109,28 +122,28 @@ seguirá encajando aunque la paleta se ajuste en el futuro.
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`ACCENT_CARD`|`--accent-card`|`#1971C2`|`#74C0FC`|
-|`ACCENT_NOTE`|`--accent-note`|`#2F9E44`|`#57D06B`|
-|`ACCENT_DANGER`|`--accent-danger`|`#E03131`|`#FF6B6B`|
+|`ACCENT_CARD`|`--accent-card`|`#186CB9`|`#7EBFF4`|
+|`ACCENT_NOTE`|`--accent-note`|`#257A35`|`#57D06B`|
+|`ACCENT_DANGER`|`--accent-danger`|`#CA2D2D`|`#F37777`|
 
 ### Estados de tarjeta
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`STATE_NEW`|`--state-new`|`#1971C2`|`#74C0FC`|
-|`STATE_LEARN`|`--state-learn`|`#E8590C`|`#FFA94D`|
-|`STATE_REVIEW`|`--state-review`|`#2F9E44`|`#57D06B`|
-|`STATE_BURIED`|`--state-buried`|`#9A7B3F`|`#B08D57`|
-|`STATE_SUSPENDED`|`--state-suspended`|`#868E96`|`#8A94A3`|
-|`STATE_MARKED`|`--state-marked`|`#7048E8`|`#B197FC`|
+|`STATE_NEW`|`--state-new`|`#186CB9`|`#7EBFF4`|
+|`STATE_LEARN`|`--state-learn`|`#B8460A`|`#F1A95B`|
+|`STATE_REVIEW`|`--state-review`|`#257A35`|`#57D06B`|
+|`STATE_BURIED`|`--state-buried`|`#9A7B3F`|`#A98754`|
+|`STATE_SUSPENDED`|`--state-suspended`|`#868E96`|`#848E9C`|
+|`STATE_MARKED`|`--state-marked`|`#7048E8`|`#9680D6`|
 
 ### Barras de desplazamiento
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`SCROLLBAR_BG`|`--scrollbar-bg`|`#D6DBE2`|`#273040`|
-|`SCROLLBAR_BG_HOVER`|`--scrollbar-bg-hover`|`#C2C9D2`|`#313C4E`|
-|`SCROLLBAR_BG_ACTIVE`|`--scrollbar-bg-active`|`#AAB3C0`|`#3D485C`|
+|`SCROLLBAR_BG`|`--scrollbar-bg`|`#D5D9E2`|`#272F3F`|
+|`SCROLLBAR_BG_HOVER`|`--scrollbar-bg-hover`|`#C0C6D3`|`#353E50`|
+|`SCROLLBAR_BG_ACTIVE`|`--scrollbar-bg-active`|`#AAB1C0`|`#3D475C`|
 
 ### Sombras
 
@@ -145,13 +158,22 @@ seguirá encajando aunque la paleta se ajuste en el futuro.
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`FLAG_1`|`--flag-1`|`#E03131`|`#FF6B6B`|
-|`FLAG_2`|`--flag-2`|`#E8590C`|`#FFA94D`|
-|`FLAG_3`|`--flag-3`|`#2F9E44`|`#69DB7C`|
-|`FLAG_4`|`--flag-4`|`#1971C2`|`#74C0FC`|
-|`FLAG_5`|`--flag-5`|`#C2255C`|`#E599F7`|
-|`FLAG_6`|`--flag-6`|`#099268`|`#63E6BE`|
-|`FLAG_7`|`--flag-7`|`#7048E8`|`#B197FC`|
+|`FLAG_1`|`--flag-1`|`#D92121`|`#D13939`|
+|`FLAG_2`|`--flag-2`|`#E8590C`|`#C07F3A`|
+|`FLAG_3`|`--flag-3`|`#2F9E44`|`#4C9E5A`|
+|`FLAG_4`|`--flag-4`|`#1971C2`|`#5993C2`|
+|`FLAG_5`|`--flag-5`|`#C62FAD`|`#B378C1`|
+|`FLAG_6`|`--flag-6`|`#099268`|`#439C81`|
+|`FLAG_7`|`--flag-7`|`#7048E8`|`#9680D6`|
+
+### Propios de Nocturne (sin variable CSS; solo los usa el complemento en las ventanas)
+
+|Token|Variable CSS|LIGHT (día)|DARK (noche)|
+|-|-|-|-|
+|`NOCTURNE_CONTROL_BORDER`|—|`#878C97`|`#727B8C`|
+|`NOCTURNE_PRIMARY_PRESSED`|—|`#284EAA`|`#2B45AA`|
+|`NOCTURNE_PRIMARY_RING`|—|`#1C3A8A`|`#A9C4FF`|
+|`NOCTURNE_ROW_HIGHLIGHT`|`--nocturne-row-highlight`|`#EAEEF8`|`#19233F`|
 
 ## Bloque para pegar como contexto
 
@@ -161,23 +183,23 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
 {
   "ACCENT_CARD": {
     "css": "--accent-card",
-    "light": "#1971C2",
-    "dark": "#74C0FC"
+    "light": "#186CB9",
+    "dark": "#7EBFF4"
   },
   "ACCENT_DANGER": {
     "css": "--accent-danger",
-    "light": "#E03131",
-    "dark": "#FF6B6B"
+    "light": "#CA2D2D",
+    "dark": "#F37777"
   },
   "ACCENT_NOTE": {
     "css": "--accent-note",
-    "light": "#2F9E44",
+    "light": "#257A35",
     "dark": "#57D06B"
   },
   "BORDER": {
     "css": "--border",
-    "light": "#DCE0E6",
-    "dark": "#2C3545"
+    "light": "#DADEE7",
+    "dark": "#2C3444"
   },
   "BORDER_FOCUS": {
     "css": "--border-focus",
@@ -186,33 +208,33 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
   },
   "BORDER_STRONG": {
     "css": "--border-strong",
-    "light": "#C2C9D2",
-    "dark": "#3D485C"
+    "light": "#C0C6D3",
+    "dark": "#3D475C"
   },
   "BORDER_SUBTLE": {
     "css": "--border-subtle",
-    "light": "#E9ECF0",
-    "dark": "#202836"
+    "light": "#E8EAF0",
+    "dark": "#1F2635"
   },
   "BUTTON_BG": {
     "css": "--button-bg",
-    "light": "#FFFFFF",
-    "dark": "#212836"
+    "light": "#FBFCFE",
+    "dark": "#242C3A"
   },
   "BUTTON_DISABLED": {
     "css": "--button-disabled",
-    "light": "#FFFFFF80",
-    "dark": "#21283680"
+    "light": "#FBFCFE80",
+    "dark": "#242C3A80"
   },
   "BUTTON_HOVER": {
-    "css": "--button-gradient-start",
-    "light": "#F0F2F6",
-    "dark": "#2A3342"
+    "css": "--button-gradient-start, --button-gradient-end",
+    "light": "#EDF0F5",
+    "dark": "#2E3747"
   },
   "BUTTON_HOVER_BORDER": {
     "css": "--button-hover-border",
-    "light": "#C2C9D2",
-    "dark": "#3D485C"
+    "light": "#C0C6D3",
+    "dark": "#3D475C"
   },
   "BUTTON_PRIMARY_BG": {
     "css": "--button-primary-bg",
@@ -231,27 +253,27 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
   },
   "BUTTON_PRIMARY_GRADIENT_START": {
     "css": "--button-primary-gradient-start",
-    "light": "#4A7CEA",
-    "dark": "#5480FF"
+    "light": "#3B6FE0",
+    "dark": "#4066E6"
   },
   "CANVAS": {
-    "css": "--canvas",
+    "css": "--canvas, --bs-body-bg",
     "light": "#F7F8FA",
     "dark": "#12161F"
   },
   "CANVAS_CODE": {
     "css": "--canvas-code",
-    "light": "#F1F3F7",
+    "light": "#F2F4F7",
     "dark": "#141924"
   },
   "CANVAS_ELEVATED": {
     "css": "--canvas-elevated",
-    "light": "#FFFFFF",
+    "light": "#FBFCFE",
     "dark": "#212836"
   },
   "CANVAS_GLASS": {
     "css": "--canvas-glass",
-    "light": "#FFFFFFCC",
+    "light": "#FBFCFECC",
     "dark": "#212836CC"
   },
   "CANVAS_INSET": {
@@ -261,68 +283,68 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
   },
   "CANVAS_OVERLAY": {
     "css": "--canvas-overlay",
-    "light": "#FFFFFF",
-    "dark": "#191E2A"
+    "light": "#FBFCFE",
+    "dark": "#293040"
   },
   "FG": {
-    "css": "--fg",
+    "css": "--fg, --bs-body-color",
     "light": "#1B2430",
-    "dark": "#E9EDF4"
+    "dark": "#D6DAE1"
   },
   "FG_DISABLED": {
     "css": "--fg-disabled",
-    "light": "#A9B1BD",
-    "dark": "#5B6676"
+    "light": "#A9AFBC",
+    "dark": "#7C869A"
   },
   "FG_FAINT": {
     "css": "--fg-faint",
-    "light": "#626D7B",
-    "dark": "#8894A6"
+    "light": "#646C7D",
+    "dark": "#9AA3B4"
   },
   "FG_LINK": {
     "css": "--fg-link",
     "light": "#2F63D8",
-    "dark": "#8DB2FF"
+    "dark": "#A3C1F7"
   },
   "FG_SUBTLE": {
     "css": "--fg-subtle",
-    "light": "#5C6675",
-    "dark": "#9FABBB"
+    "light": "#4E576A",
+    "dark": "#B7BECC"
   },
   "FLAG_1": {
     "css": "--flag-1",
-    "light": "#E03131",
-    "dark": "#FF6B6B"
+    "light": "#D92121",
+    "dark": "#D13939"
   },
   "FLAG_2": {
     "css": "--flag-2",
     "light": "#E8590C",
-    "dark": "#FFA94D"
+    "dark": "#C07F3A"
   },
   "FLAG_3": {
     "css": "--flag-3",
     "light": "#2F9E44",
-    "dark": "#69DB7C"
+    "dark": "#4C9E5A"
   },
   "FLAG_4": {
     "css": "--flag-4",
     "light": "#1971C2",
-    "dark": "#74C0FC"
+    "dark": "#5993C2"
   },
   "FLAG_5": {
     "css": "--flag-5",
-    "light": "#C2255C",
-    "dark": "#E599F7"
+    "light": "#C62FAD",
+    "dark": "#B378C1"
   },
   "FLAG_6": {
     "css": "--flag-6",
     "light": "#099268",
-    "dark": "#63E6BE"
+    "dark": "#439C81"
   },
   "FLAG_7": {
     "css": "--flag-7",
     "light": "#7048E8",
-    "dark": "#B197FC"
+    "dark": "#9680D6"
   },
   "HIGHLIGHT_BG": {
     "css": "--highlight-bg",
@@ -334,30 +356,35 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
     "light": "#FFFFFF",
     "dark": "#FFFFFF"
   },
+  "NOCTURNE_ROW_HIGHLIGHT": {
+    "css": "--nocturne-row-highlight",
+    "light": "#EAEEF8",
+    "dark": "#19233F"
+  },
   "SCROLLBAR_BG": {
     "css": "--scrollbar-bg",
-    "light": "#D6DBE2",
-    "dark": "#273040"
+    "light": "#D5D9E2",
+    "dark": "#272F3F"
   },
   "SCROLLBAR_BG_ACTIVE": {
     "css": "--scrollbar-bg-active",
-    "light": "#AAB3C0",
-    "dark": "#3D485C"
+    "light": "#AAB1C0",
+    "dark": "#3D475C"
   },
   "SCROLLBAR_BG_HOVER": {
     "css": "--scrollbar-bg-hover",
-    "light": "#C2C9D2",
-    "dark": "#313C4E"
+    "light": "#C0C6D3",
+    "dark": "#353E50"
   },
   "SELECTED_BG": {
     "css": "--selected-bg",
-    "light": "#3B6FE022",
-    "dark": "#6390FF2E"
+    "light": "#3B6FE038",
+    "dark": "#6390FF40"
   },
   "SELECTED_FG": {
     "css": "--selected-fg",
     "light": "#1B2430",
-    "dark": "#E9EDF4"
+    "dark": "#D6DAE1"
   },
   "SHADOW": {
     "css": "--shadow",
@@ -382,32 +409,32 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
   "STATE_BURIED": {
     "css": "--state-buried",
     "light": "#9A7B3F",
-    "dark": "#B08D57"
+    "dark": "#A98754"
   },
   "STATE_LEARN": {
     "css": "--state-learn",
-    "light": "#E8590C",
-    "dark": "#FFA94D"
+    "light": "#B8460A",
+    "dark": "#F1A95B"
   },
   "STATE_MARKED": {
     "css": "--state-marked",
     "light": "#7048E8",
-    "dark": "#B197FC"
+    "dark": "#9680D6"
   },
   "STATE_NEW": {
     "css": "--state-new",
-    "light": "#1971C2",
-    "dark": "#74C0FC"
+    "light": "#186CB9",
+    "dark": "#7EBFF4"
   },
   "STATE_REVIEW": {
     "css": "--state-review",
-    "light": "#2F9E44",
+    "light": "#257A35",
     "dark": "#57D06B"
   },
   "STATE_SUSPENDED": {
     "css": "--state-suspended",
     "light": "#868E96",
-    "dark": "#8A94A3"
+    "dark": "#848E9C"
   }
 }
 ```

@@ -1,0 +1,27 @@
+{
+  "complemento": "nocturne",
+  "fix": {
+    "FIX-001": [
+      "webview_style.py"
+    ],
+    "FIX-002": [
+      "palette.py"
+    ],
+    "FIX-003": [
+      "palette.py",
+      "theming.py"
+    ],
+    "FIX-004": [
+      "palette.py"
+    ],
+    "FIX-005": [
+      "palette.py"
+    ],
+    "FIX-006": [
+      "webview_style.py"
+    ],
+    "FIX-007": [
+      "dialogs.py"
+    ]
+  }
+}
