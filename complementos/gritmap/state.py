@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import date
 
 from .data import HeatmapData
 
@@ -47,6 +48,10 @@ class ViewState:
     # volver a leer la coleccion; se olvidan cada vez que Anki redibuja la
     # pantalla, porque entonces puede haber datos nuevos.
     data: DataEntry | None = None
+
+    # Dia en que ya se celebro la meta cumplida (4.0.0): la celebracion sale
+    # una sola vez, la primera vez que se dibuja despues de cumplirla.
+    goal_celebrated: date | None = None
 
     # Ultimo mapa enviado a cada pantalla (lista de mazos o un mazo concreto),
     # ya preparado. Al volver a esa pantalla se ensena en el acto, en lugar de

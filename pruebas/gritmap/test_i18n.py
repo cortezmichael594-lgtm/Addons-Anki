@@ -15,6 +15,7 @@ from gritmap import i18n
 PLURAL_BASES = (
     "unit_day", "unit_review", "unit_card", "unit_new", "ago", "kd_left",
     "tt_reviews", "tt_cards", "tt_due", "tt_new", "opt_exclude_count", "opt_key_dates_count",
+    "freeze",
 )
 
 

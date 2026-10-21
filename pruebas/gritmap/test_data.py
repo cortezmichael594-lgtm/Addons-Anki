@@ -109,6 +109,51 @@ class StatsTest(unittest.TestCase):
         self.assertEqual((pending.current_streak, pending.previous_best), (2, 3))
         self.assertFalse(pending.today_done)
 
+    def test_freezes_forgive_single_days(self) -> None:
+        # 8 dias seguidos (12 a 5) ganan un comodin; el dia 4 lo gasta.
+        studied = {1, 2, 3, *range(5, 13)}
+        self.assertEqual(data.streak_state(studied, False).current, 3)
+        state = data.streak_state(studied, True)
+        self.assertEqual((state.current, state.forgiven), (11, {4: "freeze"}))
+        # Sin comodines guardados, el dia sin estudiar rompe la racha.
+        self.assertEqual(data.streak_state({1, 2, 4, 5}, True).current, 2)
+
+    def test_freezes_are_capped_at_two(self) -> None:
+        state = data.streak_state(set(range(1, 30)), True)
+        self.assertEqual(state.freezes_left, data.MAX_FREEZES)
+
+    def test_pause_neither_adds_nor_breaks(self) -> None:
+        paused = data.paused_days((date(2026, 10, 10), date(2026, 10, 11)), date(2026, 10, 13))
+        self.assertEqual(paused, frozenset({2, 3}))
+        state = data.streak_state({0, 1, 4, 5}, False, paused)
+        self.assertEqual((state.current, state.forgiven), (4, {2: "pause", 3: "pause"}))
+
+    def test_goal_fraction(self) -> None:
+        sample = self.make({1: 50, 2: 10, 3: 60})
+        self.assertEqual(data.goal_fraction(sample, "reviews", 40, 30), (2, 3))
+        self.assertEqual(data.studied_fraction(sample, 30, "reviews"), (3, 3))
+
+    def test_last_week_blocks(self) -> None:
+        self.assertEqual(
+            data.last_week_studied(self.make({1: 5, 3: 5, 7: 5}), "reviews"),
+            [True, False, False, False, True, False, True],
+        )
+
+    def test_surprises_are_real_and_one_at_a_time(self) -> None:
+        # Nueva racha mas larga: hoy supera la mejor anterior.
+        sample = self.make({0: 5, 1: 5, 2: 5, 10: 5, 11: 5})
+        stats = data.full_stats(sample, "reviews", 30)
+        self.assertEqual(data.surprise(sample, "reviews", stats), ("record", 0))
+        # Mejor dia del ano, con al menos 7 dias antes.
+        best = self.make({0: 90, **{d: 10 for d in (5, 9, 13, 17, 21, 25, 29)}})
+        self.assertEqual(data.surprise(best, "reviews", data.full_stats(best)), ("best_day", 0))
+        # Sin estudiar hoy no hay sorpresa.
+        quiet = self.make({1: 90})
+        self.assertIsNone(data.surprise(quiet, "reviews", data.full_stats(quiet)))
+        # Cifra redonda del ano cruzada hoy.
+        milestone = self.make({0: 30, 30: 980})
+        self.assertEqual(data.surprise(milestone, "reviews", data.full_stats(milestone)), ("year_total", 1000))
+
     def test_three_periods(self) -> None:
         self.assertEqual(data.WINDOWS, (30, 365, 0))
 

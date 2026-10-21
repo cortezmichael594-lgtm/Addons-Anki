@@ -1,8 +1,12 @@
 {
     "theme": "classic_green",
     "measure": "reviews",
-    "cell_size": 25,
-    "border_radius": 1,
+    "size": "fit",
+    "shape": "square",
     "avg_window": 30,
-    "show_week_diff": true
+    "stats_open": true,
+    "goal_mode": "none",
+    "goal": 50,
+    "freezes": true,
+    "show_streak": true
 }

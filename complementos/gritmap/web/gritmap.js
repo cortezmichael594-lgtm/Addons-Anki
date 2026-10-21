@@ -53,8 +53,8 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         locale: undefined,
         texts: {},
         lastHtml: null,
-        /* Dia al que ir cuando llegue el mapa nuevo (proxima fecha clave). */
-        pendingDay: null,
+        /* Meta diaria en la unidad de la medida (0 sin meta numerica). */
+        goal: 0,
     };
 
     function root() {
@@ -229,6 +229,17 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
          * puntero en forma de mano no se ve con el teclado (3.6.0). */
         var cmd = cell.getAttribute("data-gritmap-cmd") || "";
         var hint = state.texts[cmd.indexOf("future:") === 0 ? "click_future" : "click_past"];
+        /* 4.0.0: si el dia esta perdonado (comodin o pausa) y, con meta,
+         * si se cumplio ese dia. */
+        var forgiven = cell.getAttribute("data-gritmap-forgiven");
+        if (forgiven && state.texts["forgiven_" + forgiven]) {
+            text += '<br><span class="gritmap-tip-hint">' + state.texts["forgiven_" + forgiven] + "</span>";
+        }
+        if (state.goal > 0 && count > 0 && cmd.indexOf("past:") === 0) {
+            var goalLine = count >= state.goal ? state.texts.goal_met
+                : fill(state.texts.goal_progress, { done: formatNumber(count), goal: formatNumber(state.goal) });
+            text += '<br><span class="gritmap-tip-hint">' + goalLine + "</span>";
+        }
         if (cmd && hint) {
             text += '<br><span class="gritmap-tip-hint">' + hint + "</span>";
         }
@@ -296,7 +307,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
 
     /* Teclado en la rejilla: un solo dia recibe el tabulador y las flechas
      * mueven el foco por dias (arriba y abajo) y por semanas (a los lados). */
-    function focusCell(container, cell, keepScroll) {
+    function focusCell(container, cell) {
         var previous = container.querySelectorAll(".gritmap-cell[tabindex='0']");
         for (var i = 0; i < previous.length; i++) {
             if (previous[i] !== cell) {
@@ -306,7 +317,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         cell.setAttribute("tabindex", "0");
         cell.setAttribute("role", cell.hasAttribute("data-gritmap-cmd") ? "button" : "img");
         cell.setAttribute("aria-label", plainTip(cell));
-        cell.focus({ preventScroll: !!keepScroll });
+        cell.focus({ preventScroll: false });
     }
 
     function plainTip(cell) {
@@ -353,11 +364,10 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         container.addEventListener("click", function (event) {
             var target = closest(event.target, "[data-gritmap-cmd]");
             var cmd = target ? target.getAttribute("data-gritmap-cmd") : "";
-            /* La proxima fecha clave lleva a su semana: si esta en el ano que
-             * se ve, ya; si no, cuando llegue el mapa de su ano. */
-            if (cmd.indexOf("key:") === 0) {
-                state.pendingDay = cmd.slice(4);
-                goToPendingDay(container);
+            /* Plegar o desplegar las estadisticas se ve al instante; Python
+             * solo guarda la eleccion. */
+            if (cmd === "stats:toggle") {
+                toggleStats(target);
             }
             send(target);
             /* «Hoy» en el mismo ano no cambia el mapa: basta con volver a la
@@ -402,31 +412,48 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         container.addEventListener("mouseleave", hideTip);
         /* Si el mapa se desplaza lateralmente, el globo dejaria de apuntar a
          * su celda: se oculta en cuanto empieza el desplazamiento. */
-        container.addEventListener("scroll", hideTip, true);
+        container.addEventListener("scroll", function () {
+            hideTip();
+            updateTodayButton(container);
+        }, true);
     }
 
-    /* La comparativa semanal se acopla al texto "Estudiaste ... hoy" que dibuja
-     * Anki en la lista de mazos. Se reutiliza el mismo elemento en cada
-     * dibujado en lugar de crear uno nuevo, para no duplicarlo. El color lo
-     * pone la hoja de estilos segun la clase (sube, baja o igual). */
-    function renderWeekDiff(week) {
-        var studied = document.getElementById("studiedToday");
+    /* Desde 4.0.0 la comparativa semanal vive en la tarjeta de estadisticas:
+     * se quita la frase que versiones anteriores dejaban junto al texto de
+     * Anki, por si la pagina aun la tiene. */
+    function removeOldWeekDiff() {
         var span = document.getElementById("gritmap-wd");
-        if (!week || !studied) {
-            if (span && span.parentNode) {
-                span.parentNode.removeChild(span);
-            }
+        if (span && span.parentNode) {
+            span.parentNode.removeChild(span);
+        }
+    }
+
+    function toggleStats(button) {
+        var card = closest(button, ".gritmap-statscard");
+        if (!card) {
             return;
         }
-        if (!span) {
-            span = document.createElement("span");
-            span.id = "gritmap-wd";
-            (studied.querySelector("span") || studied).appendChild(span);
+        var collapsed = card.classList.toggle("gritmap-collapsed");
+        var label = button.getAttribute(collapsed ? "data-gritmap-expand" : "data-gritmap-collapse") || "";
+        button.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        button.setAttribute("title", label);
+        button.setAttribute("aria-label", label);
+    }
+
+    /* «Hoy» solo aparece cuando sirve: en otro ano (lo decide Python) o, con
+     * cuadritos grandes, cuando la semana de hoy queda fuera de la vista. Su
+     * hueco esta siempre reservado, asi que nada salta. */
+    function updateTodayButton(container) {
+        var button = container.querySelector(".gritmap-textbtn[data-gritmap-btn='today']");
+        var grid = container.querySelector(".gritmap-grid");
+        var today = grid ? grid.querySelector("[data-gritmap-today]") : null;
+        if (!button || !grid || !today) {
+            return;
         }
-        span.className = "gritmap-wd-" + (week.cls || "flat");
-        span.title = week.title || "";
-        span.innerHTML = week.html || "";
-        localizeNumbers(span);
+        var cellBox = today.getBoundingClientRect();
+        var gridBox = grid.getBoundingClientRect();
+        var away = cellBox.right < gridBox.left || cellBox.left > gridBox.right;
+        button.classList.toggle("gritmap-hidden", !away);
     }
 
     /* Centra un dia en la rejilla si no cabe entera a lo ancho. */
@@ -438,22 +465,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         var gridBox = grid.getBoundingClientRect();
         var centre = cellBox.left - gridBox.left + grid.scrollLeft - grid.clientWidth / 2;
         grid.scrollLeft = Math.max(0, centre);
-    }
-
-    /* Lleva al dia de la proxima fecha clave y le da el foco, que abre su
-     * globo con el nombre y la cuenta atras. Si su ano aun no esta dibujado,
-     * espera al mapa nuevo. */
-    function goToPendingDay(container) {
-        var cell = state.pendingDay
-            ? container.querySelector(".gritmap-cell[data-d='" + state.pendingDay + "']") : null;
-        var grid = container.querySelector(".gritmap-grid");
-        if (!cell || !grid) {
-            return false;
-        }
-        state.pendingDay = null;
-        centreCell(grid, cell);
-        focusCell(container, cell, true);
-        return true;
     }
 
     /* Al abrir un ano se ensena la semana de hoy aunque la ventana sea
@@ -480,13 +491,13 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         state.prefix = payload.prefix || state.prefix;
         state.locale = payload.locale || undefined;
         state.texts = payload.texts || {};
+        state.goal = payload.goal || 0;
         var html = payload.html || "";
 
         /* Los mismos datos que ya se ven (por ejemplo, al terminar el calculo
          * tras volver a esta pantalla) no se vuelven a pintar: asi no se
          * pierden el desplazamiento ni el foco. */
-        if (html === state.lastHtml && container.querySelector(".gritmap-nav")) {
-            renderWeekDiff(payload.week);
+        if (html === state.lastHtml && container.querySelector(".gritmap-card")) {
             return;
         }
 
@@ -511,14 +522,12 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
 
         hideTip();
         container.innerHTML = html;
+        container.removeAttribute("aria-busy");
         state.lastHtml = html;
-        /* Ya hay contenido real: se libera el alto reservado por el marcador
-         * de posicion para no dejar un hueco sobrante debajo. */
-        container.style.minHeight = "";
         localizeCalendar(container);
         localizeNumbers(container);
         bind(container);
-        renderWeekDiff(payload.week);
+        removeOldWeekDiff();
 
         var newGrid = container.querySelector(".gritmap-grid");
         var newYear = (container.querySelector(".gritmap-yv") || {}).textContent;
@@ -543,7 +552,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
                 focusCell(container, cell);
             }
         }
-        goToPendingDay(container);
+        updateTodayButton(container);
     }
 
     return { render: render };

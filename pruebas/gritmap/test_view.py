@@ -31,60 +31,126 @@ class WidgetTest(unittest.TestCase):
         anki.lang.current_lang = "es"
         i18n.reset()
 
-    def test_map_has_nav_year_and_stats(self) -> None:
+    def test_three_bands_of_cards(self) -> None:
         cfg = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 11, 20), "Examen <b>"),))
         html = view.build_widget_html(sample(), cfg, 0)
-        self.assertEqual(html.count('class="gritmap-btn"'), 4)
-        # Leyenda (3.6.0, el cliente la recupero el 2026-10-21): seis cuadritos.
-        self.assertEqual(html.count('class="gritmap-lg-cell gritmap-lg-c'), 6)
-        self.assertNotIn("data-gritmap-wd", html)
-        self.assertEqual(html.count('class="gritmap-stat"'), 5)
+        order = [html.index(part) for part in ('class="gritmap-summary', "gritmap-activity", "gritmap-statscard")]
+        self.assertEqual(order, sorted(order))
+        # Fila de resumen: Hoy, Racha, Retencion y Proxima fecha.
+        self.assertEqual(html.count('class="gritmap-card gritmap-mini"'), 4)
+        for title in (">Hoy<", ">Racha<", ">Retención<", ">Próxima fecha<", ">Actividad<", ">Estadísticas<"):
+            self.assertIn(title, html)
         # El dia de hoy se marca y es el que recibe el tabulador.
         self.assertRegex(html, r'data-d="2026-10-13"[^>]*data-gritmap-today="1"[^>]*tabindex="0"')
-        # La fecha clave lleva su borde (atributo) y su nombre escapado.
+        # La fecha clave: nombre escapado y estrella en la fila de los meses.
         self.assertRegex(html, r'data-d="2026-11-20"[^>]*data-gritmap-key=')
+        self.assertIn('class="gritmap-kstar"', html)
         self.assertIn("Examen &amp;lt;b&amp;gt;", html)
         self.assertNotIn("<b>Examen", html)
+        # Sin cuadritos de color delante de las cifras ni comparativa suelta.
+        self.assertNotIn("gritmap-c1", html)
+        self.assertNotIn("gritmap-wd", html)
 
-    def test_year_label_shows_the_year_total(self) -> None:
+    def test_five_levels_and_legend_match(self) -> None:
+        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        self.assertEqual(html.count('class="gritmap-lg-cell gritmap-lg-c'), 5)
+        levels = set(re.findall(r'fill="var\(--gritmap-p(\d+)\)"', html))
+        self.assertTrue(levels <= {"1", "2", "3", "4"}, levels)
+
+    def test_title_shows_the_year_total(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
         # 5 + 1240 + 30 repasos en 2026, en la unidad de la medida.
-        self.assertIn('data-n=&quot;1275&quot;', html)
-        self.assertIn("repasos", html[html.index("gritmap-yv"):html.index("gritmap-yv") + 300])
+        head = html[html.index(">Actividad<"):html.index("gritmap-card-tools", html.index(">Actividad<"))]
+        self.assertIn('data-n="1275"', head)
+        self.assertIn("en 2026", head)
         self.assertEqual(view.year_total(sample(), 2026, "new"), 4)
         self.assertEqual(view.year_total(sample(), 2025, "reviews"), 0)
 
-    def test_period_buttons(self) -> None:
-        html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, avg_window=365), 0)
-        self.assertEqual(len(re.findall(r'class="gritmap-period[ "]', html)), 3)
-        self.assertIn('class="gritmap-period gritmap-on" data-gritmap-btn="window:365"', html)
-        self.assertIn(">Todo<", html)
-        self.assertIn(">1 año<", html)
-        self.assertIn("¡", html[html.index("gritmap-yv"):html.index("gritmap-periods")])
-        self.assertNotIn("window:90", html)
+    def test_today_button_only_in_another_year(self) -> None:
+        current = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        self.assertIn('class="gritmap-textbtn gritmap-hidden" data-gritmap-btn="today"', current)
+        past = view.build_widget_html(sample(past={400: DayActivity(3, 3, 0), 0: DayActivity(1, 1, 0)}), DEFAULT_CONFIG, 1)
+        self.assertIn('class="gritmap-textbtn" data-gritmap-btn="today"', past)
 
-    def test_stats_in_two_groups_with_streak_first(self) -> None:
+    def test_period_buttons_sit_on_the_stats_card(self) -> None:
+        html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, avg_window=365), 0)
+        stats = html[html.index("gritmap-statscard"):]
+        self.assertEqual(len(re.findall(r'class="gritmap-period[ "]', stats)), 3)
+        self.assertIn('class="gritmap-period gritmap-on" data-gritmap-btn="window:365"', stats)
+        self.assertIn(">Todo<", stats)
+        self.assertNotIn("gritmap-periods", html[:html.index("gritmap-statscard")])
+
+    def test_stats_card_folds_and_remembers(self) -> None:
+        closed = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, stats_open=False), 0)
+        self.assertIn("gritmap-statscard gritmap-collapsed", closed)
+        self.assertIn('aria-expanded="false"', closed)
+        opened = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        self.assertIn('aria-expanded="true"', opened)
+
+    def test_goal_ring_and_set_goal_link(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        stats = html[html.index('class="gritmap-stats"'):]
-        self.assertEqual(stats.count('class="gritmap-group"'), 2)
-        order = [stats.index(label) for label in
-                 ("Rachas", "Racha actual", "Racha más larga", "gritmap-periods",
-                  "Promedio diario", "Días estudiados", "Retención")]
-        self.assertEqual(order, sorted(order))
-        # El selector de periodo ya no va junto al ano, sino sobre sus cifras.
-        self.assertNotIn("gritmap-periods", html[:html.index('class="gritmap-stats"')])
-        # La unidad va aparte para poder ir mas pequena que el numero.
-        self.assertIn('<span class="gritmap-unit">repasos</span>', stats)
+        self.assertIn('data-gritmap-cmd="goal:set"', html)
+        cfg = replace(DEFAULT_CONFIG, goal_mode="number", goal=8)
+        goal = view.build_widget_html(sample(), cfg, 0)
+        self.assertIn("gritmap-ring", goal)
+        self.assertIn("faltan", goal)
+        done = view.build_widget_html(sample(), replace(cfg, goal=5), 0, celebrate=True)
+        self.assertIn("Meta cumplida", done)
+        self.assertIn("gritmap-celebrate", done)
+        # En un mazo no hay meta: es de toda la coleccion.
+        deck = view.build_widget_html(sample(), cfg, 0, deck_only=True)
+        self.assertIn("Hoy en este mazo", deck)
+        self.assertNotIn("goal:set", deck)
+
+    def test_due_goal_uses_remaining_cards(self) -> None:
+        cfg = replace(DEFAULT_CONFIG, goal_mode="due")
+        self.assertEqual(view.goal_progress(sample(due_remaining=15), cfg), (5, 20))
+        self.assertIsNone(view.goal_progress(sample(), cfg))
+
+    def test_hidden_streak_and_goal(self) -> None:
+        html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, show_streak=False), 0)
+        self.assertEqual(html.count('class="gritmap-card gritmap-mini"'), 3)
+        self.assertNotIn(">Racha<", html)
+        self.assertNotIn("goal:set", html)
+
+    def test_streak_card_lines(self) -> None:
+        stats = view.full_stats(sample())
+        card = view._streak_card(replace(stats, current_streak=12, longest_streak=15, today_done=False), DEFAULT_CONFIG)
+        self.assertIn("hoy pendiente", card)
+        self.assertIn("del récord", card)
+        back = view._streak_card(replace(stats, current_streak=1, longest_streak=45, previous_best=45), DEFAULT_CONFIG)
+        self.assertIn("Día 1", back)
+        self.assertIn("Récord", back)
+        freezes = view._streak_card(replace(stats, current_streak=9, longest_streak=9, freezes_left=1), DEFAULT_CONFIG)
+        self.assertIn('data-n="1">1</span> comodín', freezes)
+
+    def test_retention_card_with_fsrs_target(self) -> None:
+        html = view.build_widget_html(sample(fsrs_target=0.9), DEFAULT_CONFIG, 0, deck_only=True)
+        self.assertIn("objetivo", html)
+        self.assertIn('data-p="90"', html)
+
+    def test_next_date_card_never_disappears(self) -> None:
+        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        self.assertIn("Sin fechas clave", html)
+        self.assertIn('data-gritmap-cmd="opts:keydates"', html)
+
+    def test_pending_days_are_a_dot_not_a_tone(self) -> None:
+        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        self.assertRegex(html, r'fill="var\(--gritmap-empty\)" data-gritmap-tip="1" data-d="2026-10-14"')
+        self.assertIn('class="gritmap-dot"', html)
+        self.assertNotIn("gritmap-f", re.sub(r"gritmap-(foot|fold|frame)", "", html))
+
+    def test_forgiven_day_is_dashed(self) -> None:
+        past = {d: DayActivity(5, 5, 0) for d in range(2, 12)}
+        html = view.build_widget_html(sample(past=past), DEFAULT_CONFIG, 0)
+        self.assertRegex(html, r'class="gritmap-cell gritmap-forgiven"[^>]*data-d="2026-10-12"')
+        self.assertIn("Perdonado", html)
 
     def test_tooltip_texts_have_no_date(self) -> None:
         # La fecha va en su propia linea, la pone el navegador (peticion del cliente).
         for code, texts in i18n.STRINGS.items():
             for key, text in texts.items():
                 self.assertNotIn("{date}", text, f"{code}.{key}")
-
-    def test_warm_themes_mark_key_dates_in_blue(self) -> None:
-        self.assertIn("--gritmap-key:var(--flag-4", palettes.palette_css("sunset_orange"))
-        self.assertNotIn("--gritmap-key", palettes.palette_css("classic_green"))
 
     def test_all_injected_names_start_with_gritmap(self) -> None:
         # Regla de FIX-008.
@@ -95,70 +161,27 @@ class WidgetTest(unittest.TestCase):
         for attr in re.findall(r"\sdata-([a-z-]+)=", html):
             self.assertTrue(attr.startswith("gritmap") or attr in ("d", "v", "t", "n", "p"), attr)
 
-    def test_excluded_deck_and_no_data_keep_the_options_button(self) -> None:
-        for data, text in ((sample(deck_excluded=True), "Este mazo está excluido del mapa."),
-                           (sample(past={}, future_counts={}), "Cada día que estudie se pintará aquí.")):
-            html = view.build_widget_html(data, DEFAULT_CONFIG, 0)
-            self.assertIn(text, html)
-            self.assertIn('data-gritmap-cmd="opts"', html)
-        self.assertIn('data-gritmap-cmd="opts:exclude"', view.build_widget_html(sample(deck_excluded=True), DEFAULT_CONFIG, 0))
-
-    def test_empty_map_shows_the_year_with_today(self) -> None:
-        html = view.build_widget_html(sample(past={}, future_counts={}), DEFAULT_CONFIG, 0)
-        self.assertRegex(html, r'data-d="2026-10-13"[^>]*data-gritmap-today="1"')
-        self.assertNotIn("gritmap-stats", html)
-        self.assertNotIn("gritmap-legend", html)
+    def test_excluded_deck_and_empty_collection(self) -> None:
+        excluded = view.build_widget_html(sample(deck_excluded=True), DEFAULT_CONFIG, 0)
+        self.assertIn("Este mazo está excluido del mapa.", excluded)
+        self.assertIn('data-gritmap-cmd="opts:exclude"', excluded)
+        self.assertIn('data-gritmap-cmd="opts"', excluded)
+        empty = view.build_widget_html(sample(past={}, future_counts={}), DEFAULT_CONFIG, 0)
+        self.assertIn("Cada día que estudie se pintará aquí.", empty)
+        self.assertRegex(empty, r'data-d="2026-10-13"[^>]*data-gritmap-today="1"')
+        self.assertIn('data-gritmap-cmd="goal:set"', empty)
+        self.assertNotIn("gritmap-statscard", empty)
+        self.assertNotIn("gritmap-legend", empty)
 
     def test_legend_ranges_cover_every_count(self) -> None:
         thresholds = palettes.legend_thresholds(40.0)
         ranges = view.legend_ranges(thresholds)
+        self.assertEqual(len(ranges), palettes.LEVELS)
         self.assertEqual(ranges[0][0], 1)
         self.assertIsNone(ranges[-1][1])
-        for (low, high), (next_low, _next_high) in zip(ranges, ranges[1:]):
-            self.assertEqual(next_low, (high or 0) + 1)
-        # Cada cifra cae en el tono que dice su cuadrito de la leyenda.
         for count in range(1, 400):
             group = next(i for i, (low, high) in enumerate(ranges) if count >= low and (high is None or count <= high))
-            level = palettes.level_index(count, thresholds) + 1
-            self.assertIn(level, (2 * group + 1, 2 * group + 2), count)
-        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        self.assertIn("de &lt;span class=&quot;gritmap-n&quot;", html)
-
-    def test_next_key_date_line(self) -> None:
-        key_dates = (KeyDate(date(2026, 11, 5), "Anatomía"), KeyDate(date(2026, 1, 2), "Pasada"))
-        line = view.next_key_html(key_dates, TODAY)
-        self.assertIn('data-gritmap-cmd="key:2026-11-05"', line)
-        self.assertIn("Anatomía · faltan", line)
-        self.assertNotIn("Pasada", line)
-        self.assertEqual(view.next_key_html((KeyDate(date(2026, 1, 2), "Pasada"),), TODAY), "")
-
-    def test_streak_notes(self) -> None:
-        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        self.assertIn("hoy hecho", html)
-        stats = view.build_stats(
-            replace(view.full_stats(sample()), current_streak=12, longest_streak=15, today_done=False),
-            "reviews",
-        )
-        self.assertIn("hoy pendiente", stats)
-        self.assertIn("a <span class=\"gritmap-n\" data-n=\"3\">3</span>", stats)
-        record = view.build_stats(
-            replace(view.full_stats(sample()), current_streak=16, longest_streak=16, previous_best=15, today_done=True),
-            "reviews",
-        )
-        self.assertIn("nuevo récord", record)
-
-    def test_week_line_has_its_reference(self) -> None:
-        past = {**{d: DayActivity(10, 10, 0) for d in range(1, 8)}, **{d: DayActivity(5, 5, 0) for d in range(8, 15)}}
-        week = view.week_payload(sample(past=past), "reviews", True)
-        assert week is not None
-        self.assertEqual(week["cls"], "up")
-        self.assertIn("en 7 días", week["html"])
-        self.assertIn("más que los 7 anteriores", week["html"])
-        self.assertIn('data-n="70"', week["html"])
-
-    def test_click_hint_texts(self) -> None:
-        texts = json.loads(view.payload_json("", "reviews"))["texts"]
-        self.assertEqual(texts["click_past"], "Pulse para ver estas tarjetas")
+            self.assertEqual(palettes.level_index(count, thresholds), group, count)
 
     def test_numbers_and_percentages_are_left_for_the_browser(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
@@ -173,18 +196,27 @@ class WidgetTest(unittest.TestCase):
         inner = page[page.index("GritMap.render(") + len("GritMap.render("):page.rindex("); }")]
         self.assertEqual(json.loads(inner)["html"], '<div></script><!-- x --></div>')
 
-    def test_palette_has_swatches_and_no_text_colour(self) -> None:
-        css = palettes.palette_css("classic_green")
-        self.assertIn(".gritmap-c10::before{background:var(--gritmap-p10);}", css)
-        self.assertNotIn("{color:", css)
+    def test_placeholder_reserves_the_cards(self) -> None:
+        page = view.placeholder_html(DEFAULT_CONFIG)
+        self.assertIn("gritmap-bone-grid", page)
+        self.assertIn("aspect-ratio", page)
+        self.assertEqual(page.count('class="gritmap-card gritmap-mini"'), 4)
 
-    def test_every_theme_has_ten_tones_per_mode(self) -> None:
+    def test_payload_carries_goal_and_texts(self) -> None:
+        data = json.loads(view.payload_json("", "reviews", goal=40))
+        self.assertEqual(data["goal"], 40)
+        self.assertEqual(data["texts"]["click_past"], "Pulse para ver estas tarjetas")
+        self.assertEqual(data["texts"]["forgiven_freeze"], "Perdonado con un comodín")
+
+    def test_palette_has_four_tones_per_theme(self) -> None:
+        css = palettes.palette_css("classic_green")
+        self.assertIn("--gritmap-p4:", css)
+        self.assertNotIn("--gritmap-p5", css)
         for scales in (palettes.PAST_LIGHT, palettes.PAST_DARK):
             self.assertEqual(set(scales), set(palettes.THEME_NAMES))
             for tones in scales.values():
-                self.assertEqual(len(tones), 10)
-        self.assertEqual(len(palettes.FUTURE_LIGHT), 10)
-        self.assertEqual(len(palettes.FUTURE_DARK), 10)
+                self.assertEqual(len(tones), palettes.LEVELS)
+        self.assertEqual(len(palettes.THEME_NAMES), 4)
 
 
 class WebExportsPatternTest(unittest.TestCase):

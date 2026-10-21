@@ -20,6 +20,7 @@ from datetime import date
 
 import aqt
 from anki.collection import Collection
+from anki.decks import DeckId, DeckTreeNode
 from aqt import gui_hooks, mw
 from aqt.deckbrowser import DeckBrowser, DeckBrowserContent
 from aqt.operations import QueryOp
@@ -27,11 +28,11 @@ from aqt.overview import Overview, OverviewContent
 from aqt.webview import WebContent
 
 from . import config, i18n, view
-from .config import Config, load_config
-from .data import WINDOWS, HeatmapData, days_offset, fetch_data, year_bounds
-from .decks import build_scope, day_search
+from .config import DEFAULT_CONFIG, Config, load_config
+from .data import WINDOWS, HeatmapData, days_offset, fetch_data, window_average, year_bounds
+from .decks import DeckScope, build_scope, day_search
 from .errors import guarded, guarded_filter, log_exception
-from .options import open_options
+from .options import open_goal_dialog, open_options
 from .state import DataEntry, state
 from .view import MSG_PREFIX, WEB_PATTERN
 
@@ -74,17 +75,28 @@ def _draw(entry: DataEntry, cfg: Config) -> None:
             data.today.year - max_year,
             min(state.year_offset, data.today.year - min_year),
         )
-        show_week = (not entry.current_deck_only) and cfg.show_week_diff
-        payload = view.payload_json(
-            view.build_widget_html(data, cfg, state.year_offset),
-            measure=cfg.measure,
-            week=view.week_payload(data, cfg.measure, show_week),
+        deck_only = entry.current_deck_only
+        # La meta cumplida se celebra una vez: la primera vez que se dibuja
+        # despues de cruzarla (al volver a la lista de mazos tras repasar).
+        met = not deck_only and cfg.show_streak and view.goal_met(data, cfg)
+        celebrate = met and state.goal_celebrated != data.today
+        goal = cfg.goal if cfg.goal_mode == "number" and cfg.show_streak and not deck_only else 0
+        inner = view.build_widget_html(data, cfg, state.year_offset, deck_only, celebrate)
+        payload = view.payload_json(inner, measure=cfg.measure, goal=goal)
+        # Lo recordado no lleva la celebracion: al volver a la pantalla no se
+        # repite.
+        remembered = (
+            view.payload_json(inner.replace(" gritmap-celebrate", ""), measure=cfg.measure, goal=goal)
+            if celebrate
+            else payload
         )
+        if met:
+            state.goal_celebrated = data.today
     except Exception as exc:
         log_exception("controller.draw", exc)
-        payload = view.error_payload()
+        payload = remembered = view.error_payload()
     view.send(payload)
-    state.remember_page((entry.current_deck_only, entry.deck_id), payload)
+    state.remember_page((entry.current_deck_only, entry.deck_id), remembered)
 
 
 def _request_data(current_deck_only: bool, cfg: Config) -> None:
@@ -99,7 +111,12 @@ def _request_data(current_deck_only: bool, cfg: Config) -> None:
     def op(col: Collection) -> tuple[HeatmapData, int]:
         deck_id = int(col.decks.get_current_id()) if current_deck_only else 0
         scope = build_scope(col, excluded, current_deck_only)
-        return fetch_data(col, scope, measure), deck_id
+        data = fetch_data(col, scope, measure)
+        if current_deck_only:
+            data = replace(data, fsrs_target=_fsrs_target(col, deck_id))
+        else:
+            data = replace(data, due_remaining=_due_remaining(col.sched.deck_due_tree(), scope))
+        return data, deck_id
 
     @guarded()
     def on_success(result: tuple[HeatmapData, int]) -> None:
@@ -128,6 +145,36 @@ def _request_data(current_deck_only: bool, cfg: Config) -> None:
             view.send(view.error_payload())
 
     QueryOp(parent=mw, op=op, success=on_success).failure(on_failure).run_in_background()
+
+
+def _due_remaining(root: DeckTreeNode, scope: DeckScope) -> int:
+    """Tarjetas que aun vencen hoy fuera de los mazos excluidos (meta
+    «Terminar lo de hoy»), con los limites diarios que aplica Anki.
+
+    Un mazo sin excluidos dentro cuenta con su cifra, que ya suma la de sus
+    submazos; uno que contiene excluidos se cuenta por sus submazos.
+    """
+    excluded = set(scope.exclude_ids)
+
+    def contains_excluded(node: DeckTreeNode) -> bool:
+        return int(node.deck_id) in excluded or any(contains_excluded(c) for c in node.children)
+
+    def remaining(node: DeckTreeNode) -> int:
+        if int(node.deck_id) in excluded:
+            return 0
+        if not contains_excluded(node):
+            return int(node.review_count + node.learn_count + node.new_count)
+        return sum(remaining(child) for child in node.children)
+
+    return sum(remaining(child) for child in root.children)
+
+
+def _fsrs_target(col: Collection, deck_id: int) -> float | None:
+    """Retencion deseada del mazo si FSRS esta activado; si no, None."""
+    if not deck_id or not col.get_config("fsrs", False):
+        return None
+    target = col.decks.config_dict_for_deck_id(DeckId(deck_id)).get("desiredRetention")
+    return float(target) if isinstance(target, (int, float)) and 0 < target < 1 else None
 
 
 def _redraw_in_place() -> None:
@@ -276,16 +323,23 @@ def _on_js_message(
         _set_window(action[len("window:"):])
         return (True, None)
 
-    if action.startswith("key:"):
-        _go_to_key_date(action[len("key:"):])
-        return (True, None)
-
-    if action in ("opts", "opts:exclude"):
+    if action in ("opts", "opts:exclude", "opts:keydates"):
         # Se aplaza para que el mensaje de la pagina termine antes de abrir
         # una ventana modal. Desde el aviso de mazo excluido se abre ademas
-        # la lista de mazos excluidos.
-        start_exclude = action == "opts:exclude"
-        mw.progress.single_shot(0, lambda: open_options(start_exclude=start_exclude))
+        # la lista de mazos excluidos, y desde «Anadir», la de fechas clave.
+        start = action.partition(":")[2]
+        mw.progress.single_shot(0, lambda: open_options(start=start))
+        return (True, None)
+
+    if action == "goal:set":
+        mw.progress.single_shot(0, _set_goal)
+        return (True, None)
+
+    if action == "stats:toggle":
+        # La pagina ya la plego o desplego al instante; aqui solo se guarda.
+        cfg = load_config()
+        config.save_appearance(replace(cfg, stats_open=not cfg.stats_open))
+        state.pages.clear()
         return (True, None)
 
     if action.startswith("past:"):
@@ -303,20 +357,21 @@ def _on_js_message(
 # ---------------------------------------------------------------------------
 
 
-def _go_to_key_date(raw: str) -> None:
-    """La proxima fecha clave, pulsada: el mapa pasa al ano de esa fecha.
-
-    La semana la busca la pagina en cuanto el ano esta dibujado. El texto
-    llega de la pagina, asi que se comprueba antes de usarlo.
-    """
-    try:
-        day = date.fromisoformat(raw)
-    except ValueError:
+@guarded()
+def _set_goal() -> None:
+    """«Fijar meta»: un selector minimo con un numero ya propuesto, el 80 % de
+    su promedio diario de los ultimos 30 dias, redondeado a 5 (criterio del
+    informe para que sea alcanzable casi siempre)."""
+    cfg = load_config()
+    average = None
+    if state.data is not None:
+        average = window_average(state.data.data, cfg.measure, 30)
+    proposal = max(5, int(round(0.8 * average / 5)) * 5) if average else DEFAULT_CONFIG.goal
+    chosen = open_goal_dialog(proposal, cfg.measure)
+    if chosen is None:
         return
-    if state.data is None:
-        return
-    state.year_offset = state.data.data.today.year - day.year
-    _redraw_in_place()
+    config.save_appearance(replace(cfg, goal_mode="number", goal=chosen))
+    _apply_config_change()
 
 
 def _set_window(raw: str) -> None:

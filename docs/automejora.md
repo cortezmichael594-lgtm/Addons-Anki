@@ -593,6 +593,15 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Comprobado: 2026-10-21, con Anki 26.09.3 (código instalado y ejecución de las pruebas con y sin set_lang).
 - Origen: Nocturne 3.3.0.
 
+### APR-065 · Los valores por defecto siempre están en getConfig
+- Qué es: AddonManager.getConfig lee config.json (los valores por defecto) y le pone encima lo que el complemento guardó en meta.json, con config.update(userConf). El resultado tiene siempre todas las claves de config.json.
+- Por qué es buena práctica: al renombrar un ajuste en una versión nueva (por ejemplo, de píxeles a palabras), comprobar «si falta la clave nueva, es una configuración antigua» nunca se cumple, porque config.json ya la trae; la migración no ocurriría y se perdería lo que la persona eligió.
+- Para qué sirve: cualquier complemento que cambie, renombre o retire ajustes entre versiones.
+- Cómo se aplica: detecte lo antiguo por la presencia de la clave antigua (que ya no está en config.json), conviértala y bórrela al guardar; mientras exista, manda ella.
+- Fuente: aqt/addons.py, AddonManager.getConfig (líneas 713-723 del Anki instalado); prueba en pruebas/gritmap/test_config.py (test_pixels_of_version_3_become_words).
+- Comprobado: 2026-10-21, con Anki 26.09.3 (código instalado y pruebas).
+- Origen: GritMap 4.0.0.
+
 ## Retirados
 
 Aprendizajes que dejaron de valer, con fecha y motivo («- APR-NNN (AAAA-MM-DD): motivo»). Su número no

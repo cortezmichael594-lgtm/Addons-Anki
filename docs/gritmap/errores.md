@@ -146,19 +146,22 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   como control segmentado sin marco: el elegido con fondo suave de pastilla y negrita, como en la
   imagen que aportó («30 días», «1 año», «Todo»). Lo pidió el cliente el 2026-10-13. Desde la 3.6.0
   (cliente, 2026-10-21) el selector está encima de las tres cifras que cambia (promedio, días
-  estudiados y retención) y no junto al año; las rachas forman aparte el grupo «Rachas».
+  estudiados y retención) y no junto al año; las rachas forman aparte el grupo «Rachas». Desde la
+  4.0.0, en la cabecera de la tarjeta «Estadísticas», y ya no en Opciones.
 - Versión 3.5.0 (plan aprobado por el cliente el 2026-10-13, con criterios de diseño citados en la
   entrega): cifras en dos grupos (constancia y rendimiento) con la racha actual primero, número
   grande y unidad pequeña, misma letra que Anki, globos con la fecha en gris y cierre con Esc, y
   botones de periodo de al menos 24 píxeles de alto. El cliente descartó la llama de la racha y sus
   globos de motivación.
-- El globo del año lleva el signo de exclamación de cada idioma; en español, los dos («¡…!»). Lo
-  pidió el cliente el 2026-10-13.
+- El globo del año llevaba el signo de exclamación de cada idioma (cliente, 2026-10-13). Desde la
+  4.0.0 el total del año está siempre a la vista en el título de «Actividad» («12.480 repasos en
+  2026») y ese globo se retiró (informe de rediseño aprobado por el cliente el 2026-10-21).
 - La retención no tiene globo explicativo. Lo retiró el cliente el 2026-10-09.
 - Las ventanas de excluir mazos y de fechas clave no llevan textos de ayuda. Lo decidió el cliente.
-- Las siete escalas de los temas y la escala gris de los días futuros son colores propios, fuera de
-  la paleta Nocturne, que no tiene escalas de diez tonos. Lo aprobó el cliente el 2026-10-08; el
-  2026-10-13 aprobó rehacerlas a partir de los tonos de Nocturne, con escalones iguales.
+- Las escalas de los temas son colores propios, fuera de la paleta Nocturne, que no tiene escalas.
+  Lo aprobó el cliente el 2026-10-08 (siete temas de diez tonos) y el 2026-10-13 (rehechas a partir de
+  Nocturne). Desde la 4.0.0 (informe del cliente, 2026-10-21) son cuatro temas de cuatro tonos, con
+  los valores del informe; los días futuros ya no tienen escala gris, sino un punto.
 - Los mazos excluidos y las fechas clave se guardan sin paso de deshacer, porque son ajustes y no
   estudio, como hace Anki con sus búsquedas guardadas. Criterio del complemento original.
 - Las cifras del mapa se leen directamente de la base de datos, solo para leer, porque Anki no ofrece
@@ -179,20 +182,53 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   si está a 7 días o menos, y «nuevo récord» solo el día en que se bate. No hay avisos, cuentas
   atrás ni mensajes de pérdida: la propuesta del cliente los descarta por ser patrones que presionan
   (versión 3.6.0).
-- Los días sin estudio usan el gris de borde suave de Nocturne y no el fondo hundido que proponía
-  el documento de mejoras: de noche ese fondo es más oscuro que la página y la rejilla vacía casi
-  desaparecería. Criterio técnico de la versión 3.6.0.
+- Los días sin estudio usan, de día, el gris de borde suave de Nocturne y, desde la 4.0.0, de noche
+  el fondo hundido. En la 3.6.0 el mapa iba sobre la página y el fondo hundido se perdía de noche;
+  ahora va sobre una tarjeta más clara, donde es el borde suave el que se pierde (1,02:1) y el hueco
+  se lee como «no estudió». Criterio técnico, comprobado en pantalla el 2026-10-21.
 - Los dos grupos de cifras ya no llevan una raya entre ellos: los separa el espacio, ahora que cada
   uno tiene su cabecera (versión 3.6.0).
 - El globo de cada día lleva la fecha arriba (sin «el») y lo hecho debajo, en todos los idiomas. Lo
   pidió el cliente el 2026-10-13.
-- Las fechas clave llevan el borde naranja de siempre, y azul en los temas Rojo fuego, Naranja
-  atardecer y Rosa suave, donde el naranja no se distingue. Lo eligió el cliente el 2026-10-13.
-- Las cifras de debajo del mapa se escriben en el color del texto, con un cuadrito del tono delante,
-  y no en el tono del tema. Lo eligió el cliente el 2026-10-13: los tonos claros no se leían.
+- Las fechas clave llevaron un borde naranja, o azul en tres temas (cliente, 2026-10-13). Desde la
+  4.0.0 llevan una ★ gris sobre su semana, la misma de la tarjeta «Próxima fecha»: el mismo dato ya
+  no cambia de color según el tema (informe del cliente, 2026-10-21).
+- Las cifras se escriben en el color del texto, no en el tono del tema (cliente, 2026-10-13: los
+  tonos claros no se leían). Los cuadritos de color que llevaban delante se retiraron en la 4.0.0,
+  porque usaban un color sin explicar (informe del cliente, 2026-10-21).
 - Los botones del mapa ya no funden el color al pasar el ratón; solo se hunden un instante al
   pulsarlos. La guía del taller pide no animar el color (versión 3.2.0, plan aprobado el
   2026-10-13).
 - Al cambiar de año o una opción de aspecto, el mapa no se vuelve a calcular: usa los datos que ya tiene
   hasta que Anki redibuja la pantalla (al volver del repaso, sincronizar o deshacer, y cada 10
   minutos). Así cambiar de año es inmediato (versión 3.2.0).
+
+Versión 4.0.0 (informe de rediseño del cliente, aprobado el 2026-10-21, las tres tandas):
+
+- Tres bandas de tarjetas: resumen (Hoy, Racha, Retención y Próxima fecha), «Actividad» y
+  «Estadísticas» plegable. La fila de resumen va debajo de la lista de mazos y no encima, como en la
+  captura de referencia: Anki no ofrece a los complementos un sitio encima y la alternativa era un
+  truco en su página que podría romperse. Lo eligió el cliente el 2026-10-21.
+- La superficie de las tarjetas es la capa elevada de Nocturne (CANVAS_ELEVATED) y no el #FFFFFF y
+  #1A2130 del informe: la paleta no admite blanco puro de fondo ni colores fuera de sus tokens.
+  Criterio técnico.
+- Al cumplir la meta, el ✓ aparece con un aumento de 150 ms (escala y transparencia), no el cierre
+  del anillo en 300 ms del informe: la guía del taller limita las animaciones a 150 ms. Lo eligió el
+  cliente el 2026-10-21. Solo la primera vez que se dibuja tras cumplirla.
+- La meta nunca afecta a la racha: basta un repaso para que el día cuente.
+- Con «Terminar lo de hoy», la meta se cuenta en tarjetas (respondidas hoy frente a esas más las que
+  aún vencen, con los límites de Anki y sin los mazos excluidos), sea cual sea la medida del mapa.
+- Comodines: uno cada 7 días seguidos, dos como máximo, se gastan solos; activados por defecto.
+- En la pausa, un día sin estudiar ni suma ni rompe; un día de pausa en que sí estudió cuenta como
+  siempre. El informe no decía qué pasa si se estudia en pausa; criterio técnico, para no quitarle a
+  nadie un día estudiado.
+- Las sorpresas son como mucho una al día, solo con datos reales y solo si hoy ya cuenta: nueva racha
+  más larga, mejor día del año (con al menos 7 días estudiados antes), mes completo y cifras redondas
+  del año (100, 500 y cada 1.000). No hay avisos de pérdida, urgencia, azar ni comparación social.
+- La constancia de la semana y las dos barras usan los 7 días completos que terminan ayer y los 7
+  anteriores, como la comparativa de siempre (Regla de FIX-001); la comparativa ya no va junto a la
+  línea de Anki.
+- «Hoy» solo se ve en otro año o, con cuadritos grandes, cuando la semana de hoy queda fuera de la
+  vista; su hueco queda reservado.
+- Se retiraron Rojo fuego (el rojo significa error), Rosa suave y Turquesa laguna; quien los tenía
+  pasa al tema más cercano y Opciones lo dice una vez.

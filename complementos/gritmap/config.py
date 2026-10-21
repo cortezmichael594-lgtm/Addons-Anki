@@ -2,12 +2,13 @@
 
 Hay dos almacenes, y cada ajuste vive donde le corresponde:
 
-  * Apariencia (tema, medida del color, tamano de celda, redondeo, ventana del
-    promedio, comparativa semanal) -> configuracion del complemento
-    (mw.addonManager). Es comun a todos los perfiles del equipo, que es justo
-    lo que se espera de un ajuste visual.
+  * Apariencia y metas (tema, medida del color, tamano, forma, periodo de las
+    cifras, estadisticas plegadas, meta diaria, comodines y mostrar racha y
+    meta) -> configuracion del complemento (mw.addonManager). Es comun a
+    todos los perfiles del equipo, que es justo lo que se espera de un ajuste
+    visual.
 
-  * Mazos excluidos y fechas clave -> configuracion de la coleccion
+  * Mazos excluidos, fechas clave y pausa de la racha -> configuracion de la coleccion
     (mw.col.set_config / get_config). Los identificadores de mazo solo tienen
     sentido dentro de una coleccion, asi que guardarlos en el complemento
     hacia que al cambiar de usuario se aplicaran exclusiones ajenas. Ademas,
@@ -36,15 +37,19 @@ from aqt import mw
 
 from .data import MEASURES, WINDOWS
 from .errors import log_exception
-from .palettes import THEME_NAMES
+from .palettes import RETIRED_THEMES, THEME_NAMES
 
 MAX_KEY_DATES = 50
 MAX_LABEL_LEN = 60
 KEY_DATE_MIN = date(2000, 1, 1)
 KEY_DATE_MAX = date(2100, 12, 31)
 
-CELL_SIZE_MIN, CELL_SIZE_MAX = 8, 60
-BORDER_RADIUS_MIN, BORDER_RADIUS_MAX = 0, 15
+# Tamano y forma de los cuadritos (4.0.0): palabras en lugar de pixeles.
+SIZES: tuple[str, ...] = ("fit", "large")
+SHAPES: tuple[str, ...] = ("square", "rounded")
+GOAL_MODES: tuple[str, ...] = ("none", "number", "due")
+GOAL_MIN, GOAL_MAX = 1, 9999
+MAX_PAUSE_DAYS = 30
 
 # Clave unica dentro de la configuracion de la coleccion. Guarda un diccionario
 # pequeno (mazos excluidos y fechas clave); la configuracion de la coleccion se
@@ -54,12 +59,18 @@ COL_KEY = "gritmap"
 APPEARANCE_KEYS = (
     "theme",
     "measure",
-    "cell_size",
-    "border_radius",
+    "size",
+    "shape",
     "avg_window",
-    "show_week_diff",
+    "stats_open",
+    "goal_mode",
+    "goal",
+    "freezes",
+    "show_streak",
 )
-COLLECTION_KEYS = ("excluded_decks", "key_dates")
+# Claves de versiones anteriores que se dejan de guardar (3.x).
+_OLD_APPEARANCE_KEYS = ("cell_size", "border_radius", "show_week_diff")
+COLLECTION_KEYS = ("excluded_decks", "key_dates", "pause")
 
 
 @dataclass(frozen=True)
@@ -74,22 +85,43 @@ class Config:
     # Que mide el color: "reviews", "cards" o "new" (data.MEASURES). Un "minutes"
     # guardado por la version 3.0.0 vuelve a "reviews" al leerse.
     measure: str
-    cell_size: int
-    border_radius: int
+    # "fit": el ano entero cabe en el ancho de la tarjeta (cuadritos de 10 a
+    # 22 px); "large": cuadritos de 25 px y desplazamiento de lado.
+    size: str
+    # "square" o "rounded".
+    shape: str
     # Dias de la ventana del promedio; 0 = todo el historial (data.WINDOWS).
     avg_window: int
-    show_week_diff: bool
+    # Tarjeta de estadisticas abierta (True) o plegada.
+    stats_open: bool
+    # Meta diaria: "none", "number" (goal en la unidad de la medida) o "due"
+    # (terminar lo que vence hoy).
+    goal_mode: str
+    goal: int
+    # Comodines: perdonar dias sueltos sin estudiar.
+    freezes: bool
+    # Mostrar la tarjeta de la racha y la meta.
+    show_streak: bool
     excluded_decks: tuple[int, ...]
     key_dates: tuple[KeyDate, ...]
+    # Pausa de la racha: (primer dia, ultimo dia), o None.
+    pause: tuple[date, date] | None = None
+    # Tema retirado que tenia guardado (4.0.0), para avisar en Opciones; no
+    # se guarda.
+    retired_theme: str = ""
 
 
 DEFAULT_CONFIG = Config(
     theme="classic_green",
     measure="reviews",
-    cell_size=25,
-    border_radius=1,
+    size="fit",
+    shape="square",
     avg_window=30,
-    show_week_diff=True,
+    stats_open=True,
+    goal_mode="none",
+    goal=50,
+    freezes=True,
+    show_streak=True,
     excluded_decks=(),
     key_dates=(),
 )
@@ -136,7 +168,52 @@ def _as_bool(value: object, fallback: bool) -> bool:
 
 
 def _as_theme(value: object) -> str:
+    if isinstance(value, str) and value in RETIRED_THEMES:
+        return RETIRED_THEMES[value]
     return value if isinstance(value, str) and value in THEME_NAMES else DEFAULT_CONFIG.theme
+
+
+def _as_choice(value: object, choices: tuple[str, ...], fallback: str) -> str:
+    return value if isinstance(value, str) and value in choices else fallback
+
+
+def _as_size(stored: dict[str, object]) -> str:
+    """Tamano; de una configuracion 3.x, a partir de los pixeles guardados.
+
+    Los 25 px de antes eran el valor por defecto, asi que pasan a «Ajustado
+    al ancho», el nuevo; solo quien los habia agrandado (30 px o mas) pasa a
+    «Grande». Anki mezcla los valores por defecto de config.json con los
+    guardados, asi que «size» siempre esta: la clave antigua, que ya no viene
+    por defecto, solo existe si la guardo una version 3.x y manda hasta que
+    se guarden las opciones de la 4.0.0 (que la borran).
+    """
+    old = stored.get("cell_size")
+    if old is not None:
+        return "large" if _is_number(old) and old >= 30 else DEFAULT_CONFIG.size
+    return _as_choice(stored.get("size"), SIZES, DEFAULT_CONFIG.size)
+
+
+def _as_shape(stored: dict[str, object]) -> str:
+    old = stored.get("border_radius")
+    if old is not None:
+        return "rounded" if _is_number(old) and old >= 4 else DEFAULT_CONFIG.shape
+    return _as_choice(stored.get("shape"), SHAPES, DEFAULT_CONFIG.shape)
+
+
+def _as_pause(value: object) -> tuple[date, date] | None:
+    """Pausa valida (de 1 a 30 dias, con el fin despues del principio) o None."""
+    if not isinstance(value, dict):
+        return None
+    try:
+        start = date.fromisoformat(str(value.get("start")))
+        end = date.fromisoformat(str(value.get("end")))
+    except ValueError:
+        return None
+    if not (KEY_DATE_MIN <= start <= end <= KEY_DATE_MAX):
+        return None
+    if (end - start).days + 1 > MAX_PAUSE_DAYS:
+        return None
+    return start, end
 
 
 def _as_deck_ids(value: object) -> tuple[int, ...]:
@@ -264,22 +341,22 @@ def load_config(col: Collection | None = None) -> Config:
 
 def build_config(stored: dict[str, object], scoped: dict[str, object]) -> Config:
     """Configuracion validada a partir de los dos almacenes ya leidos."""
+    raw_theme = stored.get("theme")
     return Config(
-        theme=_as_theme(stored.get("theme")),
+        theme=_as_theme(raw_theme),
         measure=_as_measure(stored.get("measure")),
+        size=_as_size(stored),
+        shape=_as_shape(stored),
         avg_window=_as_window(stored.get("avg_window")),
-        cell_size=_as_int(
-            stored.get("cell_size"), DEFAULT_CONFIG.cell_size, CELL_SIZE_MIN, CELL_SIZE_MAX
-        ),
-        border_radius=_as_int(
-            stored.get("border_radius"),
-            DEFAULT_CONFIG.border_radius,
-            BORDER_RADIUS_MIN,
-            BORDER_RADIUS_MAX,
-        ),
-        show_week_diff=_as_bool(stored.get("show_week_diff"), DEFAULT_CONFIG.show_week_diff),
+        stats_open=_as_bool(stored.get("stats_open"), DEFAULT_CONFIG.stats_open),
+        goal_mode=_as_choice(stored.get("goal_mode"), GOAL_MODES, DEFAULT_CONFIG.goal_mode),
+        goal=_as_int(stored.get("goal"), DEFAULT_CONFIG.goal, GOAL_MIN, GOAL_MAX),
+        freezes=_as_bool(stored.get("freezes"), DEFAULT_CONFIG.freezes),
+        show_streak=_as_bool(stored.get("show_streak"), DEFAULT_CONFIG.show_streak),
         excluded_decks=_as_deck_ids(scoped.get("excluded_decks")),
         key_dates=_as_key_dates(scoped.get("key_dates")),
+        pause=_as_pause(scoped.get("pause")),
+        retired_theme=raw_theme if isinstance(raw_theme, str) and raw_theme in RETIRED_THEMES else "",
     )
 
 
@@ -290,12 +367,18 @@ def save_appearance(cfg: Config) -> None:
         {
             "theme": cfg.theme,
             "measure": cfg.measure,
-            "cell_size": cfg.cell_size,
-            "border_radius": cfg.border_radius,
+            "size": cfg.size,
+            "shape": cfg.shape,
             "avg_window": cfg.avg_window,
-            "show_week_diff": cfg.show_week_diff,
+            "stats_open": cfg.stats_open,
+            "goal_mode": cfg.goal_mode,
+            "goal": cfg.goal,
+            "freezes": cfg.freezes,
+            "show_streak": cfg.show_streak,
         }
     )
+    for key in _OLD_APPEARANCE_KEYS:
+        appearance.pop(key, None)
     # Las claves de versiones antiguas (mazos y fechas guardados fuera de la
     # coleccion) se quitan cuando ya no guardan nada que copiar a un perfil:
     # asi no se arrastran para siempre, y lo que si guardan sigue a salvo
@@ -322,13 +405,13 @@ def save_scoped(col: Collection, cfg: Config) -> None:
     # los nombres de las banderas. Envolverlo en una operacion deshacible
     # ensuciaria el menu Editar -> Deshacer con un paso que la persona no
     # espera poder revertir.
-    col.set_config(
-        COL_KEY,
-        {
-            "excluded_decks": list(cfg.excluded_decks),
-            "key_dates": _key_dates_to_json(cfg.key_dates),
-        },
-    )
+    scoped: dict[str, object] = {
+        "excluded_decks": list(cfg.excluded_decks),
+        "key_dates": _key_dates_to_json(cfg.key_dates),
+    }
+    if cfg.pause is not None:
+        scoped["pause"] = {"start": cfg.pause[0].isoformat(), "end": cfg.pause[1].isoformat()}
+    col.set_config(COL_KEY, scoped)
 
 
 def migrate_to_collection() -> None:

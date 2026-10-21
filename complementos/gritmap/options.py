@@ -27,8 +27,7 @@ plano: Anki nunca se queda esperando a la coleccion por esta ventana.
 
 from __future__ import annotations
 
-import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 
 from anki.collection import Collection
@@ -44,6 +43,7 @@ from aqt.qt import (
     QDialog,
     QDialogButtonBox,
     QFormLayout,
+    QGroupBox,
     QHBoxLayout,
     QIcon,
     QKeySequence,
@@ -52,10 +52,12 @@ from aqt.qt import (
     QLocale,
     QPainter,
     QPaintEvent,
+    QPen,
     QPixmap,
+    QPushButton,
+    QRadioButton,
     QRectF,
     QSize,
-    QPushButton,
     QShortcut,
     QSpinBox,
     Qt,
@@ -70,11 +72,10 @@ from aqt.theme import theme_manager
 from aqt.utils import disable_help_button, restoreGeom, saveGeom, tooltip
 
 from .config import (
-    BORDER_RADIUS_MAX,
-    BORDER_RADIUS_MIN,
-    CELL_SIZE_MAX,
-    CELL_SIZE_MIN,
     DEFAULT_CONFIG,
+    GOAL_MAX,
+    GOAL_MIN,
+    MAX_PAUSE_DAYS,
     KEY_DATE_MAX,
     KEY_DATE_MIN,
     MAX_KEY_DATES,
@@ -86,7 +87,7 @@ from .config import (
     save_appearance,
     save_scoped,
 )
-from .data import MEASURES, WINDOWS
+from .data import MEASURES
 from .decks import DeckEntry, all_deck_entries
 from .errors import guarded, log_exception
 from .i18n import anki_text, fill, lang, plural_key, t
@@ -95,8 +96,6 @@ from .state import state
 
 # Nombres que caben en el globo del boton de mazos excluidos.
 _TOOLTIP_MAX_NAMES = 15
-_SPIN_WIDTH = 110
-_PREVIEW_GAP = 3  # el mismo hueco que entre los cuadritos del mapa
 _DECK_ROLE = Qt.ItemDataRole.UserRole
 _OWN_STATE_ROLE = Qt.ItemDataRole.UserRole + 1
 
@@ -147,29 +146,22 @@ def _theme_swatch(name: str) -> QIcon:
     # Regla: toda muestra de color se toma de la escala del modo activo, leido
     #        en el momento de construir la ventana.
     # ---------------------------------------------------------------
+    # Desde 4.0.0, una tira con los cuatro tonos del tema.
     scale = PAST_DARK if theme_manager.night_mode else PAST_LIGHT
-    pixmap = QPixmap(16, 16)
-    pixmap.fill(QColor(scale.get(name, scale[DEFAULT_CONFIG.theme])[5]))
+    tones = scale.get(name, scale[DEFAULT_CONFIG.theme])
+    pixmap = QPixmap(4 * 12, 12)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    try:
+        for index, tone in enumerate(tones):
+            painter.fillRect(index * 12 + 1, 1, 10, 10, QColor(tone))
+    finally:
+        painter.end()
     return QIcon(pixmap)
 
 
 def _sorted_theme_names() -> list[str]:
     return sorted(THEME_NAMES, key=lambda name: t(f"theme_{name}").casefold())
-
-
-def _spin_box(minimum: int, maximum: int) -> QSpinBox:
-    box = QSpinBox()
-    box.setRange(minimum, maximum)
-    box.setSingleStep(1)
-    box.setAccelerated(True)
-    box.setSuffix(" px")
-    box.setMaximumWidth(_SPIN_WIDTH)
-    return box
-
-
-def _without_px(key: str) -> str:
-    """Rotulo sin «(px)»: la unidad ya la lleva el propio campo."""
-    return re.sub(r"\s*\(px\)", "", t(key))
 
 
 def _standard_buttons(
@@ -195,55 +187,96 @@ def _standard_buttons(
     return box
 
 
-class PreviewStrip(QWidget):
-    """Vista previa en las opciones (3.6.0): una tira con el dia sin estudio y
-    los diez tonos del tema, al tamano y con el redondeo elegidos.
+class PreviewMonth(QWidget):
+    """Vista previa en las opciones (4.0.0): un mes de mapa en miniatura con
+    los tonos del tema, hoy, una estrella de fecha clave y dias pendientes,
+    al tamano y con la forma elegidos.
 
-    Cambia al momento al mover esos controles, para no tener que aceptar y
-    mirar el mapa para saber como queda (Norman, respuesta inmediata). Es el
-    unico control dibujado a mano de la ventana; lo aprobo el cliente en el
-    plan de la 3.6.0. Los colores se leen al pintar (modo activo).
+    Cambia al momento al mover esos controles (Norman, respuesta inmediata).
+    Es el unico control dibujado a mano de la ventana; lo aprobo el cliente.
+    Los colores se leen al pintar, en el modo activo.
     """
+
+    # Tono de cada dia del mes de muestra, por semanas: 0 sin estudio, 1-4 los
+    # tonos, -1 futuro sin nada y -2 futuro pendiente.
+    _LEVELS = (
+        1, 2, 0, 3, 2, 4, 1,
+        2, 3, 3, 0, 4, 2, 3,
+        4, 1, 2, 3, 4, 3, 0,
+        3, 2, 4, -1, -2, -1, -2,
+        -1, -2, -1, -1, -2, -1, -1,
+    )
+    _TODAY = 23
+    _STAR_WEEK = 4
 
     def __init__(self) -> None:
         super().__init__()
         self._theme = DEFAULT_CONFIG.theme
-        self._size = DEFAULT_CONFIG.cell_size
-        self._radius = DEFAULT_CONFIG.border_radius
-        # Alto fijo para el cuadrito mas grande: la ventana no cambia de
-        # tamano al mover el control.
-        self.setFixedHeight(CELL_SIZE_MAX)
+        self._size = DEFAULT_CONFIG.size
+        self._shape = DEFAULT_CONFIG.shape
+        # Alto fijo para el tamano grande: la ventana no cambia de tamano.
+        self.setFixedHeight(self._height("large"))
         self.setAccessibleName(t("opt_preview"))
 
-    def sizeHint(self) -> QSize:
-        return QSize(11 * (DEFAULT_CONFIG.cell_size + _PREVIEW_GAP), CELL_SIZE_MAX)
+    @staticmethod
+    def _cell(size: str) -> int:
+        return 16 if size == "large" else 11
 
-    def set_look(self, theme: str, size: int, radius: int) -> None:
-        if (theme, size, radius) != (self._theme, self._size, self._radius):
-            self._theme, self._size, self._radius = theme, size, radius
+    def _height(self, size: str) -> int:
+        return 14 + 7 * (self._cell(size) + 3)
+
+    def sizeHint(self) -> QSize:
+        return QSize(5 * 19, self._height("large"))
+
+    def set_look(self, theme: str, size: str, shape: str) -> None:
+        if (theme, size, shape) != (self._theme, self._size, self._shape):
+            self._theme, self._size, self._shape = theme, size, shape
             self.update()
 
     def paintEvent(self, _event: QPaintEvent | None) -> None:
         # Regla de FIX-007: los tonos salen de la escala del modo activo.
         scale = PAST_DARK if theme_manager.night_mode else PAST_LIGHT
         tones = scale.get(self._theme, scale[DEFAULT_CONFIG.theme])
-        fills = [theme_manager.qcolor(colors.BORDER_SUBTLE)] + [QColor(tone) for tone in tones]
+        empty = theme_manager.qcolor(colors.BORDER_SUBTLE)
+        cell = float(self._cell(self._size))
+        step = cell + 3
+        radius = cell * (0.36 if self._shape == "rounded" else 0.14)
         painter = QPainter(self)
         try:
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-            painter.setPen(Qt.PenStyle.NoPen)
-            size = float(self._size)
-            # Arriba, a la altura de su rotulo; el hueco sobrante queda debajo.
-            top = 0.0
-            left = 0.0
-            for fill in fills:
-                if left + size > self.width():
-                    break
-                painter.setBrush(fill)
-                painter.drawRoundedRect(QRectF(left, top, size, size), self._radius, self._radius)
-                left += size + _PREVIEW_GAP
+            painter.setPen(theme_manager.qcolor(colors.FG_SUBTLE))
+            star_x = self._STAR_WEEK * step + cell / 2
+            painter.drawText(QRectF(star_x - 8, 0, 16, 12), Qt.AlignmentFlag.AlignCenter, "★")
+            for index, level in enumerate(self._LEVELS):
+                week, row = divmod(index, 7)
+                rect = QRectF(week * step, 14 + row * step, cell, cell)
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(QColor(tones[level - 1]) if level > 0 else empty)
+                painter.drawRoundedRect(rect, radius, radius)
+                if level == -2:
+                    # Pendiente: el cuadrito vacio con un punto.
+                    painter.setBrush(theme_manager.qcolor(colors.FG_DISABLED))
+                    painter.drawEllipse(rect.center(), 1.8, 1.8)
+                if index == self._TODAY:
+                    pen = QPen(theme_manager.qcolor(colors.FG))
+                    pen.setWidthF(1.5)
+                    painter.setPen(pen)
+                    painter.setBrush(Qt.BrushStyle.NoBrush)
+                    painter.drawRoundedRect(rect, radius, radius)
         finally:
             painter.end()
+
+
+def _radio_pair(first: str, second: str) -> tuple[QWidget, QRadioButton, QRadioButton]:
+    """Dos opciones a la vista en vez de un desplegable (Practical UI, P19)."""
+    box = QWidget()
+    row = QHBoxLayout(box)
+    row.setContentsMargins(0, 0, 0, 0)
+    one, two = QRadioButton(first), QRadioButton(second)
+    row.addWidget(one)
+    row.addWidget(two)
+    row.addStretch(1)
+    return box, one, two
 
 
 class ExcludeDecksDialog(QDialog):
@@ -519,30 +552,64 @@ class KeyDatesDialog(QDialog):
 
 
 class HeatmapOptionsDialog(QDialog):
+    """Opciones en tres grupos con titulo (4.0.0): Apariencia, Que se cuenta y
+    Metas y fechas. Tres grupos de tres a cinco controles encajan con lo que
+    la memoria abarca (Weinschenk, P1); sin palabras en pixeles."""
+
     def __init__(self, parent: QWidget, cfg: Config, decks: _Decks) -> None:
         super().__init__(parent)
         self.setWindowTitle(t("opt_title"))
         disable_help_button(self)
-        self.setMinimumWidth(440)
+        self.setMinimumWidth(460)
         self._decks = decks
 
         self._theme = QComboBox()
+        self._theme.setIconSize(QSize(48, 12))
         for name in _sorted_theme_names():
             self._theme.addItem(_theme_swatch(name), t(f"theme_{name}"), name)
+        size_row, self._size_fit, self._size_large = _radio_pair(t("size_fit"), t("size_large"))
+        shape_row, self._shape_square, self._shape_rounded = _radio_pair(
+            t("shape_square"), t("shape_rounded")
+        )
+        self._preview = PreviewMonth()
+
         self._measure = QComboBox()
         for measure in MEASURES:
             self._measure.addItem(t(f"measure_{measure}"), measure)
-        self._cell_size = _spin_box(CELL_SIZE_MIN, CELL_SIZE_MAX)
-        self._border_radius = _spin_box(BORDER_RADIUS_MIN, BORDER_RADIUS_MAX)
-        self._avg_window = QComboBox()
-        for days in WINDOWS:
-            label = t("window_all") if days == 0 else fill("window_days", count=days)
-            self._avg_window.addItem(label, days)
-        self._show_week = QCheckBox(t("opt_show_week"))
         # Una frase bajo «El color mide» dice que cuenta cada medida (3.6.0).
         self._measure_help = QLabel()
         self._measure_help.setWordWrap(True)
-        self._preview = PreviewStrip()
+
+        self._goal_mode = QComboBox()
+        for mode in ("none", "number", "due"):
+            self._goal_mode.addItem(t(f"goal_{mode}"), mode)
+        self._goal = QSpinBox()
+        self._goal.setRange(GOAL_MIN, GOAL_MAX)
+        self._goal.setAccelerated(True)
+        goal_box = QWidget()
+        goal_row = QHBoxLayout(goal_box)
+        goal_row.setContentsMargins(0, 0, 0, 0)
+        goal_row.addWidget(self._goal_mode, 1)
+        goal_row.addWidget(self._goal)
+        self._freezes = QCheckBox(t("opt_freezes"))
+        self._freezes.setToolTip(t("freeze_tip"))
+        self._pause_on = QCheckBox(t("opt_pause"))
+        self._pause_start = QDateEdit()
+        self._pause_end = QDateEdit()
+        for edit in (self._pause_start, self._pause_end):
+            edit.setCalendarPopup(True)
+            edit.setDisplayFormat(_date_format())
+            edit.setDateRange(_qdate(KEY_DATE_MIN), _qdate(KEY_DATE_MAX))
+        self._pause_end.setToolTip(t("pause_limit"))
+        pause_box = QWidget()
+        pause_row = QHBoxLayout(pause_box)
+        pause_row.setContentsMargins(0, 0, 0, 0)
+        pause_row.addWidget(self._pause_on)
+        pause_row.addWidget(self._pause_start)
+        pause_row.addWidget(QLabel("–"))
+        pause_row.addWidget(self._pause_end)
+        pause_row.addStretch(1)
+        self._show_streak = QCheckBox(t("opt_show_streak"))
 
         # --- FIX-017 (2026-10-13) --------------------------------------
         # Sintoma: con el foco en «Seleccionar mazos» o en Restaurar, Intro
@@ -561,17 +628,33 @@ class HeatmapOptionsDialog(QDialog):
         self._key_dates_button = QPushButton()
         qconnect(self._key_dates_button.clicked, self._open_key_dates)
 
-        form = QFormLayout()
-        form.addRow(t("opt_theme"), self._theme)
-        form.addRow(t("opt_measure"), self._measure)
-        form.addRow("", self._measure_help)
-        form.addRow(_without_px("opt_cell"), self._cell_size)
-        form.addRow(_without_px("opt_radius"), self._border_radius)
-        form.addRow(t("opt_preview"), self._preview)
-        form.addRow(t("opt_window"), self._avg_window)
-        form.addRow(t("opt_exclude"), self._exclude_button)
-        form.addRow(t("opt_key_dates"), self._key_dates_button)
-        form.addRow("", self._show_week)
+        look = QFormLayout()
+        if cfg.retired_theme:
+            # El tema guardado se retiro en la 4.0.0: se dice una vez, sin
+            # preguntar (Hopkins, M3: avisar al cambiar las reglas).
+            notice = QLabel(
+                fill(
+                    "theme_retired",
+                    old=t(f"theme_{cfg.retired_theme}"),
+                    new=t(f"theme_{cfg.theme}"),
+                )
+            )
+            notice.setWordWrap(True)
+            look.addRow(notice)
+        look.addRow(t("opt_theme"), self._theme)
+        look.addRow(t("opt_size"), size_row)
+        look.addRow(t("opt_shape"), shape_row)
+        look.addRow(t("opt_preview"), self._preview)
+        counted = QFormLayout()
+        counted.addRow(t("opt_measure"), self._measure)
+        counted.addRow("", self._measure_help)
+        counted.addRow(t("opt_exclude"), self._exclude_button)
+        goals = QFormLayout()
+        goals.addRow(t("opt_goal"), goal_box)
+        goals.addRow("", self._freezes)
+        goals.addRow("", pause_box)
+        goals.addRow(t("opt_key_dates"), self._key_dates_button)
+        goals.addRow("", self._show_streak)
 
         buttons = _standard_buttons(
             self,
@@ -587,13 +670,19 @@ class HeatmapOptionsDialog(QDialog):
             restore_button.setToolTip(t("opt_restore_tip"))
             qconnect(restore_button.clicked, self._restore_defaults)
         qconnect(self._theme.currentIndexChanged, self._update_preview)
-        qconnect(self._cell_size.valueChanged, self._update_preview)
-        qconnect(self._border_radius.valueChanged, self._update_preview)
+        for radio in (self._size_fit, self._size_large, self._shape_square, self._shape_rounded):
+            qconnect(radio.toggled, self._update_preview)
         qconnect(self._measure.currentIndexChanged, self._update_measure_help)
+        qconnect(self._goal_mode.currentIndexChanged, self._update_goal_state)
+        qconnect(self._pause_on.toggled, self._update_pause_state)
+        qconnect(self._pause_start.dateChanged, self._limit_pause)
 
         layout = QVBoxLayout()
-        layout.addLayout(form)
-        layout.addSpacing(6)
+        for title, form in ((t("grp_look"), look), (t("grp_count"), counted), (t("grp_goals"), goals)):
+            group = QGroupBox(title)
+            group.setLayout(form)
+            layout.addWidget(group)
+        layout.addSpacing(4)
         layout.addWidget(buttons)
         self.setLayout(layout)
 
@@ -618,12 +707,12 @@ class HeatmapOptionsDialog(QDialog):
                 self._theme.setItemIcon(index, _theme_swatch(name))
         self._preview.update()
 
-    def _update_preview(self, _value: int = 0) -> None:
+    def _update_preview(self, _value: object = None) -> None:
         theme = self._theme.currentData()
         self._preview.set_look(
             theme if isinstance(theme, str) else DEFAULT_CONFIG.theme,
-            self._cell_size.value(),
-            self._border_radius.value(),
+            "large" if self._size_large.isChecked() else "fit",
+            "rounded" if self._shape_rounded.isChecked() else "square",
         )
 
     def _update_measure_help(self, _index: int = 0) -> None:
@@ -631,6 +720,19 @@ class HeatmapOptionsDialog(QDialog):
         if measure not in MEASURES:
             measure = DEFAULT_CONFIG.measure
         self._measure_help.setText(t(f"measure_{measure}_help"))
+        self._goal.setSuffix(" " + _unit_word(str(measure)))
+
+    def _update_goal_state(self, _index: int = 0) -> None:
+        self._goal.setEnabled(self._goal_mode.currentData() == "number")
+
+    def _update_pause_state(self, _checked: bool = False) -> None:
+        on = self._pause_on.isChecked()
+        self._pause_start.setEnabled(on)
+        self._pause_end.setEnabled(on)
+
+    def _limit_pause(self, start: QDate) -> None:
+        """La pausa dura de 1 a 30 dias: el fin se mueve dentro de ese margen."""
+        self._pause_end.setDateRange(start, start.addDays(MAX_PAUSE_DAYS - 1))
 
     # Sub-ventanas
     def _open_exclude(self, _checked: bool = False) -> None:
@@ -677,11 +779,22 @@ class HeatmapOptionsDialog(QDialog):
 
     def _apply(self, cfg: Config) -> None:
         self._theme.setCurrentIndex(max(self._theme.findData(cfg.theme), 0))
+        (self._size_large if cfg.size == "large" else self._size_fit).setChecked(True)
+        (self._shape_rounded if cfg.shape == "rounded" else self._shape_square).setChecked(True)
         self._measure.setCurrentIndex(max(self._measure.findData(cfg.measure), 0))
-        self._cell_size.setValue(cfg.cell_size)
-        self._border_radius.setValue(cfg.border_radius)
-        self._avg_window.setCurrentIndex(max(self._avg_window.findData(cfg.avg_window), 0))
-        self._show_week.setChecked(cfg.show_week_diff)
+        self._goal_mode.setCurrentIndex(max(self._goal_mode.findData(cfg.goal_mode), 0))
+        self._goal.setValue(cfg.goal)
+        self._freezes.setChecked(cfg.freezes)
+        self._show_streak.setChecked(cfg.show_streak)
+        today = QDate.currentDate()
+        if cfg.pause is not None:
+            start, end = _qdate(cfg.pause[0]), _qdate(cfg.pause[1])
+        else:
+            start, end = today, today.addDays(6)
+        self._pause_on.setChecked(cfg.pause is not None)
+        self._pause_start.setDate(start)
+        self._limit_pause(start)
+        self._pause_end.setDate(end)
         # FIX-016: solo los mazos que existen; los demas se dejan de guardar.
         self._excluded = tuple(d for d in cfg.excluded_decks if d in self._decks.existing)
         self._update_exclude_label()
@@ -689,39 +802,49 @@ class HeatmapOptionsDialog(QDialog):
         self._update_key_dates_label()
         self._update_preview()
         self._update_measure_help()
+        self._update_goal_state()
+        self._update_pause_state()
 
     def _restore_defaults(self, _checked: bool = False) -> None:
-        """Vuelve a los valores recomendados.
+        """Vuelve a los valores recomendados de la apariencia.
 
-        Solo repone la apariencia: los mazos excluidos y las fechas clave son
-        datos que la persona ha introducido y se quedan como estaban, para que
-        pulsar este boton nunca borre trabajo suyo.
+        Solo repone la apariencia (tema, tamano, forma y medida): los mazos
+        excluidos, las fechas clave, la meta, los comodines y la pausa son
+        decisiones de la persona y se quedan como estaban, para que pulsar
+        este boton nunca borre nada suyo.
         """
         self._theme.setCurrentIndex(max(self._theme.findData(DEFAULT_CONFIG.theme), 0))
+        (self._size_large if DEFAULT_CONFIG.size == "large" else self._size_fit).setChecked(True)
+        square = DEFAULT_CONFIG.shape == "square"
+        (self._shape_square if square else self._shape_rounded).setChecked(True)
         self._measure.setCurrentIndex(max(self._measure.findData(DEFAULT_CONFIG.measure), 0))
-        self._cell_size.setValue(DEFAULT_CONFIG.cell_size)
-        self._border_radius.setValue(DEFAULT_CONFIG.border_radius)
-        self._avg_window.setCurrentIndex(
-            max(self._avg_window.findData(DEFAULT_CONFIG.avg_window), 0)
-        )
-        self._show_week.setChecked(DEFAULT_CONFIG.show_week_diff)
 
-    def selected_config(self) -> Config:
+    def selected_config(self, base: Config) -> Config:
+        """Lo elegido, sobre la configuracion con la que se abrio (que conserva
+        lo que esta ventana no muestra, como el periodo de las cifras)."""
         theme_data = self._theme.currentData()
         theme = theme_data if isinstance(theme_data, str) else DEFAULT_CONFIG.theme
         measure_data = self._measure.currentData()
         measure = measure_data if measure_data in MEASURES else DEFAULT_CONFIG.measure
-        window_data = self._avg_window.currentData()
-        avg_window = window_data if window_data in WINDOWS else DEFAULT_CONFIG.avg_window
-        return Config(
+        mode = self._goal_mode.currentData()
+        pause = None
+        if self._pause_on.isChecked():
+            start = self._pause_start.date().toPyDate()
+            pause = (start, max(start, self._pause_end.date().toPyDate()))
+        return replace(
+            base,
             theme=theme,
             measure=str(measure),
-            cell_size=self._cell_size.value(),
-            border_radius=self._border_radius.value(),
-            avg_window=int(avg_window),
-            show_week_diff=self._show_week.isChecked(),
+            size="large" if self._size_large.isChecked() else "fit",
+            shape="rounded" if self._shape_rounded.isChecked() else "square",
+            goal_mode=mode if isinstance(mode, str) else DEFAULT_CONFIG.goal_mode,
+            goal=self._goal.value(),
+            freezes=self._freezes.isChecked(),
+            show_streak=self._show_streak.isChecked(),
             excluded_decks=self._excluded,
             key_dates=self._key_dates,
+            pause=pause,
+            retired_theme="",
         )
 
     def done(self, result: int) -> None:
@@ -755,11 +878,12 @@ def _parent_window() -> QWidget:
     return mw.app.activeWindow() or mw
 
 
-def open_options(start_exclude: bool = False) -> None:
+def open_options(start: str = "") -> None:
     """Lee mazos y opciones en segundo plano y abre la ventana con ellos.
 
-    Con start_exclude (el boton del aviso de mazo excluido), al abrirse
-    muestra ademas la lista de mazos excluidos.
+    Con start, al abrirse muestra ademas una de sus listas: "exclude" (el
+    enlace del aviso de mazo excluido) o "keydates" (el enlace «Anadir» de la
+    tarjeta de la proxima fecha).
     """
     global _opening
     if _dialog is not None and _dialog.isVisible():
@@ -785,7 +909,7 @@ def open_options(start_exclude: bool = False) -> None:
             return
         # Se aplaza para no abrir una ventana modal dentro de la respuesta
         # de la operacion.
-        mw.progress.single_shot(0, lambda: _show(*result, parent, start_exclude), False)
+        mw.progress.single_shot(0, lambda: _show(*result, parent, start), False)
 
     @guarded()
     def on_failure(exc: Exception) -> None:
@@ -796,7 +920,7 @@ def open_options(start_exclude: bool = False) -> None:
     QueryOp(parent=mw, op=op, success=on_success).failure(on_failure).run_in_background()
 
 
-def _show(cfg: Config, decks: _Decks, parent: QWidget, start_exclude: bool) -> None:
+def _show(cfg: Config, decks: _Decks, parent: QWidget, start: str) -> None:
     global _dialog
     try:
         # FIX-025: si la ventana de origen se cerro mientras se leian los
@@ -804,14 +928,20 @@ def _show(cfg: Config, decks: _Decks, parent: QWidget, start_exclude: bool) -> N
         if sip.isdeleted(parent) or not parent.isVisible():
             parent = mw
         _dialog = HeatmapOptionsDialog(parent, cfg, decks)
-        if start_exclude:
+        if start == "exclude":
             mw.progress.single_shot(0, _dialog._open_exclude, False)
+        elif start == "keydates":
+            mw.progress.single_shot(0, _dialog._open_key_dates, False)
         accepted = _dialog.exec() == QDialog.DialogCode.Accepted
-        selected = _dialog.selected_config() if accepted else None
+        selected = _dialog.selected_config(cfg) if accepted else None
         _dialog.deleteLater()
         _dialog = None
         if selected is not None:
             _save(selected)
+        elif cfg.retired_theme:
+            # El aviso del tema retirado sale una sola vez: se guarda el tema
+            # nuevo aunque se cancele.
+            save_appearance(cfg)
     except Exception as exc:
         _dialog = None
         log_exception("options.show", exc)
@@ -836,3 +966,49 @@ def _save(selected: Config) -> None:
         log_exception("options.save", exc)
 
     QueryOp(parent=mw, op=op, success=on_success).failure(on_failure).run_in_background()
+
+
+def _unit_word(measure: str) -> str:
+    """Unidad de la medida en plural, para el campo de la meta."""
+    if measure == "new":
+        return t("unit_new_other")
+    return t("unit_card_other" if measure == "cards" else "unit_review_other")
+
+
+class GoalDialog(QDialog):
+    """«Fijar meta»: un selector minimo con un numero ya propuesto."""
+
+    def __init__(self, parent: QWidget, proposal: int, measure: str) -> None:
+        super().__init__(parent)
+        self.setWindowTitle(t("opt_goal"))
+        disable_help_button(self)
+        self._value = QSpinBox()
+        self._value.setRange(GOAL_MIN, GOAL_MAX)
+        self._value.setAccelerated(True)
+        self._value.setValue(max(GOAL_MIN, min(GOAL_MAX, proposal)))
+        self._value.setSuffix(" " + _unit_word(measure))
+        form = QFormLayout()
+        form.addRow(t("goal_dialog_label"), self._value)
+        buttons = _standard_buttons(
+            self, QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        layout = QVBoxLayout()
+        layout.addLayout(form)
+        layout.addWidget(buttons)
+        self.setLayout(layout)
+        self._value.selectAll()
+        self._value.setFocus()
+
+    def value(self) -> int:
+        return self._value.value()
+
+
+def open_goal_dialog(proposal: int, measure: str) -> int | None:
+    """Abre el selector de la meta y devuelve el numero elegido, o None."""
+    dialog = GoalDialog(_parent_window(), proposal, measure)
+    try:
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            return dialog.value()
+        return None
+    finally:
+        dialog.deleteLater()
