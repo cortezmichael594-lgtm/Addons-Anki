@@ -18,21 +18,22 @@ class BuildConfigTest(unittest.TestCase):
             self.assertEqual((cfg.theme, cfg.retired_theme), (new, old))
         self.assertEqual(build_config({"theme": "ocean_blue"}, {}).retired_theme, "")
 
-    def test_pixels_of_version_3_become_words(self) -> None:
-        # Anki mezcla los valores por defecto (size, shape) con los guardados.
-        old_default = build_config({"size": "fit", "shape": "square", "cell_size": 25, "border_radius": 1}, {})
-        self.assertEqual((old_default.size, old_default.shape), ("fit", "square"))
-        big = build_config({"size": "fit", "shape": "square", "cell_size": 40, "border_radius": 8}, {})
-        self.assertEqual((big.size, big.shape), ("large", "rounded"))
-        new = build_config({"size": "large", "shape": "rounded"}, {})
-        self.assertEqual((new.size, new.shape), ("large", "rounded"))
+    def test_pixels_are_back(self) -> None:
+        # 4.2.0: tamano de celda y redondeo en pixeles, dentro de sus limites.
+        cfg = build_config({"cell_size": 40, "border_radius": 8}, {})
+        self.assertEqual((cfg.cell_size, cfg.border_radius), (40, 8))
+        clipped = build_config({"cell_size": 500, "border_radius": -3}, {})
+        self.assertEqual((clipped.cell_size, clipped.border_radius), (60, 0))
+        # Quien eligio «Redondeado» en la 4.0 o la 4.1 conserva las esquinas.
+        rounded = build_config({"cell_size": 25, "border_radius": 1, "shape": "rounded", "size": "fit"}, {})
+        self.assertEqual(rounded.border_radius, 5)
 
     def test_bad_values_fall_back(self) -> None:
         # Regla de FIX-005: Infinity o NaN no son numeros de verdad.
-        cfg = build_config({"goal": float("inf"), "goal_mode": "otra", "size": 3, "freezes": "si"}, {})
+        cfg = build_config({"goal": float("inf"), "goal_mode": "otra", "cell_size": float("nan"), "freezes": "si"}, {})
         self.assertEqual(
-            (cfg.goal, cfg.goal_mode, cfg.size, cfg.freezes),
-            (DEFAULT_CONFIG.goal, "none", "fit", True),
+            (cfg.goal, cfg.goal_mode, cfg.cell_size, cfg.freezes),
+            (DEFAULT_CONFIG.goal, "none", 25, True),
         )
 
     def test_pause_is_checked(self) -> None:

@@ -46,7 +46,6 @@
     --gritmap-empty: var(--border-subtle, #E8EAF0);
     --gritmap-fg: var(--fg, #1B2430);
     --gritmap-muted: var(--fg-subtle, #4E576A);
-    --gritmap-link: var(--fg-link, #2F63D8);
     --gritmap-card: var(--canvas-elevated, #FBFCFE);
     --gritmap-card-border: var(--border-subtle, #E8EAF0);
     --gritmap-card-shadow: var(--shadow-subtle, #1B243012);
@@ -71,7 +70,6 @@ body.nightMode #gritmap-root {
     --gritmap-empty: var(--canvas-inset, #0F131B);
     --gritmap-fg: var(--fg, #D6DAE1);
     --gritmap-muted: var(--fg-subtle, #B7BECC);
-    --gritmap-link: var(--fg-link, #A3C1F7);
     --gritmap-card: var(--canvas-elevated, #212836);
     --gritmap-card-border: var(--border-subtle, #1F2635);
     /* De noche, sin sombra: la tarjeta ya es mas clara que el fondo. */
@@ -90,10 +88,13 @@ body.nightMode #gritmap-root {
 }
 
 #gritmap-root {
+    /* Tan ancho como el mapa (lo que piden sus cuadritos), centrado, y nunca
+     * mas que la ventana: si no cabe, el mapa se desplaza de lado. */
     position: relative;
     box-sizing: border-box;
-    width: 100%;
-    margin: 16px 0 8px 0;
+    width: fit-content;
+    max-width: 100%;
+    margin: 16px auto 8px auto;
     padding: 0 8px;
     text-align: start;
     font-size: 12px;
@@ -171,34 +172,41 @@ body.nightMode #gritmap-root {
     gap: 8px;
 }
 
-/* Tarjetas pequenas, debajo del mapa: columnas iguales que suman su mismo
- * ancho. En una ventana estrecha pasan a dos columnas (la quinta ocupa las
- * dos, para que la fila quede cuadrada) y, mas estrecha aun, a una. */
+/* Tarjetas pequenas, debajo del mapa: columnas iguales que suman el ancho
+ * del mapa (el contenedor no empuja el ancho; lo toma). Se reordenan segun
+ * ese ancho: con menos de 760 px, dos columnas (la quinta ocupa las dos, para
+ * que la fila quede cuadrada) y, con menos de 420, una. */
 #gritmap-root .gritmap-summary {
+    width: 0;
+    min-width: 100%;
+    margin-top: 16px;
+    container-type: inline-size;
+}
+
+#gritmap-root .gritmap-cards {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 16px;
-    margin-top: 16px;
 }
 
-#gritmap-root .gritmap-summary.gritmap-n4 {
+#gritmap-root .gritmap-n4 .gritmap-cards {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-@media (max-width: 760px) {
-    #gritmap-root .gritmap-summary,
-    #gritmap-root .gritmap-summary.gritmap-n4 {
+@container (max-width: 760px) {
+    #gritmap-root .gritmap-cards,
+    #gritmap-root .gritmap-n4 .gritmap-cards {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    #gritmap-root .gritmap-summary.gritmap-n5 > :last-child {
+    #gritmap-root .gritmap-n5 .gritmap-cards > :last-child {
         grid-column: 1 / -1;
     }
 }
 
-@media (max-width: 420px) {
-    #gritmap-root .gritmap-summary,
-    #gritmap-root .gritmap-summary.gritmap-n4 {
+@container (max-width: 420px) {
+    #gritmap-root .gritmap-cards,
+    #gritmap-root .gritmap-n4 .gritmap-cards {
         grid-template-columns: minmax(0, 1fr);
     }
 }
@@ -254,16 +262,6 @@ body.nightMode #gritmap-root {
     -webkit-line-clamp: 2;
 }
 
-/* El nombre de la proxima fecha es un enlace que lleva a su dia; si no
- * cabe, se corta con «…». */
-#gritmap-root .gritmap-line .gritmap-link {
-    display: inline-block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    vertical-align: bottom;
-}
 
 #gritmap-root .gritmap-check {
     display: inline-block;
@@ -352,8 +350,7 @@ body.nightMode #gritmap-root {
  *        teclado (:focus-visible), nunca al hacer clic.
  */
 #gritmap-root button.gritmap-btn:focus-visible,
-#gritmap-root button.gritmap-textbtn:focus-visible,
-#gritmap-root button.gritmap-link:focus-visible {
+#gritmap-root button.gritmap-textbtn:focus-visible {
     outline: 2px solid var(--gritmap-focus) !important;
     outline-offset: 2px;
 }
@@ -393,20 +390,6 @@ body.nightMode #gritmap-root {
     visibility: hidden;
 }
 
-/* Accion terciaria con aspecto de enlace: lo unico pulsable de las
- * tarjetas pequenas. */
-#gritmap-root .gritmap-link {
-    margin: 0;
-    padding: 0;
-    border: none;
-    background: transparent;
-    box-shadow: none;
-    color: var(--gritmap-link);
-    font: inherit;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    cursor: pointer;
-}
 
 /* «‹ 2026 ›»: las flechas, pegadas al ano que cambian. */
 #gritmap-root .gritmap-yearnav {
@@ -424,21 +407,14 @@ body.nightMode #gritmap-root {
     color: var(--gritmap-fg);
 }
 
-/* El mapa: el ano entero a todo el ancho de la tarjeta, o mas ancho con
- * cuadritos grandes (entonces se desplaza de lado con la barra de Anki). */
+/* El mapa a su tamano; si no cabe, se desplaza de lado con la barra de Anki. */
 #gritmap-root .gritmap-grid {
     overflow-x: auto;
     overflow-y: hidden;
 }
 
-#gritmap-root .gritmap-year {
-    width: 100%;
-}
-
 #gritmap-root .gritmap-year svg {
     display: block;
-    width: 100%;
-    height: auto;
 }
 
 #gritmap-root .gritmap-months {
@@ -469,9 +445,9 @@ body.nightMode #gritmap-root {
     stroke-dasharray: 2 2;
 }
 
-/* Fecha clave: una esquina doblada en su cuadrito, en el color del texto,
- * con un filo del color de la tarjeta para que se vea sobre cualquier tono. */
-#gritmap-root .gritmap-kmark {
+/* Fecha clave: una estrella en su cuadrito, en el color del texto, con un
+ * filo del color de la tarjeta para que se vea sobre cualquier tono. */
+#gritmap-root .gritmap-kstar {
     fill: var(--gritmap-fg);
     stroke: var(--gritmap-card);
     stroke-width: 1px;
@@ -552,7 +528,15 @@ body.nightMode #gritmap-root {
 }
 
 #gritmap-root .gritmap-lg-key {
-    background: linear-gradient(225deg, var(--gritmap-fg) 0 32%, transparent 32%), var(--gritmap-empty);
+    position: relative;
+}
+
+#gritmap-root .gritmap-lg-key::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    background: var(--gritmap-fg);
+    clip-path: polygon(50.0% 0.0%, 63.2% 31.8%, 97.6% 34.5%, 71.4% 57.0%, 79.4% 90.5%, 50.0% 72.5%, 20.6% 90.5%, 28.6% 57.0%, 2.4% 34.5%, 36.8% 31.8%);
 }
 
 #gritmap-root .gritmap-lg-forgiven {

@@ -42,10 +42,11 @@ class WidgetTest(unittest.TestCase):
         self.assertEqual(order, sorted(order))
         # El dia de hoy se marca y es el que recibe el tabulador.
         self.assertRegex(html, r'data-d="2026-10-13"[^>]*data-gritmap-today="1"[^>]*tabindex="0"')
-        # La fecha clave: nombre escapado y esquina doblada en su cuadrito.
+        # La fecha clave: nombre escapado y estrella en su cuadrito (4.2.0).
         self.assertRegex(html, r'data-d="2026-11-20"[^>]*data-gritmap-key=')
-        self.assertIn('class="gritmap-kmark"', html)
-        self.assertNotIn("★", html)
+        self.assertIn('class="gritmap-kstar"', html)
+        # Sin enlaces (cliente, 2026-10-21).
+        self.assertNotIn("gritmap-link", html)
         self.assertIn("Examen &amp;lt;b&amp;gt;", html)
         self.assertNotIn("<b>Examen", html)
         # Sin cuadritos de color delante de las cifras ni comparativa suelta.
@@ -90,15 +91,24 @@ class WidgetTest(unittest.TestCase):
         self.assertIn("N/A", card)
         self.assertIn("Sin días completos", card)
 
-    def test_next_date_name_links_to_the_map(self) -> None:
+    def test_next_date_card_has_name_and_date(self) -> None:
         cfg = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 11, 20), "Examen"),))
         html = view.build_widget_html(sample(), cfg, 0)
-        self.assertIn('data-gritmap-cmd="key:2026-11-20"', html)
-        self.assertIn('title="Ver en el mapa"', html)
+        card = html[html.index(">Próxima fecha<"):]
+        self.assertIn('Examen · <span class="gritmap-date" data-gritmap-date="2026-11-20">', card)
+        self.assertNotIn("key:", html)
 
-    def test_goal_ring_and_set_goal_link(self) -> None:
+    def test_map_at_its_own_size(self) -> None:
+        # Tamano de celda en pixeles, como en las primeras versiones (4.2.0).
+        html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=12, border_radius=3), 0)
+        self.assertRegex(html, r'<rect class="gritmap-cell" x="\d+" y="\d+" width="12" height="12" rx="3"')
+        self.assertIn(f'style="width:{view.grid_width(2026, replace(DEFAULT_CONFIG, cell_size=12))}px"', html)
+
+    def test_goal_ring_and_week_line(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        self.assertIn('data-gritmap-cmd="goal:set"', html)
+        # Sin meta, la linea de Hoy da lo hecho en 7 dias.
+        today = html[html.index(">Hoy<"):html.index(">Racha<")]
+        self.assertIn("en 7 días", today)
         cfg = replace(DEFAULT_CONFIG, goal_mode="number", goal=8)
         goal = view.build_widget_html(sample(), cfg, 0)
         self.assertIn("gritmap-ring", goal)
@@ -109,7 +119,7 @@ class WidgetTest(unittest.TestCase):
         # En un mazo no hay meta: es de toda la coleccion.
         deck = view.build_widget_html(sample(), cfg, 0, deck_only=True)
         self.assertIn("Hoy en este mazo", deck)
-        self.assertNotIn("goal:set", deck)
+        self.assertNotIn("gritmap-ring", deck)
 
     def test_due_goal_uses_remaining_cards(self) -> None:
         cfg = replace(DEFAULT_CONFIG, goal_mode="due")
@@ -120,7 +130,6 @@ class WidgetTest(unittest.TestCase):
         html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, show_streak=False), 0)
         self.assertEqual(html.count('class="gritmap-card gritmap-mini"'), 4)
         self.assertNotIn(">Racha<", html)
-        self.assertNotIn("goal:set", html)
 
     def test_streak_card_lines(self) -> None:
         stats = view.full_stats(sample())
@@ -145,7 +154,6 @@ class WidgetTest(unittest.TestCase):
     def test_next_date_card_never_disappears(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
         self.assertIn("Sin fechas clave", html)
-        self.assertIn('data-gritmap-cmd="opts:keydates"', html)
 
     def test_pending_days_in_four_greys(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
@@ -178,12 +186,10 @@ class WidgetTest(unittest.TestCase):
     def test_excluded_deck_and_empty_collection(self) -> None:
         excluded = view.build_widget_html(sample(deck_excluded=True), DEFAULT_CONFIG, 0)
         self.assertIn("Este mazo está excluido del mapa.", excluded)
-        self.assertIn('data-gritmap-cmd="opts:exclude"', excluded)
         self.assertIn('data-gritmap-cmd="opts"', excluded)
         empty = view.build_widget_html(sample(past={}, future_counts={}), DEFAULT_CONFIG, 0)
         self.assertIn("Cada día que estudie se pintará aquí.", empty)
         self.assertRegex(empty, r'data-d="2026-10-13"[^>]*data-gritmap-today="1"')
-        self.assertIn('data-gritmap-cmd="goal:set"', empty)
         self.assertLess(empty.index("gritmap-activity"), empty.index('class="gritmap-summary'))
         self.assertNotIn("gritmap-legend", empty)
 
@@ -213,7 +219,7 @@ class WidgetTest(unittest.TestCase):
     def test_placeholder_reserves_the_cards(self) -> None:
         page = view.placeholder_html(DEFAULT_CONFIG)
         self.assertIn("gritmap-bone-grid", page)
-        self.assertIn("aspect-ratio", page)
+        self.assertIn("gritmap-bone-grid", page)
         self.assertEqual(page.count('class="gritmap-card gritmap-mini"'), 5)
 
     def test_payload_has_no_goal_line_for_the_map(self) -> None:

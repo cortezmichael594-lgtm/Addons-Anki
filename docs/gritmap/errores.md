@@ -250,3 +250,18 @@ Versión 4.1.0 (correcciones del cliente del 2026-10-21 sobre la 4.0.0):
   el cliente; en alemán se conserva la mayúscula, porque allí los sustantivos la llevan.
 - El globo de los días ya no dice si se cumplió la meta. Lo pidió el cliente.
 - La tarjeta «Próxima fecha» ya no lleva estrella. Lo pidió el cliente.
+
+Versión 4.2.0 (correcciones del cliente del 2026-10-21 sobre la 4.1.0):
+
+- Sin enlaces en las tarjetas: ni el nombre de la próxima fecha, ni «Añadir», ni «Fijar meta», ni
+  «Cambiar mazos excluidos». El cliente dijo «no quiero enlaces»; se aplicó a todos. La meta, las
+  fechas y los mazos excluidos se cambian en Opciones.
+- Las fechas clave se marcan con una estrella en su cuadrito (en lugar de la esquina doblada de la
+  4.1.0). Lo pidió el cliente.
+- «Todo el ancho» no era literal: el mapa vuelve a medir lo que piden sus cuadritos, centrado, como en
+  las primeras versiones, y las tarjetas de debajo toman su ancho. Vuelven «Tamaño de celda» y
+  «Redondeo de esquinas» en píxeles (25 y 1 de serie); se quitan «Tamaño», «Forma» y la vista previa.
+  Lo pidió el cliente.
+- En lugar de la vista previa, el propio mapa cambia en vivo mientras se mueven las barras, y vuelve a
+  como estaba al cancelar. Criterio técnico para «más intuitivo».
+- Sin meta, la línea de «Hoy» da lo hecho en los 7 últimos días completos (Regla de FIX-001).

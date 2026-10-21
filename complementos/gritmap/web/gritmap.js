@@ -53,8 +53,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         locale: undefined,
         texts: {},
         lastHtml: null,
-        /* Dia al que ir cuando llegue el mapa nuevo (proxima fecha clave). */
-        pendingDay: null,
     };
 
     function root() {
@@ -215,6 +213,19 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         }
     }
 
+    /* Fechas cortas sueltas («13 nov»), como la de la tarjeta de la proxima
+     * fecha clave: las escribe el navegador en el idioma de Anki (4.2.0). */
+    function localizeDates(container) {
+        var spans = container.querySelectorAll("[data-gritmap-date]");
+        var fmt = spans.length ? formatter({ day: "numeric", month: "short" }) : null;
+        for (var i = 0; fmt && i < spans.length; i++) {
+            var day = parseDay(spans[i].getAttribute("data-gritmap-date"));
+            if (day) {
+                spans[i].textContent = fmt.format(day);
+            }
+        }
+    }
+
     /* Globo de un dia: la fecha y, en la linea de abajo, lo hecho («lunes,
      * 22 de junio de 2026» / «9 tarjetas»), igual en todos los idiomas.
      * Python ya ha decidido que plantilla toca (data-t) segun la medida y la
@@ -358,12 +369,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         container.addEventListener("click", function (event) {
             var target = closest(event.target, "[data-gritmap-cmd]");
             var cmd = target ? target.getAttribute("data-gritmap-cmd") : "";
-            /* El nombre de la proxima fecha lleva a su dia: si esta en el ano
-             * que se ve, ya; si no, cuando llegue el mapa de su ano. */
-            if (cmd.indexOf("key:") === 0) {
-                state.pendingDay = cmd.slice(4);
-                goToPendingDay(container);
-            }
             send(target);
             /* «Hoy» en el mismo ano no cambia el mapa: basta con volver a la
              * semana de hoy. Si cambia de ano, el dibujado nuevo lo hace. */
@@ -421,21 +426,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         if (span && span.parentNode) {
             span.parentNode.removeChild(span);
         }
-    }
-
-    /* Lleva al dia de la proxima fecha clave, lo centra si el mapa no cabe y
-     * le da el foco, que abre su globo con el nombre y la cuenta atras. Si
-     * su ano aun no esta dibujado, espera al mapa nuevo. */
-    function goToPendingDay(container) {
-        var cell = state.pendingDay
-            ? container.querySelector(".gritmap-cell[data-d='" + state.pendingDay + "']") : null;
-        var grid = container.querySelector(".gritmap-grid");
-        if (!cell || !grid) {
-            return;
-        }
-        state.pendingDay = null;
-        centreCell(grid, cell);
-        focusCell(container, cell);
     }
 
     /* «Hoy» solo aparece cuando sirve: en otro ano (lo decide Python) o, con
@@ -522,6 +512,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         container.removeAttribute("aria-busy");
         state.lastHtml = html;
         localizeCalendar(container);
+        localizeDates(container);
         localizeNumbers(container);
         bind(container);
         removeOldWeekDiff();
@@ -549,7 +540,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
                 focusCell(container, cell);
             }
         }
-        goToPendingDay(container);
         updateTodayButton(container);
     }
 

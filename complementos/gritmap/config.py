@@ -2,8 +2,8 @@
 
 Hay dos almacenes, y cada ajuste vive donde le corresponde:
 
-  * Apariencia y metas (tema, medida del color, tamano, forma, periodo de las
-    cifras, meta diaria, comodines y mostrar racha y meta) -> configuracion del complemento (mw.addonManager). Es comun a
+  * Apariencia y metas (tema, medida del color, tamano de celda, redondeo,
+    periodo de las cifras, meta diaria, comodines y mostrar racha y meta) -> configuracion del complemento (mw.addonManager). Es comun a
     todos los perfiles del equipo, que es justo lo que se espera de un ajuste
     visual.
 
@@ -43,9 +43,10 @@ MAX_LABEL_LEN = 60
 KEY_DATE_MIN = date(2000, 1, 1)
 KEY_DATE_MAX = date(2100, 12, 31)
 
-# Tamano y forma de los cuadritos (4.0.0): palabras en lugar de pixeles.
-SIZES: tuple[str, ...] = ("fit", "large")
-SHAPES: tuple[str, ...] = ("square", "rounded")
+# Tamano de celda y redondeo de esquinas, en pixeles (vuelven en la 4.2.0,
+# peticion del cliente del 2026-10-21, en lugar de «Tamano» y «Forma»).
+CELL_SIZE_MIN, CELL_SIZE_MAX = 8, 60
+BORDER_RADIUS_MIN, BORDER_RADIUS_MAX = 0, 15
 GOAL_MODES: tuple[str, ...] = ("none", "number", "due")
 GOAL_MIN, GOAL_MAX = 1, 9999
 MAX_PAUSE_DAYS = 30
@@ -58,8 +59,8 @@ COL_KEY = "gritmap"
 APPEARANCE_KEYS = (
     "theme",
     "measure",
-    "size",
-    "shape",
+    "cell_size",
+    "border_radius",
     "avg_window",
     "goal_mode",
     "goal",
@@ -67,7 +68,7 @@ APPEARANCE_KEYS = (
     "show_streak",
 )
 # Claves de versiones anteriores que se dejan de guardar (3.x).
-_OLD_APPEARANCE_KEYS = ("cell_size", "border_radius", "show_week_diff", "stats_open")
+_OLD_APPEARANCE_KEYS = ("size", "shape", "show_week_diff", "stats_open")
 COLLECTION_KEYS = ("excluded_decks", "key_dates", "pause")
 
 
@@ -83,11 +84,9 @@ class Config:
     # Que mide el color: "reviews", "cards" o "new" (data.MEASURES). Un "minutes"
     # guardado por la version 3.0.0 vuelve a "reviews" al leerse.
     measure: str
-    # "fit": el ano entero cabe en el ancho de la tarjeta (cuadritos de 10 a
-    # 22 px); "large": cuadritos de 25 px y desplazamiento de lado.
-    size: str
-    # "square" o "rounded".
-    shape: str
+    # Lado de cada cuadrito y redondeo de sus esquinas, en pixeles.
+    cell_size: int
+    border_radius: int
     # Dias de la ventana del promedio; 0 = todo el historial (data.WINDOWS).
     avg_window: int
     # Meta diaria: "none", "number" (goal en la unidad de la medida) o "due"
@@ -110,8 +109,8 @@ class Config:
 DEFAULT_CONFIG = Config(
     theme="classic_green",
     measure="reviews",
-    size="fit",
-    shape="square",
+    cell_size=25,
+    border_radius=1,
     avg_window=30,
     goal_mode="none",
     goal=50,
@@ -172,27 +171,20 @@ def _as_choice(value: object, choices: tuple[str, ...], fallback: str) -> str:
     return value if isinstance(value, str) and value in choices else fallback
 
 
-def _as_size(stored: dict[str, object]) -> str:
-    """Tamano; de una configuracion 3.x, a partir de los pixeles guardados.
+def _as_radius(stored: dict[str, object]) -> int:
+    """Redondeo; quien eligio «Redondeado» en la 4.0 o la 4.1 conserva esquinas
+    redondeadas (5 px) hasta que guarde las opciones de la 4.2.0.
 
-    Los 25 px de antes eran el valor por defecto, asi que pasan a «Ajustado
-    al ancho», el nuevo; solo quien los habia agrandado (30 px o mas) pasa a
-    «Grande». Anki mezcla los valores por defecto de config.json con los
-    guardados, asi que «size» siempre esta: la clave antigua, que ya no viene
-    por defecto, solo existe si la guardo una version 3.x y manda hasta que
-    se guarden las opciones de la 4.0.0 (que la borran).
+    Anki mezcla los valores por defecto de config.json con los guardados
+    (APR-065), asi que «border_radius» siempre esta; «shape», que ya no viene
+    por defecto, solo existe si la guardo una de esas versiones.
     """
-    old = stored.get("cell_size")
-    if old is not None:
-        return "large" if _is_number(old) and old >= 30 else DEFAULT_CONFIG.size
-    return _as_choice(stored.get("size"), SIZES, DEFAULT_CONFIG.size)
-
-
-def _as_shape(stored: dict[str, object]) -> str:
-    old = stored.get("border_radius")
-    if old is not None:
-        return "rounded" if _is_number(old) and old >= 4 else DEFAULT_CONFIG.shape
-    return _as_choice(stored.get("shape"), SHAPES, DEFAULT_CONFIG.shape)
+    radius = _as_int(
+        stored.get("border_radius"), DEFAULT_CONFIG.border_radius, BORDER_RADIUS_MIN, BORDER_RADIUS_MAX
+    )
+    if stored.get("shape") == "rounded" and radius == DEFAULT_CONFIG.border_radius:
+        return 5
+    return radius
 
 
 def _as_pause(value: object) -> tuple[date, date] | None:
@@ -340,8 +332,8 @@ def build_config(stored: dict[str, object], scoped: dict[str, object]) -> Config
     return Config(
         theme=_as_theme(raw_theme),
         measure=_as_measure(stored.get("measure")),
-        size=_as_size(stored),
-        shape=_as_shape(stored),
+        cell_size=_as_int(stored.get("cell_size"), DEFAULT_CONFIG.cell_size, CELL_SIZE_MIN, CELL_SIZE_MAX),
+        border_radius=_as_radius(stored),
         avg_window=_as_window(stored.get("avg_window")),
         goal_mode=_as_choice(stored.get("goal_mode"), GOAL_MODES, DEFAULT_CONFIG.goal_mode),
         goal=_as_int(stored.get("goal"), DEFAULT_CONFIG.goal, GOAL_MIN, GOAL_MAX),
@@ -361,8 +353,8 @@ def save_appearance(cfg: Config) -> None:
         {
             "theme": cfg.theme,
             "measure": cfg.measure,
-            "size": cfg.size,
-            "shape": cfg.shape,
+            "cell_size": cfg.cell_size,
+            "border_radius": cfg.border_radius,
             "avg_window": cfg.avg_window,
             "goal_mode": cfg.goal_mode,
             "goal": cfg.goal,

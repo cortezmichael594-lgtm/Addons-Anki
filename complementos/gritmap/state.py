@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 from dataclasses import dataclass, field
 from datetime import date
 
 from .data import HeatmapData
+
+if TYPE_CHECKING:
+    from .config import Config
 
 # Mapas ya dibujados que se recuerdan para volver a ensenarlos al instante.
 MAX_REMEMBERED_PAGES = 8
@@ -64,6 +68,11 @@ class ViewState:
     # aqui, y no en un import directo, para que el dialogo no dependa del
     # modulo que lo abre.
     apply_config_change: Callable[[], None] | None = field(default=None, repr=False)
+
+    # Callback registrado por controller.register() (4.2.0): Opciones lo llama
+    # al mover el tema, el tamano de celda o el redondeo, para que el mapa
+    # cambie al momento sin guardar nada; con None, vuelve a lo guardado.
+    preview_config: Callable[[Config | None], None] | None = field(default=None, repr=False)
 
     def new_render_token(self) -> tuple[int, int]:
         self.render_token += 1

@@ -28,11 +28,11 @@ from aqt.overview import Overview, OverviewContent
 from aqt.webview import WebContent
 
 from . import config, i18n, view
-from .config import DEFAULT_CONFIG, Config, load_config
-from .data import HeatmapData, days_offset, fetch_data, window_average, year_bounds
+from .config import Config, load_config
+from .data import HeatmapData, days_offset, fetch_data, year_bounds
 from .decks import DeckScope, build_scope, day_search
 from .errors import guarded, guarded_filter, log_exception
-from .options import open_goal_dialog, open_options
+from .options import open_options
 from .state import DataEntry, state
 from .view import MSG_PREFIX, WEB_PATTERN
 
@@ -65,8 +65,12 @@ def _usable(entry: DataEntry | None, current_deck_only: bool, cfg: Config) -> bo
     )
 
 
-def _draw(entry: DataEntry, cfg: Config) -> None:
-    """Dibuja el ano que toca con datos ya calculados, sin leer la coleccion."""
+def _draw(entry: DataEntry, cfg: Config, remember: bool = True) -> None:
+    """Dibuja el ano que toca con datos ya calculados, sin leer la coleccion.
+
+    Con remember=False (la vista en vivo de Opciones) no se recuerda la
+    pagina ni se celebra la meta: lo dibujado aun no esta guardado.
+    """
     data = entry.data
     try:
         key_days = tuple(kd.day for kd in cfg.key_dates)
@@ -79,7 +83,7 @@ def _draw(entry: DataEntry, cfg: Config) -> None:
         # La meta cumplida se celebra una vez: la primera vez que se dibuja
         # despues de cruzarla (al volver a la lista de mazos tras repasar).
         met = not deck_only and cfg.show_streak and view.goal_met(data, cfg)
-        celebrate = met and state.goal_celebrated != data.today
+        celebrate = remember and met and state.goal_celebrated != data.today
         inner = view.build_widget_html(data, cfg, state.year_offset, deck_only, celebrate)
         payload = view.payload_json(inner, measure=cfg.measure)
         # Lo recordado no lleva la celebracion: al volver a la pantalla no se
@@ -89,13 +93,14 @@ def _draw(entry: DataEntry, cfg: Config) -> None:
             if celebrate
             else payload
         )
-        if met:
+        if met and remember:
             state.goal_celebrated = data.today
     except Exception as exc:
         log_exception("controller.draw", exc)
         payload = remembered = view.error_payload()
     view.send(payload)
-    state.remember_page((entry.current_deck_only, entry.deck_id), remembered)
+    if remember:
+        state.remember_page((entry.current_deck_only, entry.deck_id), remembered)
 
 
 def _request_data(current_deck_only: bool, cfg: Config) -> None:
@@ -318,20 +323,11 @@ def _on_js_message(
         _redraw_in_place()
         return (True, None)
 
-    if action.startswith("key:"):
-        _go_to_key_date(action[len("key:"):])
-        return (True, None)
 
-    if action in ("opts", "opts:exclude", "opts:keydates"):
+    if action == "opts":
         # Se aplaza para que el mensaje de la pagina termine antes de abrir
-        # una ventana modal. Desde el aviso de mazo excluido se abre ademas
-        # la lista de mazos excluidos, y desde «Anadir», la de fechas clave.
-        start = action.partition(":")[2]
-        mw.progress.single_shot(0, lambda: open_options(start=start))
-        return (True, None)
-
-    if action == "goal:set":
-        mw.progress.single_shot(0, _set_goal)
+        # una ventana modal.
+        mw.progress.single_shot(0, open_options)
         return (True, None)
 
 
@@ -348,39 +344,6 @@ def _on_js_message(
 
 # Perfil y configuracion
 # ---------------------------------------------------------------------------
-
-
-@guarded()
-def _set_goal() -> None:
-    """«Fijar meta»: un selector minimo con un numero ya propuesto, el 80 % de
-    su promedio diario de los ultimos 30 dias, redondeado a 5 (criterio del
-    informe para que sea alcanzable casi siempre)."""
-    cfg = load_config()
-    average = None
-    if state.data is not None:
-        average = window_average(state.data.data, cfg.measure, 30)
-    proposal = max(5, int(round(0.8 * average / 5)) * 5) if average else DEFAULT_CONFIG.goal
-    chosen = open_goal_dialog(proposal, cfg.measure)
-    if chosen is None:
-        return
-    config.save_appearance(replace(cfg, goal_mode="number", goal=chosen))
-    _apply_config_change()
-
-
-def _go_to_key_date(raw: str) -> None:
-    """El nombre de la proxima fecha, pulsado: el mapa pasa al ano de esa fecha
-    y la pagina busca el dia en cuanto el ano esta dibujado.
-
-    El texto llega de la pagina, asi que se comprueba antes de usarlo.
-    """
-    try:
-        day = date.fromisoformat(raw)
-    except ValueError:
-        return
-    if state.data is None:
-        return
-    state.year_offset = state.data.data.today.year - day.year
-    _redraw_in_place()
 
 
 @guarded()
@@ -422,6 +385,31 @@ def _apply_config_change() -> None:
 
 
 @guarded()
+def _preview_config(cfg: Config | None) -> None:
+    """Vista en vivo de Opciones: el mapa con la apariencia que se esta
+    eligiendo, sin guardarla; con None, de vuelta a lo guardado.
+
+    Solo cambia el aspecto (tema, tamano de celda, redondeo...), asi que usa
+    los datos ya calculados; si no los hay para esta pantalla, no hace nada.
+    """
+    saved = load_config()
+    # La medida y los mazos excluidos piden leer la coleccion: se ven al
+    # aceptar. Lo demas se ve ya, con los datos que hay.
+    shown = replace(
+        cfg if cfg is not None else saved,
+        measure=saved.measure,
+        excluded_decks=saved.excluded_decks,
+    )
+    current_deck_only = _current_deck_only()
+    if mw.col is None or current_deck_only is None or state.data is None:
+        return
+    if not _usable(state.data, current_deck_only, shown):
+        return
+    view.update_palette(shown)
+    _draw(state.data, shown, remember=cfg is None)
+
+
+@guarded()
 def _on_map_presence(has_map: object) -> None:
     if has_map is not True:
         return
@@ -435,6 +423,7 @@ def _on_map_presence(has_map: object) -> None:
 
 def register() -> None:
     state.apply_config_change = _apply_config_change
+    state.preview_config = _preview_config
     mw.addonManager.setWebExports(__name__, WEB_PATTERN)
     gui_hooks.webview_will_set_content.append(_on_webview_will_set_content)
     gui_hooks.deck_browser_will_render_content.append(_on_deck_browser_render)

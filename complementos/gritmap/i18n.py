@@ -5900,33 +5900,10 @@ for _code, _forms in _FREEZE_FORMS.items():
     STRINGS[_code].update({f"freeze_{category}": text for category, text in _forms.items()})
 
 
-# Version 4.1.0: globo del nombre de la proxima fecha, que lleva a su dia en
-# el mapa.
-_SHOW_IN_MAP: dict[str, str] = {
-    "en": "Show on the map", "es": "Ver en el mapa", "de": "Auf der Karte zeigen",
-    "fr": "Voir sur la carte", "it": "Vedi sulla mappa", "pt": "Ver no mapa",
-    "nl": "Op de kaart tonen", "ru": "Показать на карте", "pl": "Pokaż na mapie",
-    "tr": "Haritada göster", "ja": "マップで表示", "ko": "지도에서 보기",
-    "zh_CN": "在图中查看", "zh_TW": "在圖中查看", "ar": "عرض على الخريطة",
-    "el": "Προβολή στον χάρτη", "sv": "Visa på kartan", "da": "Vis på kortet",
-    "nb": "Vis på kartet", "fi": "Näytä kartalla", "cs": "Zobrazit na mapě",
-    "sk": "Zobraziť na mape", "hu": "Megjelenítés a térképen", "ro": "Vezi pe hartă",
-    "uk": "Показати на мапі", "vi": "Xem trên bản đồ", "th": "ดูบนแผนที่",
-    "ms": "Lihat pada peta", "tl": "Tingnan sa mapa", "he": "הצגה במפה",
-    "hr": "Prikaži na karti", "sr": "Прикажи на мапи", "sl": "Pokaži na zemljevidu",
-    "bg": "Покажи на картата", "ca": "Mostra al mapa", "eu": "Ikusi mapan",
-    "gl": "Ver no mapa", "et": "Näita kaardil", "fa": "نمایش روی نقشه",
-    "mn": "Газрын зураг дээр харах", "be": "Паказаць на карце", "eo": "Montri sur la mapo",
-    "af": "Wys op die kaart", "ga": "Taispeáin ar an léarscáil", "la": "In tabula ostendere",
-    "oc": "Veire sus la mapa", "uz": "Xaritada ko'rsatish", "jbo": "jarco fi le cartu",
-    "hy": "Ցույց տալ քարտեզի վրա", "ug": "خەرىتىدە كۆرسىتىش", "or": "ମାନଚିତ୍ରରେ ଦେଖନ୍ତୁ",
-}
-
-for _code, _text in _SHOW_IN_MAP.items():
-    STRINGS[_code]["show_in_map"] = _text
-    # «récord» va en medio de una linea gris («✓ hoy · récord: 40 dias»), asi
-    # que empieza en minuscula (correccion del cliente, 2026-10-21), salvo en
-    # aleman, donde los sustantivos van con mayuscula.
-    _record = STRINGS[_code].get("record_was", "")
+# «récord» va en medio de una linea gris («✓ hoy · récord: 40 dias»), asi que
+# empieza en minuscula (correccion del cliente, 2026-10-21), salvo en aleman,
+# donde los sustantivos van con mayuscula.
+for _code, _texts_of in STRINGS.items():
+    _record = _texts_of.get("record_was", "")
     if _code != "de" and _record:
-        STRINGS[_code]["record_was"] = _record[0].lower() + _record[1:]
+        _texts_of["record_was"] = _record[0].lower() + _record[1:]

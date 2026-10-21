@@ -27,6 +27,7 @@ plano: Anki nunca se queda esperando a la coleccion por esta ventana.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, replace
 from datetime import date
 
@@ -47,22 +48,18 @@ from aqt.qt import (
     QHBoxLayout,
     QIcon,
     QKeySequence,
-    QLineEdit,
     QLabel,
+    QLineEdit,
     QLocale,
     QPainter,
-    QPaintEvent,
-    QPen,
     QPixmap,
-    QPointF,
-    QPolygonF,
     QPushButton,
-    QRadioButton,
-    QRectF,
-    QSize,
     QShortcut,
+    QSize,
+    QSlider,
     QSpinBox,
     Qt,
+    QTimer,
     QTreeWidget,
     QTreeWidgetItem,
     QVBoxLayout,
@@ -74,6 +71,10 @@ from aqt.theme import theme_manager
 from aqt.utils import disable_help_button, restoreGeom, saveGeom, tooltip
 
 from .config import (
+    BORDER_RADIUS_MAX,
+    BORDER_RADIUS_MIN,
+    CELL_SIZE_MAX,
+    CELL_SIZE_MIN,
     DEFAULT_CONFIG,
     GOAL_MAX,
     GOAL_MIN,
@@ -93,7 +94,7 @@ from .data import MEASURES, WINDOWS
 from .decks import DeckEntry, all_deck_entries
 from .errors import guarded, log_exception
 from .i18n import anki_text, fill, lang, plural_key, t
-from .palettes import FUTURE_DARK, FUTURE_LIGHT, PAST_DARK, PAST_LIGHT, THEME_NAMES
+from .palettes import PAST_DARK, PAST_LIGHT, THEME_NAMES
 from .state import state
 
 # Nombres que caben en el globo del boton de mazos excluidos.
@@ -189,110 +190,33 @@ def _standard_buttons(
     return box
 
 
-class PreviewMonth(QWidget):
-    """Vista previa en las opciones (4.0.0): un mes de mapa en miniatura con
-    los tonos del tema, hoy, dias pendientes en gris y una fecha clave con su
-    esquina doblada (4.1.0), al tamano y con la forma elegidos.
+class _PxSlider(QWidget):
+    """Barra deslizante con su valor a la vista («25 px»): se ve lo que se
+    elige y se cambia con el raton o con las flechas del teclado."""
 
-    Cambia al momento al mover esos controles (Norman, respuesta inmediata).
-    Es el unico control dibujado a mano de la ventana; lo aprobo el cliente.
-    Los colores se leen al pintar, en el modo activo.
-    """
-
-    # Tono de cada dia del mes de muestra, por semanas: 0 sin estudio, 1-4 los
-    # tonos, -1 futuro sin nada y -2 a -4 futuro pendiente (grises 1 a 3).
-    _LEVELS = (
-        1, 2, 0, 3, 2, 4, 1,
-        2, 3, 3, 0, 4, 2, 3,
-        4, 1, 2, 3, 4, 3, 0,
-        3, 2, 4, -1, -3, -2, -4,
-        -2, -3, -1, -2, -4, -1, -2,
-    )
-    _TODAY = 23
-    _KEY_DAY = 30
-
-    def __init__(self) -> None:
+    def __init__(self, minimum: int, maximum: int, label: str) -> None:
         super().__init__()
-        self._theme = DEFAULT_CONFIG.theme
-        self._size = DEFAULT_CONFIG.size
-        self._shape = DEFAULT_CONFIG.shape
-        # Alto fijo para el tamano grande: la ventana no cambia de tamano.
-        self.setFixedHeight(self._height("large"))
-        self.setAccessibleName(t("opt_preview"))
+        self.slider = QSlider(Qt.Orientation.Horizontal)
+        self.slider.setRange(minimum, maximum)
+        self.slider.setPageStep(2)
+        self.slider.setAccessibleName(label)
+        self._value = QLabel()
+        self._value.setMinimumWidth(48)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(0, 0, 0, 0)
+        row.addWidget(self.slider, 1)
+        row.addWidget(self._value)
+        qconnect(self.slider.valueChanged, self._show_value)
 
-    @staticmethod
-    def _cell(size: str) -> int:
-        return 16 if size == "large" else 11
+    def _show_value(self, value: int) -> None:
+        self._value.setText(f"{value} px")
 
-    def _height(self, size: str) -> int:
-        return 7 * (self._cell(size) + 3)
+    def value(self) -> int:
+        return self.slider.value()
 
-    def sizeHint(self) -> QSize:
-        return QSize(5 * 19, self._height("large"))
-
-    def set_look(self, theme: str, size: str, shape: str) -> None:
-        if (theme, size, shape) != (self._theme, self._size, self._shape):
-            self._theme, self._size, self._shape = theme, size, shape
-            self.update()
-
-    def paintEvent(self, _event: QPaintEvent | None) -> None:
-        # Regla de FIX-007: los tonos salen de la escala del modo activo.
-        scale = PAST_DARK if theme_manager.night_mode else PAST_LIGHT
-        tones = scale.get(self._theme, scale[DEFAULT_CONFIG.theme])
-        greys = FUTURE_DARK if theme_manager.night_mode else FUTURE_LIGHT
-        empty = theme_manager.qcolor(colors.BORDER_SUBTLE)
-        cell = float(self._cell(self._size))
-        step = cell + 3
-        radius = cell * (0.36 if self._shape == "rounded" else 0.14)
-        painter = QPainter(self)
-        try:
-            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-            for index, level in enumerate(self._LEVELS):
-                week, row = divmod(index, 7)
-                rect = QRectF(week * step, row * step, cell, cell)
-                painter.setPen(Qt.PenStyle.NoPen)
-                if level > 0:
-                    painter.setBrush(QColor(tones[level - 1]))
-                elif level < -1:
-                    painter.setBrush(QColor(greys[-level - 2]))
-                else:
-                    painter.setBrush(empty)
-                painter.drawRoundedRect(rect, radius, radius)
-                if index == self._KEY_DAY:
-                    # Fecha clave: la esquina doblada, como en el mapa.
-                    corner = cell * 6 / 14
-                    edge = QPen(theme_manager.qcolor(colors.CANVAS_ELEVATED))
-                    painter.setPen(edge)
-                    painter.setBrush(theme_manager.qcolor(colors.FG))
-                    painter.drawPolygon(
-                        QPolygonF(
-                            [
-                                QPointF(rect.right() - corner, rect.top()),
-                                QPointF(rect.right(), rect.top()),
-                                QPointF(rect.right(), rect.top() + corner),
-                            ]
-                        )
-                    )
-                if index == self._TODAY:
-                    pen = QPen(theme_manager.qcolor(colors.FG))
-                    pen.setWidthF(1.5)
-                    painter.setPen(pen)
-                    painter.setBrush(Qt.BrushStyle.NoBrush)
-                    painter.drawRoundedRect(rect, radius, radius)
-        finally:
-            painter.end()
-
-
-def _radio_pair(first: str, second: str) -> tuple[QWidget, QRadioButton, QRadioButton]:
-    """Dos opciones a la vista en vez de un desplegable (Practical UI, P19)."""
-    box = QWidget()
-    row = QHBoxLayout(box)
-    row.setContentsMargins(0, 0, 0, 0)
-    one, two = QRadioButton(first), QRadioButton(second)
-    row.addWidget(one)
-    row.addWidget(two)
-    row.addStretch(1)
-    return box, one, two
+    def setValue(self, value: int) -> None:
+        self.slider.setValue(value)
+        self._show_value(self.slider.value())
 
 
 class ExcludeDecksDialog(QDialog):
@@ -583,11 +507,15 @@ class HeatmapOptionsDialog(QDialog):
         self._theme.setIconSize(QSize(48, 12))
         for name in _sorted_theme_names():
             self._theme.addItem(_theme_swatch(name), t(f"theme_{name}"), name)
-        size_row, self._size_fit, self._size_large = _radio_pair(t("size_fit"), t("size_large"))
-        shape_row, self._shape_square, self._shape_rounded = _radio_pair(
-            t("shape_square"), t("shape_rounded")
-        )
-        self._preview = PreviewMonth()
+        # Tamano de celda y redondeo (4.2.0): barras deslizantes con su valor a
+        # la vista; mientras se mueven, el propio mapa cambia al momento (y
+        # vuelve a como estaba si se cancela). Sustituyen a la vista previa.
+        self._cell_size = _PxSlider(CELL_SIZE_MIN, CELL_SIZE_MAX, _without_px("opt_cell"))
+        self._border_radius = _PxSlider(BORDER_RADIUS_MIN, BORDER_RADIUS_MAX, _without_px("opt_radius"))
+        self._preview_timer = QTimer(self)
+        self._preview_timer.setSingleShot(True)
+        self._preview_timer.setInterval(80)
+        self._base = cfg
 
         self._measure = QComboBox()
         for measure in MEASURES:
@@ -664,9 +592,8 @@ class HeatmapOptionsDialog(QDialog):
             notice.setWordWrap(True)
             look.addRow(notice)
         look.addRow(t("opt_theme"), self._theme)
-        look.addRow(t("opt_size"), size_row)
-        look.addRow(t("opt_shape"), shape_row)
-        look.addRow(t("opt_preview"), self._preview)
+        look.addRow(_without_px("opt_cell"), self._cell_size)
+        look.addRow(_without_px("opt_radius"), self._border_radius)
         counted = QFormLayout()
         counted.addRow(t("opt_measure"), self._measure)
         counted.addRow("", self._measure_help)
@@ -692,9 +619,10 @@ class HeatmapOptionsDialog(QDialog):
             restore_button.setText(t("opt_restore_look"))
             restore_button.setToolTip(t("opt_restore_tip"))
             qconnect(restore_button.clicked, self._restore_defaults)
-        qconnect(self._theme.currentIndexChanged, self._update_preview)
-        for radio in (self._size_fit, self._size_large, self._shape_square, self._shape_rounded):
-            qconnect(radio.toggled, self._update_preview)
+        qconnect(self._theme.currentIndexChanged, self._schedule_preview)
+        qconnect(self._cell_size.slider.valueChanged, self._schedule_preview)
+        qconnect(self._border_radius.slider.valueChanged, self._schedule_preview)
+        qconnect(self._preview_timer.timeout, self._send_preview)
         qconnect(self._measure.currentIndexChanged, self._update_measure_help)
         qconnect(self._goal_mode.currentIndexChanged, self._update_goal_state)
         qconnect(self._pause_on.toggled, self._update_pause_state)
@@ -728,15 +656,16 @@ class HeatmapOptionsDialog(QDialog):
             name = self._theme.itemData(index)
             if isinstance(name, str):
                 self._theme.setItemIcon(index, _theme_swatch(name))
-        self._preview.update()
 
-    def _update_preview(self, _value: object = None) -> None:
-        theme = self._theme.currentData()
-        self._preview.set_look(
-            theme if isinstance(theme, str) else DEFAULT_CONFIG.theme,
-            "large" if self._size_large.isChecked() else "fit",
-            "rounded" if self._shape_rounded.isChecked() else "square",
-        )
+    def _schedule_preview(self, _value: object = None) -> None:
+        # Se espera un instante: al arrastrar la barra no se redibuja el mapa
+        # en cada pixel, solo cuando se para un momento.
+        self._preview_timer.start()
+
+    @guarded()
+    def _send_preview(self) -> None:
+        if state.preview_config is not None:
+            state.preview_config(self.selected_config(self._base))
 
     def _update_measure_help(self, _index: int = 0) -> None:
         measure = self._measure.currentData()
@@ -802,8 +731,8 @@ class HeatmapOptionsDialog(QDialog):
 
     def _apply(self, cfg: Config) -> None:
         self._theme.setCurrentIndex(max(self._theme.findData(cfg.theme), 0))
-        (self._size_large if cfg.size == "large" else self._size_fit).setChecked(True)
-        (self._shape_rounded if cfg.shape == "rounded" else self._shape_square).setChecked(True)
+        self._cell_size.setValue(cfg.cell_size)
+        self._border_radius.setValue(cfg.border_radius)
         self._measure.setCurrentIndex(max(self._measure.findData(cfg.measure), 0))
         self._avg_window.setCurrentIndex(max(self._avg_window.findData(cfg.avg_window), 0))
         self._goal_mode.setCurrentIndex(max(self._goal_mode.findData(cfg.goal_mode), 0))
@@ -824,7 +753,6 @@ class HeatmapOptionsDialog(QDialog):
         self._update_exclude_label()
         self._key_dates = cfg.key_dates
         self._update_key_dates_label()
-        self._update_preview()
         self._update_measure_help()
         self._update_goal_state()
         self._update_pause_state()
@@ -832,15 +760,14 @@ class HeatmapOptionsDialog(QDialog):
     def _restore_defaults(self, _checked: bool = False) -> None:
         """Vuelve a los valores recomendados de la apariencia.
 
-        Solo repone la apariencia (tema, tamano, forma y medida): los mazos
+        Solo repone la apariencia (tema, tamano de celda, redondeo y medida): los mazos
         excluidos, las fechas clave, la meta, los comodines y la pausa son
         decisiones de la persona y se quedan como estaban, para que pulsar
         este boton nunca borre nada suyo.
         """
         self._theme.setCurrentIndex(max(self._theme.findData(DEFAULT_CONFIG.theme), 0))
-        (self._size_large if DEFAULT_CONFIG.size == "large" else self._size_fit).setChecked(True)
-        square = DEFAULT_CONFIG.shape == "square"
-        (self._shape_square if square else self._shape_rounded).setChecked(True)
+        self._cell_size.setValue(DEFAULT_CONFIG.cell_size)
+        self._border_radius.setValue(DEFAULT_CONFIG.border_radius)
         self._measure.setCurrentIndex(max(self._measure.findData(DEFAULT_CONFIG.measure), 0))
 
     def selected_config(self, base: Config) -> Config:
@@ -861,8 +788,8 @@ class HeatmapOptionsDialog(QDialog):
             theme=theme,
             measure=str(measure),
             avg_window=window if isinstance(window, int) and window in WINDOWS else DEFAULT_CONFIG.avg_window,
-            size="large" if self._size_large.isChecked() else "fit",
-            shape="rounded" if self._shape_rounded.isChecked() else "square",
+            cell_size=self._cell_size.value(),
+            border_radius=self._border_radius.value(),
             goal_mode=mode if isinstance(mode, str) else DEFAULT_CONFIG.goal_mode,
             goal=self._goal.value(),
             freezes=self._freezes.isChecked(),
@@ -964,6 +891,9 @@ def _show(cfg: Config, decks: _Decks, parent: QWidget, start: str) -> None:
         _dialog = None
         if selected is not None:
             _save(selected)
+        elif state.preview_config is not None:
+            # Cancelado: el mapa vuelve a como estaba antes de mover nada.
+            state.preview_config(None)
         elif cfg.retired_theme:
             # El aviso del tema retirado sale una sola vez: se guarda el tema
             # nuevo aunque se cancele.
@@ -994,47 +924,13 @@ def _save(selected: Config) -> None:
     QueryOp(parent=mw, op=op, success=on_success).failure(on_failure).run_in_background()
 
 
+def _without_px(key: str) -> str:
+    """Rotulo sin «(px)»: el valor ya lo dice al lado de la barra."""
+    return re.sub(r"\s*\(px\)", "", t(key))
+
+
 def _unit_word(measure: str) -> str:
     """Unidad de la medida en plural, para el campo de la meta."""
     if measure == "new":
         return t("unit_new_other")
     return t("unit_card_other" if measure == "cards" else "unit_review_other")
-
-
-class GoalDialog(QDialog):
-    """«Fijar meta»: un selector minimo con un numero ya propuesto."""
-
-    def __init__(self, parent: QWidget, proposal: int, measure: str) -> None:
-        super().__init__(parent)
-        self.setWindowTitle(t("opt_goal"))
-        disable_help_button(self)
-        self._value = QSpinBox()
-        self._value.setRange(GOAL_MIN, GOAL_MAX)
-        self._value.setAccelerated(True)
-        self._value.setValue(max(GOAL_MIN, min(GOAL_MAX, proposal)))
-        self._value.setSuffix(" " + _unit_word(measure))
-        form = QFormLayout()
-        form.addRow(t("goal_dialog_label"), self._value)
-        buttons = _standard_buttons(
-            self, QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
-        )
-        layout = QVBoxLayout()
-        layout.addLayout(form)
-        layout.addWidget(buttons)
-        self.setLayout(layout)
-        self._value.selectAll()
-        self._value.setFocus()
-
-    def value(self) -> int:
-        return self._value.value()
-
-
-def open_goal_dialog(proposal: int, measure: str) -> int | None:
-    """Abre el selector de la meta y devuelve el numero elegido, o None."""
-    dialog = GoalDialog(_parent_window(), proposal, measure)
-    try:
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            return dialog.value()
-        return None
-    finally:
-        dialog.deleteLater()

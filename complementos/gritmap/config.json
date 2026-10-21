@@ -1,8 +1,8 @@
 {
     "theme": "classic_green",
     "measure": "reviews",
-    "size": "fit",
-    "shape": "square",
+    "cell_size": 25,
+    "border_radius": 1,
     "avg_window": 30,
     "goal_mode": "none",
     "goal": 50,
