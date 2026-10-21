@@ -183,7 +183,7 @@ ver las que vencen ese día». El globo no dice nada de la meta. La tecla Esc lo
 - Un día futuro con vencimientos abre Explorar con las tarjetas que vencen ese día (prop:due).
 - Los días sin nada no responden al clic. Con el teclado, Intro o la barra espaciadora hacen lo mismo.
 
-## 7. Comodines y pausa## 8. Comodines y pausa
+## 7. Comodines y pausa
 
 - Comodines (activados por defecto; se desactivan en Opciones): cada 7 días seguidos estudiados se
   gana uno, con un máximo de 2 guardados. Un día sin estudiar gasta uno automáticamente al empezar el
@@ -295,3 +295,54 @@ cargar el mapa de calor.», con el botón de opciones. Anki sigue funcionando.
   insignias ni puntos.
 - No anima nada salvo el leve hundimiento de los botones al pulsarlos y la aparición del ✓ al cumplir
   la meta.
+
+## 14. Lo que se probó y se descartó
+
+Lo que tuvo alguna versión y ya no está, y el motivo. Sirve para no volver a ello sin querer.
+
+### En el mapa
+
+| Descartado | Versión en la que se quitó | Por qué |
+|---|---|---|
+| Ocupar literalmente todo el ancho de la pantalla como única forma | 4.2.0 | Resultaba demasiado grande. Queda como «Ajustado al ancho», el primer valor de «Tamaño del mapa». |
+| «Ajustado al ancho» como valor de serie | 4.6.0 | El cliente prefirió 24 px de serie. |
+| Hueco fijo de 3 px entre cuadritos con cualquier tamaño | 4.5.0 | Al cambiar el tamaño, las líneas entre filas y columnas perdían la proporción y el mapa dejaba de parecerse. Ahora el hueco crece con el cuadrito. |
+| Título «Actividad» y cifra del año («22.129 repasos en 2026») encima del mapa | 4.3.0 | El cliente los quería fuera: no aportaban y ocupaban sitio. |
+| Botón «Hoy» | 4.4.0 | El mapa ya se abre en la semana de hoy. |
+| «Meta cumplida» escrito en el mapa | 4.1.0 | Repetía lo que ya dice la tarjeta «Hoy». |
+| Puntos para los días con tarjetas pendientes | 4.1.0 | El cliente prefirió el marcado de antes: cuatro grises según las tarjetas que vencen. |
+| Esquina doblada para marcar las fechas clave | 4.2.0 | Se veía poco. Se cambió por una estrella dentro del cuadrito. |
+| Salto o enlace desde «Próxima fecha» hasta su día en el mapa | 4.2.0 | El cliente no quiere enlaces en las tarjetas. |
+
+### En las tarjetas de debajo
+
+| Descartado | Versión en la que se quitó | Por qué |
+|---|---|---|
+| Tarjeta de estadísticas, plegable | 4.1.0 | Sobraba. La sustituyó «Promedio diario». |
+| Tarjetas encima o al lado del mapa | 4.1.0 | El cliente las quería debajo, sumando el ancho del mapa. |
+| Botones de periodo (30 días, 365 días…) en la página | 4.1.0 | El periodo se elige solo en Opciones. Las tarjetas dicen cuál se usa. |
+| Estrella junto a «Próxima fecha» | 4.1.0 | No hacía falta: la estrella marca el día en el mapa. |
+| La fecha al lado del nombre en «Próxima fecha» | 4.3.0 | Ya dice cuántos días faltan. Queda solo el nombre. |
+| «Sin fechas clave» como dato grande | 4.4.0 | Ahora pone «N/A», igual que las demás tarjetas sin dato, y debajo «sin fechas clave». |
+| «Récord» con mayúscula en medio de la línea de la racha | 4.1.0 | Va en medio de una frase: «récord». |
+| Enlaces dentro de las tarjetas («Fijar meta», «Añadir» fechas, ir a los mazos excluidos) y la ventanita «Fijar meta» | 4.2.0 | El cliente no quiere enlaces. Todo se cambia en Opciones. |
+
+### En la ventana de opciones
+
+| Descartado | Versión en la que se quitó | Por qué |
+|---|---|---|
+| «Tamaño» (Ajustado / Grande) y «Forma» (Cuadrado / Redondeado) | 4.2.0 | El cliente quería, como en las primeras versiones, el tamaño y el redondeo en píxeles. |
+| Mes de muestra (vista previa) dentro de Opciones | 4.2.0 | Se sustituyó por el propio mapa, que cambia en vivo detrás de la ventana. |
+| Barras deslizantes para el tamaño y el redondeo | 4.3.0 | Se veían raras. Volvieron los campos numéricos con flechas. |
+| Opciones en una sola lista, sin recuadros | 4.4.0 | El cliente prefirió los tres recuadros con título. |
+| Hueco entre «Apariencia» y «Qué se cuenta» | 4.3.0 | Venía de una altura guardada por otra versión. Ahora el alto se ajusta siempre al contenido. |
+| «Tamaño de celda» | 4.5.0 | Pasó a «Tamaño del mapa»: agranda o encoge el mapa entero, no solo los cuadritos. |
+| Redondeo en la escala de un cuadrito de 14 (de 0 a 7) | 4.6.0 | El cliente lo quería en píxeles, con «px» al final. |
+
+### Antes de estas versiones
+
+| Descartado | Por qué |
+|---|---|
+| Medida «minutos» | Hay días con cientos de repasos guardados sin tiempo, así que la cifra no era coherente (decisión del cliente, 2026-10-08). |
+| Temas Rojo fuego, Rosa suave y Turquesa laguna | Se retiraron en la 4.0.0 y se pasa sin preguntar al más parecido (Naranja atardecer, Púrpura real y Azul océano). |
+| Mapa encima de la lista de mazos | Anki no ofrece a los complementos ese sitio. Va debajo (decisión del cliente). |
