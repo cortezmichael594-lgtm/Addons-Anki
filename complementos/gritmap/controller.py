@@ -313,13 +313,8 @@ def _on_js_message(
         # Mensaje de una pagina que ya no es la que se ve.
         return (True, None)
 
-    if action in ("prev", "next", "today"):
-        if action == "prev":
-            state.year_offset += 1
-        elif action == "next":
-            state.year_offset -= 1
-        else:
-            state.year_offset = 0
+    if action in ("prev", "next"):
+        state.year_offset += 1 if action == "prev" else -1
         _redraw_in_place()
         return (True, None)
 

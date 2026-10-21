@@ -44,6 +44,7 @@ from aqt.qt import (
     QDialog,
     QDialogButtonBox,
     QFormLayout,
+    QGroupBox,
     QHBoxLayout,
     QIcon,
     QKeySequence,
@@ -72,6 +73,7 @@ from .config import (
     CELL_SIZE_MAX,
     CELL_SIZE_MIN,
     DEFAULT_CONFIG,
+    FIT_WIDTH,
     GOAL_MAX,
     GOAL_MIN,
     MAX_PAUSE_DAYS,
@@ -468,9 +470,8 @@ class KeyDatesDialog(QDialog):
 
 
 class HeatmapOptionsDialog(QDialog):
-    """Opciones en una sola lista, como antes de la 4.0 (peticion del cliente,
-    4.3.0): primero el aspecto, despues que se cuenta y al final las metas y
-    las fechas."""
+    """Opciones en tres recuadros con titulo (vuelven en la 4.4.0, peticion
+    del cliente): Apariencia, Que se cuenta y Metas y fechas."""
 
     def __init__(self, parent: QWidget, cfg: Config, decks: _Decks) -> None:
         super().__init__(parent)
@@ -485,7 +486,10 @@ class HeatmapOptionsDialog(QDialog):
         # Tamano de celda y redondeo: campos numericos con flechas. Mientras
         # se cambian, el propio mapa cambia al momento (y vuelve a como estaba
         # si se cancela).
-        self._cell_size = _spin_box(CELL_SIZE_MIN, CELL_SIZE_MAX)
+        # Un paso por debajo del minimo, el campo dice «Ajustado al ancho»
+        # (el de serie, 4.4.0): el mapa ocupa todo el ancho, como en la 4.1.0.
+        self._cell_size = _spin_box(CELL_SIZE_MIN - 1, CELL_SIZE_MAX)
+        self._cell_size.setSpecialValueText(t("size_fit"))
         self._border_radius = _spin_box(BORDER_RADIUS_MIN, BORDER_RADIUS_MAX)
         self._preview_timer = QTimer(self)
         self._preview_timer.setSingleShot(True)
@@ -553,7 +557,7 @@ class HeatmapOptionsDialog(QDialog):
         self._key_dates_button = QPushButton()
         qconnect(self._key_dates_button.clicked, self._open_key_dates)
 
-        form = QFormLayout()
+        look = QFormLayout()
         if cfg.retired_theme:
             # El tema guardado se retiro en la 4.0.0: se dice una vez, sin
             # preguntar (Hopkins, M3: avisar al cambiar las reglas).
@@ -565,19 +569,21 @@ class HeatmapOptionsDialog(QDialog):
                 )
             )
             notice.setWordWrap(True)
-            form.addRow(notice)
-        form.addRow(t("opt_theme"), self._theme)
-        form.addRow(t("opt_measure"), self._measure)
-        form.addRow("", self._measure_help)
-        form.addRow(_px_label("opt_cell"), self._cell_size)
-        form.addRow(_px_label("opt_radius"), self._border_radius)
-        form.addRow(t("opt_window"), self._avg_window)
-        form.addRow(t("opt_exclude"), self._exclude_button)
-        form.addRow(t("opt_key_dates"), self._key_dates_button)
-        form.addRow(t("opt_goal"), goal_box)
-        form.addRow("", self._freezes)
-        form.addRow("", pause_box)
-        form.addRow("", self._show_streak)
+            look.addRow(notice)
+        look.addRow(t("opt_theme"), self._theme)
+        look.addRow(_px_label("opt_cell"), self._cell_size)
+        look.addRow(_px_label("opt_radius"), self._border_radius)
+        counted = QFormLayout()
+        counted.addRow(t("opt_measure"), self._measure)
+        counted.addRow("", self._measure_help)
+        counted.addRow(t("opt_window"), self._avg_window)
+        counted.addRow(t("opt_exclude"), self._exclude_button)
+        goals = QFormLayout()
+        goals.addRow(t("opt_goal"), goal_box)
+        goals.addRow("", self._freezes)
+        goals.addRow("", pause_box)
+        goals.addRow(t("opt_key_dates"), self._key_dates_button)
+        goals.addRow("", self._show_streak)
 
         buttons = _standard_buttons(
             self,
@@ -602,8 +608,11 @@ class HeatmapOptionsDialog(QDialog):
         qconnect(self._pause_start.dateChanged, self._limit_pause)
 
         layout = QVBoxLayout()
-        layout.addLayout(form)
-        layout.addSpacing(6)
+        for title, form in ((t("grp_look"), look), (t("grp_count"), counted), (t("grp_goals"), goals)):
+            group = QGroupBox(title)
+            group.setLayout(form)
+            layout.addWidget(group)
+        layout.addSpacing(4)
         layout.addWidget(buttons)
         self.setLayout(layout)
 
@@ -705,7 +714,7 @@ class HeatmapOptionsDialog(QDialog):
 
     def _apply(self, cfg: Config) -> None:
         self._theme.setCurrentIndex(max(self._theme.findData(cfg.theme), 0))
-        self._cell_size.setValue(cfg.cell_size)
+        self._set_cell_size(cfg.cell_size)
         self._border_radius.setValue(cfg.border_radius)
         self._measure.setCurrentIndex(max(self._measure.findData(cfg.measure), 0))
         self._avg_window.setCurrentIndex(max(self._avg_window.findData(cfg.avg_window), 0))
@@ -740,9 +749,17 @@ class HeatmapOptionsDialog(QDialog):
         este boton nunca borre nada suyo.
         """
         self._theme.setCurrentIndex(max(self._theme.findData(DEFAULT_CONFIG.theme), 0))
-        self._cell_size.setValue(DEFAULT_CONFIG.cell_size)
+        self._set_cell_size(DEFAULT_CONFIG.cell_size)
         self._border_radius.setValue(DEFAULT_CONFIG.border_radius)
         self._measure.setCurrentIndex(max(self._measure.findData(DEFAULT_CONFIG.measure), 0))
+
+    def _set_cell_size(self, size: int) -> None:
+        self._cell_size.setValue(self._cell_size.minimum() if size == FIT_WIDTH else size)
+
+    def _cell_size_value(self) -> int:
+        """El tamano elegido; el primer valor del campo es «Ajustado al ancho»."""
+        value = self._cell_size.value()
+        return FIT_WIDTH if value == self._cell_size.minimum() else value
 
     def selected_config(self, base: Config) -> Config:
         """Lo elegido, sobre la configuracion con la que se abrio (que conserva
@@ -762,7 +779,7 @@ class HeatmapOptionsDialog(QDialog):
             theme=theme,
             measure=str(measure),
             avg_window=window if isinstance(window, int) and window in WINDOWS else DEFAULT_CONFIG.avg_window,
-            cell_size=self._cell_size.value(),
+            cell_size=self._cell_size_value(),
             border_radius=self._border_radius.value(),
             goal_mode=mode if isinstance(mode, str) else DEFAULT_CONFIG.goal_mode,
             goal=self._goal.value(),

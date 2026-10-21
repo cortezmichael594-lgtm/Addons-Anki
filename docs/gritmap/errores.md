@@ -276,3 +276,15 @@ Versión 4.3.0 (correcciones del cliente del 2026-10-21 sobre la 4.2.0):
 - Sobre el mapa no hay título «Actividad» ni la cifra del año («22.129 repasos en 2026»); los botones
   quedan centrados y «Hoy» siempre a la vista, como en las primeras versiones. Lo pidió el cliente.
 - «Próxima fecha» dice solo el nombre, sin la fecha al lado. Lo pidió el cliente.
+
+Versión 4.4.0 (correcciones del cliente del 2026-10-21 sobre la 4.3.0):
+
+- De serie, el mapa vuelve a verse como en la 4.1.0: a todo el ancho, con cuadritos que crecen con
+  la ventana y esquinas apenas redondeadas. El tamaño en píxeles sigue en Opciones («Tamaño de celda
+  (px)», cuyo primer valor es «Ajustado al ancho»). Lo pidió el cliente con una captura. Para que todos
+  vean ese aspecto, el tamaño y el redondeo guardados por la 4.2 o la 4.3 se dejan de leer.
+- Vuelven los recuadros con título en Opciones («Apariencia», «Qué se cuenta», «Metas y fechas»). Lo
+  pidió el cliente.
+- Sin fechas clave por venir, «Próxima fecha» dice «N/A» y, debajo, «sin fechas clave» en minúscula.
+  Lo pidió el cliente.
+- No hay botón «Hoy»: el mapa ya se abre en la semana de hoy. Lo pidió el cliente.

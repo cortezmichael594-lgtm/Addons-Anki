@@ -104,6 +104,13 @@ body.nightMode #gritmap-root {
     -webkit-user-select: none;
 }
 
+/* Con «Ajustado al ancho» (el de serie, 4.4.0), como en la 4.1.0: todo el
+ * ancho de la pagina, y el mapa y las tarjetas se estiran con ella. */
+#gritmap-root:has(.gritmap-fit) {
+    width: 100%;
+    margin: 16px 0 8px 0;
+}
+
 #gritmap-root *,
 #gritmap-root *::before,
 #gritmap-root *::after {
@@ -331,15 +338,13 @@ body.nightMode #gritmap-root {
     box-shadow: 0 1px 2px var(--gritmap-shadow-soft);
 }
 
-#gritmap-root .gritmap-btn:hover,
-#gritmap-root .gritmap-textbtn:hover {
+#gritmap-root .gritmap-btn:hover {
     background: var(--gritmap-btnh);
     border-color: var(--gritmap-btnhb);
     color: var(--gritmap-fg);
 }
 
-#gritmap-root .gritmap-btn:active,
-#gritmap-root .gritmap-textbtn:active {
+#gritmap-root .gritmap-btn:active {
     transform: translateY(1px);
 }
 
@@ -353,8 +358,7 @@ body.nightMode #gritmap-root {
  *        selector mas especifico que el de Anki, y solo aparece con el
  *        teclado (:focus-visible), nunca al hacer clic.
  */
-#gritmap-root button.gritmap-btn:focus-visible,
-#gritmap-root button.gritmap-textbtn:focus-visible {
+#gritmap-root button.gritmap-btn:focus-visible {
     outline: 2px solid var(--gritmap-focus) !important;
     outline-offset: 2px;
 }
@@ -371,22 +375,6 @@ body.nightMode #gritmap-root {
 
 #gritmap-root .gritmap-btn svg {
     display: block;
-}
-
-
-#gritmap-root .gritmap-textbtn {
-    min-height: 28px;
-    margin: 0;
-    padding: 0 12px;
-    border-radius: 8px;
-    background: var(--gritmap-btn);
-    border: 1px solid var(--gritmap-btnb);
-    box-shadow: 0 1px 2px var(--gritmap-shadow-soft);
-    color: var(--gritmap-fg);
-    font: inherit;
-    font-size: 12px;
-    cursor: pointer;
-    transition: transform 0.1s ease;
 }
 
 
@@ -415,6 +403,15 @@ body.nightMode #gritmap-root {
 
 #gritmap-root .gritmap-year svg {
     display: block;
+}
+
+#gritmap-root .gritmap-year.gritmap-fit {
+    width: 100%;
+}
+
+#gritmap-root .gritmap-year.gritmap-fit svg {
+    width: 100%;
+    height: auto;
 }
 
 #gritmap-root .gritmap-months {
@@ -619,8 +616,7 @@ body.nightMode #gritmap-root {
 }
 
 /* Respeta el ajuste "reducir animaciones" de Anki y el del sistema. */
-body.reduce-motion #gritmap-root .gritmap-btn,
-body.reduce-motion #gritmap-root .gritmap-textbtn {
+body.reduce-motion #gritmap-root .gritmap-btn {
     transition: none;
 }
 
@@ -629,8 +625,7 @@ body.reduce-motion #gritmap-root .gritmap-check.gritmap-celebrate {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #gritmap-root .gritmap-btn,
-    #gritmap-root .gritmap-textbtn {
+    #gritmap-root .gritmap-btn {
         transition: none;
     }
 

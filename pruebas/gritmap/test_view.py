@@ -68,10 +68,23 @@ class WidgetTest(unittest.TestCase):
         self.assertNotIn("Actividad", head)
         self.assertNotIn("en 2026", head)
 
-    def test_today_button_always_visible(self) -> None:
+    def test_no_today_button(self) -> None:
+        # 4.4.0: sin «Hoy»; quedan las flechas del ano y las opciones.
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        self.assertIn('class="gritmap-textbtn" data-gritmap-btn="today"', html)
-        self.assertNotIn("gritmap-hidden", html)
+        self.assertNotIn('data-gritmap-btn="today"', html)
+        self.assertIn('data-gritmap-btn="opts"', html)
+
+    def test_default_map_fits_the_width_like_4_1(self) -> None:
+        # 4.4.0: de serie, cuadritos de 14 en el dibujo, esquinas de 2, a todo
+        # el ancho (10 px como minimo) y meses en porcentaje.
+        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        width = view.grid_width(2026, DEFAULT_CONFIG)
+        self.assertEqual(width, 53 * 17 - 3)
+        self.assertIn(f'class="gritmap-year gritmap-fit" style="min-width:{width * 10 / 14:.0f}px"', html)
+        self.assertIn(f'<svg viewBox="0 0 {width} 116" xmlns=', html)
+        self.assertRegex(html, r'<rect class="gritmap-cell" x="\d+" y="\d+" width="14" height="14" rx="2"')
+        self.assertRegex(html, r'class="gritmap-month"[^>]*style="left:[\d.]+%"')
+        self.assertIn("aspect-ratio:", view.placeholder_html(DEFAULT_CONFIG))
 
     def test_no_period_buttons_on_the_page(self) -> None:
         # El periodo se elige en Opciones (cliente, 2026-10-21); las tarjetas lo dicen.
@@ -104,6 +117,7 @@ class WidgetTest(unittest.TestCase):
         html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=12, border_radius=3), 0)
         self.assertRegex(html, r'<rect class="gritmap-cell" x="\d+" y="\d+" width="12" height="12" rx="3"')
         self.assertIn(f'style="width:{view.grid_width(2026, replace(DEFAULT_CONFIG, cell_size=12))}px"', html)
+        self.assertNotIn("gritmap-fit", html)
 
     def test_goal_ring_and_week_line(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
@@ -154,7 +168,10 @@ class WidgetTest(unittest.TestCase):
 
     def test_next_date_card_never_disappears(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        self.assertIn("Sin fechas clave", html)
+        card = html[html.index(">Próxima fecha<"):]
+        # 4.4.0: «N/A» en grande y «sin fechas clave» debajo, en minuscula.
+        self.assertIn('<div class="gritmap-big gritmap-muted">N/A</div>', card)
+        self.assertIn(">sin fechas clave</div>", card)
 
     def test_pending_days_in_four_greys(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)

@@ -354,14 +354,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         container.setAttribute(BOUND_ATTR, "1");
 
         container.addEventListener("click", function (event) {
-            var target = closest(event.target, "[data-gritmap-cmd]");
-            var cmd = target ? target.getAttribute("data-gritmap-cmd") : "";
-            send(target);
-            /* «Hoy» en el mismo ano no cambia el mapa: basta con volver a la
-             * semana de hoy. Si cambia de ano, el dibujado nuevo lo hace. */
-            if (cmd === "today") {
-                scrollToToday(container);
-            }
+            send(closest(event.target, "[data-gritmap-cmd]"));
         });
         container.addEventListener("keydown", onKeyDown);
         container.addEventListener("mouseover", function (event) {
@@ -495,8 +488,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         if (focusBtn) {
             var button = container.querySelector("button[data-gritmap-btn='" + focusBtn + "']");
             if (!button || button.disabled) {
-                button = container.querySelector("button[data-gritmap-btn='today']")
-                    || container.querySelector("button[data-gritmap-btn='opts']");
+                button = container.querySelector("button[data-gritmap-btn='opts']");
             }
             if (button) {
                 button.focus({ preventScroll: true });

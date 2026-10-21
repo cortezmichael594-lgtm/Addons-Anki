@@ -5907,3 +5907,11 @@ for _code, _texts_of in STRINGS.items():
     _record = _texts_of.get("record_was", "")
     if _code != "de" and _record:
         _texts_of["record_was"] = _record[0].lower() + _record[1:]
+
+# «sin fechas clave» va como linea gris bajo «N/A» en la tarjeta de la
+# proxima fecha (4.4.0, peticion del cliente), asi que empieza en minuscula
+# (en aleman tambien: empieza por «keine», que no es sustantivo).
+for _code, _texts_of in STRINGS.items():
+    _none = _texts_of.get("no_key_dates", "")
+    if _none:
+        _texts_of["no_key_dates"] = _none[0].lower() + _none[1:]
