@@ -174,12 +174,12 @@ def _surface_css() -> str:
                 "}"
             ),
             (
-                f"{_SURFACE} {{"
+                f"{_SURFACE} {{"  # colores-ok: degradado del acabado, el azul de acción casi transparente
                 " background-image: radial-gradient(1100px 700px at 82% -8%,"
                 " rgba(59, 111, 224, 0.04), transparent 60%);"
                 " background-attachment: fixed;"
                 "}"
-                f"{_DARK_SURFACE} {{"
+                f"{_DARK_SURFACE} {{"  # colores-ok: degradado del acabado, el azul de acción casi transparente
                 " background-image: radial-gradient(1100px 700px at 82% -8%,"
                 " rgba(99, 144, 255, 0.07), transparent 60%);"
                 "}"

@@ -27,6 +27,9 @@ def _setup() -> None:
     gui_hooks.webview_did_inject_style_into_page.append(webview_style.on_did_inject_style)
     #    - Cambio de perfil: reafirmar colores.
     gui_hooks.profile_did_open.append(theming.on_profile_open)
+    #    - Hoja de estilo de las ventanas: borde propio de las casillas. Va antes
+    #      del paso 4, que es cuando Anki rehace la hoja y pasa por este filtro.
+    gui_hooks.style_did_init.append(theming.on_style_did_init)
 
     # 3) Dejar preparado el estilo temprano, que aplica la paleta antes del
     #    primer pintado de cada página y evita el fogonazo al abrirlas.

@@ -13,13 +13,16 @@ estilo por su cuenta —al cambiar de día a noche, o al cambiar el estilo de lo
 controles en las preferencias— vuelve a leer los nuestros sin que hagamos nada.
 """
 
+# Historial de correcciones de este archivo:
+# FIX-003 (2026-10-21): casillas sin marcar casi invisibles.
+
 from __future__ import annotations
 
 import aqt.colors
 from aqt import mw
-from aqt.theme import theme_manager
+from aqt.theme import WidgetStyle, theme_manager
 
-from .errors import get_logger, guard
+from .errors import get_logger, guard, guard_filter
 from .palette import GRADIENT_ALIASES, PALETTE, to_css_rgba
 
 
@@ -86,6 +89,50 @@ def restyle() -> bool:
         get_logger().exception("no se pudo reaplicar el estilo de Qt")
         return False
     return True
+
+
+@guard_filter
+def on_style_did_init(style: str) -> str:
+    """Añade al final de la hoja de estilo de Anki el borde propio de las casillas.
+
+    # --- FIX-003 (2026-10-21) ---
+    # Síntoma: el borde de una casilla o botón de opción sin marcar casi no se distinguía
+    #          del fondo (1,3:1 de día y 1,5:1 de noche).
+    # Causa: Anki dibuja ese borde con BORDER, el mismo de la línea de la barra del repaso y
+    #        otros detalles, y en Nocturne es muy suave a propósito.
+    # Regla: el borde de las casillas se cambia aquí, solo para ellas, con
+    #        NOCTURNE_CONTROL_BORDER (3:1 o más); con el ratón o el foco, BORDER_FOCUS, que
+    #        destaca más. Solo se cambia el color, nunca el grosor, para que nada salte.
+
+    Anki pasa la hoja por este filtro cada vez que la rehace, también al cambiar
+    de día a noche, y ya ha decidido el modo. Con un estilo de controles que no sea
+    el de Anki, su hoja no tiene estas reglas y se devuelve tal cual.
+    """
+    if mw is None or mw.pm.get_widget_style() != WidgetStyle.ANKI:
+        return style
+    border_token = PALETTE["NOCTURNE_CONTROL_BORDER"]
+    focus_token = PALETTE["BORDER_FOCUS"]
+    if theme_manager.night_mode:
+        border, focus = border_token["dark"], focus_token["dark"]
+    else:
+        border, focus = border_token["light"], focus_token["light"]
+    return (
+        style
+        + f"""
+    QCheckBox::indicator,
+    QRadioButton::indicator,
+    QMenu::indicator {{
+        border-color: {border};
+    }}
+    QCheckBox::indicator:focus:!disabled,
+    QCheckBox::indicator:hover:!disabled,
+    QCheckBox::indicator:checked:hover:!disabled,
+    QRadioButton::indicator:focus:!disabled,
+    QRadioButton::indicator:hover:!disabled {{
+        border-color: {focus};
+    }}
+"""
+    )
 
 
 @guard

@@ -56,3 +56,18 @@ def guard(func: F) -> F:
             return None
 
     return wrapper  # type: ignore[return-value]
+
+
+def guard_filter(func: F) -> F:
+    """Como ``guard``, pero para filtros: si algo falla, devuelve intacto el primer
+    argumento, para que la cadena de Anki siga con el valor que recibió."""
+
+    @functools.wraps(func)
+    def wrapper(value: Any, *args: Any, **kwargs: Any) -> Any:
+        try:
+            return func(value, *args, **kwargs)
+        except Exception:
+            get_logger().exception("fallo en %s", func.__name__)
+            return value
+
+    return wrapper  # type: ignore[return-value]

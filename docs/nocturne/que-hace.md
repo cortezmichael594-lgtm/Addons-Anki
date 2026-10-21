@@ -1,13 +1,14 @@
 # Qué hace «Nocturne»
 
-Versión 2026.07.28 · 2026-10-21
+Versión 2.1.0 · 2026-10-21
 
 Tema de colores para Anki, en modo día y en modo noche: grises azulados con un único azul de acción
 sereno. Se instala y se aplica solo; no tiene menú, ni ventana de opciones, ni ningún texto propio, así
 que se ve igual con Anki en cualquier idioma. No toca su colección, sus tarjetas ni sus plantillas.
 
-Este documento describe la versión original que usted subió al taller (la del 28 de julio de 2026).
-La versión 2.0.0, hecha en otra copia del taller, se descartó el 2026-10-21 y no está aquí.
+La versión 2.1.0 parte de la original que usted subió al taller (la del 28 de julio de 2026) y
+conserva su aspecto; solo corrige lo que se leía mal, medido, y suaviza el texto de noche. La versión
+2.0.0, hecha en otra copia del taller, se descartó el 2026-10-21 y no está aquí.
 
 ## 1. Dónde se nota
 
@@ -21,11 +22,19 @@ La versión 2.0.0, hecha en otra copia del taller, se descartó el 2026-10-21 y 
 ## 2. Colores
 
 - Fondo de día casi blanco, con un toque azulado (#F7F8FA); de noche, azul muy oscuro (#12161F).
-- Texto principal de día gris pizarra muy oscuro (#1B2430); de noche, blanco roto azulado (#E9EDF4).
+- Texto principal de día gris pizarra muy oscuro (#1B2430); de noche, gris claro azulado (#D6DAE1),
+  algo menos brillante que en la versión original para no deslumbrar en sesiones largas.
 - Un único azul de acción para botones principales, selección y foco (#3B6FE0 de día, #4066E6 de noche).
-- Bordes muy suaves, casi invisibles, que dan un aspecto limpio y ligero.
+- Bordes muy suaves en campos, listas, tablas y separadores, que dan un aspecto limpio y ligero.
+- Las casillas y los botones de opción tienen un borde gris visible, para distinguirlas sin marcar; con
+  el ratón encima o al llegar con el teclado, el borde se vuelve azul.
 - Colores de las cifras de la lista de mazos: Nuevas en azul, Aprendiendo en naranja (Anki usa rojo) y
-  Para repasar en verde. Las banderas siguen la familia de colores de Anki, en tonos propios.
+  Para repasar en verde. De día son algo más oscuros que en la versión original, para leerse bien.
+- Las banderas siguen la familia de colores de Anki, en tonos propios. De noche son algo menos vivas
+  que en la versión original: Anki pinta con ellas, oscurecidas, las filas de Explorar, y así el texto
+  de esas filas se lee bien.
+- El botón azul principal mantiene su azul al pasar el ratón por encima, en lugar de aclararse, para
+  que su texto blanco se siga leyendo bien.
 - Sigue al modo día o noche que usted elija en Anki y cambia con él.
 
 ## 3. Acabado
@@ -54,11 +63,11 @@ La versión 2.0.0, hecha en otra copia del taller, se descartó el 2026-10-21 y 
 ## 7. Legibilidad medida (2026-10-21)
 
 Contraste del texto frente al fondo; el mínimo recomendado para leer con comodidad es 4,5 (y 3 para
-bordes de casillas e iconos).
+bordes de casillas e iconos). Lo comprueban las pruebas del taller en cada entrega.
 
-- De día: el texto principal y el secundario pasan con holgura. Por debajo: las cifras «Aprendiendo»
-  (3,4) y «Para repasar» (3,2) de la lista de mazos, el rojo de aviso (4,3) y las cifras «Nuevas» en
-  campos hundidos (4,4). Los bordes de las casillas sin marcar quedan en 1,3.
-- De noche: todo el texto pasa; el principal llega a 15,4, un brillo alto para sesiones largas. Por
-  debajo: en Explorar, las filas con bandera naranja, verde, azul, rosa o turquesa (de 2,9 a 3,7) y
-  los bordes de las casillas (1,5).
+- Todo color que Anki usa como texto llega al menos a 4,5 sobre cualquier fondo, de día y de noche.
+- El texto blanco del botón azul llega a 4,5 en todos sus estados.
+- Las casillas sin marcar llegan a 3 frente al fondo; las banderas, a 3 como icono.
+- En Explorar, el texto de las filas con bandera o estado llega a 4,5, de día y de noche.
+- De noche, el texto principal queda en 13 frente al fondo (antes, 15,4), y al menos en 10,6 sobre
+  cualquier superficie.
