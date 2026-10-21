@@ -32,12 +32,13 @@ _DWMWA_CAPTION_COLOR = 35
 _DWMWA_TEXT_COLOR = 36
 _FIRST_BUILD = 22000  # primera compilación de Windows 11
 
-# Color de la paleta para cada parte de la barra: el fondo de la ventana, su texto
-# y un borde suave. Con colores propios, Windows ya no distingue la ventana activa
+# Color de la paleta para cada parte de la barra: su tono propio (versión 3.4.0: del
+# matiz del fondo, más oscuro de noche y más claro de día, para que se distinga de la
+# ventana), el color del texto y un borde suave. Con colores propios, Windows ya no distingue la ventana activa
 # de las demás y lo deja en manos del programa (documentación de Microsoft): el
 # título de las inactivas va en el texto secundario, como el gris que pone Windows.
 _PARTS = (
-    (_DWMWA_CAPTION_COLOR, "CANVAS", "CANVAS"),
+    (_DWMWA_CAPTION_COLOR, "NOCTURNE_TITLEBAR", "NOCTURNE_TITLEBAR"),
     (_DWMWA_TEXT_COLOR, "FG", "FG_SUBTLE"),
     (_DWMWA_BORDER_COLOR, "BORDER", "BORDER"),
 )

@@ -102,6 +102,17 @@ class WebStyleTest(unittest.TestCase):
         self.assertIn("tr:has(> td > b > :is(.new-count, .learn-count, .review-count)) > td:first-child", css)
         self.assertNotIn(" th { color", css.replace("table:has(tr.deck) th { color", ""))
 
+    def test_reading_polish(self) -> None:
+        # Versión 3.4.0: títulos equilibrados, descripción sin palabras sueltas, un solo
+        # color de acción en los controles nativos y nada de transiciones con «Reducir
+        # movimiento».
+        for theme_id in themes.THEMES:
+            css = self.css_for(theme_id)
+            self.assertIn(":is(h1, h2, h3) { text-wrap: balance; }", css, theme_id)
+            self.assertIn("text-wrap: pretty;", css, theme_id)
+            self.assertIn("accent-color: var(--button-primary-bg);", css, theme_id)
+            self.assertIn("html body.reduce-motion:not(.card) { --transition: 0ms; }", css, theme_id)
+
     def test_switching_changes_the_css(self) -> None:
         first = self.css_for("papel")
         second = self.css_for("nocturne")

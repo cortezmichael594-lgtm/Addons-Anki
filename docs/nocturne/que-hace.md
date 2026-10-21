@@ -1,6 +1,6 @@
 # Qué hace «Nocturne»
 
-Versión 3.3.0 · 2026-10-21
+Versión 3.4.0 · 2026-10-21
 
 Temas de color para Anki, en modo día y en modo noche. Trae tres paletas (Nocturne, Papel y Bosque), y
 Nocturne está elegida de serie. Cada paleta es un estilo completo: colores, letra de los títulos,
@@ -88,8 +88,11 @@ musgo, sin dejar de ser azul, rojo y verde. En Papel y en Bosque, «Aprendiendo�
   encima. Así los menús se distinguen de lo que tapan.
 - De noche, los colores con significado son algo menos saturados, para que no «vibren» sobre el fondo
   oscuro.
-- Barra de título de las ventanas (solo Windows 11): del color del fondo de la paleta, con el título
-  en el color del texto y un borde suave, en vez de blanca de día y negra de noche. Cambia con el modo
+- Barra de título de las ventanas (solo Windows 11): con un tono propio de cada paleta, del mismo
+  matiz que el fondo de la ventana, pero más oscuro de noche y más claro de día, para que se distinga
+  de la ventana (por ejemplo, en Nocturne: #0B0E13 de noche frente al fondo #12161F, y #FCFCFD de día
+  frente a #F7F8FA). De día la diferencia es pequeña: el fondo ya es casi blanco y la barra no llega al
+  blanco puro. Título en el color del texto y borde suave, en vez de blanca de día y negra de noche. Cambia con el modo
   día o noche y con la paleta. El título de las ventanas que no están en primer plano va en el texto
   secundario, para distinguir cuál es la activa. Los botones de minimizar, maximizar y cerrar siguen
   el modo día o noche de Anki, aunque Windows esté en el otro. Cada ventana se tiñe antes de aparecer,
@@ -101,7 +104,13 @@ musgo, sin dejar de ser azul, rojo y verde. En Papel y en Bosque, «Aprendiendo�
   repasar:» van en el texto secundario. Así destacan las cifras, que es lo que se viene a mirar. Solo en
   esas dos tablas.
 - Al pasar el ratón por las páginas de Anki, los cambios de color tardan 100 milisegundos en vez de
-  180, y se perciben instantáneos. El fundido de las tarjetas no cambia.
+  180, y se perciben instantáneos. El fundido de las tarjetas no cambia. Si tiene marcada «Reducir
+  movimiento» en las preferencias de Anki, los cambios son inmediatos (desde la 3.4.0).
+- Títulos de las páginas que ocupan varias líneas (por ejemplo, el nombre largo de un mazo): las
+  líneas quedan de longitud parecida, sin una palabra sola debajo. En la descripción de un mazo, la
+  última línea no queda con una sola palabra (desde la 3.4.0).
+- Casillas, botones de opción y barras propias de las páginas de Anki que no tienen un color dado
+  toman el color de acción de la paleta, para que haya un solo color de acción (desde la 3.4.0).
 - Barra superior (Mazos, Añadir, Explorar, Estadísticas, Sincronizar): al pasar el ratón, la opción
   toma un fondo suave con las esquinas de la paleta, en lugar del subrayado de Anki. No cambia de
   tamaño ni de sitio.

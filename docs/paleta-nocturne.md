@@ -174,6 +174,7 @@ seguirá encajando aunque la paleta se ajuste en el futuro.
 |`NOCTURNE_PRIMARY_PRESSED`|—|`#284EAA`|`#2B45AA`|
 |`NOCTURNE_PRIMARY_RING`|—|`#1C3A8A`|`#A9C4FF`|
 |`NOCTURNE_ROW_HIGHLIGHT`|`--nocturne-row-highlight`|`#EAEEF8`|`#19233F`|
+|`NOCTURNE_TITLEBAR`|— (barra de título, solo Windows 11)|`#FCFCFD`|`#0B0E13`|
 
 ## Bloque para pegar como contexto
 

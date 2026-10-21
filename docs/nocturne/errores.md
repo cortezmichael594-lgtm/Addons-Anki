@@ -101,3 +101,9 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 3.3.0 · De noche, el texto desactivado es algo más claro que antes en las tres paletas, también en
   Nocturne, con el mismo tono: no llegaba al mínimo de APCA para texto. Decisión del taller, explicada
   al cliente en la entrega.
+- 3.4.0 · De día, la barra de título solo es un poco más clara que la ventana: el fondo de las tres
+  paletas ya es casi blanco y la barra no puede llegar al blanco puro, que las reglas de la paleta
+  evitan. De noche la diferencia se nota más. Pedido por el cliente (2026-10-21).
+- 3.4.0 · De noche, el título de la barra queda algo por encima de 13,5 de contraste (hasta 14,2), el
+  límite de comodidad del texto de lectura: es una sola línea y se lee de un vistazo. Decisión del
+  taller.
