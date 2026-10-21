@@ -49,7 +49,8 @@ KEY_DATE_MAX = date(2100, 12, 31)
 # se ve como en la 4.1.0.
 FIT_WIDTH = 0
 CELL_SIZE_MIN, CELL_SIZE_MAX = 8, 60
-BORDER_RADIUS_MIN, BORDER_RADIUS_MAX = 0, 15
+# El redondeo va en la escala de un cuadrito de 14: 7 ya es un circulo.
+BORDER_RADIUS_MIN, BORDER_RADIUS_MAX = 0, 7
 GOAL_MODES: tuple[str, ...] = ("none", "number", "due")
 GOAL_MIN, GOAL_MAX = 1, 9999
 MAX_PAUSE_DAYS = 30
@@ -90,8 +91,8 @@ class Config:
     # guardado por la version 3.0.0 vuelve a "reviews" al leerse.
     measure: str
     # Lado de cada cuadrito en pixeles (FIT_WIDTH: ajustado al ancho) y
-    # redondeo de sus esquinas (en pixeles, o en la escala del mapa ajustado,
-    # cuyo cuadrito mide 14).
+    # redondeo de sus esquinas, en la escala de un cuadrito de 14 (el dibujo
+    # se escala entero, 4.5.0).
     cell_size: int
     border_radius: int
     # Dias de la ventana del promedio; 0 = todo el historial (data.WINDOWS).

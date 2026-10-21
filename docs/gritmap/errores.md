@@ -288,3 +288,11 @@ Versión 4.4.0 (correcciones del cliente del 2026-10-21 sobre la 4.3.0):
 - Sin fechas clave por venir, «Próxima fecha» dice «N/A» y, debajo, «sin fechas clave» en minúscula.
   Lo pidió el cliente.
 - No hay botón «Hoy»: el mapa ya se abre en la semana de hoy. Lo pidió el cliente.
+
+Versión 4.5.0 (petición del cliente del 2026-10-21 sobre la 4.4.0):
+
+- «Tamaño de celda (px)» pasa a ser «Tamaño»: con un tamaño, el mapa entero crece o encoge en
+  proporción, con el mismo dibujo que «Ajustado al ancho» (huecos de 3/14 del cuadrito y esquinas a
+  escala). Antes el hueco se quedaba en 3 px y el redondeo en píxeles, y el mapa dejaba de parecerse.
+  Lo eligió el cliente entre dos opciones. El redondeo va de 0 a 7 (7 ya es un círculo); un valor
+  mayor guardado antes se queda en 7.

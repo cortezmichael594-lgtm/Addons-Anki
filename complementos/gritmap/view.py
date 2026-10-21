@@ -18,7 +18,8 @@ que suman el ancho del mapa.
 
 Version 4.4.0 (peticion del cliente del 2026-10-21): de serie el mapa vuelve
 a verse como en la 4.1.0, ajustado a todo el ancho de la tarjeta con las
-esquinas apenas redondeadas; el tamano de celda en pixeles queda como opcion.
+esquinas apenas redondeadas. En la 4.5.0, un tamano fijo escala el dibujo
+entero, con huecos y esquinas en proporcion.
 
 Las cifras salen de aqui sin separadores de millares, envueltas en un
 <span class="gritmap-n">, y los porcentajes en un <span class="gritmap-pct">:
@@ -104,13 +105,16 @@ WEB_PATTERN = r"web/[\w-]+\.(css|js)"
 
 STYLE_ID = "gritmap-palette"
 
-# Hueco entre cuadritos. Con un tamano de celda en pixeles, el lado de cada
-# cuadrito es ese tamano; con «Ajustado al ancho» (el de serie, como en la
-# 4.1.0), el dibujo usa cuadritos de 14 unidades que se estiran con la tarjeta
-# hasta ocupar todo el ancho, con 10 px como minimo (por debajo, se desplaza
-# de lado).
+# Geometria del mapa, en unidades del dibujo, como en la 4.1.0: cuadrito de 14
+# y hueco de 3. El dibujo se escala entero, asi que huecos y esquinas guardan
+# siempre la proporcion (4.5.0, peticion del cliente): con «Ajustado al ancho»
+# (el de serie) ocupa todo el ancho de la tarjeta, con 10 px por cuadrito como
+# minimo (por debajo, se desplaza de lado); con un tamano, cada cuadrito mide
+# esos pixeles.
+_CELL = 14
 _GAP = 3
-_FIT_CELL, _FIT_MIN = 14, 10
+_STEP = _CELL + _GAP
+_FIT_MIN = 10
 # La distancia al record solo se ensena si esta cerca (version 3.6.0): lejos,
 # la cifra no anima y solo recuerda lo que falta.
 _RECORD_GAP_MAX = 7
@@ -492,15 +496,6 @@ def _fit(cfg: Config) -> bool:
     return cfg.cell_size == FIT_WIDTH
 
 
-def _cell(cfg: Config) -> int:
-    """Lado de cada cuadrito: en pixeles, o en unidades del dibujo si se ajusta."""
-    return _FIT_CELL if _fit(cfg) else cfg.cell_size
-
-
-def _step(cfg: Config) -> int:
-    return _cell(cfg) + _GAP
-
-
 def _week_count(year: int) -> int:
     start = date(year, 1, 1)
     days = (date(year, 12, 31) - start).days + 1
@@ -524,8 +519,8 @@ def _build_cell(
     focusable: bool,
 ) -> str:
     week, row = _cell_position(day)
-    cell = _cell(cfg)
-    x, y = week * _step(cfg), row * _step(cfg)
+    cell = _CELL
+    x, y = week * _STEP, row * _STEP
     days_ago = (data.today - day).days
     past_thresholds, future_thresholds = thresholds
     extra = ""
@@ -589,26 +584,17 @@ def star_points(cx: float, cy: float, outer: float) -> str:
     return " ".join(points)
 
 
-def grid_width(year: int, cfg: Config) -> int:
-    """Ancho del ano con el tamano de celda elegido (en unidades del dibujo si
-    se ajusta al ancho)."""
-    return _week_count(year) * _step(cfg) - _GAP
+def grid_width(year: int) -> int:
+    """Ancho del ano en unidades del dibujo."""
+    return _week_count(year) * _STEP - _GAP
 
 
 def _year_style(cfg: Config, width: int) -> str:
     """Ancho del ano: todo el de la tarjeta (sin bajar de 10 px por cuadrito)
-    o el que piden los cuadritos en pixeles."""
+    o el dibujo entero a escala del tamano elegido."""
     if _fit(cfg):
-        return f"min-width:{width * _FIT_MIN / _FIT_CELL:.0f}px"
-    return f"width:{width}px"
-
-
-def _month_left(cfg: Config, week: int, width: int) -> str:
-    """Posicion de un mes: en porcentaje si el mapa se estira (asi la letra
-    conserva su tamano), en pixeles si no."""
-    if _fit(cfg):
-        return f"{100 * week * _step(cfg) / width:.3f}%"
-    return f"{week * _step(cfg)}px"
+        return f"min-width:{width * _FIT_MIN / _CELL:.0f}px"
+    return f"width:{width * cfg.cell_size / _CELL:.0f}px"
 
 
 def build_year(
@@ -619,10 +605,13 @@ def build_year(
     forgiven: dict[int, str],
     key_labels: dict[date, str],
 ) -> str:
-    """Meses y rejilla del ano, ajustados al ancho o a su tamano en pixeles:
-    si no cabe, se desplaza de lado."""
-    width = grid_width(year, cfg)
-    height = 7 * _step(cfg) - _GAP
+    """Meses y rejilla del ano, a escala: si no cabe, se desplaza de lado.
+
+    Los meses son texto de la pagina colocado en porcentaje del ancho, asi
+    que conservan su tamano de letra aunque la rejilla se estire.
+    """
+    width = grid_width(year)
+    height = 7 * _STEP - _GAP
     focus_day = data.today if data.today.year == year else date(year, 1, 1)
 
     months: list[str] = []
@@ -639,7 +628,7 @@ def build_year(
         # con el nombre de mes del idioma activo.
         months.append(
             f'<span class="gritmap-month" data-gritmap-month="{month}"'
-            f' style="left:{_month_left(cfg, week, width)}">{html.escape(month_abbrev(month))}</span>'
+            f' style="left:{100 * week * _STEP / width:.3f}%">{html.escape(month_abbrev(month))}</span>'
         )
 
     cells: list[str] = []
@@ -649,12 +638,11 @@ def build_year(
             _build_cell(day, data, cfg, thresholds, forgiven, key_labels, focusable=day == focus_day)
         )
         day += timedelta(days=1)
-    size = "" if _fit(cfg) else f' width="{width}" height="{height}"'
     fit_class = " gritmap-fit" if _fit(cfg) else ""
     return (
         f'<div class="gritmap-year{fit_class}" style="{_year_style(cfg, width)}">'
         f'<div class="gritmap-months">{"".join(months)}</div>'
-        f'<svg viewBox="0 0 {width} {height}"{size} xmlns="http://www.w3.org/2000/svg"'
+        f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg"'
         f' role="group" aria-label="{year}">{"".join(cells)}</svg></div>'
     )
 
@@ -700,7 +688,7 @@ def build_legend(
     """«Menos ▢▣▣▣▣ Mas»: los cinco cuadritos del mapa, cada uno con sus cifras
     en el globo, y las muestras de lo que salga en el ano que se ve."""
     # El redondeo de la leyenda sigue al del mapa, a escala de su cuadrito.
-    radius = min(cfg.border_radius * 11 / _cell(cfg), 5.5)
+    radius = min(cfg.border_radius * 11 / _CELL, 5.5)
     none_key = "tt_new_none" if cfg.measure == "new" else "tt_no_reviews"
     cells = [_legend_cell("gritmap-lg-c0", t(none_key), radius)]
     for index, (low, high) in enumerate(legend_ranges(thresholds)):
@@ -870,8 +858,8 @@ def placeholder_html(cfg: Config) -> str:
         f'<section class="gritmap-card gritmap-mini">{bones}{bones}{bones}</section>' for _ in range(count)
     )
     year = date.today().year
-    width, height = grid_width(year, cfg), 7 * _step(cfg) - _GAP
-    bone = f"aspect-ratio:{width}/{height}" if _fit(cfg) else f"height:{height}px"
+    width, height = grid_width(year), 7 * _STEP - _GAP
+    bone = f"aspect-ratio:{width}/{height}"
     fit_class = " gritmap-fit" if _fit(cfg) else ""
     grid = (
         f'<div class="gritmap-year{fit_class}" style="{_year_style(cfg, width)}">'

@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 4.4.0 · 2026-10-21
+Versión 4.5.0 · 2026-10-21
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub, en tarjetas. Arriba, a todo el
 ancho (como en la versión 4.1.0), la tarjeta del mapa, con el año entero (un cuadrito por día: gris sin estudio y cuatro tonos
@@ -22,8 +22,8 @@ Solo lee su colección: nunca cambia tarjetas, notas ni repasos. Lo único que g
 - No aparece en el repaso, en Explorar, en las estadísticas ni en el editor. No añade menús.
 - De serie («Ajustado al ancho», como en la versión 4.1.0), el mapa ocupa todo el ancho de la
   pantalla y sus cuadritos crecen o encogen con la ventana (nunca por debajo de 10 px; si no cabe, se
-  desplaza de lado). Con un tamaño de celda en píxeles, el mapa mide lo que piden sus cuadritos,
-  centrado. Las cinco tarjetas pequeñas van debajo y suman exactamente su ancho, con los bordes
+  desplaza de lado). Con un tamaño en píxeles, el mapa entero crece o encoge en proporción
+  (huecos y esquinas incluidos, así que se ve igual, solo más grande o más pequeño), centrado. Las cinco tarjetas pequeñas van debajo y suman exactamente su ancho, con los bordes
   alineados con los del mapa. Cada tarjeta tiene el fondo un punto más claro
   que el de Anki, un borde suave, esquinas redondeadas y su título arriba a la izquierda; de día
   llevan una sombra muy leve y de noche ninguna.
@@ -106,9 +106,10 @@ Opciones > «Gestionar fechas». La tarjeta nunca desaparece.
   siguiente, con su nombre al pasar el ratón) y el botón de opciones. No hay botón «Hoy». Las flechas
   se apagan en el primer año con repasos y en el último con vencimientos o fechas clave.
 - El año entero, de enero a diciembre, en columnas de semanas que empiezan en lunes, con los nombres
-  de los meses encima en el idioma de Anki (siempre con el calendario gregoriano). De serie, el año
-  llena el ancho de la tarjeta, con huecos y esquinas en proporción al cuadrito (como en la 4.1.0);
-  con un tamaño en píxeles, cada cuadrito mide ese tamaño, con el redondeo elegido y 3 px de hueco.
+  de los meses encima en el idioma de Anki (siempre con el calendario gregoriano). El dibujo es
+  siempre el mismo, como en la 4.1.0: el hueco mide 3/14 del cuadrito y las esquinas, el redondeo
+  elegido en esa misma escala. De serie, el año llena el ancho de la tarjeta; con un tamaño, cada
+  cuadrito mide esos píxeles y todo lo demás crece con él.
   Si el año no cabe, se desplaza de lado: al abrir un año se ve la semana de hoy; en un año pasado, diciembre, y en uno
   futuro, enero.
 - Días pasados y hoy: cinco niveles. Sin estudio, el gris vacío; con estudio, cuatro tonos del tema,
@@ -208,8 +209,8 @@ Metas y fechas: el resto):
 | Opción | Valores | Por defecto |
 |---|---|---|
 | Tema de color | Azul océano, Naranja atardecer, Púrpura real y Verde clásico, cada uno con un cuadrito de su tono en el modo activo (cambia si Anki pasa de día a noche) | Verde clásico |
-| Tamaño de celda (px) | Campo numérico con flechas: «Ajustado al ancho» (el primer valor, por debajo de 8) o de 8 a 60 | Ajustado al ancho |
-| Redondeo de esquinas (px) | Campo numérico con flechas, de 0 a 15 (con «Ajustado al ancho», en proporción a un cuadrito de 14) | 2 |
+| Tamaño | Campo numérico con flechas: «Ajustado al ancho» (el primer valor) o de 8 px a 60 px, el lado de cada cuadrito; el mapa entero crece en proporción | Ajustado al ancho |
+| Redondeo de esquinas | Campo numérico con flechas, de 0 a 7, en la escala de un cuadrito de 14 (7 es un círculo) | 2 |
 | El color mide | Repasos, Tarjetas, Nuevas; debajo, «Cada respuesta cuenta una», «Cada tarjeta cuenta una vez por día» o «Solo las tarjetas que empezó ese día» | Repasos |
 | Periodo de las cifras | 30 o 365 días, o Todo el historial (vale para el promedio diario y la retención) | 30 días |
 | Excluir mazos | Botón «Seleccionar mazos» (o «1 mazo excluido», «2 mazos excluidos», con hasta 15 nombres al pasar el ratón y «…» si hay más) | Ninguno |
@@ -219,16 +220,16 @@ Metas y fechas: el resto):
 | Fechas clave | Botón «Gestionar fechas» (o «1 fecha marcada», «3 fechas marcadas», con la lista al pasar el ratón) | Ninguna |
 | Mostrar racha y meta | Casilla | Marcada |
 
-- Mientras cambia el tema, el tamaño de celda o el redondeo, el mapa de detrás cambia al momento (un
+- Mientras cambia el tema, el tamaño o el redondeo, el mapa de detrás cambia al momento (un
   instante después de soltar la flecha), sin guardar nada; si cancela, vuelve a como estaba. La medida
   y los mazos excluidos se ven al aceptar, porque piden leer la colección.
-- «Restaurar apariencia» repone el tema, el tamaño de celda, el redondeo y la medida; no toca los
+- «Restaurar apariencia» repone el tema, el tamaño, el redondeo y la medida; no toca los
   mazos excluidos, las fechas clave, la meta, los comodines, la pausa ni el periodo.
 - Si tenía Rojo fuego, Rosa suave o Turquesa laguna, retirados en esta versión, pasa sin preguntar a
   Naranja atardecer, Púrpura real o Azul océano, y la ventana lo dice una vez, arriba: «Su tema «Rojo
   fuego» se ha retirado; ahora usa «Naranja atardecer».».
 - Al pasar a la 4.4.0, el mapa vuelve al aspecto de la 4.1.0 («Ajustado al ancho», redondeo 2): el
-  tamaño de celda y el redondeo guardados por la 4.2 o la 4.3 se dejan de leer. Si venía de la 4.0 o
+  tamaño y el redondeo guardados por la 4.2 o la 4.3 se dejan de leer. Si venía de la 4.0 o
   la 4.1 con «Redondeado», el redondeo pasa a 5; las opciones «Tamaño» y «Forma» de esas versiones se
   dejan de guardar.
 - Excluir mazos: árbol de mazos con casillas, como en la pantalla principal (sin mazos filtrados ni

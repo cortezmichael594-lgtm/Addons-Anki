@@ -184,17 +184,12 @@ def _standard_buttons(
 
 def _spin_box(minimum: int, maximum: int) -> QSpinBox:
     """Campo numerico con sus flechas, como antes de la 4.2 (peticion del
-    cliente, 4.3.0); la unidad va en el rotulo («Tamano de celda (px)»)."""
+    cliente, 4.3.0)."""
     box = QSpinBox()
     box.setRange(minimum, maximum)
     box.setSingleStep(1)
     box.setAccelerated(True)
     return box
-
-
-def _px_label(key: str) -> str:
-    """Rotulo con la unidad: «Tamano de celda (px)»."""
-    return f"{_without_px(key)} (px)"
 
 
 class ExcludeDecksDialog(QDialog):
@@ -488,8 +483,12 @@ class HeatmapOptionsDialog(QDialog):
         # si se cancela).
         # Un paso por debajo del minimo, el campo dice «Ajustado al ancho»
         # (el de serie, 4.4.0): el mapa ocupa todo el ancho, como en la 4.1.0.
+        # Con un tamano, el mapa entero crece o encoge en proporcion (4.5.0):
+        # el campo es «Tamano», no «Tamano de celda», y el redondeo no lleva
+        # «(px)» porque va en la escala del cuadrito.
         self._cell_size = _spin_box(CELL_SIZE_MIN - 1, CELL_SIZE_MAX)
         self._cell_size.setSpecialValueText(t("size_fit"))
+        self._cell_size.setSuffix(" px")
         self._border_radius = _spin_box(BORDER_RADIUS_MIN, BORDER_RADIUS_MAX)
         self._preview_timer = QTimer(self)
         self._preview_timer.setSingleShot(True)
@@ -571,8 +570,8 @@ class HeatmapOptionsDialog(QDialog):
             notice.setWordWrap(True)
             look.addRow(notice)
         look.addRow(t("opt_theme"), self._theme)
-        look.addRow(_px_label("opt_cell"), self._cell_size)
-        look.addRow(_px_label("opt_radius"), self._border_radius)
+        look.addRow(t("opt_size"), self._cell_size)
+        look.addRow(_without_px("opt_radius"), self._border_radius)
         counted = QFormLayout()
         counted.addRow(t("opt_measure"), self._measure)
         counted.addRow("", self._measure_help)

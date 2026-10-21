@@ -20,10 +20,11 @@ class BuildConfigTest(unittest.TestCase):
 
     def test_pixels_are_back(self) -> None:
         # 4.2.0: tamano de celda y redondeo en pixeles, dentro de sus limites.
-        cfg = build_config({"map_cell": 40, "map_corners": 8}, {})
-        self.assertEqual((cfg.cell_size, cfg.border_radius), (40, 8))
+        cfg = build_config({"map_cell": 40, "map_corners": 6}, {})
+        self.assertEqual((cfg.cell_size, cfg.border_radius), (40, 6))
         clipped = build_config({"map_cell": 500, "map_corners": -3}, {})
         self.assertEqual((clipped.cell_size, clipped.border_radius), (60, 0))
+        self.assertEqual(build_config({"map_corners": 15}, {}).border_radius, 7)
         # Quien eligio «Redondeado» en la 4.0 o la 4.1 conserva las esquinas.
         rounded = build_config({"map_cell": 0, "map_corners": 2, "shape": "rounded", "size": "fit"}, {})
         self.assertEqual(rounded.border_radius, 5)

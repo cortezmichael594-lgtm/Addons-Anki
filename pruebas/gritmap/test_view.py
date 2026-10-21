@@ -78,7 +78,7 @@ class WidgetTest(unittest.TestCase):
         # 4.4.0: de serie, cuadritos de 14 en el dibujo, esquinas de 2, a todo
         # el ancho (10 px como minimo) y meses en porcentaje.
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        width = view.grid_width(2026, DEFAULT_CONFIG)
+        width = view.grid_width(2026)
         self.assertEqual(width, 53 * 17 - 3)
         self.assertIn(f'class="gritmap-year gritmap-fit" style="min-width:{width * 10 / 14:.0f}px"', html)
         self.assertIn(f'<svg viewBox="0 0 {width} 116" xmlns=', html)
@@ -112,11 +112,14 @@ class WidgetTest(unittest.TestCase):
         self.assertNotIn("gritmap-date", card)
         self.assertNotIn("key:", html)
 
-    def test_map_at_its_own_size(self) -> None:
-        # Tamano de celda en pixeles, como en las primeras versiones (4.2.0).
-        html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=12, border_radius=3), 0)
-        self.assertRegex(html, r'<rect class="gritmap-cell" x="\d+" y="\d+" width="12" height="12" rx="3"')
-        self.assertIn(f'style="width:{view.grid_width(2026, replace(DEFAULT_CONFIG, cell_size=12))}px"', html)
+    def test_fixed_size_scales_everything(self) -> None:
+        # 4.5.0: con un tamano, el dibujo entero se escala (huecos y esquinas
+        # en proporcion), con el mismo dibujo que el ajustado al ancho.
+        fit = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, border_radius=3), 0)
+        html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=28, border_radius=3), 0)
+        self.assertEqual(re.findall(r"<svg viewBox[^>]*role=\"group\".*?</svg>", fit), re.findall(r"<svg viewBox[^>]*role=\"group\".*?</svg>", html))
+        self.assertRegex(html, r'<rect class="gritmap-cell" x="\d+" y="\d+" width="14" height="14" rx="3"')
+        self.assertIn(f'class="gritmap-year" style="width:{view.grid_width(2026) * 2}px"', html)
         self.assertNotIn("gritmap-fit", html)
 
     def test_goal_ring_and_week_line(self) -> None:

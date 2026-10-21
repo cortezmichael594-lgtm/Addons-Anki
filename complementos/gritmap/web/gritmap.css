@@ -401,17 +401,16 @@ body.nightMode #gritmap-root {
     overflow-y: hidden;
 }
 
+/* El dibujo se escala entero (4.5.0): ocupa el ancho del ano, que es todo el
+ * de la tarjeta («Ajustado al ancho») o el del tamano elegido. */
 #gritmap-root .gritmap-year svg {
     display: block;
+    width: 100%;
+    height: auto;
 }
 
 #gritmap-root .gritmap-year.gritmap-fit {
     width: 100%;
-}
-
-#gritmap-root .gritmap-year.gritmap-fit svg {
-    width: 100%;
-    height: auto;
 }
 
 #gritmap-root .gritmap-months {
