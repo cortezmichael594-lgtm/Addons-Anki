@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 4.7.0 · 2026-10-22
+Versión 4.7.1 · 2026-10-22
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub, en tarjetas. Arriba, centrada y
 con cuadritos de 24 px de serie (con el dibujo de la versión 4.1.0), la tarjeta del mapa, con el año entero (un cuadrito por día: gris sin estudio y cuatro tonos
@@ -87,8 +87,9 @@ Casos especiales: si nunca ha estudiado, «0 días» y «hoy pendiente»; si la 
 ### Promedio diario
 
 Lo hecho por día estudiado, en la unidad de la medida («72 repasos», «60 tarjetas», «8 nuevas»), en el
-periodo de las cifras, contando solo días completos (el periodo termina ayer). Debajo lo dice, con el
-periodo: «por día estudiado · últimos 30 días» («… · último año» o «… · todo el historial»). Sin días completos estudiados escribe «N/A» en
+periodo de las cifras, contando solo días completos (el periodo termina ayer). Debajo, solo el
+periodo: «últimos 30 días», «último año» o «todo el historial». Sin días completos estudiados escribe
+«N/A» en
 gris, subrayado de puntos: al pasar el ratón (o llegar con el tabulador), «Sin días completos
 estudiados en los últimos 30 días» (o «… en todo el historial»). Con «Nuevas», un promedio que se
 queda en 0 también es «N/A», con «Menos de una nueva por día estudiado…».
@@ -106,8 +107,8 @@ deseada de su configuración: «· objetivo 90 %».
 ### Próxima fecha
 
 La próxima fecha clave de hoy en adelante: «faltan 23 días», «falta 1 día» o «es hoy», sin estrella.
-Debajo, su nombre (varias el mismo día, separadas por « · »): «Examen de Anatomía»; si faltan 7 días o
-menos, delante va el día de la semana: «jueves · Examen de Anatomía». Sin fechas
+Debajo, solo su nombre (varias el mismo día, separadas por « · »): «Examen de Anatomía», sin el día
+de la semana. Sin fechas
 por venir: «N/A» en gris y, debajo, «sin fechas clave», en minúscula. Las fechas se añaden en
 Opciones > «Gestionar fechas». La tarjeta nunca desaparece.
 
@@ -244,7 +245,7 @@ En este orden:
 | Apariencia | Tamaño del mapa | Campo numérico con flechas, de 10 px a 60 px (el lado de cada cuadrito; el mapa entero crece en proporción) y, al lado, la casilla «Ajustado al ancho», que apaga el campo y hace que el mapa ocupe todo el ancho | 24 px, sin la casilla |
 | Apariencia | Redondeo de esquinas | Campo numérico con flechas, de 0 px a la mitad del tamaño elegido (7 px con «Ajustado al ancho»; más ya no cambiaría nada) | 3 px |
 | Qué se cuenta | El color mide | Tres botones de opción: Repasos, Tarjetas, Nuevas; debajo, «Cada respuesta cuenta una», «Cada tarjeta cuenta una vez por día» o «Solo las tarjetas que empezó ese día» | Repasos |
-| Qué se cuenta | Periodo de las cifras | 30 o 365 días, o Todo el historial; debajo, «Vale para el promedio diario y la retención.» | 30 días |
+| Qué se cuenta | Periodo de las cifras | Tres botones de opción, como «El color mide»: «30 días», «365 días» y «Todo el historial»; debajo, «Vale para el promedio diario y la retención.» | 30 días |
 | Qué se cuenta | Excluir mazos | Botón «Seleccionar mazos» (o «1 mazo excluido», «2 mazos excluidos», con hasta 15 nombres al pasar el ratón y «…» si hay más); debajo, «La medida y los mazos excluidos se aplican al aceptar.» | Ninguno |
 | Metas y fechas | Mostrar racha y meta | Casilla, la primera del recuadro. Desmarcada, la meta, los comodines y la pausa se ven apagados | Marcada |
 | Metas y fechas | Meta diaria | «Sin meta», «Un número» (con el número, de 1 a 9.999, en la unidad de la medida) o «Terminar lo de hoy». Al elegir «Un número» se propone el 80 % de su promedio de los últimos 30 días en esa unidad, redondeado a 5; sin historial, 50 repasos, 30 tarjetas o 10 nuevas. Si cambia la medida sin haber tocado el número, se propone otro en la unidad nueva | Sin meta |
@@ -333,58 +334,90 @@ cargar el mapa de calor.», con el botón de opciones. Anki sigue funcionando.
 
 ## 14. Lo que se probó y se descartó
 
-Lo que tuvo alguna versión y ya no está, y el motivo. Sirve para no volver a ello sin querer.
+Todo lo que tuvo alguna versión y ya no está (o cambió de forma), lo que se propuso y no se aplicó, y
+el motivo. Sirve para no volver a ello sin querer.
 
 ### En el mapa
 
-| Descartado | Versión en la que se quitó | Por qué |
+| Descartado o cambiado | Versión | Por qué |
 |---|---|---|
-| Ocupar literalmente todo el ancho de la pantalla como única forma | 4.2.0 | Resultaba demasiado grande. Queda como «Ajustado al ancho», el primer valor de «Tamaño del mapa». |
+| Recuadro alrededor del mapa | 3.3.0 | El cliente lo quería sin él; desde la 4.0.0 el mapa va en una tarjeta. |
+| Iniciales de los días a la izquierda | 3.3.0 (vuelven en 4.7.0) | Se quitaron a petición del cliente; volvieron con el informe de mejora integral (L, X, V). |
+| Botones que fundían el color al pasar el ratón | 3.2.0 | La guía del taller pide no animar el color; ahora solo se hunden al pulsarlos. |
+| Siete temas de diez tonos | 4.0.0 | Diez tonos no se distinguían entre sí; quedan cuatro temas de cuatro tonos. |
+| Temas Rojo fuego, Rosa suave y Turquesa laguna | 4.0.0 | El rojo significa error; los otros dos repetían Púrpura y Azul. Se pasa sin preguntar al más parecido. |
+| Globo del año con signo de exclamación | 4.0.0 | Se sustituyó por la cifra del año en el título, que a su vez se quitó en la 4.3.0. |
+| Comparativa semanal junto a la línea de Anki | 4.0.0 | Pasó a la tarjeta de estadísticas, retirada en la 4.1.0. |
+| Ocupar todo el ancho como única forma | 4.2.0 | Resultaba demasiado grande. Queda como la casilla «Ajustado al ancho». |
 | «Ajustado al ancho» como valor de serie | 4.6.0 | El cliente prefirió 24 px de serie. |
-| Hueco fijo de 3 px entre cuadritos con cualquier tamaño | 4.5.0 | Al cambiar el tamaño, las líneas entre filas y columnas perdían la proporción y el mapa dejaba de parecerse. Ahora el hueco crece con el cuadrito. |
+| Encoger el cuadrito cuando el año no cabe («24 px o lo que quepa») | Propuesto en 4.7.0, no aplicado | El cliente prefirió 24 px siempre, con desplazamiento de lado. |
+| Hueco fijo de 3 px entre cuadritos con cualquier tamaño | 4.5.0 | Al cambiar el tamaño, las líneas entre filas y columnas perdían la proporción. Ahora el hueco crece con el cuadrito. |
 | Título «Actividad» y cifra del año («22.129 repasos en 2026») encima del mapa | 4.3.0 | El cliente los quería fuera: no aportaban y ocupaban sitio. |
-| Botón «Hoy» | 4.4.0 | El mapa ya se abre en la semana de hoy. |
-| «Meta cumplida» escrito en el mapa | 4.1.0 | Repetía lo que ya dice la tarjeta «Hoy». |
-| Puntos para los días con tarjetas pendientes | 4.1.0 | El cliente prefirió el marcado de antes: cuatro grises según las tarjetas que vencen. |
-| Esquina doblada para marcar las fechas clave | 4.2.0 | Se veía poco. Se cambió por una estrella dentro del cuadrito. |
-| Salto o enlace desde «Próxima fecha» hasta su día en el mapa | 4.2.0 | El cliente no quiere enlaces en las tarjetas. |
-| Botón de opciones junto a «‹ 2026 ›» | 4.7.0 | Navegar y configurar son cosas distintas; va aparte, en la esquina. |
+| Botón «Hoy» (primero solo en otro año, luego siempre visible) | 4.4.0 | El mapa ya se abre en la semana de hoy. |
+| Botón de opciones junto a «‹ 2026 ›» | 4.7.0 | Navegar y configurar son cosas distintas; va aparte, en la esquina (decisión del cliente). |
+| «Meta cumplida» escrita en el mapa y la meta en el globo de los días | 4.1.0 | Repetía lo que ya dice la tarjeta «Hoy». |
+| Punto para los días con tarjetas pendientes | 4.1.0 | El cliente prefirió el marcado de antes: cuatro grises según las tarjetas que vencen. |
+| Grises de pendientes más suaves | Propuesto en 4.7.0, pendiente | Para quedar más suaves que el primer tono del tema dejarían de distinguirse entre sí. Espera la decisión del cliente (tres grises más suaves o los cuatro de ahora). |
+| Fechas clave con borde naranja (o azul) | 4.0.0 | Pasaron a una ★ sobre su semana. |
+| ★ sobre la semana de la fecha clave | 4.1.0 | El cliente pidió otra manera de encontrarlas; pasó a una esquina doblada. |
+| Esquina doblada en el cuadrito de la fecha clave | 4.2.0 | Se veía poco. Se cambió por una estrella dentro del cuadrito. |
+| Salto o enlace desde «Próxima fecha» hasta su día en el mapa | 4.2.0 | El cliente no quiere enlaces. |
 | Línea de sorpresa «Su mejor día del año» | 4.7.0 | Premiaba un día enorme, que empuja a estudiar a atracones. Ahora es «Su mejor semana del año». |
+| Iniciales de los días a la derecha en árabe y hebreo | Propuesto en 4.7.0, no aplicado | La rejilla va siempre de izquierda a derecha (corrección FIX-023), así que las iniciales van a la izquierda. |
+| Que el lector de pantalla anuncie el año al cambiarlo y el texto «No hay repasos antes de…» en las flechas apagadas | Propuesto en 4.7.0, no aplicado | Piden textos nuevos en 51 idiomas o el lector no los anunciaría bien; a la espera de que el cliente los pida. |
 
 ### En las tarjetas de debajo
 
-| Descartado | Versión en la que se quitó | Por qué |
+| Descartado o cambiado | Versión | Por qué |
 |---|---|---|
-| Tarjeta de estadísticas, plegable | 4.1.0 | Sobraba. La sustituyó «Promedio diario». |
+| Llama de la racha y globos de motivación | 3.5.0 | Los descartó el cliente: presionan en lugar de informar. |
+| Globo explicativo de la retención | 2026-10-09 | Lo retiró el cliente. (En la 4.7.0 se añadió solo para explicar el «N/A»; véase el aviso de la entrega.) |
+| Periodos de 7 y 90 días | 3.x | Se quedaron 30 días, 1 año y todo el historial (cliente, 2026-10-13). |
+| Botones de periodo en la página (junto al año, luego encima de las cifras, luego en la tarjeta de estadísticas) | 4.1.0 | El periodo se elige solo en Opciones. Las tarjetas dicen cuál se usa. |
+| Raya entre los dos grupos de cifras | 3.6.0 | Los separaba el espacio; después los grupos se convirtieron en tarjetas. |
+| Cuadritos de color delante de las cifras | 4.0.0 | Usaban un color sin explicar. |
+| Tarjeta de estadísticas plegable (constancia de la semana, dos barras, anillos de días estudiados y meta cumplida) | 4.1.0 | Sobraba. La sustituyó «Promedio diario»; el récord pasó a la línea de «Racha». |
 | Tarjetas encima o al lado del mapa | 4.1.0 | El cliente las quería debajo, sumando el ancho del mapa. |
-| Botones de periodo (30 días, 365 días…) en la página | 4.1.0 | El periodo se elige solo en Opciones. Las tarjetas dicen cuál se usa. |
 | Estrella junto a «Próxima fecha» | 4.1.0 | No hacía falta: la estrella marca el día en el mapa. |
-| La fecha al lado del nombre en «Próxima fecha» | 4.3.0 | Ya dice cuántos días faltan. Queda solo el nombre. |
-| «Sin fechas clave» como dato grande | 4.4.0 | Ahora pone «N/A», igual que las demás tarjetas sin dato, y debajo «sin fechas clave». |
-| «Récord» con mayúscula en medio de la línea de la racha | 4.1.0 | Va en medio de una frase: «récord». |
-| Racha contada en la medida del color | 4.7.0 | Con «Nuevas», un día de solo repasos rompía la racha o gastaba un comodín. Ahora cuenta cualquier respuesta (cliente, 2026-10-22). |
 | Enlaces dentro de las tarjetas («Fijar meta», «Añadir» fechas, ir a los mazos excluidos) y la ventanita «Fijar meta» | 4.2.0 | El cliente no quiere enlaces. Todo se cambia en Opciones. |
+| La fecha al lado del nombre en «Próxima fecha» | 4.3.0 | Ya dice cuántos días faltan. |
+| «Sin fechas clave» como dato grande | 4.4.0 | Ahora pone «N/A», como las demás tarjetas sin dato, y debajo «sin fechas clave». |
+| «Récord» con mayúscula en medio de la línea | 4.1.0 | Va en medio de una frase: «récord». |
+| Racha contada en la medida del color | 4.7.0 | Con «Nuevas», un día de solo repasos rompía la racha o gastaba un comodín. Ahora cuenta cualquier respuesta (cliente, 2026-10-22). |
+| «a 3 días del récord» con récords muy cortos | 4.7.0 | Con un récord de 3 días salía al día siguiente de empezar; ahora solo si el récord es de 7 días o más. |
+| Meta «Terminar lo de hoy» que se descumplía | 4.7.0 | Las tarjetas en aprendizaje volvían a vencer; ahora, cumplida, queda cumplida ese día (FIX-026). |
+| «por día estudiado» en la línea de «Promedio diario» | 4.7.1 | Probado en la 4.7.0; el cliente lo quitó: la línea dice solo el periodo. |
+| Día de la semana delante del nombre en «Próxima fecha» («jueves · Examen») | 4.7.1 | Probado en la 4.7.0; el cliente lo quitó: queda solo el nombre. |
 
 ### En la ventana de opciones
 
-| Descartado | Versión en la que se quitó | Por qué |
+| Descartado o cambiado | Versión | Por qué |
 |---|---|---|
-| «Tamaño» (Ajustado / Grande) y «Forma» (Cuadrado / Redondeado) | 4.2.0 | El cliente quería, como en las primeras versiones, el tamaño y el redondeo en píxeles. |
+| «Tamaño» (Ajustado / Grande) y «Forma» (Cuadrado / Redondeado) | 4.2.0 | El cliente quería el tamaño y el redondeo en píxeles, como en las primeras versiones. |
 | Mes de muestra (vista previa) dentro de Opciones | 4.2.0 | Se sustituyó por el propio mapa, que cambia en vivo detrás de la ventana. |
 | Barras deslizantes para el tamaño y el redondeo | 4.3.0 | Se veían raras. Volvieron los campos numéricos con flechas. |
 | Opciones en una sola lista, sin recuadros | 4.4.0 | El cliente prefirió los tres recuadros con título. |
 | Hueco entre «Apariencia» y «Qué se cuenta» | 4.3.0 | Venía de una altura guardada por otra versión. Ahora el alto se ajusta siempre al contenido. |
-| «Tamaño de celda» | 4.5.0 | Pasó a «Tamaño del mapa»: agranda o encoge el mapa entero, no solo los cuadritos. |
+| «Tamaño de celda» | 4.5.0 | Pasó a «Tamaño del mapa»: agranda o encoge el mapa entero. |
 | Redondeo en la escala de un cuadrito de 14 (de 0 a 7) | 4.6.0 | El cliente lo quería en píxeles, con «px» al final. |
 | «Ajustado al ancho» como primer valor del campo de tamaño | 4.7.0 | Escondido bajo el número no se descubría. Ahora es una casilla al lado. |
-| «El color mide» como lista desplegable | 4.7.0 | Con tres valores, tres botones de opción se leen de un vistazo. |
+| Tamaños de 8 y 9 px | 4.7.0 | Por debajo de 10 px no se distinguen los cuadritos; un valor guardado así pasa a 10. |
+| Redondeo por encima de la mitad del cuadrito | 4.7.0 | No cambiaba nada; el campo llega como mucho a la mitad. |
+| «El color mide» como lista desplegable | 4.7.0 | Con tres valores, tres botones se leen de un vistazo. |
+| «Periodo de las cifras» como lista desplegable | 4.7.1 | El cliente lo quiso en tres botones, como «El color mide». |
 | «Restaurar apariencia» reponía también la medida | 4.7.0 | La medida está en otro recuadro; ahora repone solo «Apariencia». |
 | Reglas de comodines y pausa solo al pasar el ratón | 4.7.0 | Casi nadie descubre un globo; ahora van escritas debajo. |
+| «Mostrar racha y meta» al final del recuadro | 4.7.0 | Ahora va primero y apaga lo que depende de ella. |
+| Meta propuesta fija de 50 | 4.7.0 | Ahora se propone según su historial y en la unidad de la medida. |
+| Pausa que empieza en un día pasado | 4.7.0 | Servía para tapar después un fallo; los fallos sueltos ya los cubren los comodines (decisión del cliente). |
+| Temas por orden alfabético | 4.7.0 | El de serie va primero y los demás por tono. |
+| Tira de cuatro tonos como muestra de cada tema | Propuesto en 4.7.0, no aplicado | Se mantiene un solo cuadrito, como pidió el cliente con una captura en la 4.3.0. |
+| Letras subrayadas para manejar Opciones con Alt | Propuesto en 4.7.0, no aplicado | Piden cambiar los textos en 51 idiomas; a la espera de que el cliente lo pida. |
 
-### Antes de estas versiones
+### Otros
 
 | Descartado | Por qué |
 |---|---|
 | Medida «minutos» | Hay días con cientos de repasos guardados sin tiempo, así que la cifra no era coherente (decisión del cliente, 2026-10-08). |
-| Temas Rojo fuego, Rosa suave y Turquesa laguna | Se retiraron en la 4.0.0 y se pasa sin preguntar al más parecido (Naranja atardecer, Púrpura real y Azul océano). |
 | Mapa encima de la lista de mazos | Anki no ofrece a los complementos ese sitio. Va debajo (decisión del cliente). |
+| Avisos, cuentas atrás de pérdida, premios al azar, puntos, insignias y clasificaciones | Presionan o crean dependencia en lugar de informar; descartados desde la 3.6.0 y confirmados en el informe de la 4.7.0. |

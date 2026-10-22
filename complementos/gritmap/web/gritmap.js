@@ -220,21 +220,12 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             }
         }
         /* 4.7.0: iniciales de lunes, miercoles y viernes (el 1 de enero de
-         * 2024 fue lunes), el dia de la semana de la proxima fecha clave y
-         * las fechas cortas («5 nov.»). */
+         * 2024 fue lunes) y las fechas cortas («5 nov.»). */
         var initials = container.querySelectorAll("[data-gritmap-dayname]");
         var narrowFmt = initials.length ? formatter({ weekday: "narrow" }) : null;
         for (var w = 0; narrowFmt && w < initials.length; w++) {
             var row = parseInt(initials[w].getAttribute("data-gritmap-dayname"), 10);
             initials[w].textContent = narrowFmt.format(new Date(2024, 0, 1 + row));
-        }
-        var weekdays = container.querySelectorAll("[data-gritmap-weekday]");
-        var longFmt = weekdays.length ? formatter({ weekday: "long" }) : null;
-        for (var k = 0; longFmt && k < weekdays.length; k++) {
-            var keyDay = parseDay(weekdays[k].getAttribute("data-gritmap-weekday"));
-            if (keyDay) {
-                weekdays[k].textContent = longFmt.format(keyDay) + " · ";
-            }
         }
         var dates = container.querySelectorAll("[data-gritmap-date]");
         var shortFmt = dates.length ? formatter({ day: "numeric", month: "short" }) : null;

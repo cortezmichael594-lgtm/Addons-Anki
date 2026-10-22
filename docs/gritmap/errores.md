@@ -332,3 +332,10 @@ Versión 4.7.0 (informe de mejora integral, aprobado por el cliente el 2026-10-2
 - La rejilla del mapa va siempre de izquierda a derecha, también en árabe o hebreo (regla de
   FIX-023), así que las iniciales de los días van siempre a la izquierda.
 
+Versión 4.7.1 (petición del cliente del 2026-10-22 sobre la 4.7.0):
+
+- «Promedio diario» dice solo el periodo, sin «por día estudiado», aunque la cifra sigue siendo por
+  día estudiado. Lo pidió el cliente.
+- «Próxima fecha» dice solo el nombre, sin el día de la semana. Lo pidió el cliente.
+- «Periodo de las cifras» se elige con tres botones, como «El color mide». Lo pidió el cliente.
+

@@ -164,17 +164,20 @@ class WidgetTest(unittest.TestCase):
         later = replace(DEFAULT_CONFIG, pause=(date(2026, 10, 20), date(2026, 10, 25)))
         self.assertNotIn("en pausa", view.build_widget_html(sample(), later, 0))
 
-    def test_average_says_per_studied_day_and_retention_explains_na(self) -> None:
+    def test_average_shows_only_the_period_and_retention_explains_na(self) -> None:
         html = view.build_widget_html(sample(retention_days={1: (5, 4)}), DEFAULT_CONFIG, 0)
         card = html[html.index(">Promedio diario<"):html.index(">Retención<")]
-        self.assertIn("por día estudiado · últimos 30 días", card)
+        # 4.7.1: sin «por día estudiado» (cliente).
+        self.assertNotIn("por día estudiado", card)
+        self.assertIn('title="últimos 30 días"', card)
         retention = html[html.index(">Retención<"):html.index(">Próxima fecha<")]
         self.assertIn("N/A", retention)
         self.assertIn("Menos de", retention)
 
-    def test_next_date_weekday_within_a_week(self) -> None:
+    def test_next_date_has_no_weekday(self) -> None:
+        # 4.7.1: solo el nombre, sin el dia de la semana (cliente).
         soon = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 10, 16), "Examen"),))
-        self.assertIn('data-gritmap-weekday="2026-10-16"', view.build_widget_html(sample(), soon, 0))
+        self.assertNotIn("data-gritmap-weekday", view.build_widget_html(sample(), soon, 0))
         far = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 11, 16), "Examen"),))
         self.assertNotIn("data-gritmap-weekday", view.build_widget_html(sample(), far, 0))
 

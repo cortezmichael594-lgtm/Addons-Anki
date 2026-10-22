@@ -458,10 +458,8 @@ def _average_card(stats: FullStats, measure: str, window: int) -> str:
     """Lo hecho por dia estudiado en el periodo de las cifras (4.1.0)."""
     big = _average_html(stats.average, measure, window)
     muted = "gritmap-muted" if "gritmap-tipped" in big else ""
-    # Se dice que es por dia estudiado (4.7.0): quien estudia 4 dias de cada
-    # 7 no debe leer que hace el doble de lo que hace.
-    line = html.escape(t("per_studied_day")) + " · " + _period_text(window)
-    return _mini(_label("daily_avg"), big, line, muted)
+    # Sin «por dia estudiado» (4.7.1, peticion del cliente): solo el periodo.
+    return _mini(_label("daily_avg"), big, _period_text(window), muted)
 
 
 def _next_card(key_dates: tuple[KeyDate, ...], today: date) -> str:
@@ -474,11 +472,8 @@ def _next_card(key_dates: tuple[KeyDate, ...], today: date) -> str:
     if not upcoming:
         return _mini(t("card_next"), _not_available_html(), html.escape(t("no_key_dates")), "gritmap-muted")
     day = upcoming[0]
+    # Solo el nombre, sin el dia de la semana (4.7.1, peticion del cliente).
     names = " · ".join(html.escape(kd.label) for kd in key_dates if kd.day == day)
-    # A una semana o menos se planifica por dias: delante del nombre, el dia
-    # de la semana, que pone el navegador en el idioma activo (4.7.0).
-    if 1 <= (day - today).days <= 7:
-        names = f'<span class="gritmap-weekday" data-gritmap-weekday="{day.isoformat()}"></span>{names}'
     return _mini(t("card_next"), countdown_html((day - today).days), names)
 
 

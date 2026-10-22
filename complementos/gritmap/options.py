@@ -591,11 +591,20 @@ class HeatmapOptionsDialog(QDialog):
         self._measure_help = QLabel()
         self._measure_help.setWordWrap(True)
         # Periodo del promedio diario y de la retencion (4.1.0: vuelve aqui al
-        # retirarse la tarjeta de estadisticas; peticion del cliente).
-        self._avg_window = QComboBox()
+        # retirarse la tarjeta de estadisticas; peticion del cliente). Desde
+        # la 4.7.1, tres botones de opcion como «El color mide» (cliente).
+        self._avg_window = QButtonGroup(self)
+        window_box = QWidget()
+        window_row = QHBoxLayout(window_box)
+        window_row.setContentsMargins(0, 0, 0, 0)
+        self._window_buttons: dict[int, QRadioButton] = {}
         for days in WINDOWS:
             label = t("window_all") if days == 0 else fill("window_days", count=days)
-            self._avg_window.addItem(label, days)
+            radio = QRadioButton(label)
+            self._avg_window.addButton(radio)
+            self._window_buttons[days] = radio
+            window_row.addWidget(radio)
+        window_row.addStretch(1)
         window_help = _help_label(t("window_help"))
         applied_help = _help_label(t("applied_on_ok"))
 
@@ -673,7 +682,7 @@ class HeatmapOptionsDialog(QDialog):
         counted = QFormLayout()
         counted.addRow(t("opt_measure"), measure_box)
         counted.addRow("", self._measure_help)
-        counted.addRow(t("opt_window"), self._avg_window)
+        counted.addRow(t("opt_window"), window_box)
         counted.addRow("", window_help)
         counted.addRow(t("opt_exclude"), self._exclude_button)
         counted.addRow("", applied_help)
@@ -886,7 +895,8 @@ class HeatmapOptionsDialog(QDialog):
         self._set_cell_size(cfg.cell_size)
         self._border_radius.setValue(cfg.border_radius)
         self._set_measure(cfg.measure)
-        self._avg_window.setCurrentIndex(max(self._avg_window.findData(cfg.avg_window), 0))
+        window_radio = self._window_buttons.get(cfg.avg_window) or self._window_buttons[DEFAULT_CONFIG.avg_window]
+        window_radio.setChecked(True)
         self._goal_mode.setCurrentIndex(max(self._goal_mode.findData(cfg.goal_mode), 0))
         self._goal.setValue(cfg.goal)
         self._goal_proposed = cfg.goal
@@ -946,7 +956,9 @@ class HeatmapOptionsDialog(QDialog):
         theme = theme_data if isinstance(theme_data, str) else DEFAULT_CONFIG.theme
         measure = self._measure_value()
         mode = self._goal_mode.currentData()
-        window = self._avg_window.currentData()
+        window = next(
+            (days for days, radio in self._window_buttons.items() if radio.isChecked()), DEFAULT_CONFIG.avg_window
+        )
         pause = None
         if self._pause_on.isChecked():
             start = self._pause_start.date().toPyDate()
@@ -955,7 +967,7 @@ class HeatmapOptionsDialog(QDialog):
             base,
             theme=theme,
             measure=str(measure),
-            avg_window=window if isinstance(window, int) and window in WINDOWS else DEFAULT_CONFIG.avg_window,
+            avg_window=window,
             cell_size=self._cell_size_value(),
             border_radius=self._border_radius.value(),
             goal_mode=mode if isinstance(mode, str) else DEFAULT_CONFIG.goal_mode,
