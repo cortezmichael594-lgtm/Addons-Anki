@@ -728,9 +728,8 @@ class HeatmapOptionsDialog(QDialog):
         # menos opciones) dejaba un hueco en medio.
         # Con frases de ayuda que ocupan dos renglones, el alto depende del
         # ancho: se pide el que corresponde al ancho de la ventana.
-        layout = self.layout()
         height = self.sizeHint().height()
-        if layout is not None and layout.hasHeightForWidth():
+        if layout.hasHeightForWidth():
             height = max(height, layout.totalHeightForWidth(self.width()))
         self.resize(self.width(), height)
         gui_hooks.theme_did_change.append(self._refresh_swatches)
