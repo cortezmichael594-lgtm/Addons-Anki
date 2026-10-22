@@ -36,7 +36,7 @@ class BuildConfigTest(unittest.TestCase):
         self.assertEqual((DEFAULT_CONFIG.cell_size, DEFAULT_CONFIG.border_radius), (24, 3))
         old = build_config({"map_size": 24, "map_radius": 3, "map_cell": 0, "map_corners": 2, "cell_size": 25}, {})
         self.assertEqual((old.cell_size, old.border_radius), (24, 3))
-        self.assertEqual(build_config({"map_size": 3}, {}).cell_size, 8)
+        self.assertEqual(build_config({"map_size": 3}, {}).cell_size, 10)
 
     def test_bad_values_fall_back(self) -> None:
         # Regla de FIX-005: Infinity o NaN no son numeros de verdad.

@@ -48,7 +48,9 @@ KEY_DATE_MAX = date(2100, 12, 31)
 # tamano FIT_WIDTH es «Ajustado al ancho» (de serie en la 4.4 y la 4.5); desde
 # la 4.6.0 el de serie es 24 px (peticion del cliente).
 FIT_WIDTH = 0
-CELL_SIZE_MIN, CELL_SIZE_MAX = 8, 60
+# Desde la 4.7.0 el tamano empieza en 10 px, como el minimo del ajustado al
+# ancho (por debajo no se distinguen los cuadritos).
+CELL_SIZE_MIN, CELL_SIZE_MAX = 10, 60
 # El redondeo va en pixeles reales del cuadrito (4.6.0); por encima de la
 # mitad del cuadrito ya es un circulo.
 BORDER_RADIUS_MIN, BORDER_RADIUS_MAX = 0, 15

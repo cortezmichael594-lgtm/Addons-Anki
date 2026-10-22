@@ -159,7 +159,17 @@ body.nightMode #gritmap-root {
 }
 
 #gritmap-root .gritmap-card-head.gritmap-notitle {
+    position: relative;
     justify-content: center;
+}
+
+/* El boton de opciones, aparte, en la esquina de arriba (4.7.0): navegar y
+ * configurar son cosas distintas. Lado logico: a la derecha, o a la
+ * izquierda en los idiomas que se escriben de derecha a izquierda. */
+#gritmap-root .gritmap-btn[data-gritmap-corner] {
+    position: absolute;
+    top: 0;
+    inset-inline-end: 0;
 }
 
 #gritmap-root .gritmap-card-title {
@@ -204,7 +214,7 @@ body.nightMode #gritmap-root {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-@container (max-width: 760px) {
+@container (max-width: 940px) {
     #gritmap-root .gritmap-cards,
     #gritmap-root .gritmap-n4 .gritmap-cards {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -265,7 +275,7 @@ body.nightMode #gritmap-root {
  * y se lee entera al pasar el raton. */
 #gritmap-root .gritmap-line {
     margin-top: 4px;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--gritmap-muted);
     overflow: hidden;
     display: -webkit-box;
@@ -363,8 +373,8 @@ body.nightMode #gritmap-root {
     outline-offset: 2px;
 }
 
-#gritmap-root .gritmap-btn[disabled],
-#gritmap-root .gritmap-btn[disabled]:hover {
+#gritmap-root .gritmap-btn[aria-disabled="true"],
+#gritmap-root .gritmap-btn[aria-disabled="true"]:hover {
     opacity: 0.35;
     cursor: default;
     background: var(--gritmap-btn);
@@ -403,6 +413,56 @@ body.nightMode #gritmap-root {
 
 /* El dibujo se escala entero (4.5.0): ocupa el ancho del ano, que es todo el
  * de la tarjeta («Ajustado al ancho») o el del tamano elegido. */
+/* El ano es una rejilla de dos columnas (4.7.0): las iniciales de los dias a
+ * la izquierda y, a la derecha, los meses, la fila de estrellas y el dibujo,
+ * que es quien lleva el ancho. */
+#gritmap-root .gritmap-year {
+    display: grid;
+    grid-template-columns: 16px auto;
+    column-gap: 4px;
+    width: fit-content;
+}
+
+#gritmap-root .gritmap-year.gritmap-fit {
+    grid-template-columns: 16px 1fr;
+}
+
+#gritmap-root .gritmap-year > .gritmap-months {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+#gritmap-root .gritmap-year > .gritmap-kstars {
+    grid-row: 2;
+}
+
+#gritmap-root .gritmap-year > svg,
+#gritmap-root .gritmap-year > .gritmap-bone-grid {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+#gritmap-root .gritmap-days {
+    grid-column: 1;
+    grid-row: 3;
+    display: grid;
+    grid-template-rows: repeat(7, 1fr);
+    font-size: 11px;
+    line-height: 1;
+    color: var(--gritmap-muted);
+    text-align: end;
+}
+
+/* Cada inicial, centrada en su cuadrito (que ocupa 14 de cada 17 partes de
+ * la fila; el resto es el hueco). */
+#gritmap-root .gritmap-days span {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 82%;
+    overflow: hidden;
+}
+
 #gritmap-root .gritmap-year svg {
     display: block;
     width: 100%;
@@ -448,6 +508,45 @@ body.nightMode #gritmap-root {
     stroke: var(--gritmap-card);
     stroke-width: 1px;
     pointer-events: none;
+}
+
+/* Fechas clave ya pasadas: la estrella en gris, para que la proxima
+ * destaque sola (4.7.0). El filo sigue: sin el, la estrella no se separa de
+ * los tonos oscuros. */
+#gritmap-root .gritmap-kstar.gritmap-kpast {
+    fill: var(--gritmap-muted);
+}
+
+/* Con cuadritos de menos de 14 px la estrella no se lee dentro: sube a una
+ * fila propia, encima de la columna de su semana (4.7.0). */
+#gritmap-root .gritmap-small .gritmap-kstar {
+    display: none;
+}
+
+#gritmap-root .gritmap-kstars {
+    display: none;
+    position: relative;
+    grid-column: 2;
+    height: 10px;
+    margin-bottom: 2px;
+}
+
+#gritmap-root .gritmap-small .gritmap-kstars {
+    display: block;
+}
+
+#gritmap-root .gritmap-mstar {
+    position: absolute;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    transform: translateX(-50%);
+    background: var(--gritmap-fg);
+    clip-path: polygon(50.0% 0.0%, 63.2% 31.8%, 97.6% 34.5%, 71.4% 57.0%, 79.4% 90.5%, 50.0% 72.5%, 20.6% 90.5%, 28.6% 57.0%, 2.4% 34.5%, 36.8% 31.8%);
+}
+
+#gritmap-root .gritmap-mstar.gritmap-kpast {
+    background: var(--gritmap-muted);
 }
 
 #gritmap-root .gritmap-cell[data-gritmap-cmd] {
@@ -601,14 +700,13 @@ body.nightMode #gritmap-root {
     display: none;
     background: var(--gritmap-tipbg);
     color: var(--gritmap-tipfg);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 400;
     line-height: 1.4;
     padding: 8px 12px;
     border-radius: 8px;
     text-align: center;
     max-width: 260px;
-    pointer-events: none;
     z-index: 9999;
     border: 1px solid var(--gritmap-tipb);
     box-shadow: 0 6px 18px var(--gritmap-shadow);
@@ -619,8 +717,21 @@ body.reduce-motion #gritmap-root .gritmap-btn {
     transition: none;
 }
 
+/* Con animaciones reducidas (lo normal en Anki: viene activado de serie), el
+ * ✓ aparece igualmente, con un fundido breve, sin moverse ni cambiar de
+ * tamano (4.7.0): un fundido no es movimiento. */
 body.reduce-motion #gritmap-root .gritmap-check.gritmap-celebrate {
-    animation: none;
+    animation: gritmap-fade 150ms ease-out;
+}
+
+@keyframes gritmap-fade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -629,6 +740,6 @@ body.reduce-motion #gritmap-root .gritmap-check.gritmap-celebrate {
     }
 
     #gritmap-root .gritmap-check.gritmap-celebrate {
-        animation: none;
+        animation: gritmap-fade 150ms ease-out;
     }
 }

@@ -85,8 +85,10 @@ class StatsTest(unittest.TestCase):
             today=date(2026, 10, 13),
         )
         new = data.full_stats(sample, "new", 30)
-        self.assertEqual(new.current_streak, 1)
-        self.assertEqual(new.longest_streak, 1)
+        # 4.7.0 (cliente, 2026-10-22): la racha cuenta cualquier respuesta;
+        # la medida sigue en el promedio y los dias estudiados.
+        self.assertEqual(new.current_streak, 3)
+        self.assertEqual(new.longest_streak, 3)
         self.assertEqual(new.average, 4)
         self.assertEqual(new.studied_pct, 67)
         reviews = data.full_stats(sample, "reviews", 30)
@@ -121,6 +123,17 @@ class StatsTest(unittest.TestCase):
         # Sin comodines guardados, el dia sin estudiar rompe la racha.
         self.assertEqual(data.streak_state({1, 2, 4, 5}, True).current, 2)
 
+    def test_freeze_count_restarts_after_a_gap(self) -> None:
+        # 4.7.0: los 7 dias para ganar un comodin se cuentan desde el ultimo
+        # dia sin estudio, aunque lo cubriera un comodin: no se ganan
+        # comodines mientras se gastan.
+        studied = set(range(1, 30)) - {10, 20}
+        state = data.streak_state(studied, True)
+        self.assertEqual(state.current, 29 - 2)
+        self.assertEqual(state.forgiven, {20: "freeze", 10: "freeze"})
+        # Del dia 9 al 1 hay 9 seguidos: gana uno; quedan 0 + 1.
+        self.assertEqual(state.freezes_left, 1)
+
     def test_freezes_are_capped_at_two(self) -> None:
         state = data.streak_state(set(range(1, 30)), True)
         self.assertEqual(state.freezes_left, data.MAX_FREEZES)
@@ -136,9 +149,13 @@ class StatsTest(unittest.TestCase):
         sample = self.make({0: 5, 1: 5, 2: 5, 10: 5, 11: 5})
         stats = data.full_stats(sample, "reviews", 30)
         self.assertEqual(data.surprise(sample, "reviews", stats), ("record", 0))
-        # Mejor dia del ano, con al menos 7 dias antes.
-        best = self.make({0: 90, **{d: 10 for d in (5, 9, 13, 17, 21, 25, 29)}})
-        self.assertEqual(data.surprise(best, "reviews", data.full_stats(best)), ("best_day", 0))
+        # 4.7.0: mejor semana del ano, no mejor dia. Un dia enorme dentro de
+        # una semana floja no es sorpresa.
+        steady = {d: 10 for d in range(0, 60, 2)}
+        best = self.make({**steady, **{d: 30 for d in range(0, 7)}})
+        self.assertEqual(data.surprise(best, "reviews", data.full_stats(best)), ("best_week", 0))
+        binge = self.make({**{d: 20 for d in range(7, 60)}, 0: 90, **{d: 5 for d in range(1, 7)}})
+        self.assertIsNone(data.surprise(binge, "reviews", data.full_stats(binge)))
         # Sin estudiar hoy no hay sorpresa.
         quiet = self.make({1: 90})
         self.assertIsNone(data.surprise(quiet, "reviews", data.full_stats(quiet)))

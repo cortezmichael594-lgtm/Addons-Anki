@@ -41,6 +41,9 @@ de los globos tambien los pone el navegador.
 #                        leyera archivos .css y .js de otros complementos.
 # FIX-022 (2026-10-13) — En 13 idiomas, los dias, repasos, tarjetas y cuentas
 #                        atras salian con la forma de plural equivocada.
+# FIX-026 (2026-10-22) — La meta «Terminar lo de hoy», ya cumplida, volvia a
+#                        «faltan 3» cuando vencian otra vez tarjetas en
+#                        aprendizaje.
 
 from __future__ import annotations
 
@@ -54,6 +57,7 @@ from aqt import mw
 
 from .config import FIT_WIDTH, Config, KeyDate
 from .data import (
+    RETENTION_MIN_REVIEWS,
     DayActivity,
     FullStats,
     HeatmapData,
@@ -118,6 +122,8 @@ _FIT_MIN = 10
 # La distancia al record solo se ensena si esta cerca (version 3.6.0): lejos,
 # la cifra no anima y solo recuerda lo que falta.
 _RECORD_GAP_MAX = 7
+# ...y solo si el record significa algo: 7 dias o mas (4.7.0).
+_RECORD_NEAR_MIN = 7
 _TIP = '<div id="gritmap-tip" role="tooltip"></div>'
 
 
@@ -238,7 +244,10 @@ def _icon_button(cmd: str, label: str, icon_kind: str, disabled: bool = False, e
     lector de pantalla lo anuncia."""
     safe_label = html.escape(label, quote=True)
     attrs = f' title="{safe_label}" aria-label="{safe_label}" data-gritmap-btn="{cmd}"{extra}'
-    attrs += " disabled" if disabled else f' data-gritmap-cmd="{cmd}"'
+    # Apagado con aria-disabled y no con disabled (4.7.0): un boton
+    # desactivado del todo no recibe el raton y su nombre no saldria al pasar
+    # por encima; el lector de pantalla lo anuncia como no disponible.
+    attrs += ' aria-disabled="true"' if disabled else f' data-gritmap-cmd="{cmd}"'
     return f'<button type="button" class="gritmap-btn"{attrs}>{_icon(icon_kind)}</button>'
 
 
@@ -315,7 +324,18 @@ def goal_progress(data: HeatmapData, cfg: Config) -> tuple[int, int] | None:
         return _today_value(data, cfg.measure), cfg.goal
     if cfg.goal_mode == "due" and data.due_remaining is not None:
         done = _today_value(data, "cards")
-        return done, done + data.due_remaining
+        goal = done + data.due_remaining
+        # --- FIX-026 (2026-10-22) ---------------------------------------
+        # Sintoma: con «Terminar lo de hoy» ya cumplida, la tarjeta volvia a
+        #          «faltan 3» al rato, sin haber hecho nada mal.
+        # Causa: las tarjetas en aprendizaje vuelven a vencer horas despues,
+        #        y la meta se recalculaba con ellas.
+        # Regla: una meta cumplida queda cumplida el resto del dia; solo
+        #        vuelve atras si se deshace la respuesta que la cumplio.
+        # ----------------------------------------------------------------
+        if data.due_reached is not None:
+            goal = min(goal, data.due_reached)
+        return done, goal
     return None
 
 
@@ -356,9 +376,31 @@ def _today_card(data: HeatmapData, cfg: Config, deck_only: bool, celebrate: bool
     return _mini(t("card_today"), big, line, "gritmap-big-ring")
 
 
-def _streak_card(stats: FullStats, cfg: Config) -> str:
-    """¿Llevo constancia? Informa sin presionar: nada de avisos de perdida."""
+def _date_html(day: date) -> str:
+    """Fecha corta («5 nov.»): la pone el navegador en el idioma activo; aqui
+    queda una reserva."""
+    return (
+        f'<span class="gritmap-date" data-gritmap-date="{day.isoformat()}">'
+        f"{day.day} {html.escape(month_abbrev(day.month))}</span>"
+    )
+
+
+def _pause_html(cfg: Config, today: date) -> str:
+    """«en pausa hasta el 5 nov.» mientras dure una pausa (4.7.0)."""
+    if cfg.pause is None or not cfg.pause[0] <= today <= cfg.pause[1]:
+        return ""
+    return fill_html("paused_until", date=_date_html(cfg.pause[1]))
+
+
+def _streak_card(stats: FullStats, cfg: Config, today: date) -> str:
+    """¿Llevo constancia? Informa sin presionar: nada de avisos de perdida.
+
+    La linea gris va por orden de importancia («✓ hoy», la pausa, los
+    comodines y el record): si no cabe, se corta por el final, asi que lo
+    ultimo en perderse es si hoy ya cuenta.
+    """
     current = stats.current_streak
+    pause = _pause_html(cfg, today)
     if stats.last_session is None:
         return _mini(t("card_streak"), _days_html(0), html.escape(t("today_pending")))
     if current == 0:
@@ -370,13 +412,15 @@ def _streak_card(stats: FullStats, cfg: Config) -> str:
         line = fill_html("record_was", days=_days_html(stats.longest_streak))
         return _mini(t("card_streak"), html.escape(t("day_one")), line)
     parts = [html.escape(t("streak_today" if stats.today_done else "today_pending"))]
+    if pause:
+        parts.append(pause)
     if cfg.freezes and stats.freezes_left > 0:
         freezes = fill_html(plural_key("freeze", stats.freezes_left), count=num_html(stats.freezes_left))
         parts.append(f'<span class="gritmap-tipped"{_info_attrs(html.escape(t("freeze_tip")))}>{freezes}</span>')
     gap = stats.longest_streak - current
     if stats.today_done and current % 365 == 0:
         parts.append(html.escape(t("year_streak")))
-    elif 0 < gap <= _RECORD_GAP_MAX:
+    elif 0 < gap <= _RECORD_GAP_MAX and stats.longest_streak >= _RECORD_NEAR_MIN:
         parts.append(fill_html("record_near", days=_days_html(gap)))
     elif gap > 0:
         # La racha mas larga queda a la vista aunque la actual este lejos
@@ -400,7 +444,13 @@ def _retention_card(stats: FullStats, window: int, fsrs_target: float | None) ->
     if fsrs_target is not None:
         line += " · " + fill_html("fsrs_target", pct=pct_html(round_half_up(fsrs_target * 100)))
     if stats.retention is None:
-        return _mini(_label("retention"), _not_available_html(), line, "gritmap-muted")
+        # El N/A explica su motivo al pasar el raton, como el del promedio.
+        if window > 0:
+            reason = fill_html("ret_na_days", min=num_html(RETENTION_MIN_REVIEWS), count=num_html(window))
+        else:
+            reason = fill_html("ret_na_all", min=num_html(RETENTION_MIN_REVIEWS))
+        big = f'<span class="gritmap-tipped"{_info_attrs(reason)}>{_not_available_html()}</span>'
+        return _mini(_label("retention"), big, line, "gritmap-muted")
     return _mini(_label("retention"), pct_html(stats.retention), line)
 
 
@@ -408,7 +458,10 @@ def _average_card(stats: FullStats, measure: str, window: int) -> str:
     """Lo hecho por dia estudiado en el periodo de las cifras (4.1.0)."""
     big = _average_html(stats.average, measure, window)
     muted = "gritmap-muted" if "gritmap-tipped" in big else ""
-    return _mini(_label("daily_avg"), big, _period_text(window), muted)
+    # Se dice que es por dia estudiado (4.7.0): quien estudia 4 dias de cada
+    # 7 no debe leer que hace el doble de lo que hace.
+    line = html.escape(t("per_studied_day")) + " · " + _period_text(window)
+    return _mini(_label("daily_avg"), big, line, muted)
 
 
 def _next_card(key_dates: tuple[KeyDate, ...], today: date) -> str:
@@ -422,6 +475,10 @@ def _next_card(key_dates: tuple[KeyDate, ...], today: date) -> str:
         return _mini(t("card_next"), _not_available_html(), html.escape(t("no_key_dates")), "gritmap-muted")
     day = upcoming[0]
     names = " · ".join(html.escape(kd.label) for kd in key_dates if kd.day == day)
+    # A una semana o menos se planifica por dias: delante del nombre, el dia
+    # de la semana, que pone el navegador en el idioma activo (4.7.0).
+    if 1 <= (day - today).days <= 7:
+        names = f'<span class="gritmap-weekday" data-gritmap-weekday="{day.isoformat()}"></span>{names}'
     return _mini(t("card_next"), countdown_html((day - today).days), names)
 
 
@@ -432,7 +489,7 @@ def build_summary(
     meta), del mismo ancho entre todas."""
     cards = [_today_card(data, cfg, deck_only, celebrate)]
     if cfg.show_streak:
-        cards.append(_streak_card(stats, cfg))
+        cards.append(_streak_card(stats, cfg, data.today))
     cards.append(_average_card(stats, cfg.measure, cfg.avg_window))
     cards.append(_retention_card(stats, cfg.avg_window, data.fsrs_target))
     cards.append(_next_card(cfg.key_dates, data.today))
@@ -558,10 +615,12 @@ def _build_cell(
         # Fecha clave (4.2.0, peticion del cliente): una estrella en su propio
         # cuadrito, en el color del texto y con un filo del color de la
         # tarjeta para que se vea sobre cualquier tono. Es una forma, igual en
-        # todos los temas.
+        # todos los temas. Las ya pasadas, en gris, para que la proxima
+        # destaque sola (4.7.0).
+        past_class = " gritmap-kpast" if days_ago > 0 else ""
         extra = (
-            f'<polygon class="gritmap-kstar" points="{star_points(x + cell / 2, y + cell / 2, cell * 0.36)}"'
-            ' aria-hidden="true"></polygon>'
+            f'<polygon class="gritmap-kstar{past_class}"'
+            f' points="{star_points(x + cell / 2, y + cell / 2, cell * 0.36)}" aria-hidden="true"></polygon>'
         )
     if days_ago == 0:
         attrs += ' data-gritmap-today="1"'
@@ -597,12 +656,48 @@ def grid_width(year: int) -> int:
     return _week_count(year) * _STEP - _GAP
 
 
+# Por debajo de este lado, en pixeles, la estrella de una fecha clave no se
+# lee dentro del cuadrito y sube a una fila propia encima del mapa (4.7.0).
+SMALL_CELL = 14
+
+
 def _year_style(cfg: Config, width: int) -> str:
-    """Ancho del ano: todo el de la tarjeta (sin bajar de 10 px por cuadrito)
-    o el dibujo entero a escala del tamano elegido."""
+    """Ancho del dibujo: todo el de la tarjeta (sin bajar de 10 px por
+    cuadrito) o el dibujo entero a escala del tamano elegido."""
     if _fit(cfg):
         return f"min-width:{width * _FIT_MIN / _CELL:.0f}px"
     return f"width:{width * cfg.cell_size / _CELL:.0f}px"
+
+
+def _year_classes(cfg: Config) -> str:
+    """Clases del ano: ajustado al ancho y cuadritos pequenos. Con el ajuste
+    al ancho el tamano real solo se sabe en la pagina: alli lo decide
+    gritmap.js."""
+    if _fit(cfg):
+        return "gritmap-year gritmap-fit"
+    small = " gritmap-small" if cfg.cell_size < SMALL_CELL else ""
+    return f"gritmap-year{small}"
+
+
+def _weekday_column() -> str:
+    """Iniciales de lunes, miercoles y viernes a la izquierda de sus filas,
+    como en GitHub (4.7.0). Las pone el navegador en el idioma activo."""
+    rows = "".join(
+        f'<span data-gritmap-dayname="{row}"></span>' if row in (0, 2, 4) else "<span></span>" for row in range(7)
+    )
+    return f'<div class="gritmap-days" aria-hidden="true">{rows}</div>'
+
+
+def _key_stars_row(key_dates: tuple[KeyDate, ...], year: int, today: date, width: int) -> str:
+    """Estrellas de las fechas clave encima de la columna de su semana, para
+    cuando el cuadrito es demasiado pequeno para llevarla dentro (4.7.0)."""
+    stars = []
+    for day in sorted({kd.day for kd in key_dates if kd.day.year == year}):
+        week, _row = _cell_position(day)
+        left = 100 * (week * _STEP + _CELL / 2) / width
+        past = " gritmap-kpast" if day < today else ""
+        stars.append(f'<span class="gritmap-mstar{past}" style="left:{left:.3f}%"></span>')
+    return f'<div class="gritmap-kstars" aria-hidden="true">{"".join(stars)}</div>'
 
 
 def build_year(
@@ -646,11 +741,14 @@ def build_year(
             _build_cell(day, data, cfg, thresholds, forgiven, key_labels, focusable=day == focus_day)
         )
         day += timedelta(days=1)
-    fit_class = " gritmap-fit" if _fit(cfg) else ""
+    # Rejilla de dos columnas (4.7.0): las iniciales de los dias a la
+    # izquierda y, a la derecha, los meses, la fila de estrellas (solo con
+    # cuadritos pequenos) y el dibujo, que lleva el ancho.
     return (
-        f'<div class="gritmap-year{fit_class}" style="{_year_style(cfg, width)}">'
+        f'<div class="{_year_classes(cfg)}">{_weekday_column()}'
         f'<div class="gritmap-months">{"".join(months)}</div>'
-        f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg"'
+        f"{_key_stars_row(cfg.key_dates, year, data.today, width)}"
+        f'<svg viewBox="0 0 {width} {height}" style="{_year_style(cfg, width)}" xmlns="http://www.w3.org/2000/svg"'
         f' role="group" aria-label="{year}">{"".join(cells)}</svg></div>'
     )
 
@@ -758,7 +856,9 @@ def build_activity(
     future_thresholds = legend_thresholds(scale_reference(data, "reviews"))
     forgiven = stats.forgiven if stats is not None else {}
     # Sin boton «Hoy» (4.4.0, peticion del cliente): el mapa ya se abre en la
-    # semana de hoy; quedan las flechas del ano y las opciones, centradas.
+    # semana de hoy. «‹ 2026 ›» va centrado y el boton de opciones, aparte,
+    # en la esquina de arriba (4.7.0): navegar y configurar son cosas
+    # distintas.
     # En el mapa vacio no hay otro ano al que ir.
     first, last = (True, True) if message else (year <= min_year, year >= max_year)
     tools = (
@@ -767,7 +867,7 @@ def build_activity(
         + f'<span class="gritmap-yv">{year}</span>'
         + _icon_button("next", t("nav_forward"), "right", last)
         + "</div>"
-        + _icon_button("opts", t("nav_opts"), "sliders")
+        + _icon_button("opts", t("nav_opts"), "sliders", extra=' data-gritmap-corner="1"')
     )
     grid = build_year(data, cfg, year, (thresholds, future_thresholds), forgiven, key_labels)
     left = (
@@ -824,7 +924,7 @@ def _average_html(average: float | None, measure: str, window: int) -> str:
 
 def _message_card(key: str, action: str = "") -> str:
     """Aviso en una tarjeta, con el boton de opciones para poder cambiarlas."""
-    tools = _icon_button("opts", t("nav_opts"), "sliders")
+    tools = _icon_button("opts", t("nav_opts"), "sliders", extra=' data-gritmap-corner="1"')
     body = f'<div class="gritmap-msg">{html.escape(t(key))}{action}</div>'
     return _card("gritmap-activity", "", tools, body) + _TIP
 
@@ -867,11 +967,10 @@ def placeholder_html(cfg: Config) -> str:
     )
     year = date.today().year
     width, height = grid_width(year), 7 * _STEP - _GAP
-    bone = f"aspect-ratio:{width}/{height}"
-    fit_class = " gritmap-fit" if _fit(cfg) else ""
+    bone = f"aspect-ratio:{width}/{height};{_year_style(cfg, width)}"
     grid = (
-        f'<div class="gritmap-year{fit_class}" style="{_year_style(cfg, width)}">'
-        '<div class="gritmap-months"></div>'
+        f'<div class="{_year_classes(cfg)}"><div class="gritmap-days"></div>'
+        '<div class="gritmap-months"></div><div class="gritmap-kstars"></div>'
         f'<div class="gritmap-bone gritmap-bone-grid" style="{bone}"></div></div>'
     )
     activity = (

@@ -81,6 +81,9 @@
     ],
     "FIX-025": [
       "options.py"
+    ],
+    "FIX-026": [
+      "view.py"
     ]
   }
 }

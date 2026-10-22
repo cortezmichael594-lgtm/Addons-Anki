@@ -81,8 +81,8 @@ class WidgetTest(unittest.TestCase):
         html = view.build_widget_html(sample(), cfg, 0)
         width = view.grid_width(2026)
         self.assertEqual(width, 53 * 17 - 3)
-        self.assertIn(f'class="gritmap-year gritmap-fit" style="min-width:{width * 10 / 14:.0f}px"', html)
-        self.assertIn(f'<svg viewBox="0 0 {width} 116" xmlns=', html)
+        self.assertIn('class="gritmap-year gritmap-fit"', html)
+        self.assertIn(f'<svg viewBox="0 0 {width} 116" style="min-width:{width * 10 / 14:.0f}px" xmlns=', html)
         self.assertRegex(html, r'<rect class="gritmap-cell" x="\d+" y="\d+" width="14" height="14" rx="2"')
         self.assertRegex(html, r'class="gritmap-month"[^>]*style="left:[\d.]+%"')
         self.assertIn("aspect-ratio:", view.placeholder_html(cfg))
@@ -119,9 +119,10 @@ class WidgetTest(unittest.TestCase):
         # 4.6.0: el redondeo va en pixeles reales (6 px a 28 px = 3 a 14).
         fit = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=FIT_WIDTH, border_radius=3), 0)
         html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=28, border_radius=6), 0)
-        self.assertEqual(re.findall(r"<svg viewBox[^>]*role=\"group\".*?</svg>", fit), re.findall(r"<svg viewBox[^>]*role=\"group\".*?</svg>", html))
+        cells = r"<rect.*</svg>"
+        self.assertEqual(re.findall(cells, fit), re.findall(cells, html))
         self.assertRegex(html, r'<rect class="gritmap-cell" x="\d+" y="\d+" width="14" height="14" rx="3"')
-        self.assertIn(f'class="gritmap-year" style="width:{view.grid_width(2026) * 2}px"', html)
+        self.assertIn(f'style="width:{view.grid_width(2026) * 2}px"', html)
         self.assertNotIn("gritmap-fit", html)
 
     def test_goal_ring_and_week_line(self) -> None:
@@ -146,6 +147,57 @@ class WidgetTest(unittest.TestCase):
         self.assertEqual(view.goal_progress(sample(due_remaining=15), cfg), (5, 20))
         self.assertIsNone(view.goal_progress(sample(), cfg))
 
+    def test_due_goal_once_met_stays_met(self) -> None:
+        # Regresion de FIX-026: cumplida con 5 tarjetas, vuelven a vencer 3 en
+        # aprendizaje y la meta sigue cumplida; si se deshace una, no.
+        cfg = replace(DEFAULT_CONFIG, goal_mode="due")
+        self.assertEqual(view.goal_progress(sample(due_remaining=3, due_reached=5), cfg), (5, 5))
+        undone = sample(past={0: DayActivity(4, 4, 0)}, due_remaining=4, due_reached=5)
+        self.assertEqual(view.goal_progress(undone, cfg), (4, 5))
+
+    def test_pause_is_visible_in_streak_card(self) -> None:
+        # 4.7.0: mientras dure, «en pausa hasta el …» en la linea de Racha.
+        cfg = replace(DEFAULT_CONFIG, pause=(date(2026, 10, 12), date(2026, 11, 5)))
+        html = view.build_widget_html(sample(), cfg, 0)
+        card = html[html.index(">Racha<"):html.index(">Promedio diario<")]
+        self.assertIn('en pausa hasta el <span class="gritmap-date" data-gritmap-date="2026-11-05">', card)
+        later = replace(DEFAULT_CONFIG, pause=(date(2026, 10, 20), date(2026, 10, 25)))
+        self.assertNotIn("en pausa", view.build_widget_html(sample(), later, 0))
+
+    def test_average_says_per_studied_day_and_retention_explains_na(self) -> None:
+        html = view.build_widget_html(sample(retention_days={1: (5, 4)}), DEFAULT_CONFIG, 0)
+        card = html[html.index(">Promedio diario<"):html.index(">Retención<")]
+        self.assertIn("por día estudiado · últimos 30 días", card)
+        retention = html[html.index(">Retención<"):html.index(">Próxima fecha<")]
+        self.assertIn("N/A", retention)
+        self.assertIn("Menos de", retention)
+
+    def test_next_date_weekday_within_a_week(self) -> None:
+        soon = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 10, 16), "Examen"),))
+        self.assertIn('data-gritmap-weekday="2026-10-16"', view.build_widget_html(sample(), soon, 0))
+        far = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 11, 16), "Examen"),))
+        self.assertNotIn("data-gritmap-weekday", view.build_widget_html(sample(), far, 0))
+
+    def test_key_stars_past_and_small_cells(self) -> None:
+        dates = (KeyDate(date(2026, 3, 2), "Parcial"), KeyDate(date(2026, 11, 20), "Final"))
+        html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, key_dates=dates), 0)
+        # Las pasadas, en gris; la proxima, en el color del texto.
+        self.assertEqual(html.count('class="gritmap-kstar gritmap-kpast"'), 1)
+        self.assertEqual(html.count('class="gritmap-kstar"'), 1)
+        self.assertNotIn("gritmap-small", html)
+        # Por debajo de 14 px, la estrella sube a su fila.
+        small = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=12, key_dates=dates), 0)
+        self.assertIn('class="gritmap-year gritmap-small"', small)
+        self.assertEqual(small.count('class="gritmap-mstar'), 2)
+
+    def test_weekdays_corner_button_and_soft_disabled_arrows(self) -> None:
+        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        self.assertEqual(re.findall(r'data-gritmap-dayname="(\d)"', html), ["0", "2", "4"])
+        self.assertIn('data-gritmap-btn="opts" data-gritmap-corner="1"', html)
+        # Las flechas apagadas conservan su nombre y no envian nada.
+        self.assertIn('data-gritmap-btn="next" aria-disabled="true"', html)
+        self.assertNotIn(" disabled", html)
+
     def test_hidden_streak_and_goal(self) -> None:
         html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, show_streak=False), 0)
         self.assertEqual(html.count('class="gritmap-card gritmap-mini"'), 4)
@@ -153,17 +205,20 @@ class WidgetTest(unittest.TestCase):
 
     def test_streak_card_lines(self) -> None:
         stats = view.full_stats(sample())
-        card = view._streak_card(replace(stats, current_streak=12, longest_streak=15, today_done=False), DEFAULT_CONFIG)
+        card = view._streak_card(replace(stats, current_streak=12, longest_streak=15, today_done=False), DEFAULT_CONFIG, TODAY)
         self.assertIn("hoy pendiente", card)
         self.assertIn("del récord", card)
-        back = view._streak_card(replace(stats, current_streak=1, longest_streak=45, previous_best=45), DEFAULT_CONFIG)
+        back = view._streak_card(replace(stats, current_streak=1, longest_streak=45, previous_best=45), DEFAULT_CONFIG, TODAY)
         self.assertIn("Día 1", back)
         # «récord» en minuscula (cliente, 2026-10-21).
         self.assertIn("récord:", back)
         self.assertNotIn("Récord", back)
-        far = view._streak_card(replace(stats, current_streak=3, longest_streak=40), DEFAULT_CONFIG)
+        far = view._streak_card(replace(stats, current_streak=3, longest_streak=40), DEFAULT_CONFIG, TODAY)
         self.assertIn("récord:", far)
-        freezes = view._streak_card(replace(stats, current_streak=9, longest_streak=9, freezes_left=1), DEFAULT_CONFIG)
+        # 4.7.0: «a 2 días del récord» solo si el récord es de 7 días o más.
+        short = view._streak_card(replace(stats, current_streak=2, longest_streak=4), DEFAULT_CONFIG, TODAY)
+        self.assertNotIn("del récord", short)
+        freezes = view._streak_card(replace(stats, current_streak=9, longest_streak=9, freezes_left=1), DEFAULT_CONFIG, TODAY)
         self.assertIn('data-n="1">1</span> comodín', freezes)
 
     def test_retention_card_with_fsrs_target(self) -> None:
@@ -193,9 +248,12 @@ class WidgetTest(unittest.TestCase):
 
     def test_tooltip_texts_have_no_date(self) -> None:
         # La fecha va en su propia linea, la pone el navegador (peticion del cliente).
+        # «en pausa hasta el {date}» (4.7.0) no es un globo: es la linea de la
+        # tarjeta Racha, y la fecha tambien la pone el navegador.
         for code, texts in i18n.STRINGS.items():
             for key, text in texts.items():
-                self.assertNotIn("{date}", text, f"{code}.{key}")
+                if key != "paused_until":
+                    self.assertNotIn("{date}", text, f"{code}.{key}")
 
     def test_all_injected_names_start_with_gritmap(self) -> None:
         # Regla de FIX-008.

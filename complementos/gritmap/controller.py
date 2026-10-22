@@ -72,6 +72,9 @@ def _draw(entry: DataEntry, cfg: Config, remember: bool = True) -> None:
     pagina ni se celebra la meta: lo dibujado aun no esta guardado.
     """
     data = entry.data
+    # La meta «Terminar lo de hoy» ya cumplida hoy no se descumple (4.7.0).
+    if state.due_goal is not None and state.due_goal[0] == data.today:
+        data = replace(data, due_reached=state.due_goal[1])
     try:
         key_days = tuple(kd.day for kd in cfg.key_dates)
         min_year, max_year = year_bounds(data, key_days)
@@ -95,6 +98,9 @@ def _draw(entry: DataEntry, cfg: Config, remember: bool = True) -> None:
         )
         if met and remember:
             state.goal_celebrated = data.today
+            progress = view.goal_progress(data, cfg)
+            if cfg.goal_mode == "due" and progress is not None and data.due_reached is None:
+                state.due_goal = (data.today, progress[1])
     except Exception as exc:
         log_exception("controller.draw", exc)
         payload = remembered = view.error_payload()
@@ -356,6 +362,15 @@ def _on_profile_did_open() -> None:
 
 
 @guarded()
+def _on_day_did_change() -> None:
+    """Al pasar al dia siguiente (a la hora que marca Anki), el mapa se
+    calcula de nuevo: «hoy» cambia de cuadrito y la racha queda pendiente en
+    el acto, sin esperar a que Anki redibuje la pantalla (4.7.0)."""
+    state.data = None
+    _redraw_in_place()
+
+
+@guarded()
 def _on_profile_will_close() -> None:
     state.start_new_generation()
     config.invalidate_cache()
@@ -426,6 +441,7 @@ def register() -> None:
     gui_hooks.webview_did_receive_js_message.append(_on_js_message)
     gui_hooks.profile_did_open.append(_on_profile_did_open)
     gui_hooks.profile_will_close.append(_on_profile_will_close)
+    gui_hooks.day_did_change.append(_on_day_did_change)
     # Con su propia ventana de opciones, Anki nunca abre su editor de JSON
     # para este complemento.
     mw.addonManager.setConfigAction(__name__, open_options)

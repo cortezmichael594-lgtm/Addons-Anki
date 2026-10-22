@@ -9,7 +9,12 @@ ninguna. Las diez primeras se hicieron antes de que el complemento llegara a est
 
 Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa y propuesta.
 
-(Ninguno.)
+- 2026-10-22 · versión 4.7.0 · Qué pasa: el gris más oscuro de los días pendientes resalta más que el
+  primer tono del tema (contraste con la tarjeta de 2,97 frente a 1,8 de día; 4,71 frente a 1,7 de
+  noche), así que el futuro pesa a la vista casi tanto como lo estudiado. Para que los cuatro grises
+  queden más suaves que ese primer tono tendrían que caber entre 1,27 y 1,75, y dejarían de
+  distinguirse entre sí. Propuesta: tres grises más suaves, o dejar los cuatro de ahora (decisión del
+  cliente en la 4.1.0).
 
 ## Corregidos
 
@@ -127,6 +132,11 @@ Las dos siguientes salieron de la revisión de la versión 3.6.0 (2026-10-21).
   Windows. Por qué: se abría siempre sobre la ventana principal de Anki. Regla: una ventana que se
   abre desde otra se abre sobre la ventana activa (y, si esta se cerró entretanto, sobre la
   principal).
+- FIX-026 · 2026-10-22 · versión 4.7.0 · Qué pasaba: con la meta «Terminar lo de hoy» ya cumplida,
+  la tarjeta «Hoy» podía volver a decir «faltan 3» al rato sin haber hecho nada mal. Por qué: las
+  tarjetas en aprendizaje vuelven a vencer horas después y la meta se recalculaba con ellas. Regla:
+  una meta cumplida queda cumplida el resto del día; solo vuelve atrás si se deshace la respuesta que
+  la cumplió.
 
 ## Así a propósito
 
@@ -142,6 +152,10 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   se escribe «N/A». Lo decidió el cliente el 2026-10-08 y el 2026-10-09. Desde la versión 3.4.0
   (cliente, 2026-10-13), todas las cifras siguen la medida: con «Nuevas», un día cuenta como
   estudiado solo si empezó alguna nueva (promedio, días estudiados, rachas y última sesión).
+  Desde la 4.7.0 (cliente, 2026-10-22, al aprobar el informe de mejora integral), la racha, la
+  última sesión y «Mes completo» cuentan cualquier respuesta, sea cual sea la medida: con «Nuevas»,
+  un día de solo repasos ya no rompe la racha ni gasta un comodín. La medida sigue mandando en el
+  color, el promedio, los días estudiados y la meta.
 - Los periodos de 7 y 90 días se retiraron al poner los botones rápidos de periodo junto al año,
   como control segmentado sin marco: el elegido con fondo suave de pastilla y negrita, como en la
   imagen que aportó («30 días», «1 año», «Todo»). Lo pidió el cliente el 2026-10-13. Desde la 3.6.0
@@ -304,3 +318,17 @@ Versión 4.6.0 (petición del cliente del 2026-10-21 sobre la 4.5.0):
   se dejan de leer. Lo pidió el cliente.
 - El redondeo lleva «px» y va en píxeles reales del cuadrito, de 0 a 15 (3 px de serie, la misma
   proporción que la 4.1.0 a 24 px). Lo pidió el cliente; los huecos siguen en proporción.
+
+Versión 4.7.0 (informe de mejora integral, aprobado por el cliente el 2026-10-22):
+
+- El mapa sigue a 24 px aunque no quepa y entonces se desplaza de lado; el informe proponía encoger
+  el cuadrito hasta que cupiera. Lo decidió el cliente.
+- La pausa empieza hoy como pronto; una pausa ya guardada que empezó antes conserva su inicio. Lo
+  decidió el cliente.
+- El botón de opciones va aparte, en la esquina de arriba de la tarjeta del mapa. Lo decidió el
+  cliente.
+- La muestra de cada tema en Opciones sigue siendo un solo cuadrito (el informe proponía una tira de
+  cuatro tonos), porque así lo pidió el cliente con una captura en la 4.3.0.
+- La rejilla del mapa va siempre de izquierda a derecha, también en árabe o hebreo (regla de
+  FIX-023), así que las iniciales de los días van siempre a la izquierda.
+

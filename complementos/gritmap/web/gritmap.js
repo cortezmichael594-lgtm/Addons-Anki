@@ -53,7 +53,15 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         locale: undefined,
         texts: {},
         lastHtml: null,
+        /* Dia que debe recibir el foco cuando llegue el ano pedido con el
+         * teclado (4.7.0). */
+        pendingFocus: null,
+        hideTimer: null,
     };
+    /* Por debajo de este lado, en pixeles, la estrella de una fecha clave
+     * sube a su fila propia (igual que view.SMALL_CELL). */
+    var SMALL_CELL = 14;
+    var CELL_UNITS = 14;
 
     function root() {
         return document.getElementById(ROOT_ID);
@@ -211,6 +219,44 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
                 }
             }
         }
+        /* 4.7.0: iniciales de lunes, miercoles y viernes (el 1 de enero de
+         * 2024 fue lunes), el dia de la semana de la proxima fecha clave y
+         * las fechas cortas («5 nov.»). */
+        var initials = container.querySelectorAll("[data-gritmap-dayname]");
+        var narrowFmt = initials.length ? formatter({ weekday: "narrow" }) : null;
+        for (var w = 0; narrowFmt && w < initials.length; w++) {
+            var row = parseInt(initials[w].getAttribute("data-gritmap-dayname"), 10);
+            initials[w].textContent = narrowFmt.format(new Date(2024, 0, 1 + row));
+        }
+        var weekdays = container.querySelectorAll("[data-gritmap-weekday]");
+        var longFmt = weekdays.length ? formatter({ weekday: "long" }) : null;
+        for (var k = 0; longFmt && k < weekdays.length; k++) {
+            var keyDay = parseDay(weekdays[k].getAttribute("data-gritmap-weekday"));
+            if (keyDay) {
+                weekdays[k].textContent = longFmt.format(keyDay) + " · ";
+            }
+        }
+        var dates = container.querySelectorAll("[data-gritmap-date]");
+        var shortFmt = dates.length ? formatter({ day: "numeric", month: "short" }) : null;
+        for (var d = 0; shortFmt && d < dates.length; d++) {
+            var shortDay = parseDay(dates[d].getAttribute("data-gritmap-date"));
+            if (shortDay) {
+                dates[d].textContent = shortFmt.format(shortDay);
+            }
+        }
+    }
+
+    /* Con «Ajustado al ancho» el tamano real del cuadrito solo se sabe aqui:
+     * por debajo de 14 px, la estrella de las fechas clave sube a su fila
+     * (4.7.0). Con un tamano fijo ya lo decide Python. */
+    function updateSmallCells(container) {
+        var year = container.querySelector(".gritmap-year.gritmap-fit");
+        var svg = year ? year.querySelector("svg") : null;
+        if (!svg || !svg.viewBox || !svg.viewBox.baseVal || !svg.viewBox.baseVal.width) {
+            return;
+        }
+        var cell = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width * CELL_UNITS;
+        year.classList.toggle("gritmap-small", cell > 0 && cell < SMALL_CELL);
     }
 
     /* Globo de un dia: la fecha y, en la linea de abajo, lo hecho («lunes,
@@ -281,9 +327,25 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
     }
 
     function hideTip() {
+        cancelHide();
         var bubble = tip();
         if (bubble) {
             bubble.style.display = "none";
+        }
+    }
+
+    /* El globo se puede recorrer con el raton sin que se cierre (WCAG 1.4.13,
+     * 4.7.0): al salir del dia se espera un instante, por si el raton va
+     * hacia el globo. */
+    function hideTipSoon() {
+        cancelHide();
+        state.hideTimer = setTimeout(hideTip, 200);
+    }
+
+    function cancelHide() {
+        if (state.hideTimer) {
+            clearTimeout(state.hideTimer);
+            state.hideTimer = null;
         }
     }
 
@@ -292,7 +354,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
     }
 
     function send(element) {
-        if (element && !element.hasAttribute("disabled") && element.getAttribute("data-gritmap-cmd")) {
+        if (element && element.getAttribute("aria-disabled") !== "true" && element.getAttribute("data-gritmap-cmd")) {
             pycmd(state.prefix + element.getAttribute("data-gritmap-cmd"));
         }
     }
@@ -321,6 +383,47 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
 
     var KEY_STEPS = { ArrowUp: -1, ArrowDown: 1, ArrowLeft: -7, ArrowRight: 7 };
 
+    function addMonths(day, months) {
+        var target = new Date(day.getFullYear(), day.getMonth() + months, 1);
+        var last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+        target.setDate(Math.min(day.getDate(), last));
+        return target;
+    }
+
+    /* Dia al que lleva cada tecla (4.7.0, como el selector de fechas de las
+     * practicas de WAI-ARIA): flechas, dias y semanas; Inicio y Fin, lunes y
+     * domingo de la semana; RePag y AvPag, el mismo dia del mes anterior o
+     * siguiente; con Mayus, del ano anterior o siguiente. */
+    function keyTarget(event, day) {
+        var step = KEY_STEPS[event.key];
+        if (step) {
+            return new Date(day.getTime() + step * DAY_MS + DAY_MS / 2);
+        }
+        var weekday = (day.getDay() + 6) % 7;
+        if (event.key === "Home") {
+            return new Date(day.getFullYear(), day.getMonth(), day.getDate() - weekday);
+        }
+        if (event.key === "End") {
+            return new Date(day.getFullYear(), day.getMonth(), day.getDate() + 6 - weekday);
+        }
+        if (event.key === "PageUp" || event.key === "PageDown") {
+            var sign = event.key === "PageUp" ? -1 : 1;
+            return addMonths(day, sign * (event.shiftKey ? 12 : 1));
+        }
+        return null;
+    }
+
+    /* Un dia de otro ano: se pide ese ano con su flecha y el foco espera a
+     * que llegue. Si no hay ano al que ir, no pasa nada. */
+    function moveToOtherYear(container, target, shownYear) {
+        var cmd = target.getFullYear() < shownYear ? "prev" : "next";
+        var button = container.querySelector("button[data-gritmap-btn='" + cmd + "']");
+        if (button && button.getAttribute("aria-disabled") !== "true") {
+            state.pendingFocus = isoDay(target);
+            send(button);
+        }
+    }
+
     function onKeyDown(event) {
         var cell = closest(event.target, ".gritmap-cell");
         var container = root();
@@ -332,17 +435,17 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             send(cell);
             return;
         }
-        var step = KEY_STEPS[event.key];
         var day = parseDay(cell.getAttribute("data-d"));
-        if (!step || !day) {
+        var targetDay = day ? keyTarget(event, day) : null;
+        if (!targetDay) {
             return;
         }
         event.preventDefault();
-        var target = container.querySelector(
-            ".gritmap-cell[data-d='" + isoDay(new Date(day.getTime() + step * DAY_MS + DAY_MS / 2)) + "']"
-        );
+        var target = container.querySelector(".gritmap-cell[data-d='" + isoDay(targetDay) + "']");
         if (target) {
             focusCell(container, target);
+        } else if (targetDay.getFullYear() !== day.getFullYear()) {
+            moveToOtherYear(container, targetDay, day.getFullYear());
         }
     }
 
@@ -358,17 +461,25 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         });
         container.addEventListener("keydown", onKeyDown);
         container.addEventListener("mouseover", function (event) {
+            if (closest(event.target, "#" + TIP_ID)) {
+                /* El raton ha llegado al globo: se queda abierto. */
+                cancelHide();
+                return;
+            }
             var cell = closest(event.target, "[data-gritmap-tip]");
             if (cell) {
+                cancelHide();
                 showTip(cell);
             }
         });
         container.addEventListener("mouseout", function (event) {
             /* Pasar de una parte a otra de la misma cifra (etiqueta y valor)
-             * no cierra el globo: asi no parpadea. */
-            var from = closest(event.target, "[data-gritmap-tip]");
-            if (from && from !== closest(event.relatedTarget, "[data-gritmap-tip]")) {
-                hideTip();
+             * no cierra el globo: asi no parpadea. Al salir del globo o del
+             * dia, se cierra tras un instante. */
+            var from = closest(event.target, "[data-gritmap-tip], #" + TIP_ID);
+            var to = closest(event.relatedTarget, "[data-gritmap-tip], #" + TIP_ID);
+            if (from && from !== to) {
+                hideTipSoon();
             }
         });
         container.addEventListener("focusin", function (event) {
@@ -393,6 +504,12 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         /* Si el mapa se desplaza lateralmente, el globo dejaria de apuntar a
          * su celda: se oculta en cuanto empieza el desplazamiento. */
         container.addEventListener("scroll", hideTip, true);
+        window.addEventListener("resize", function () {
+            var current = root();
+            if (current) {
+                updateSmallCells(current);
+            }
+        });
     }
 
     /* Desde 4.0.0 la comparativa semanal vive en la tarjeta de estadisticas:
@@ -464,6 +581,11 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         var focusBtn = hadFocus ? active.getAttribute("data-gritmap-btn") : null;
         var focusDay = hadFocus && active.classList.contains("gritmap-cell")
             ? active.getAttribute("data-d") : null;
+        if (state.pendingFocus) {
+            focusDay = state.pendingFocus;
+            focusBtn = null;
+            state.pendingFocus = null;
+        }
         var oldGrid = container.querySelector(".gritmap-grid");
         var oldYear = (container.querySelector(".gritmap-yv") || {}).textContent;
         var oldScroll = oldGrid ? oldGrid.scrollLeft : 0;
@@ -475,6 +597,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         localizeCalendar(container);
         localizeNumbers(container);
         bind(container);
+        updateSmallCells(container);
         removeOldWeekDiff();
 
         var newGrid = container.querySelector(".gritmap-grid");
@@ -487,7 +610,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
 
         if (focusBtn) {
             var button = container.querySelector("button[data-gritmap-btn='" + focusBtn + "']");
-            if (!button || button.disabled) {
+            if (!button || button.getAttribute("aria-disabled") === "true") {
                 button = container.querySelector("button[data-gritmap-btn='opts']");
             }
             if (button) {

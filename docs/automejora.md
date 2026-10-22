@@ -602,6 +602,15 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Comprobado: 2026-10-21, con Anki 26.09.3 (código instalado y pruebas).
 - Origen: GritMap 4.0.0.
 
+### APR-066 · El cambio de día no redibuja la lista de mazos
+- Qué es: cuando llega la hora de inicio del día, Anki llama a gui_hooks.day_did_change() (sin argumentos) desde el temporizador que vigila el cambio de día; solo refresca el repaso si está abierto.
+- Por qué es buena práctica: un complemento que muestra «hoy» en la lista de mazos o en un mazo seguiría enseñando el día anterior hasta que Anki redibujara la pantalla por otro motivo.
+- Para qué sirve: mapas, rachas, metas diarias y cualquier cifra «de hoy».
+- Cómo se aplica: registre una función en gui_hooks.day_did_change que olvide los datos guardados y vuelva a calcular lo que se ve, en segundo plano.
+- Fuente: aqt/main.py (refresh_reviewer_on_day_rollover_change, líneas 540-560 del Anki instalado) y _aqt/hooks.py (_DayDidChangeHook).
+- Comprobado: 2026-10-22, con Anki 26.09.3 (código instalado).
+- Origen: GritMap 4.7.0.
+
 ## Retirados
 
 Aprendizajes que dejaron de valer, con fecha y motivo («- APR-NNN (AAAA-MM-DD): motivo»). Su número no

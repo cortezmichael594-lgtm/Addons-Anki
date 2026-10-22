@@ -57,6 +57,11 @@ class ViewState:
     # una sola vez, la primera vez que se dibuja despues de cumplirla.
     goal_celebrated: date | None = None
 
+    # Meta «Terminar lo de hoy» cumplida: el dia y cuantas tarjetas hicieron
+    # falta (4.7.0). Ese dia, la meta ya no sube aunque venzan otra vez
+    # tarjetas en aprendizaje.
+    due_goal: tuple[date, int] | None = None
+
     # Ultimo mapa enviado a cada pantalla (lista de mazos o un mazo concreto),
     # ya preparado. Al volver a esa pantalla se ensena en el acto, en lugar de
     # un hueco con «…», mientras se calculan los datos al dia.
