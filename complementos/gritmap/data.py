@@ -152,8 +152,9 @@ class HeatmapData:
     # Tarjetas que aun vencen hoy en lo que cuenta el mapa (meta «Terminar lo
     # de hoy», 4.0.0); None si no se calculo.
     due_remaining: int | None = None
-    # Retencion deseada de FSRS del mazo (0-1), solo en la pantalla de un mazo
-    # con FSRS activado; None en los demas casos.
+    # Retencion deseada de FSRS (0-1): la del mazo en su pantalla y, desde la
+    # 4.8.0, en la lista de mazos si todos los que cuentan usan la misma;
+    # None sin FSRS o si son distintas.
     fsrs_target: float | None = None
     # Meta «Terminar lo de hoy» ya cumplida hoy: cuantas tarjetas hicieron
     # falta (FIX-026); None si aun no se cumplio.
@@ -492,6 +493,38 @@ def window_average(data: HeatmapData, measure: str, window: int) -> float | None
     return sum(values) / len(values) if values else None
 
 
+def daily_average(
+    data: HeatmapData, measure: str, window: int, paused: frozenset[int] = frozenset()
+) -> float | None:
+    """«Promedio diario» de la tarjeta, por dia natural del periodo (4.8.0).
+
+    Lo hecho en el periodo dividido entre sus dias, para que el titulo diga
+    la verdad: quien estudia 4 dias de cada 7 ve su media real, y la cifra
+    sube al estudiar mas dias, no solo mas cada dia. Reglas:
+
+    * Solo dias completos: el periodo termina ayer, como la retencion.
+    * Se cuenta desde el primer dia con estudio dentro del periodo: quien
+      empezo hace 10 dias no queda dividido entre 30.
+    * Los dias de pausa no cuentan en el divisor (la pausa dice «este dia no
+      cuenta»); los cubiertos por un comodin si, porque no se estudio.
+    * Sin ningun dia estudiado en el periodo, None (FIX-010: no es un 0).
+    """
+    last = _window_end(data.past, window)
+    studied = [
+        days_ago
+        for days_ago, day in data.past.items()
+        if 1 <= days_ago <= last and is_active(day, measure)
+    ]
+    if not studied:
+        return None
+    first = max(studied)
+    days = sum(1 for days_ago in range(1, first + 1) if days_ago not in paused)
+    if days == 0:
+        return None
+    total = sum(measure_value(data.past[d], measure) for d in studied)
+    return total / days
+
+
 def window_retention(data: HeatmapData, window: int) -> tuple[int, int]:
     """Repasos medibles y acertados dentro de la ventana elegida.
 
@@ -672,8 +705,9 @@ def paused_days(pause: tuple[date, date] | None, today: date) -> frozenset[int]:
 def surprise(data: HeatmapData, measure: str, stats: FullStats) -> tuple[str, int] | None:
     """Una sorpresa verdadera de hoy, como mucho una (4.0.0, informe ap. 8).
 
-    Solo cuando ocurre y con datos reales, por este orden: nueva racha mas
-    larga, mejor semana del ano, mes completo y una cifra redonda del ano
+    Solo cuando ocurre y con datos reales, por este orden: un ano seguido,
+    nueva racha mas larga, mejor semana del ano, mes completo y una cifra
+    redonda del ano
     (100, 500 y cada 1.000). Devuelve la clave y la cifra, o None.
 
     4.7.0: «mejor semana» en lugar de «mejor dia», para premiar lo constante
@@ -683,6 +717,10 @@ def surprise(data: HeatmapData, measure: str, stats: FullStats) -> tuple[str, in
     today_day = data.past.get(0)
     if not stats.today_done or today_day is None:
         return None
+    # «Un año seguido» va primero (4.8.0): es la sorpresa mas rara, un dia al
+    # ano como mucho, y la que mas se recuerda.
+    if stats.current_streak > 0 and stats.current_streak % 365 == 0:
+        return "year_streak", 0
     if stats.previous_best >= 1 and stats.current_streak == stats.previous_best + 1:
         return "record", 0
     today_value = measure_value(today_day, measure)
@@ -768,7 +806,7 @@ def full_stats(
         else None
     )
     return FullStats(
-        average=window_average(data, measure, window),
+        average=daily_average(data, measure, window, paused),
         studied_pct=studied_pct(data, window, measure),
         retention=retention,
         retention_reviews=total_reviews,

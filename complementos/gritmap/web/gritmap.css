@@ -214,20 +214,28 @@ body.nightMode #gritmap-root {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+/* Sin racha ni meta y sin fechas clave por venir quedan tres (4.8.0). */
+#gritmap-root .gritmap-n3 .gritmap-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 @container (max-width: 940px) {
     #gritmap-root .gritmap-cards,
-    #gritmap-root .gritmap-n4 .gritmap-cards {
+    #gritmap-root .gritmap-n4 .gritmap-cards,
+    #gritmap-root .gritmap-n3 .gritmap-cards {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    #gritmap-root .gritmap-n5 .gritmap-cards > :last-child {
+    #gritmap-root .gritmap-n5 .gritmap-cards > :last-child,
+    #gritmap-root .gritmap-n3 .gritmap-cards > :last-child {
         grid-column: 1 / -1;
     }
 }
 
 @container (max-width: 420px) {
     #gritmap-root .gritmap-cards,
-    #gritmap-root .gritmap-n4 .gritmap-cards {
+    #gritmap-root .gritmap-n4 .gritmap-cards,
+    #gritmap-root .gritmap-n3 .gritmap-cards {
         grid-template-columns: minmax(0, 1fr);
     }
 }
@@ -411,6 +419,24 @@ body.nightMode #gritmap-root {
     overflow-y: hidden;
 }
 
+/* Si el ano no cabe (4.8.0): el borde por donde sigue el mapa se desvanece,
+ * para que se note que hay mas; al llegar al final, el degradado se va. Es
+ * una mascara de transparencia: su color no se ve. */
+#gritmap-root .gritmap-grid.gritmap-more-right {
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+    mask-image: linear-gradient(to right, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+}
+
+#gritmap-root .gritmap-grid.gritmap-more-left {
+    -webkit-mask-image: linear-gradient(to left, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+    mask-image: linear-gradient(to left, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+}
+
+#gritmap-root .gritmap-grid.gritmap-more-left.gritmap-more-right {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+    mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+}
+
 /* El dibujo se escala entero (4.5.0): ocupa el ancho del ano, que es todo el
  * de la tarjeta («Ajustado al ancho») o el del tamano elegido. */
 /* El ano es una rejilla de dos columnas (4.7.0): las iniciales de los dias a
@@ -432,22 +458,18 @@ body.nightMode #gritmap-root {
     grid-row: 1;
 }
 
-#gritmap-root .gritmap-year > .gritmap-kstars {
-    grid-row: 2;
-}
-
 #gritmap-root .gritmap-year > svg,
 #gritmap-root .gritmap-year > .gritmap-bone-grid {
     grid-column: 2;
-    grid-row: 3;
+    grid-row: 2;
 }
 
 #gritmap-root .gritmap-days {
     grid-column: 1;
-    grid-row: 3;
+    grid-row: 2;
     display: grid;
     grid-template-rows: repeat(7, 1fr);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1;
     color: var(--gritmap-muted);
     text-align: end;
@@ -501,52 +523,22 @@ body.nightMode #gritmap-root {
     stroke-dasharray: 2 2;
 }
 
-/* Fecha clave: una estrella en su cuadrito, en el color del texto, con un
- * filo del color de la tarjeta para que se vea sobre cualquier tono. */
-#gritmap-root .gritmap-kstar {
+/* Fecha clave (4.8.0): un rombo de hito en su cuadrito. Las que vienen,
+ * lleno en el color del texto, con un filo del color de la tarjeta para que
+ * se vea sobre cualquier tono. */
+#gritmap-root .gritmap-kmark {
     fill: var(--gritmap-fg);
     stroke: var(--gritmap-card);
     stroke-width: 1px;
     pointer-events: none;
 }
 
-/* Fechas clave ya pasadas: la estrella en gris, para que la proxima
- * destaque sola (4.7.0). El filo sigue: sin el, la estrella no se separa de
- * los tonos oscuros. */
-#gritmap-root .gritmap-kstar.gritmap-kpast {
-    fill: var(--gritmap-muted);
-}
-
-/* Con cuadritos de menos de 14 px la estrella no se lee dentro: sube a una
- * fila propia, encima de la columna de su semana (4.7.0). */
-#gritmap-root .gritmap-small .gritmap-kstar {
-    display: none;
-}
-
-#gritmap-root .gritmap-kstars {
-    display: none;
-    position: relative;
-    grid-column: 2;
-    height: 10px;
-    margin-bottom: 2px;
-}
-
-#gritmap-root .gritmap-small .gritmap-kstars {
-    display: block;
-}
-
-#gritmap-root .gritmap-mstar {
-    position: absolute;
-    top: 0;
-    width: 10px;
-    height: 10px;
-    transform: translateX(-50%);
-    background: var(--gritmap-fg);
-    clip-path: polygon(50.0% 0.0%, 63.2% 31.8%, 97.6% 34.5%, 71.4% 57.0%, 79.4% 90.5%, 50.0% 72.5%, 20.6% 90.5%, 28.6% 57.0%, 2.4% 34.5%, 36.8% 31.8%);
-}
-
-#gritmap-root .gritmap-mstar.gritmap-kpast {
-    background: var(--gritmap-muted);
+/* Las ya pasadas, hueco y gris: lleno frente a hueco se distingue sin color,
+ * y la proxima destaca sola. */
+#gritmap-root .gritmap-kmark.gritmap-kpast {
+    fill: none;
+    stroke: var(--gritmap-muted);
+    stroke-width: 1.6px;
 }
 
 #gritmap-root .gritmap-cell[data-gritmap-cmd] {
@@ -631,7 +623,7 @@ body.nightMode #gritmap-root {
     position: absolute;
     inset: 1px;
     background: var(--gritmap-fg);
-    clip-path: polygon(50.0% 0.0%, 63.2% 31.8%, 97.6% 34.5%, 71.4% 57.0%, 79.4% 90.5%, 50.0% 72.5%, 20.6% 90.5%, 28.6% 57.0%, 2.4% 34.5%, 36.8% 31.8%);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
 }
 
 #gritmap-root .gritmap-lg-forgiven {
@@ -742,4 +734,15 @@ body.reduce-motion #gritmap-root .gritmap-check.gritmap-celebrate {
     #gritmap-root .gritmap-check.gritmap-celebrate {
         animation: gritmap-fade 150ms ease-out;
     }
+}
+
+/* Zona invisible con la que el lector de pantalla anuncia el año al
+ * cambiarlo (4.8.0). Va fuera del mapa, en el cuerpo de la página. */
+.gritmap-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }

@@ -58,10 +58,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         pendingFocus: null,
         hideTimer: null,
     };
-    /* Por debajo de este lado, en pixeles, la estrella de una fecha clave
-     * sube a su fila propia (igual que view.SMALL_CELL). */
-    var SMALL_CELL = 14;
-    var CELL_UNITS = 14;
+    var LIVE_ID = "gritmap-live";
 
     function root() {
         return document.getElementById(ROOT_ID);
@@ -237,17 +234,31 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         }
     }
 
-    /* Con «Ajustado al ancho» el tamano real del cuadrito solo se sabe aqui:
-     * por debajo de 14 px, la estrella de las fechas clave sube a su fila
-     * (4.7.0). Con un tamano fijo ya lo decide Python. */
-    function updateSmallCells(container) {
-        var year = container.querySelector(".gritmap-year.gritmap-fit");
-        var svg = year ? year.querySelector("svg") : null;
-        if (!svg || !svg.viewBox || !svg.viewBox.baseVal || !svg.viewBox.baseVal.width) {
+    /* Si el ano no cabe, el borde por donde sigue el mapa se desvanece
+     * (4.8.0); al llegar al final de ese lado, el degradado se va. */
+    function updateEdgeFade(container) {
+        var grid = container.querySelector(".gritmap-grid");
+        if (!grid) {
             return;
         }
-        var cell = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width * CELL_UNITS;
-        year.classList.toggle("gritmap-small", cell > 0 && cell < SMALL_CELL);
+        var hidden = grid.scrollWidth - grid.clientWidth;
+        grid.classList.toggle("gritmap-more-left", hidden > 1 && grid.scrollLeft > 1);
+        grid.classList.toggle("gritmap-more-right", hidden > 1 && grid.scrollLeft < hidden - 1);
+    }
+
+    /* Al cambiar de ano, el lector de pantalla dice la cifra (4.8.0). La
+     * zona que lo anuncia vive fuera del mapa, porque el contenido del mapa
+     * se sustituye entero y una zona recien creada no se anuncia. */
+    function announce(text) {
+        var live = document.getElementById(LIVE_ID);
+        if (!live) {
+            live = document.createElement("div");
+            live.id = LIVE_ID;
+            live.className = "gritmap-live";
+            live.setAttribute("aria-live", "polite");
+            document.body.appendChild(live);
+        }
+        live.textContent = text;
     }
 
     /* Globo de un dia: la fecha y, en la linea de abajo, lo hecho («lunes,
@@ -494,11 +505,16 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         container.addEventListener("mouseleave", hideTip);
         /* Si el mapa se desplaza lateralmente, el globo dejaria de apuntar a
          * su celda: se oculta en cuanto empieza el desplazamiento. */
-        container.addEventListener("scroll", hideTip, true);
+        container.addEventListener("scroll", function (event) {
+            hideTip();
+            if (closest(event.target, ".gritmap-grid")) {
+                updateEdgeFade(container);
+            }
+        }, true);
         window.addEventListener("resize", function () {
             var current = root();
             if (current) {
-                updateSmallCells(current);
+                updateEdgeFade(current);
             }
         });
     }
@@ -588,7 +604,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         localizeCalendar(container);
         localizeNumbers(container);
         bind(container);
-        updateSmallCells(container);
         removeOldWeekDiff();
 
         var newGrid = container.querySelector(".gritmap-grid");
@@ -597,6 +612,10 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             newGrid.scrollLeft = oldScroll;
         } else if (newGrid) {
             scrollToToday(container);
+        }
+        updateEdgeFade(container);
+        if (oldYear && newYear && newYear !== oldYear) {
+            announce(newYear);
         }
 
         if (focusBtn) {

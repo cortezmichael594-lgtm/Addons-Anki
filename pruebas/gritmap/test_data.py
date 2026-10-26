@@ -60,6 +60,18 @@ class StatsTest(unittest.TestCase):
         # Regresion de FIX-010: solo hoy estudiado no es un promedio de 0.
         self.assertIsNone(data.window_average(self.make({0: 40}), "reviews", 30))
 
+    def test_daily_average_counts_natural_days(self) -> None:
+        # 4.8.0: 4 dias estudiados de 7 con 70 repasos: 280 / 7 = 40.
+        sample = self.make({0: 999, 1: 70, 3: 70, 5: 70, 7: 70})
+        self.assertEqual(data.daily_average(sample, "reviews", 30), 40)
+        # Desde el primer dia estudiado: quien empezo hace 2 dias no se divide
+        # entre 30.
+        self.assertEqual(data.daily_average(self.make({1: 10, 2: 30}), "reviews", 30), 20)
+        # Los dias de pausa no cuentan en el divisor; los de comodin, si.
+        self.assertEqual(data.daily_average(sample, "reviews", 30, frozenset({2, 4, 6})), 70)
+        # Regla de FIX-010: sin dias completos estudiados, None.
+        self.assertIsNone(data.daily_average(self.make({0: 40}), "reviews", 30))
+
     def test_average_uses_complete_days_only(self) -> None:
         self.assertEqual(data.window_average(self.make({0: 999, 1: 10, 2: 30}), "reviews", 30), 20)
 
@@ -89,7 +101,9 @@ class StatsTest(unittest.TestCase):
         # la medida sigue en el promedio y los dias estudiados.
         self.assertEqual(new.current_streak, 3)
         self.assertEqual(new.longest_streak, 3)
-        self.assertEqual(new.average, 4)
+        # 4.8.0: promedio por dia natural desde el primer dia estudiado del
+        # periodo (dia 3): 8 nuevas en 3 dias.
+        self.assertAlmostEqual(new.average, 8 / 3)
         self.assertEqual(new.studied_pct, 67)
         reviews = data.full_stats(sample, "reviews", 30)
         self.assertEqual(reviews.current_streak, 3)
@@ -156,6 +170,9 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(data.surprise(best, "reviews", data.full_stats(best)), ("best_week", 0))
         binge = self.make({**{d: 20 for d in range(7, 60)}, 0: 90, **{d: 5 for d in range(1, 7)}})
         self.assertIsNone(data.surprise(binge, "reviews", data.full_stats(binge)))
+        # 4.8.0: «Un año seguido» es la primera sorpresa del dia.
+        year = self.make({d: 10 for d in range(365)})
+        self.assertEqual(data.surprise(year, "reviews", data.full_stats(year)), ("year_streak", 0))
         # Sin estudiar hoy no hay sorpresa.
         quiet = self.make({1: 90})
         self.assertIsNone(data.surprise(quiet, "reviews", data.full_stats(quiet)))

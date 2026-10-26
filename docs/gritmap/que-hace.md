@@ -1,12 +1,12 @@
 # Qué hace «GritMap»
 
-Versión 4.7.1 · 2026-10-22
+Versión 4.8.0 · 2026-10-26
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub, en tarjetas. Arriba, centrada y
 con cuadritos de 24 px de serie (con el dibujo de la versión 4.1.0), la tarjeta del mapa, con el año entero (un cuadrito por día: gris sin estudio y cuatro tonos
-del tema; los días que vienen, en cuatro grises según las tarjetas que vencen). Debajo, cinco tarjetas
-pequeñas del mismo ancho entre todas, que responden de un vistazo: «Hoy», «Racha», «Promedio
-diario», «Retención» y «Próxima fecha». Tiene una meta diaria opcional, comodines que perdonan días
+del tema; los días que vienen, en tres grises suaves según las tarjetas que vencen). Debajo, hasta
+cinco tarjetas pequeñas del mismo ancho entre todas, que responden de un vistazo: «Hoy», «Racha»,
+«Promedio diario», «Retención» y, solo si tiene alguna fecha clave por venir, «Próxima fecha». Tiene una meta diaria opcional, comodines que perdonan días
 sueltos y una pausa de la racha.
 Solo lee su colección: nunca cambia tarjetas, notas ni repasos. Lo único que guarda son sus opciones.
 
@@ -40,11 +40,12 @@ en el acto, sin esperar a que Anki redibuje la pantalla. El cálculo se hace sin
 
 ## 3. Las tarjetas de debajo del mapa
 
-Cinco tarjetas del mismo ancho (cuatro si se desactiva «Mostrar racha y meta»), que suman el ancho
-del mapa. Cada una tiene un título, un dato grande y una línea gris de hasta dos renglones (si no
+Hasta cinco tarjetas del mismo ancho, que suman el ancho del mapa: «Hoy», «Racha» (no sale si se
+desactiva «Mostrar racha y meta»), «Promedio diario», «Retención» y «Próxima fecha» (solo si hay
+alguna fecha clave de hoy en adelante). Así quedan cinco, cuatro o tres. Cada una tiene un título, un dato grande y una línea gris de hasta dos renglones (si no
 cabe, se corta con «…» y se lee entera al pasar el ratón). No tienen enlaces: al pulsarlas no pasa
-nada. Se reordenan según el ancho del mapa: por debajo de 940 px, dos por fila, con la quinta a lo
-ancho de las dos para que la fila quede cuadrada, y, por debajo de 420 px, una.
+nada. Se reordenan según el ancho del mapa: por debajo de 940 px, dos por fila (con cinco o con tres,
+la última a lo ancho de las dos para que la fila quede cuadrada) y, por debajo de 420 px, una.
 
 ### Hoy
 
@@ -79,20 +80,23 @@ lo último en perderse es si hoy ya cuenta):
   estudiar gasta uno.»);
 - «· a 3 días del récord» si la racha más larga está a 7 días o menos y es de 7 días o más, o
   «· récord: 40 días» en los demás casos (si la racha actual es la más larga, no se añade nada);
-- «· Un año seguido» el día en que la racha llega a 365 días (y a 730, 1.095…).
 
 Casos especiales: si nunca ha estudiado, «0 días» y «hoy pendiente»; si la racha está a cero,
 «0 días» y «Última sesión hace 3 días»; al volver tras romperla, «Día 1» y «récord: 45 días».
 
 ### Promedio diario
 
-Lo hecho por día estudiado, en la unidad de la medida («72 repasos», «60 tarjetas», «8 nuevas»), en el
-periodo de las cifras, contando solo días completos (el periodo termina ayer). Debajo, solo el
-periodo: «últimos 30 días», «último año» o «todo el historial». Sin días completos estudiados escribe
-«N/A» en
-gris, subrayado de puntos: al pasar el ratón (o llegar con el tabulador), «Sin días completos
-estudiados en los últimos 30 días» (o «… en todo el historial»). Con «Nuevas», un promedio que se
-queda en 0 también es «N/A», con «Menos de una nueva por día estudiado…».
+Lo hecho al día, de media, en la unidad de la medida («41 repasos», «60 tarjetas», «8 nuevas»), en el
+periodo de las cifras: lo hecho en el periodo dividido entre sus días, también los que no estudió.
+Quien estudia 4 días de cada 7, con 72 repasos esos días, ve 41. Así la cifra sube al estudiar más
+días, no solo más cada día. Reglas: solo días completos (el periodo termina ayer); se cuenta desde el
+primer día con estudio dentro del periodo (quien empezó hace 10 días no se divide entre 30); los días
+de pausa no cuentan; los cubiertos por un comodín sí, porque no se estudió. Debajo, solo el periodo:
+«últimos 30 días», «último año» o «todo el historial». Sin ningún día completo estudiado en el periodo
+escribe «N/A» en gris, subrayado de puntos: al pasar el ratón (o llegar con el tabulador), «Sin días
+completos estudiados en los últimos 30 días» (o «… en todo el historial»). Con «Nuevas», un promedio
+que se queda en 0 también es «N/A», con «Menos de una nueva al día en los últimos 30 días». Los cortes
+de color del mapa y la meta que se propone en Opciones siguen calculándose por día estudiado.
 
 ### Retención
 
@@ -101,16 +105,18 @@ El porcentaje de respuestas que no fueron «Otra vez», con el criterio de la re
 «últimos 30 días», «último año» o «todo el historial». Usa el mismo periodo que el promedio: días
 completos que terminan ayer. Con menos de 20 respuestas que contar escribe «N/A» (el texto de Anki),
 en gris y subrayado de puntos: al pasar el ratón, «Menos de 20 respuestas en los últimos 30 días» (o
-«… en todo el historial»). En la pantalla de un mazo con FSRS activado añade la retención
-deseada de su configuración: «· objetivo 90 %».
+«… en todo el historial»). Con FSRS activado añade la retención deseada: «· objetivo 90 %», en la
+pantalla de un mazo (la de su configuración) y también en la lista de mazos si todos los mazos que
+cuentan usan la misma; si usan retenciones distintas, en la lista de mazos no se añade nada.
 
 ### Próxima fecha
 
-La próxima fecha clave de hoy en adelante: «faltan 23 días», «falta 1 día» o «es hoy», sin estrella.
-Debajo, solo su nombre (varias el mismo día, separadas por « · »): «Examen de Anatomía», sin el día
-de la semana. Sin fechas
-por venir: «N/A» en gris y, debajo, «sin fechas clave», en minúscula. Las fechas se añaden en
-Opciones > «Gestionar fechas». La tarjeta nunca desaparece.
+Solo aparece si hay alguna fecha clave de hoy en adelante; si no, no hay tarjeta y las demás se
+reparten el ancho. Dice la próxima: «faltan 23 días», «falta 1 día» o «es hoy» (siempre en días,
+aunque falten meses), sin ninguna marca. Debajo, solo su nombre (varias el mismo día, separadas por
+« · »): «Examen de Anatomía», sin el día de la semana. Al día siguiente de la última fecha, la tarjeta
+desaparece. La cuenta atrás es neutra: no cambia de color ni de aspecto al acercarse la fecha. Las
+fechas se añaden en Opciones > «Gestionar fechas».
 
 ## 4. La tarjeta del mapa
 
@@ -119,7 +125,8 @@ Opciones > «Gestionar fechas». La tarjeta nunca desaparece.
   arriba (a la derecha; a la izquierda en los idiomas que se escriben de derecha a izquierda). No hay
   botón «Hoy». Las flechas se ven apagadas en el primer año con repasos y en el último con
   vencimientos o fechas clave; al pulsarlas no pasa nada, pero siguen diciendo su nombre al pasar el
-  ratón y el lector de pantalla las anuncia como no disponibles.
+  ratón y el lector de pantalla las anuncia como no disponibles. Al cambiar de año, el lector de
+  pantalla dice la cifra del año («2025»).
 - El año entero, de enero a diciembre, en columnas de semanas que empiezan en lunes, con los nombres
   de los meses encima en el idioma de Anki (siempre con el calendario gregoriano) y, a la izquierda,
   las iniciales de lunes, miércoles y viernes («L», «X», «V» en español), en gris. El dibujo es
@@ -127,22 +134,25 @@ Opciones > «Gestionar fechas». La tarjeta nunca desaparece.
   elegido en píxeles (3 px de serie). Cada cuadrito mide el tamaño elegido (24 px de serie) y todo lo
   demás crece con él; con «Ajustado al ancho», el año llena el ancho de la tarjeta y el redondeo es el
   de un cuadrito de 14 px.
-  Si el año no cabe, se desplaza de lado: al abrir un año se ve la semana de hoy; en un año pasado, diciembre, y en uno
-  futuro, enero.
+  Si el año no cabe, se desplaza de lado: al abrir un año se ve la semana de hoy; en un año pasado,
+  diciembre, y en uno futuro, enero. Mientras quede mapa por ver a un lado, ese borde se desvanece
+  suavemente, para que se note que sigue; al llegar al final, el degradado se va. Las tarjetas de
+  debajo miden el ancho visible, nunca el del año entero. Las iniciales de los días se desplazan con
+  el mapa.
 - Días pasados y hoy: cinco niveles. Sin estudio, el gris vacío; con estudio, cuatro tonos del tema,
   repartidos según su promedio de siempre en los días que estudió (con un mínimo, para que al empezar
   no salga todo oscuro): hasta la mitad del promedio, hasta el promedio, hasta el doble y más del
   doble.
-- Días futuros con tarjetas que vencen: en cuatro grises, más oscuros (de día) o más claros (de noche)
-  cuantas más tarjetas vencen, con los mismos cortes en proporción a su promedio de repasos. Lo
-  atrasado no se dibuja.
+- Días futuros con tarjetas que vencen: en tres grises suaves, algo más marcados cuantas más tarjetas
+  vencen: poca carga (hasta la mitad de su promedio de repasos), normal (hasta vez y media) y mucha.
+  Los tres son más suaves que el primer tono de cualquier tema, para que lo que viene no pese a la
+  vista más que lo hecho. Lo atrasado no se dibuja.
 - Hoy lleva un borde del color del texto.
-- Las fechas clave llevan una estrella en su cuadrito, en el color del texto y con un filo del color
-  de la tarjeta, que se ve sobre cualquier tono y es igual en todos los temas; al pasar el ratón, su
-  nombre y su cuenta atrás. Las ya pasadas llevan la estrella en gris, para que la próxima destaque.
-  Con cuadritos de menos de 14 px (con un tamaño pequeño o con «Ajustado al ancho» en una ventana
-  estrecha), la estrella no cabe dentro: sube a una fila propia entre los meses y el mapa, encima de
-  la columna de su semana, y el cuadrito queda normal.
+- Las fechas clave llevan un rombo de hito (◆) en su cuadrito, la marca con que los cronogramas
+  señalan una fecha. La de hoy y las que vienen, rombo lleno en el color del texto con un filo del
+  color de la tarjeta, que se ve sobre cualquier tono y es igual en todos los temas; las ya pasadas,
+  rombo hueco en gris, para que la próxima destaque. Se lee a cualquier tamaño, también con cuadritos
+  de 10 px. Al pasar el ratón, su nombre y su cuenta atrás.
 - Un día perdonado por un comodín o por la pausa queda vacío (no estudió), con un borde fino
   discontinuo.
 - Al pasar el ratón por un día, el cuadrito se resalta; si se puede pulsar, el puntero cambia a una
@@ -155,10 +165,12 @@ Opciones > «Gestionar fechas». La tarjeta nunca desaparece.
   por cada uno, las cifras que cubre, calculadas con su promedio actual: «Ningún repaso», «de 1 a 20
   repasos», «de 21 a 40 repasos», «de 41 a 80 repasos» y «81 repasos o más» (con «Nuevas», «Ninguna
   nueva»…). Detrás, «Pendientes» (un gris) si en el año que se ve hay días pendientes, «Fecha clave»
-  (la estrella) si ese año tiene alguna, y «Perdonado» (el borde discontinuo) si hay días
+  (el rombo) si ese año tiene alguna, y «Perdonado» (el borde discontinuo) si hay días
   perdonados.
 - Debajo, a la izquierda, como mucho una línea de sorpresa al día, solo cuando ocurre y con datos
-  reales, por este orden: «Nueva racha más larga» (el día en que la racha supera la mejor anterior),
+  reales, por este orden: «Un año seguido» (el día en que la racha llega a 365 días, y a 730, 1.095…;
+  es la más rara y la primera), «Nueva racha más larga» (el día en que la racha supera la mejor
+  anterior),
   «Su mejor semana del año» (los 7 últimos días, hoy incluido, suman más que cualquier otra semana
   anterior del año, con al menos cuatro semanas con que comparar), «Mes completo» (el último día del
   mes, si respondió alguna tarjeta todos sus días; los perdonados no cuentan como estudiados) y «1.000 repasos este año»
@@ -174,7 +186,7 @@ Opciones > «Gestionar fechas». La tarjeta nunca desaparece.
 - En una colección sin repasos, sin vencimientos y sin fechas clave: la cuadrícula del año actual en
   gris con hoy marcado y, debajo, «Cada día que estudie se pintará aquí.», sin leyenda y con las
   flechas de año apagadas; y debajo, las tarjetas («0 repasos» con «0 repasos en 7 días», «0 días»
-  con «hoy pendiente», promedio y retención «N/A», y «N/A» con «sin fechas clave»).
+  con «hoy pendiente», y promedio y retención «N/A»; sin tarjeta «Próxima fecha»).
 - En la pantalla de un mazo excluido: una tarjeta con «Este mazo está excluido del mapa.»
   y el botón de opciones.
 - Si algo falla: una tarjeta con «No se pudo cargar el mapa de calor.» y el botón de opciones.
@@ -303,16 +315,16 @@ los meses los escribe el navegador de Anki en su idioma; en español, con punto 
 ## 11. Colores, letra y espacio
 
 - Cada color tiene una sola función: los cuatro tonos del tema significan «estudió» (mapa y anillo
-  de la meta); los cuatro grises, «vence»; el gris vacío, «no estudió»; el azul de Anki, el foco del
-  teclado. Las señales son formas, no colores: la estrella y el borde discontinuo.
+  de la meta); los tres grises suaves, «vence»; el gris vacío, «no estudió»; el azul de Anki, el foco
+  del teclado. Las señales son formas, no colores: el rombo (lleno o hueco) y el borde discontinuo.
 - Todo lo que no es la escala del tema sale de los colores de Anki, que la paleta Nocturne redefine,
   con su pareja de día y de noche: tarjeta (fondo de capa elevada y borde suave), textos (texto y texto
   suave), botones, foco (azul de foco) y globo. El gris de los días sin estudio es el borde suave
   de día y el fondo hundido de noche, para que se distinga sobre la tarjeta en los dos modos. Los
-  cuatro tonos de cada tema y los cuatro grises de los pendientes son colores propios (véase «Así a
+  cuatro tonos de cada tema y los tres grises de los pendientes son colores propios (véase «Así a
   propósito» en errores).
 - Tamaños de letra: 20 px para el dato de cada tarjeta, 13 px para las líneas grises de las tarjetas
-  y el globo, y 12 px para los meses, la leyenda y el resto; las iniciales de los días, 11 px. La
+  y el globo, y 12 px para los meses, las iniciales de los días, la leyenda y el resto. La
   jerarquía se marca con el grosor y el gris. La letra es la de Anki.
 - Espacios de 4, 8, 16 y 32 px: 16 px dentro de las tarjetas y entre ellas.
 
@@ -357,21 +369,26 @@ el motivo. Sirve para no volver a ello sin querer.
 | Botón de opciones junto a «‹ 2026 ›» | 4.7.0 | Navegar y configurar son cosas distintas; va aparte, en la esquina (decisión del cliente). |
 | «Meta cumplida» escrita en el mapa y la meta en el globo de los días | 4.1.0 | Repetía lo que ya dice la tarjeta «Hoy». |
 | Punto para los días con tarjetas pendientes | 4.1.0 | El cliente prefirió el marcado de antes: cuatro grises según las tarjetas que vencen. |
-| Grises de pendientes más suaves | Propuesto en 4.7.0, pendiente | Para quedar más suaves que el primer tono del tema dejarían de distinguirse entre sí. Espera la decisión del cliente (tres grises más suaves o los cuatro de ahora). |
+| Cuatro grises para los días pendientes | 4.8.0 | El más oscuro pesaba a la vista más que lo estudiado. Ahora son tres, más suaves que el primer tono de cualquier tema (decisión del cliente). |
+| Estrella como marca de las fechas clave | 4.8.0 | La estrella se lee como «favorito», «nota» o «premio», y la gris de las pasadas, como «no conseguido». Ahora es un rombo de hito: lleno en las que vienen, hueco en las pasadas. |
+| Fila aparte para la marca con cuadritos de menos de 14 px | 4.8.0 | El rombo se lee hasta con 10 px: una sola regla para todos los tamaños. |
+| Iniciales de los días fijas al desplazarse de lado | Probado en 4.8.0, descartado | Dejaban asomar trozos de cuadritos y de meses en el borde; se desplazan con el mapa, como en GitHub. |
 | Fechas clave con borde naranja (o azul) | 4.0.0 | Pasaron a una ★ sobre su semana. |
 | ★ sobre la semana de la fecha clave | 4.1.0 | El cliente pidió otra manera de encontrarlas; pasó a una esquina doblada. |
 | Esquina doblada en el cuadrito de la fecha clave | 4.2.0 | Se veía poco. Se cambió por una estrella dentro del cuadrito. |
 | Salto o enlace desde «Próxima fecha» hasta su día en el mapa | 4.2.0 | El cliente no quiere enlaces. |
 | Línea de sorpresa «Su mejor día del año» | 4.7.0 | Premiaba un día enorme, que empuja a estudiar a atracones. Ahora es «Su mejor semana del año». |
 | Iniciales de los días a la derecha en árabe y hebreo | Propuesto en 4.7.0, no aplicado | La rejilla va siempre de izquierda a derecha (corrección FIX-023), así que las iniciales van a la izquierda. |
-| Que el lector de pantalla anuncie el año al cambiarlo y el texto «No hay repasos antes de…» en las flechas apagadas | Propuesto en 4.7.0, no aplicado | Piden textos nuevos en 51 idiomas o el lector no los anunciaría bien; a la espera de que el cliente los pida. |
+| Texto «No hay repasos antes de…» en las flechas apagadas | Propuesto en 4.7.0, no aplicado | Pide textos nuevos en 51 idiomas; a la espera de que el cliente lo pida. (El anuncio del año, que solo dice la cifra, se añadió en la 4.8.0.) |
+| Encoger el cuadrito cuando el año no cabe | Propuesto de nuevo en 4.8.0, no aplicado | Se mantienen los 24 px; en su lugar, el borde por donde sigue el mapa se desvanece. |
 
 ### En las tarjetas de debajo
 
 | Descartado o cambiado | Versión | Por qué |
 |---|---|---|
 | Llama de la racha y globos de motivación | 3.5.0 | Los descartó el cliente: presionan en lugar de informar. |
-| Globo explicativo de la retención | 2026-10-09 | Lo retiró el cliente. (En la 4.7.0 se añadió solo para explicar el «N/A»; véase el aviso de la entrega.) |
+| Globo explicativo de la retención | 2026-10-09 | Lo retiró el cliente. Desde la 4.7.0 solo hay globo para explicar el «N/A». |
+| Objetivo de retención solo en la pantalla de un mazo | 4.8.0 | Un porcentaje sin referencia no dice si es bueno; ahora sale también en la lista de mazos cuando todos usan el mismo. |
 | Periodos de 7 y 90 días | 3.x | Se quedaron 30 días, 1 año y todo el historial (cliente, 2026-10-13). |
 | Botones de periodo en la página (junto al año, luego encima de las cifras, luego en la tarjeta de estadísticas) | 4.1.0 | El periodo se elige solo en Opciones. Las tarjetas dicen cuál se usa. |
 | Raya entre los dos grupos de cifras | 3.6.0 | Los separaba el espacio; después los grupos se convirtieron en tarjetas. |
@@ -381,7 +398,10 @@ el motivo. Sirve para no volver a ello sin querer.
 | Estrella junto a «Próxima fecha» | 4.1.0 | No hacía falta: la estrella marca el día en el mapa. |
 | Enlaces dentro de las tarjetas («Fijar meta», «Añadir» fechas, ir a los mazos excluidos) y la ventanita «Fijar meta» | 4.2.0 | El cliente no quiere enlaces. Todo se cambia en Opciones. |
 | La fecha al lado del nombre en «Próxima fecha» | 4.3.0 | Ya dice cuántos días faltan. |
-| «Sin fechas clave» como dato grande | 4.4.0 | Ahora pone «N/A», como las demás tarjetas sin dato, y debajo «sin fechas clave». |
+| «Sin fechas clave» como dato grande | 4.4.0 | Pasó a «N/A» con «sin fechas clave» debajo. |
+| Tarjeta «Próxima fecha» siempre a la vista («N/A · sin fechas clave») | 4.8.0 | Para quien no usa fechas era una caja vacía para siempre, que no informaba de nada. Ahora solo aparece si hay alguna fecha de hoy en adelante. |
+| «Un año seguido» al final de la línea de «Racha» | 4.8.0 | Era lo primero que se cortaba, y es lo más raro y memorable. Ahora es la primera línea de sorpresa del mapa. |
+| «Promedio diario» por día estudiado | 4.8.0 | Sin decirlo, exageraba lo que estudia quien no estudia todos los días. Ahora es por día natural del periodo, y el título dice la verdad. |
 | «Récord» con mayúscula en medio de la línea | 4.1.0 | Va en medio de una frase: «récord». |
 | Racha contada en la medida del color | 4.7.0 | Con «Nuevas», un día de solo repasos rompía la racha o gastaba un comodín. Ahora cuenta cualquier respuesta (cliente, 2026-10-22). |
 | «a 3 días del récord» con récords muy cortos | 4.7.0 | Con un récord de 3 días salía al día siguiente de empezar; ahora solo si el récord es de 7 días o más. |
@@ -404,6 +424,7 @@ el motivo. Sirve para no volver a ello sin querer.
 | Tamaños de 8 y 9 px | 4.7.0 | Por debajo de 10 px no se distinguen los cuadritos; un valor guardado así pasa a 10. |
 | Redondeo por encima de la mitad del cuadrito | 4.7.0 | No cambiaba nada; el campo llega como mucho a la mitad. |
 | «El color mide» como lista desplegable | 4.7.0 | Con tres valores, tres botones se leen de un vistazo. |
+| Iniciales de los días a 11 px | 4.8.0 | Era el único tamaño usado una sola vez; ahora 12 px, como los meses. |
 | «Periodo de las cifras» como lista desplegable | 4.7.1 | El cliente lo quiso en tres botones, como «El color mide». |
 | «Restaurar apariencia» reponía también la medida | 4.7.0 | La medida está en otro recuadro; ahora repone solo «Apariencia». |
 | Reglas de comodines y pausa solo al pasar el ratón | 4.7.0 | Casi nadie descubre un globo; ahora van escritas debajo. |

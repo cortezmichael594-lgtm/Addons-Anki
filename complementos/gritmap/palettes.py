@@ -19,6 +19,13 @@ Version 4.1.0 (correccion del cliente, 2026-10-21): los dias pendientes
 vuelven a marcarse como antes, en grises segun las tarjetas que vencen, pero
 con cuatro tonos en lugar de diez (tomados de la escala gris aprobada el
 2026-10-13), y sin el punto de la 4.0.0.
+
+Version 4.8.0 (decision del cliente, 2026-10-26): tres grises mas suaves en
+lugar de cuatro. Lo que viene no debe pesar a la vista mas que lo hecho: los
+tres quedan por debajo del primer tono de cualquier tema (contraste con la
+tarjeta de 1,32 a 1,64 de dia y de 1,29 a 1,63 de noche, frente a 1,7-1,9 del
+primer tono). Cuatro tan suaves no se distinguirian entre si; tres bastan
+para «poca, normal y mucha carga» (la cifra exacta esta en el globo).
 """
 
 # Historial de correcciones de este archivo:
@@ -41,8 +48,8 @@ PAST_DARK: dict[str, tuple[str, ...]] = {
     "sunset_orange": ("#6A4225", "#A16336", "#D78951", "#FFB98A"),  # colores-ok: escala aprobada (2026-10-21)
 }
 
-FUTURE_LIGHT: tuple[str, ...] = ("#CBD2DC", "#B3BAC4", "#9DA3AD", "#8E949E")  # colores-ok: escala aprobada (2026-10-13)
-FUTURE_DARK: tuple[str, ...] = ("#4C515A", "#60666F", "#757B84", "#8C929B")  # colores-ok: escala aprobada (2026-10-13)
+FUTURE_LIGHT: tuple[str, ...] = ("#D8DEE8", "#CDD3DD", "#C2C8D2")  # colores-ok: tres grises suaves aprobados (2026-10-26)
+FUTURE_DARK: tuple[str, ...] = ("#343A44", "#3C424C", "#434953")  # colores-ok: tres grises suaves aprobados (2026-10-26)
 
 THEME_NAMES: tuple[str, ...] = tuple(PAST_LIGHT)
 # Temas retirados en la 4.0.0 y el tema al que pasa quien los tenia.
@@ -56,11 +63,19 @@ LEVELS = 4
 # siempre en los dias estudiados): hasta la mitad, hasta el promedio, hasta
 # el doble y mas del doble.
 LEGEND_FACTORS: tuple[float, ...] = (0.5, 1.0, 2.0)
+# Tres grises de los dias pendientes (4.8.0): poca carga (hasta la mitad de
+# lo normal), normal (hasta vez y media) y mucha.
+DUE_FACTORS: tuple[float, ...] = (0.5, 1.5)
 
 
 def legend_thresholds(reference: float) -> list[float]:
     """Limites de los cuatro tonos a partir de la referencia de la escala."""
     return [factor * reference for factor in LEGEND_FACTORS]
+
+
+def due_thresholds(reference: float) -> list[float]:
+    """Limites de los tres grises de los dias pendientes."""
+    return [factor * reference for factor in DUE_FACTORS]
 
 
 def level_index(count: float, thresholds: list[float]) -> int:

@@ -84,7 +84,7 @@ from .i18n import (
     t,
     unit_label,
 )
-from .palettes import legend_thresholds, level_index, palette_css
+from .palettes import due_thresholds, legend_thresholds, level_index, palette_css
 
 # --- FIX-008 (2026-10-08) --------------------------------------
 # Sintoma: los identificadores, clases, variables de color y ordenes del mapa
@@ -418,9 +418,9 @@ def _streak_card(stats: FullStats, cfg: Config, today: date) -> str:
         freezes = fill_html(plural_key("freeze", stats.freezes_left), count=num_html(stats.freezes_left))
         parts.append(f'<span class="gritmap-tipped"{_info_attrs(html.escape(t("freeze_tip")))}>{freezes}</span>')
     gap = stats.longest_streak - current
-    if stats.today_done and current % 365 == 0:
-        parts.append(html.escape(t("year_streak")))
-    elif 0 < gap <= _RECORD_GAP_MAX and stats.longest_streak >= _RECORD_NEAR_MIN:
+    # «Un año seguido» ya no va aqui, donde se cortaba el primero: es la
+    # primera linea de sorpresa del mapa (4.8.0).
+    if 0 < gap <= _RECORD_GAP_MAX and stats.longest_streak >= _RECORD_NEAR_MIN:
         parts.append(fill_html("record_near", days=_days_html(gap)))
     elif gap > 0:
         # La racha mas larga queda a la vista aunque la actual este lejos
@@ -463,15 +463,10 @@ def _average_card(stats: FullStats, measure: str, window: int) -> str:
 
 
 def _next_card(key_dates: tuple[KeyDate, ...], today: date) -> str:
-    """¿Que tengo por delante? La tarjeta nunca desaparece, para que la fila no
-    cambie de forma de un dia a otro. Sin enlaces (4.2.0, peticion del
-    cliente): solo el nombre (4.3.0: sin la fecha al lado). Sin fechas, «N/A»
-    en gris y debajo «sin fechas clave», como las demas tarjetas sin dato
-    (4.4.0)."""
-    upcoming = sorted(kd.day for kd in key_dates if kd.day >= today)
-    if not upcoming:
-        return _mini(t("card_next"), _not_available_html(), html.escape(t("no_key_dates")), "gritmap-muted")
-    day = upcoming[0]
+    """¿Que tengo por delante? Sin enlaces (4.2.0, peticion del cliente):
+    solo el nombre (4.3.0: sin la fecha al lado). Desde la 4.8.0 la tarjeta
+    solo existe si hay alguna fecha de hoy en adelante (build_summary)."""
+    day = min(kd.day for kd in key_dates if kd.day >= today)
     # Solo el nombre, sin el dia de la semana (4.7.1, peticion del cliente).
     names = " · ".join(html.escape(kd.label) for kd in key_dates if kd.day == day)
     return _mini(t("card_next"), countdown_html((day - today).days), names)
@@ -487,7 +482,10 @@ def build_summary(
         cards.append(_streak_card(stats, cfg, data.today))
     cards.append(_average_card(stats, cfg.measure, cfg.avg_window))
     cards.append(_retention_card(stats, cfg.avg_window, data.fsrs_target))
-    cards.append(_next_card(cfg.key_dates, data.today))
+    # «Próxima fecha», solo si hay alguna de hoy en adelante (4.8.0): quien
+    # no usa fechas clave no ve una tarjeta vacia para siempre.
+    if any(kd.day >= data.today for kd in cfg.key_dates):
+        cards.append(_next_card(cfg.key_dates, data.today))
     return (
         f'<div class="gritmap-summary gritmap-n{len(cards)}"><div class="gritmap-cards">'
         + "".join(cards)
@@ -607,15 +605,17 @@ def _build_cell(
     label = key_labels.get(day)
     if label:
         attrs += f' data-gritmap-key="{html.escape(label, quote=True)}"'
-        # Fecha clave (4.2.0, peticion del cliente): una estrella en su propio
-        # cuadrito, en el color del texto y con un filo del color de la
-        # tarjeta para que se vea sobre cualquier tono. Es una forma, igual en
-        # todos los temas. Las ya pasadas, en gris, para que la proxima
-        # destaque sola (4.7.0).
+        # Fecha clave: un rombo de hito (4.8.0, en lugar de la estrella de la
+        # 4.2.0, que se leia como «favorito» o «premio»). Es la marca con que
+        # los cronogramas senalan una fecha, y cuatro vertices se leen hasta
+        # con cuadritos de 10 px, asi que vale una sola regla para todos los
+        # tamanos. Las que vienen (y la de hoy), llenas en el color del texto
+        # con un filo del color de la tarjeta; las pasadas, huecas en gris:
+        # lleno frente a hueco se distingue sin color.
         past_class = " gritmap-kpast" if days_ago > 0 else ""
         extra = (
-            f'<polygon class="gritmap-kstar{past_class}"'
-            f' points="{star_points(x + cell / 2, y + cell / 2, cell * 0.36)}" aria-hidden="true"></polygon>'
+            f'<polygon class="gritmap-kmark{past_class}"'
+            f' points="{diamond_points(x + cell / 2, y + cell / 2, cell * 0.34)}" aria-hidden="true"></polygon>'
         )
     if days_ago == 0:
         attrs += ' data-gritmap-today="1"'
@@ -635,25 +635,17 @@ def _build_cell(
     )
 
 
-def star_points(cx: float, cy: float, outer: float) -> str:
-    """Vertices de una estrella de cinco puntas centrada en (cx, cy)."""
-    inner = outer * 0.45
-    points = []
-    for index in range(10):
-        radius = outer if index % 2 == 0 else inner
-        angle = math.pi / 5 * index - math.pi / 2
-        points.append(f"{cx + radius * math.cos(angle):.2f},{cy + radius * math.sin(angle):.2f}")
-    return " ".join(points)
+def diamond_points(cx: float, cy: float, radius: float) -> str:
+    """Vertices de un rombo (cuadrado girado 45°) centrado en (cx, cy)."""
+    return (
+        f"{cx:.2f},{cy - radius:.2f} {cx + radius:.2f},{cy:.2f} "
+        f"{cx:.2f},{cy + radius:.2f} {cx - radius:.2f},{cy:.2f}"
+    )
 
 
 def grid_width(year: int) -> int:
     """Ancho del ano en unidades del dibujo."""
     return _week_count(year) * _STEP - _GAP
-
-
-# Por debajo de este lado, en pixeles, la estrella de una fecha clave no se
-# lee dentro del cuadrito y sube a una fila propia encima del mapa (4.7.0).
-SMALL_CELL = 14
 
 
 def _year_style(cfg: Config, width: int) -> str:
@@ -665,13 +657,10 @@ def _year_style(cfg: Config, width: int) -> str:
 
 
 def _year_classes(cfg: Config) -> str:
-    """Clases del ano: ajustado al ancho y cuadritos pequenos. Con el ajuste
-    al ancho el tamano real solo se sabe en la pagina: alli lo decide
-    gritmap.js."""
-    if _fit(cfg):
-        return "gritmap-year gritmap-fit"
-    small = " gritmap-small" if cfg.cell_size < SMALL_CELL else ""
-    return f"gritmap-year{small}"
+    """Clases del ano: con o sin ajuste al ancho. (La fila aparte para las
+    marcas de los cuadritos pequenos de la 4.7.0 ya no hace falta: el rombo
+    se lee a cualquier tamano.)"""
+    return "gritmap-year gritmap-fit" if _fit(cfg) else "gritmap-year"
 
 
 def _weekday_column() -> str:
@@ -681,18 +670,6 @@ def _weekday_column() -> str:
         f'<span data-gritmap-dayname="{row}"></span>' if row in (0, 2, 4) else "<span></span>" for row in range(7)
     )
     return f'<div class="gritmap-days" aria-hidden="true">{rows}</div>'
-
-
-def _key_stars_row(key_dates: tuple[KeyDate, ...], year: int, today: date, width: int) -> str:
-    """Estrellas de las fechas clave encima de la columna de su semana, para
-    cuando el cuadrito es demasiado pequeno para llevarla dentro (4.7.0)."""
-    stars = []
-    for day in sorted({kd.day for kd in key_dates if kd.day.year == year}):
-        week, _row = _cell_position(day)
-        left = 100 * (week * _STEP + _CELL / 2) / width
-        past = " gritmap-kpast" if day < today else ""
-        stars.append(f'<span class="gritmap-mstar{past}" style="left:{left:.3f}%"></span>')
-    return f'<div class="gritmap-kstars" aria-hidden="true">{"".join(stars)}</div>'
 
 
 def build_year(
@@ -742,7 +719,6 @@ def build_year(
     return (
         f'<div class="{_year_classes(cfg)}">{_weekday_column()}'
         f'<div class="gritmap-months">{"".join(months)}</div>'
-        f"{_key_stars_row(cfg.key_dates, year, data.today, width)}"
         f'<svg viewBox="0 0 {width} {height}" style="{_year_style(cfg, width)}" xmlns="http://www.w3.org/2000/svg"'
         f' role="group" aria-label="{year}">{"".join(cells)}</svg></div>'
     )
@@ -827,6 +803,8 @@ def _surprise_html(found: tuple[str, int] | None, measure: str) -> str:
     key, value = found
     if key == "year_total":
         text = fill_html("surprise_year", total=count_html(value, measure))
+    elif key == "year_streak":
+        text = html.escape(t("year_streak"))
     else:
         text = html.escape(t(f"surprise_{key}"))
     return f'<span class="gritmap-surprise">{text}</span>'
@@ -848,7 +826,7 @@ def build_activity(
     thresholds = legend_thresholds(scale_reference(data, cfg.measure))
     # Los dias futuros no dependen de la medida: siguen en gris segun las
     # tarjetas que vencen, con la escala de siempre (la de los repasos).
-    future_thresholds = legend_thresholds(scale_reference(data, "reviews"))
+    future_thresholds = due_thresholds(scale_reference(data, "reviews"))
     forgiven = stats.forgiven if stats is not None else {}
     # Sin boton «Hoy» (4.4.0, peticion del cliente): el mapa ya se abre en la
     # semana de hoy. «‹ 2026 ›» va centrado y el boton de opciones, aparte,
@@ -956,7 +934,10 @@ def placeholder_html(cfg: Config) -> str:
     rejilla con su alto final, mientras se calcula la primera vez: nada salta
     cuando llegan los datos."""
     bones = '<span class="gritmap-bone"></span>'
-    count = 5 if cfg.show_streak else 4
+    # Las mismas tarjetas que tendra el resumen: sin racha ni meta, una
+    # menos; sin fechas clave por venir, otra menos (4.8.0).
+    today = date.today()
+    count = 3 + int(cfg.show_streak) + int(any(kd.day >= today for kd in cfg.key_dates))
     minis = "".join(
         f'<section class="gritmap-card gritmap-mini">{bones}{bones}{bones}</section>' for _ in range(count)
     )
@@ -965,7 +946,7 @@ def placeholder_html(cfg: Config) -> str:
     bone = f"aspect-ratio:{width}/{height};{_year_style(cfg, width)}"
     grid = (
         f'<div class="{_year_classes(cfg)}"><div class="gritmap-days"></div>'
-        '<div class="gritmap-months"></div><div class="gritmap-kstars"></div>'
+        '<div class="gritmap-months"></div>'
         f'<div class="gritmap-bone gritmap-bone-grid" style="{bone}"></div></div>'
     )
     activity = (

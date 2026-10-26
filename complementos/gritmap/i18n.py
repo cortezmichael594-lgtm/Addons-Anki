@@ -6000,3 +6000,63 @@ _STRINGS_4_7: dict[str, tuple[str, ...]] = {
 }
 for _code, _texts in _STRINGS_4_7.items():
     STRINGS[_code].update(zip(_KEYS_4_7, _texts))
+
+
+# 4.8.0: el promedio diario pasa a ser por dia natural del periodo, asi que
+# el motivo del N/A con «Nuevas» dice «al dia», no «por dia estudiado».
+_NEW_PER_DAY: dict[str, tuple[str, str]] = {
+    "en": ("Less than one new card a day in the last {count} days", "Less than one new card a day in the whole history"),
+    "es": ("Menos de una nueva al día en los últimos {count} días", "Menos de una nueva al día en todo el historial"),
+    "de": ("Weniger als eine neue Karte pro Tag in den letzten {count} Tagen", "Weniger als eine neue Karte pro Tag im gesamten Verlauf"),
+    "fr": ("Moins d'une nouvelle carte par jour sur les {count} derniers jours", "Moins d'une nouvelle carte par jour dans tout l'historique"),
+    "it": ("Meno di una nuova al giorno negli ultimi {count} giorni", "Meno di una nuova al giorno in tutta la cronologia"),
+    "pt": ("Menos de um cartão novo por dia nos últimos {count} dias", "Menos de um cartão novo por dia em todo o histórico"),
+    "nl": ("Minder dan één nieuwe kaart per dag in de laatste {count} dagen", "Minder dan één nieuwe kaart per dag in de volledige geschiedenis"),
+    "ru": ("Меньше одной новой в день за последние {count} дн.", "Меньше одной новой в день за всю историю"),
+    "pl": ("Mniej niż jedna nowa dziennie w ostatnich {count} dniach", "Mniej niż jedna nowa dziennie w całej historii"),
+    "tr": ("Son {count} günde günde birden az yeni kart", "Tüm geçmişte günde birden az yeni kart"),
+    "ja": ("過去{count}日間、1日あたりの新規カードは1枚未満です", "全期間で、1日あたりの新規カードは1枚未満です"),
+    "ko": ("최근 {count}일 동안 하루 새 카드가 1장 미만입니다", "전체 기록에서 하루 새 카드가 1장 미만입니다"),
+    "zh_CN": ("最近 {count} 天内每天的新卡片不到 1 张", "全部历史中每天的新卡片不到 1 张"),
+    "zh_TW": ("最近 {count} 天內每天的新卡片不到 1 張", "全部歷史中每天的新卡片不到 1 張"),
+    "ar": ("أقل من بطاقة جديدة واحدة يوميًا في آخر {count} يومًا", "أقل من بطاقة جديدة واحدة يوميًا في كل السجل"),
+    "el": ("Λιγότερο από μία νέα κάρτα την ημέρα τις τελευταίες {count} ημέρες", "Λιγότερο από μία νέα κάρτα την ημέρα σε όλο το ιστορικό"),
+    "sv": ("Mindre än ett nytt kort per dag de senaste {count} dagarna", "Mindre än ett nytt kort per dag i hela historiken"),
+    "da": ("Mindre end ét nyt kort om dagen de seneste {count} dage", "Mindre end ét nyt kort om dagen i hele historikken"),
+    "nb": ("Mindre enn ett nytt kort per dag de siste {count} dagene", "Mindre enn ett nytt kort per dag i hele historikken"),
+    "fi": ("Alle yksi uusi kortti päivässä viimeisten {count} päivän aikana", "Alle yksi uusi kortti päivässä koko historiassa"),
+    "cs": ("Méně než jedna nová denně za posledních {count} dní", "Méně než jedna nová denně v celé historii"),
+    "sk": ("Menej ako jedna nová denne za posledných {count} dní", "Menej ako jedna nová denne v celej histórii"),
+    "hu": ("Naponta kevesebb mint egy új kártya az utolsó {count} napban", "Naponta kevesebb mint egy új kártya a teljes előzményben"),
+    "ro": ("Mai puțin de un card nou pe zi în ultimele {count} zile", "Mai puțin de un card nou pe zi în tot istoricul"),
+    "uk": ("Менше однієї нової на день за останні {count} дн.", "Менше однієї нової на день за всю історію"),
+    "vi": ("Ít hơn một thẻ mới mỗi ngày trong {count} ngày qua", "Ít hơn một thẻ mới mỗi ngày trong toàn bộ lịch sử"),
+    "th": ("การ์ดใหม่น้อยกว่า 1 ใบต่อวันใน {count} วันล่าสุด", "การ์ดใหม่น้อยกว่า 1 ใบต่อวันในประวัติทั้งหมด"),
+    "ms": ("Kurang daripada satu kad baharu sehari dalam {count} hari lalu", "Kurang daripada satu kad baharu sehari dalam seluruh sejarah"),
+    "tl": ("Wala pang isang bagong kard bawat araw sa huling {count} araw", "Wala pang isang bagong kard bawat araw sa buong kasaysayan"),
+    "he": ("פחות מכרטיס חדש אחד ביום ב-{count} הימים האחרונים", "פחות מכרטיס חדש אחד ביום בכל ההיסטוריה"),
+    "hr": ("Manje od jedne nove dnevno u zadnjih {count} dana", "Manje od jedne nove dnevno u cijeloj povijesti"),
+    "sr": ("Мање од једне нове дневно у последњих {count} дана", "Мање од једне нове дневно у целој историји"),
+    "sl": ("Manj kot ena nova na dan v zadnjih {count} dneh", "Manj kot ena nova na dan v celotni zgodovini"),
+    "bg": ("По-малко от една нова карта на ден през последните {count} дни", "По-малко от една нова карта на ден в цялата история"),
+    "ca": ("Menys d'una nova al dia en els últims {count} dies", "Menys d'una nova al dia en tot l'historial"),
+    "eu": ("Eguneko txartel berri bat baino gutxiago azken {count} egunetan", "Eguneko txartel berri bat baino gutxiago historia osoan"),
+    "gl": ("Menos dunha nova ao día nos últimos {count} días", "Menos dunha nova ao día en todo o historial"),
+    "et": ("Vähem kui üks uus kaart päevas viimase {count} päeva jooksul", "Vähem kui üks uus kaart päevas kogu ajaloos"),
+    "fa": ("کمتر از یک کارت جدید در روز در {count} روز اخیر", "کمتر از یک کارت جدید در روز در کل سابقه"),
+    "mn": ("Сүүлийн {count} өдөрт өдөрт нэгээс цөөн шинэ карт", "Бүх түүхэнд өдөрт нэгээс цөөн шинэ карт"),
+    "be": ("Менш за адну новую ў дзень за апошнія {count} дз.", "Менш за адну новую ў дзень за ўсю гісторыю"),
+    "eo": ("Malpli ol unu nova karto tage en la lastaj {count} tagoj", "Malpli ol unu nova karto tage en la tuta historio"),
+    "af": ("Minder as een nuwe kaart per dag in die laaste {count} dae", "Minder as een nuwe kaart per dag in die hele geskiedenis"),
+    "ga": ("Níos lú ná cárta nua amháin in aghaidh an lae sna {count} lá deiridh", "Níos lú ná cárta nua amháin in aghaidh an lae sa stair ar fad"),
+    "la": ("Minus quam una charta nova per diem ultimis {count} diebus", "Minus quam una charta nova per diem in tota historia"),
+    "oc": ("Mens d'una carta novèla per jorn dins los darrièrs {count} jorns", "Mens d'una carta novèla per jorn dins tot l'istoric"),
+    "uz": ("Oxirgi {count} kunda kuniga bittadan kam yangi karta", "Butun tarixda kuniga bittadan kam yangi karta"),
+    "jbo": ("me'i pa cnino kartu ro djedi ca lo {count} djedi", "me'i pa cnino kartu ro djedi ca ro citri"),
+    "hy": ("Վերջին {count} օրում օրական մեկից քիչ նոր քարտ", "Ամբողջ պատմության մեջ օրական մեկից քիչ նոր քարտ"),
+    "ug": ("ئاخىرقى {count} كۈندە كۈنىگە بىردىن ئاز يېڭى كارتا", "پۈتۈن تارىختا كۈنىگە بىردىن ئاز يېڭى كارتا"),
+    "or": ("ଶେଷ {count} ଦିନରେ ଦିନକୁ ଗୋଟିଏରୁ କମ୍ ନୂଆ କାର୍ଡ", "ସମ୍ପୂର୍ଣ୍ଣ ଇତିହାସରେ ଦିନକୁ ଗୋଟିଏରୁ କମ୍ ନୂଆ କାର୍ଡ"),
+}
+for _code, (_days, _all) in _NEW_PER_DAY.items():
+    STRINGS[_code]["avg_na_new_days"] = _days
+    STRINGS[_code]["avg_na_new_all"] = _all

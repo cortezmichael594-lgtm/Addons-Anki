@@ -43,9 +43,9 @@ class WidgetTest(unittest.TestCase):
         self.assertEqual(order, sorted(order))
         # El dia de hoy se marca y es el que recibe el tabulador.
         self.assertRegex(html, r'data-d="2026-10-13"[^>]*data-gritmap-today="1"[^>]*tabindex="0"')
-        # La fecha clave: nombre escapado y estrella en su cuadrito (4.2.0).
+        # La fecha clave: nombre escapado y rombo en su cuadrito (4.8.0).
         self.assertRegex(html, r'data-d="2026-11-20"[^>]*data-gritmap-key=')
-        self.assertIn('class="gritmap-kstar"', html)
+        self.assertIn('class="gritmap-kmark"', html)
         # Sin enlaces (cliente, 2026-10-21).
         self.assertNotIn("gritmap-link", html)
         self.assertIn("Examen &amp;lt;b&amp;gt;", html)
@@ -170,7 +170,7 @@ class WidgetTest(unittest.TestCase):
         # 4.7.1: sin «por día estudiado» (cliente).
         self.assertNotIn("por día estudiado", card)
         self.assertIn('title="últimos 30 días"', card)
-        retention = html[html.index(">Retención<"):html.index(">Próxima fecha<")]
+        retention = html[html.index(">Retención<"):]
         self.assertIn("N/A", retention)
         self.assertIn("Menos de", retention)
 
@@ -181,17 +181,17 @@ class WidgetTest(unittest.TestCase):
         far = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 11, 16), "Examen"),))
         self.assertNotIn("data-gritmap-weekday", view.build_widget_html(sample(), far, 0))
 
-    def test_key_stars_past_and_small_cells(self) -> None:
+    def test_key_marks_are_diamonds_past_hollow(self) -> None:
+        # 4.8.0: rombo de hito; las pasadas, huecas (clase kpast); una sola
+        # regla a cualquier tamano, sin fila aparte.
         dates = (KeyDate(date(2026, 3, 2), "Parcial"), KeyDate(date(2026, 11, 20), "Final"))
         html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, key_dates=dates), 0)
-        # Las pasadas, en gris; la proxima, en el color del texto.
-        self.assertEqual(html.count('class="gritmap-kstar gritmap-kpast"'), 1)
-        self.assertEqual(html.count('class="gritmap-kstar"'), 1)
-        self.assertNotIn("gritmap-small", html)
-        # Por debajo de 14 px, la estrella sube a su fila.
-        small = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=12, key_dates=dates), 0)
-        self.assertIn('class="gritmap-year gritmap-small"', small)
-        self.assertEqual(small.count('class="gritmap-mstar'), 2)
+        self.assertEqual(html.count('class="gritmap-kmark gritmap-kpast"'), 1)
+        self.assertEqual(html.count('class="gritmap-kmark"'), 1)
+        self.assertEqual(view.diamond_points(7, 7, 2), "7.00,5.00 9.00,7.00 7.00,9.00 5.00,7.00")
+        small = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, cell_size=10, key_dates=dates), 0)
+        self.assertNotIn("gritmap-small", small)
+        self.assertNotIn("gritmap-kstar", small)
 
     def test_weekdays_corner_button_and_soft_disabled_arrows(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
@@ -203,7 +203,8 @@ class WidgetTest(unittest.TestCase):
 
     def test_hidden_streak_and_goal(self) -> None:
         html = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, show_streak=False), 0)
-        self.assertEqual(html.count('class="gritmap-card gritmap-mini"'), 4)
+        # Sin racha ni meta y sin fechas clave por venir: tres (4.8.0).
+        self.assertEqual(html.count('class="gritmap-card gritmap-mini"'), 3)
         self.assertNotIn(">Racha<", html)
 
     def test_streak_card_lines(self) -> None:
@@ -229,19 +230,28 @@ class WidgetTest(unittest.TestCase):
         self.assertIn("objetivo", html)
         self.assertIn('data-p="90"', html)
 
-    def test_next_date_card_never_disappears(self) -> None:
+    def test_next_date_card_only_with_upcoming_dates(self) -> None:
+        # 4.8.0: sin fechas de hoy en adelante, no hay tarjeta (cuatro).
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        card = html[html.index(">Próxima fecha<"):]
-        # 4.4.0: «N/A» en grande y «sin fechas clave» debajo, en minuscula.
-        self.assertIn('<div class="gritmap-big gritmap-muted">N/A</div>', card)
-        self.assertIn(">sin fechas clave</div>", card)
+        self.assertNotIn(">Próxima fecha<", html)
+        self.assertIn("gritmap-n4", html)
+        past = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2026, 3, 2), "Parcial"),))
+        self.assertNotIn(">Próxima fecha<", view.build_widget_html(sample(), past, 0))
+        # Sin racha ni meta y sin fechas, tres.
+        hidden = view.build_widget_html(sample(), replace(DEFAULT_CONFIG, show_streak=False), 0)
+        self.assertIn("gritmap-n3", hidden)
+        today = replace(DEFAULT_CONFIG, key_dates=(KeyDate(TODAY, "Examen"),))
+        self.assertIn(">Próxima fecha<", view.build_widget_html(sample(), today, 0))
 
-    def test_pending_days_in_four_greys(self) -> None:
+    def test_pending_days_in_three_soft_greys(self) -> None:
+        # 4.8.0 (cliente): tres grises mas suaves que el primer tono del tema.
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
         levels = set(re.findall(r'fill="var\(--gritmap-f(\d+)\)"', html))
-        self.assertTrue(levels and levels <= {"1", "2", "3", "4"}, levels)
+        self.assertTrue(levels and levels <= {"1", "2", "3"}, levels)
         self.assertNotIn("gritmap-dot", html)
-        self.assertIn("--gritmap-f4:", palettes.palette_css("classic_green"))
+        css = palettes.palette_css("classic_green")
+        self.assertIn("--gritmap-f3:", css)
+        self.assertNotIn("--gritmap-f4:", css)
 
     def test_forgiven_day_is_dashed(self) -> None:
         past = {d: DayActivity(5, 5, 0) for d in range(2, 12)}
@@ -303,8 +313,10 @@ class WidgetTest(unittest.TestCase):
     def test_placeholder_reserves_the_cards(self) -> None:
         page = view.placeholder_html(DEFAULT_CONFIG)
         self.assertIn("gritmap-bone-grid", page)
-        self.assertIn("gritmap-bone-grid", page)
-        self.assertEqual(page.count('class="gritmap-card gritmap-mini"'), 5)
+        # Sin fechas clave por venir, cuatro tarjetas (4.8.0); con una, cinco.
+        self.assertEqual(page.count('class="gritmap-card gritmap-mini"'), 4)
+        soon = replace(DEFAULT_CONFIG, key_dates=(KeyDate(date(2100, 1, 1), "Examen"),))
+        self.assertEqual(view.placeholder_html(soon).count('class="gritmap-card gritmap-mini"'), 5)
 
     def test_payload_has_no_goal_line_for_the_map(self) -> None:
         # «Meta cumplida» ya no sale en el globo del mapa (cliente, 2026-10-21).

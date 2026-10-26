@@ -9,12 +9,7 @@ ninguna. Las diez primeras se hicieron antes de que el complemento llegara a est
 
 Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa y propuesta.
 
-- 2026-10-22 · versión 4.7.0 · Qué pasa: el gris más oscuro de los días pendientes resalta más que el
-  primer tono del tema (contraste con la tarjeta de 2,97 frente a 1,8 de día; 4,71 frente a 1,7 de
-  noche), así que el futuro pesa a la vista casi tanto como lo estudiado. Para que los cuatro grises
-  queden más suaves que ese primer tono tendrían que caber entre 1,27 y 1,75, y dejarían de
-  distinguirse entre sí. Propuesta: tres grises más suaves, o dejar los cuatro de ahora (decisión del
-  cliente en la 4.1.0).
+(Ninguno.)
 
 ## Corregidos
 
@@ -338,4 +333,22 @@ Versión 4.7.1 (petición del cliente del 2026-10-22 sobre la 4.7.0):
   día estudiado. Lo pidió el cliente.
 - «Próxima fecha» dice solo el nombre, sin el día de la semana. Lo pidió el cliente.
 - «Periodo de las cifras» se elige con tres botones, como «El color mide». Lo pidió el cliente.
+
+Versión 4.8.0 (revisión de experiencia de uso aprobada por el cliente el 2026-10-26):
+
+- Las fechas clave llevan un rombo de hito en lugar de la estrella: lleno en las que vienen, hueco y
+  gris en las pasadas. Se quita la fila aparte de los cuadritos pequeños: el rombo se lee a 10 px.
+- «Próxima fecha» solo aparece si hay alguna fecha de hoy en adelante: puede haber cinco, cuatro o
+  tres tarjetas. Sustituye a la decisión de la 4.4.0 («N/A» con «sin fechas clave»).
+- «Promedio diario» es por día natural del periodo, desde el primer día estudiado dentro de él; los
+  días de pausa no cuentan y los de comodín sí. Los cortes de color del mapa y la meta propuesta siguen
+  por día estudiado, porque describen un día en que se estudia.
+- Los días pendientes van en tres grises más suaves que el primer tono de cualquier tema, en lugar de
+  cuatro (resuelve lo pendiente de la 4.7.0).
+- «Un año seguido» pasa de la línea de «Racha» a ser la primera línea de sorpresa.
+- Si el año no cabe, el borde por donde sigue se desvanece. Las iniciales de los días se desplazan
+  con el mapa: fijas, dejaban asomar trozos de cuadritos en el borde (criterio técnico, comprobado en
+  pantalla).
+- El objetivo de retención sale también en la lista de mazos si todos los mazos que cuentan usan la
+  misma retención deseada.
 

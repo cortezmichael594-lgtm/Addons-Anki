@@ -125,7 +125,11 @@ def _request_data(current_deck_only: bool, cfg: Config) -> None:
         if current_deck_only:
             data = replace(data, fsrs_target=_fsrs_target(col, deck_id))
         else:
-            data = replace(data, due_remaining=_due_remaining(col.sched.deck_due_tree(), scope))
+            data = replace(
+                data,
+                due_remaining=_due_remaining(col.sched.deck_due_tree(), scope),
+                fsrs_target=_shared_fsrs_target(col, scope),
+            )
         return data, deck_id
 
     @guarded()
@@ -185,6 +189,26 @@ def _fsrs_target(col: Collection, deck_id: int) -> float | None:
         return None
     target = col.decks.config_dict_for_deck_id(DeckId(deck_id)).get("desiredRetention")
     return float(target) if isinstance(target, (int, float)) and 0 < target < 1 else None
+
+
+def _shared_fsrs_target(col: Collection, scope: DeckScope) -> float | None:
+    """Retencion deseada comun a todos los mazos que cuentan en la lista de
+    mazos (4.8.0): si todos usan la misma (lo normal, un solo grupo de
+    opciones), «· objetivo 90 %» sale tambien ahi; si son distintas, nada."""
+    if not col.get_config("fsrs", False):
+        return None
+    excluded = set(scope.exclude_ids)
+    targets: set[float] = set()
+    for entry in col.decks.all_names_and_ids(skip_empty_default=True, include_filtered=False):
+        if entry.id in excluded:
+            continue
+        target = col.decks.config_dict_for_deck_id(DeckId(entry.id)).get("desiredRetention")
+        if not isinstance(target, (int, float)) or not 0 < target < 1:
+            return None
+        targets.add(round(float(target), 4))
+        if len(targets) > 1:
+            return None
+    return targets.pop() if targets else None
 
 
 def _redraw_in_place() -> None:
