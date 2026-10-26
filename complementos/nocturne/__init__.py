@@ -11,14 +11,39 @@ toma los colores de la paleta. Sus textos están en español (strings.py).
 from __future__ import annotations
 
 from aqt import gui_hooks, mw
+from aqt.utils import tooltip
 
-from . import config, dialogs, theming, themes, titlebar, webview_style
-from .errors import get_logger
+from . import config, contrast, dialogs, strings, theming, themes, titlebar, webview_style
+from .errors import guard, note_failure
+
+
+@guard
+def _welcome() -> None:
+    """La primera vez que Anki arranca con Nocturne, un aviso con el camino para
+    cambiar de paleta (Norman, descubribilidad). Solo una vez."""
+    if config.take_welcome():
+        tooltip(strings.WELCOME, period=6000)
+
+
+@guard
+def _on_profile_open() -> None:
+    if mw is not None:
+        # Un momento después de abrir el perfil, cuando ya se ve la ventana principal.
+        mw.progress.single_shot(1500, _welcome, False)
 
 
 def _setup() -> None:
     # 0) La paleta elegida en la configuración (Nocturne si no hay ninguna válida).
     themes.select(config.load())
+
+    # Elegir paleta y el aviso de bienvenida, en cualquier caso.
+    mw.addonManager.setConfigAction(__name__, dialogs.open_dialog)
+    gui_hooks.profile_did_open.append(_on_profile_open)
+
+    # Si el sistema pide más contraste, Nocturne no pinta nada (versión 3.5.0).
+    if contrast.system_wants_more_contrast():
+        contrast.step_aside()
+        return
 
     # 1) Volcar la paleta sobre los tokens de color de Anki. Se hace lo primero,
     #    y al importar el complemento, para que todo lo que Anki construya a
@@ -46,14 +71,10 @@ def _setup() -> None:
     #    de estilo antes de cargar los complementos, así que hay que rehacerla.
     theming.restyle()
 
-    # 5) Elegir paleta: solo desde el botón «Configuración» de la ventana de
-    #    complementos (Herramientas > «Complementos»).
-    mw.addonManager.setConfigAction(__name__, dialogs.open_dialog)
-
 
 if mw is not None:
     try:
         _setup()
     except Exception:
         # Ante cualquier imprevisto, Anki conserva su apariencia y sigue estable.
-        get_logger().exception("la inicialización de Nocturne falló")
+        note_failure("la inicialización de Nocturne falló")

@@ -42,7 +42,7 @@ from aqt.qt import QWebEngineScript
 from aqt.utils import tr
 from aqt.webview import AnkiWebView, WebContent
 
-from .errors import get_logger, guard
+from .errors import guard, note_failure
 from . import themes
 from .palette import Mode
 
@@ -120,7 +120,7 @@ def _ui_font_stack() -> str:
     try:
         anki_families = _anki_ui_font()
     except Exception:
-        get_logger().exception("no se pudo leer la letra de interfaz de Anki")
+        note_failure("no se pudo leer la letra de interfaz de Anki")
         anki_families = ""
 
     # Anki puede nombrar varias familias separadas por comas. Se añaden las que
@@ -231,11 +231,19 @@ def _surface_css() -> str:
         # nativas de las páginas en el color de acción de la paleta (accent-color): un
         # solo color de acción en todo Anki (Practical UI, P10).
         f"{_SURFACE} :is(h1, h2, h3) {{ text-wrap: balance; }}",
-        f"{_SURFACE} {{ accent-color: var(--button-primary-bg); }}",
+        # Versión 3.5.0: el tono de trazo (el del foco), que de noche es más claro que
+        # el de los rellenos y se ve a 3:1 o más sobre cualquier fondo (WCAG 1.4.11).
+        f"{_SURFACE} {{ accent-color: var(--border-focus); }}",
         # Versión 3.4.0: con «Reducir movimiento» en las preferencias de Anki, que marca la
         # página con reduce-motion, los cambios de color son inmediatos (WCAG 2.3.3). Gana
         # a la duración de la paleta en los dos modos por ser más específica.
         "html body.reduce-motion:not(.card) { --transition: 0ms; }",
+        # Versión 3.5.0: lo mismo con la opción del sistema (en Windows, «Efectos de
+        # animación» desactivados), como hace GritMap.
+        "@media (prefers-reduced-motion: reduce) { html body:not(.card) { --transition: 0ms; } }",
+        # Versión 3.5.0: los intervalos sobre los botones de respuesta («10 min», «4 d»)
+        # en el texto secundario y con cifras de igual ancho, como las de las tablas.
+        f"html {_SURFACE} :is(.nobold, .stattxt) {{ color: var(--fg-subtle); font-variant-numeric: tabular-nums; }}",
         # Lista de mazos (versión 3.1.0): separación de las filas según la paleta y
         # resaltado del mazo actual y del que tiene el ratón encima con un tinte del
         # color de acción en vez de gris (Practical UI, M5 y M7).
@@ -475,7 +483,7 @@ def refresh_open_pages() -> None:
             ensure_early_style(widget)
             widget.eval(_inject_js())
         except Exception:
-            get_logger().exception("no se pudo cambiar la paleta de una página")
+            note_failure("no se pudo cambiar la paleta de una página")
 
 
 def install_early_style() -> None:
@@ -486,7 +494,7 @@ def install_early_style() -> None:
         try:
             ensure_early_style(webview)
         except Exception:
-            get_logger().exception("no se pudo registrar el estilo temprano")
+            note_failure("no se pudo registrar el estilo temprano")
 
 
 # Enganches

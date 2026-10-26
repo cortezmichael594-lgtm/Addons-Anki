@@ -593,6 +593,24 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Comprobado: 2026-10-21, con Anki 26.09.3 (código instalado y ejecución de las pruebas con y sin set_lang).
 - Origen: Nocturne 3.3.0.
 
+### APR-065 · Contraste pedido por el sistema
+- Qué es: desde Qt 6.10, Qt informa de si el sistema pide más contraste (temas de contraste de Windows 11, «Aumentar contraste» de macOS, alto contraste de GNOME). En PyQt6 6.11 (Anki 26.09.3) se lee con QGuiApplication.styleHints().accessibility().contrastPreference(), que devuelve Qt.ContrastPreference; QStyleHints no tiene el método directamente.
+- Por qué es buena práctica: un tema que suaviza contrastes perjudica a quien ha pedido más contraste; saberlo permite apartarse.
+- Para qué sirve: temas de color y cualquier complemento que pinte con colores propios.
+- Cómo se aplica: getattr(hints, "accessibility", None) y try/except, para no fallar con un Qt anterior; comprobarlo al arrancar.
+- Fuente: PyQt6 instalado en el .venv (dir(QAccessibilityHints) y dir(QStyleHints)) y pruebas/nocturne/test_ventana.py (test_contrast_check_is_safe).
+- Comprobado: 2026-10-26, con Anki 26.09.3 y PyQt6 6.11.0.
+- Origen: Nocturne 3.5.0.
+
+### APR-066 · var(--shadow) también es un borde en las páginas de Anki
+- Qué es: en el CSS de las páginas clásicas de Anki (webview.css, deckbrowser.css, overview.css...), los botones usan var(--shadow) como color del borde inferior y del borde con el ratón encima.
+- Por qué es buena práctica: cambiar SHADOW para quitar o añadir sombras altera también esos bordes.
+- Para qué sirve: temas que quieran retocar sombras.
+- Cómo se aplica: no tocar SHADOW con ese fin; añadir sombras con reglas propias limitadas a sus elementos.
+- Fuente: _aqt/data/web/css/*.css del Anki instalado (grep de var(--shadow)).
+- Comprobado: 2026-10-26, con Anki 26.09.3.
+- Origen: Nocturne 3.5.0 (informe de mejoras, apartado 4.4).
+
 ## Retirados
 
 Aprendizajes que dejaron de valer, con fecha y motivo («- APR-NNN (AAAA-MM-DD): motivo»). Su número no
@@ -610,7 +628,7 @@ nuevo, empaquetar.py --revision avisa.
 | docs/LEEME.txt | adb01e757c21 | 2026-10-21 | Índice de la carpeta; actualizado al crear la automejora, al sustituir la guía de complementos y con PROP-010 (carpeta de referencias). |
 | docs/guia-complementos.md | 4d1e797d6d1e | 2026-10-09 | Sustituida, con el visto bueno del cliente, por el original oficial (docs-site/addons, commit a13d8a6, Anki 26.09.3) con el código intacto. Leída entera: APR-007 a APR-020. |
 | docs/guia-interfaz.md | c2382e94cd10 | 2026-10-12 | Guía del taller; base desde el principio. Cambiada con PROP-006 (cómo buscar en .venv y setWebExports con patrón cerrado). |
-| docs/paleta-nocturne.md | b342bbfb3571 | 2026-10-21 | Documento del cliente, puesto al día con los colores de Nocturne 3.3.0 (PROP-011) y con NOCTURNE_TITLEBAR de la 3.4.0, que el cliente pidió. Sin aprendizajes nuevos: sus datos salen del complemento y de sus pruebas. |
+| docs/paleta-nocturne.md | a26d4f4cf0b5 | 2026-10-21 | Documento del cliente, puesto al día con los colores de Nocturne 3.3.0 (PROP-011) y con los cambios de la 3.4.0 y la 3.5.0 (barra de título, «Aprendiendo» en rojo y banderas roja y verde), que el cliente pidió. Sin aprendizajes nuevos: sus datos salen del complemento y de sus pruebas. |
 | docs/preparar-entorno.md | fc4d9d999f58 | 2026-10-12 | Actualizado al crear la automejora (notas de versión y revisión de aprendizajes al cambiar Anki), con PROP-001 (sesiones en la nube) y con PROP-008 (no usar "aqt[qt6]"; cómo actualiza Anki el cliente). |
 
 Revisado también, sin guardarlo en el taller: el código fuente oficial de Anki que aportó el cliente

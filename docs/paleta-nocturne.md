@@ -131,7 +131,7 @@ seguirá encajando aunque la paleta se ajuste en el futuro.
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
 |`STATE_NEW`|`--state-new`|`#186CB9`|`#7EBFF4`|
-|`STATE_LEARN`|`--state-learn`|`#B8460A`|`#F1A95B`|
+|`STATE_LEARN`|`--state-learn`|`#CA2D2D`|`#F37777`|
 |`STATE_REVIEW`|`--state-review`|`#257A35`|`#57D06B`|
 |`STATE_BURIED`|`--state-buried`|`#9A7B3F`|`#A98754`|
 |`STATE_SUSPENDED`|`--state-suspended`|`#868E96`|`#848E9C`|
@@ -158,9 +158,9 @@ seguirá encajando aunque la paleta se ajuste en el futuro.
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`FLAG_1`|`--flag-1`|`#D92121`|`#D13939`|
+|`FLAG_1`|`--flag-1`|`#BE1D1D`|`#C12D2D`|
 |`FLAG_2`|`--flag-2`|`#E8590C`|`#C07F3A`|
-|`FLAG_3`|`--flag-3`|`#2F9E44`|`#4C9E5A`|
+|`FLAG_3`|`--flag-3`|`#2F9E44`|`#4DA05B`|
 |`FLAG_4`|`--flag-4`|`#1971C2`|`#5993C2`|
 |`FLAG_5`|`--flag-5`|`#C62FAD`|`#B378C1`|
 |`FLAG_6`|`--flag-6`|`#099268`|`#439C81`|
@@ -314,8 +314,8 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
   },
   "FLAG_1": {
     "css": "--flag-1",
-    "light": "#D92121",
-    "dark": "#D13939"
+    "light": "#BE1D1D",
+    "dark": "#C12D2D"
   },
   "FLAG_2": {
     "css": "--flag-2",
@@ -325,7 +325,7 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
   "FLAG_3": {
     "css": "--flag-3",
     "light": "#2F9E44",
-    "dark": "#4C9E5A"
+    "dark": "#4DA05B"
   },
   "FLAG_4": {
     "css": "--flag-4",
@@ -414,8 +414,8 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
   },
   "STATE_LEARN": {
     "css": "--state-learn",
-    "light": "#B8460A",
-    "dark": "#F1A95B"
+    "light": "#CA2D2D",
+    "dark": "#F37777"
   },
   "STATE_MARKED": {
     "css": "--state-marked",

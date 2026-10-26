@@ -83,6 +83,8 @@ class StructureTest(unittest.TestCase):
             # Qt no redondea un botón si el radio pasa de la mitad de su altura: con
             # botones de unos 20px de alto, 9px como mucho (visto en la muestra de 3.1.0).
             self.assertLessEqual(look["button_radius"], 9, theme)
+            # Versión 3.5.0: dos radios por paleta, controles y recuadros (el doble).
+            self.assertEqual(look["radius_medium"], 2 * look["button_radius"], theme)
 
 
 class TextContrastTest(unittest.TestCase):
@@ -385,6 +387,74 @@ class TitleBarToneTest(unittest.TestCase):
                 self.assertGreaterEqual(contrast(color("FG_SUBTLE", mode, theme), bar), 4.5, f"{theme} ({mode})")
 
 
+class ActionStrokeTest(unittest.TestCase):
+    """Versión 3.5.0 (informe de 2026-10-26, apartado 4.1): el color de acción hace
+    dos trabajos. Los rellenos llevan texto blanco (PrimaryButtonTest); los trazos
+    (foco, anillo del botón principal, enlaces) usan un tono propio, más claro de
+    noche, que se ve a 3:1 o más sobre cualquier fondo (WCAG 1.4.11) y a 4,5 sobre el
+    fondo de la ventana."""
+
+    STROKES = ("BORDER_FOCUS", "NOCTURNE_PRIMARY_RING", "FG_LINK")
+    SURFACES = ("CANVAS", "CANVAS_ELEVATED", "BUTTON_BG", "CANVAS_OVERLAY")
+
+    def test_strokes_show_on_every_surface(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                for name in self.STROKES:
+                    for surface in self.SURFACES:
+                        ratio = contrast(color(name, mode, theme), color(surface, mode, theme)[:7])
+                        self.assertGreaterEqual(ratio, 3.0, f"{theme}: {name} sobre {surface} ({mode}): {ratio:.2f}")
+                    ratio = contrast(color(name, mode, theme), color("CANVAS", mode, theme))
+                    self.assertGreaterEqual(ratio, 4.3, f"{theme}: {name} sobre CANVAS ({mode}): {ratio:.2f}")
+
+    def test_stroke_is_lighter_than_fill_at_night(self) -> None:
+        for theme in THEMES:
+            stroke, fill = color("BORDER_FOCUS", "dark", theme), color("BUTTON_PRIMARY_BG", "dark", theme)
+            self.assertGreater(_luminance(stroke), _luminance(fill), theme)
+
+
+# Simulación de daltonismo de Machado, Oliveira y Fernandes (2009), gravedad máxima,
+# sobre valores lineales.
+_CVD = {
+    "deuteranopia": ((0.367322, 0.860646, -0.227968), (0.280085, 0.672501, 0.047413), (-0.011820, 0.042940, 0.968881)),
+    "protanopia": ((0.152286, 1.052583, -0.204868), (0.114503, 0.786281, 0.099216), (-0.003882, -0.048116, 1.051998)),
+}
+
+
+def _simulate(value: str, kind: str) -> str:
+    def lin(c: float) -> float:
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+    def srgb(c: float) -> float:
+        c = min(max(c, 0.0), 1.0)
+        return c * 12.92 if c <= 0.0031308 else 1.055 * c ** (1 / 2.4) - 0.055
+
+    rgb = [lin(c) for c in _rgb(value)]
+    out = [srgb(sum(m * c for m, c in zip(row, rgb))) for row in _CVD[kind]]
+    return "#" + "".join(f"{round(c * 255):02X}" for c in out)
+
+
+class ColorBlindTest(unittest.TestCase):
+    """Versión 3.5.0 (informe, apartado 4.7): lo que se distingue solo por el color
+    sigue distinguiéndose con deuteranopía y protanopía, por claridad, en las tres
+    paletas (1,4 veces, el mismo criterio que con visión normal). Es el caso de las
+    banderas roja y verde en las filas de Explorar. Las cifras de la lista de mazos se
+    distinguen además por su columna y las rayas de los botones de respuesta por su
+    texto; las gráficas de las estadísticas usan colores propios de Anki."""
+
+    PAIRS = (("FLAG_1", "FLAG_3"),)
+
+    def test_pairs_differ_in_lightness(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                for kind in _CVD:
+                    for first, second in self.PAIRS:
+                        a = _simulate(color(first, mode, theme), kind)
+                        b = _simulate(color(second, mode, theme), kind)
+                        ratio = contrast(a, b)
+                        self.assertGreaterEqual(ratio, 1.4, f"{theme} {mode} {kind}: {first}/{second}: {ratio:.2f}")
+
+
 class NightDepthTest(unittest.TestCase):
     """Versión 3.0.0: de noche, lo que está más arriba es más claro (Practical UI,
     M3; Refactoring UI, P24). Antes, los menús eran más oscuros que los recuadros."""
@@ -474,7 +544,8 @@ class IdentityTest(unittest.TestCase):
     }
     HUES = {
         "STATE_NEW": ("#1971C2", "#74C0FC"),
-        "STATE_LEARN": ("#E8590C", "#FFA94D"),
+        # Versión 3.5.0: «Aprendiendo» en el rojo de la paleta, a petición del cliente.
+        "STATE_LEARN": ("#E03131", "#FF6B6B"),
         "STATE_REVIEW": ("#2F9E44", "#57D06B"),
         "ACCENT_DANGER": ("#E03131", "#FF6B6B"),
         "FLAG_1": ("#E03131", "#FF6B6B"),

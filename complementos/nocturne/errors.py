@@ -4,10 +4,10 @@ Cada función que Anki llama en nuestro nombre pasa por el decorador ``guard``:
 si algo falla, el detalle va al registro propio del complemento (un archivo que
 Anki reserva para él) y Anki sigue funcionando con su apariencia habitual.
 
-Aquí no se abren ventanas de aviso a propósito. Un tema de colores no debe
-interrumpir jamás un repaso por un fallo cosmético, y además así el complemento
-no contiene ni un solo texto visible: se ve igual de bien con Anki en español,
-en inglés, en japonés o en árabe, sin nada que traducir.
+Aquí no se abren ventanas de aviso a propósito: un tema de colores no debe
+interrumpir jamás un repaso por un fallo cosmético. Desde la versión 3.5.0 se
+cuentan los fallos de la sesión, y la ventana de configuración lo dice en una
+línea, con un botón para abrir la carpeta del registro, solo si hubo alguno.
 """
 
 from __future__ import annotations
@@ -20,6 +20,29 @@ from typing import Any, TypeVar
 F = TypeVar("F", bound=Callable[..., Any])
 
 _logger: logging.Logger | None = None
+_failures = 0
+
+
+def failures() -> int:
+    """Fallos registrados desde que arrancó Anki."""
+    return _failures
+
+
+def note_failure(message: str, *args: Any) -> None:
+    """Anota un fallo en el registro y lo cuenta."""
+    global _failures
+    _failures += 1
+    get_logger().exception(message, *args)
+
+
+def logs_folder() -> str | None:
+    """Carpeta donde Anki guarda el registro de este complemento, si se sabe."""
+    try:
+        from aqt import mw
+
+        return str(mw.addonManager.logs_folder(__name__))
+    except Exception:
+        return None
 
 
 def get_logger() -> logging.Logger:
@@ -52,7 +75,7 @@ def guard(func: F) -> F:
         try:
             return func(*args, **kwargs)
         except Exception:
-            get_logger().exception("fallo en %s", func.__name__)
+            note_failure("fallo en %s", func.__name__)
             return None
 
     return wrapper  # type: ignore[return-value]
@@ -67,7 +90,7 @@ def guard_filter(func: F) -> F:
         try:
             return func(value, *args, **kwargs)
         except Exception:
-            get_logger().exception("fallo en %s", func.__name__)
+            note_failure("fallo en %s", func.__name__)
             return value
 
     return wrapper  # type: ignore[return-value]

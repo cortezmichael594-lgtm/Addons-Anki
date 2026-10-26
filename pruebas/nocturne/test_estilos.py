@@ -26,6 +26,13 @@ class ConfigTest(unittest.TestCase):
         for value in (None, {}, {"palette": "rosa"}, {"palette": 3}, [], "papel", {"otra": "papel"}):
             self.assertEqual(config.palette_from(value), "nocturne", repr(value))
 
+    def test_welcome_only_once(self) -> None:
+        # Versión 3.5.0: el aviso de bienvenida sale una sola vez.
+        self.assertFalse(config.welcome_shown({"palette": "papel"}))
+        self.assertFalse(config.welcome_shown(None))
+        self.assertTrue(config.welcome_shown({"palette": "papel", "welcome_shown": True}))
+        self.assertEqual(config.palette_from({"palette": "papel", "welcome_shown": True}), "papel")
+
     def test_select_validates(self) -> None:
         try:
             self.assertEqual(themes.select("inexistente"), "nocturne")
@@ -110,7 +117,9 @@ class WebStyleTest(unittest.TestCase):
             css = self.css_for(theme_id)
             self.assertIn(":is(h1, h2, h3) { text-wrap: balance; }", css, theme_id)
             self.assertIn("text-wrap: pretty;", css, theme_id)
-            self.assertIn("accent-color: var(--button-primary-bg);", css, theme_id)
+            self.assertIn("accent-color: var(--border-focus);", css, theme_id)
+            self.assertIn("@media (prefers-reduced-motion: reduce)", css, theme_id)
+            self.assertIn(":is(.nobold, .stattxt) { color: var(--fg-subtle); font-variant-numeric: tabular-nums; }", css, theme_id)
             self.assertIn("html body.reduce-motion:not(.card) { --transition: 0ms; }", css, theme_id)
             # Foco visible también en enlaces y en la barra superior (Anki lo oculta allí).
             self.assertIn("a:focus-visible { outline:", css, theme_id)
@@ -164,6 +173,15 @@ class QtStyleTest(unittest.TestCase):
                 colors = data["colors"]
                 self.assertIn(f"background-color: {to_css_rgba(colors['CANVAS_OVERLAY'][mode])};", tooltip, theme_id)
                 self.assertIn(f"border: 1px solid {to_css_rgba(colors['BORDER_SUBTLE'][mode])};", tooltip, theme_id)
+
+    def test_same_corner_for_buttons_and_fields(self) -> None:
+        # Versión 3.5.0: botones y campos con la misma esquina; casillas, 4 px.
+        for theme_id, data in themes.THEMES.items():
+            sheet = self.qss(theme_id, False)
+            radius = data["look"]["button_radius"]
+            fields = sheet[sheet.index("QComboBox,\n    QSpinBox,") :]
+            self.assertIn(f"border-radius: {radius}px;", fields[: fields.index("}")], theme_id)
+            self.assertIn("QMenu::indicator:non-exclusive {\n        border-radius: 4px;", sheet, theme_id)
 
     def test_other_widget_styles_untouched(self) -> None:
         theming.mw = types.SimpleNamespace(  # type: ignore[assignment]

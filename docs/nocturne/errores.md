@@ -55,8 +55,9 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
 
-- 2026.07.28 · En la paleta Nocturne, «Aprendiendo» va en naranja y no en el rojo de Anki. Es parte del
-  aspecto original que el cliente quiere conservar (2026-10-21). Las otras paletas usan el rojo de Anki.
+- 2026.07.28 · En la paleta Nocturne, «Aprendiendo» iba en naranja, como en el aspecto original. Desde
+  la 3.5.0 va en rojo, como en Papel y en Bosque: el cliente lo pidió el 2026-10-26 (informe de
+  mejoras, apartado 4.2) sabiendo que se aparta del original, porque el naranja también es «Difícil».
 - 2026.07.28 · Los bordes de campos, listas y tablas son muy suaves. Es parte del aspecto original; la
   versión 2.0.0 los reforzó y el cliente la descartó por perder atractivo (2026-10-21). Vale para las
   tres paletas.
@@ -91,11 +92,13 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   principio: Anki le da el foco al abrir la pantalla, y el contorno avisa de que Intro empieza el
   estudio. Decisión del taller.
 - 3.3.0 · La ventana de configuración bloquea la de complementos mientras está abierta, como cualquier
-  diálogo de Anki, y la paleta elegida en la lista solo se aplica con «Aceptar» (no hay vista previa).
-  Decisión del taller: así no puede quedar escondida (FIX-007) y no se repinta Anki entera con cada
-  elección.
-- 3.3.0 · El aviso «Paleta «…» aplicada.» sale de día en amarillo con letra negra: es el aviso breve de
-  Anki, con sus colores fijos, y el complemento no lo cambia. Decisión del taller.
+  diálogo de Anki: así no puede quedar escondida (FIX-007). Decisión del taller.
+- 3.5.0 · Vista previa: elegir una paleta la aplica a todo Anki en el acto (a los 200 milisegundos de
+  dejar quieta la elección) y «Cancelar» la deshace. Antes (3.3.0) solo se aplicaba con «Aceptar».
+  Pedido por el cliente el 2026-10-26 (informe, apartado 3.2).
+- 3.3.0 · El aviso «Paleta «…» aplicada.» salía de día en amarillo con letra negra (el aviso breve de
+  Anki, con sus colores fijos). Desde la 3.5.0 no sale: la vista previa ya enseña el cambio. El aviso
+  de bienvenida sí usa ese aviso de Anki, con su amarillo, una sola vez.
 - 3.3.0 · La barra de título solo cambia en Windows 11: Windows 10 no permite elegir su color, y en
   macOS y Linux la dibuja el sistema. Decisión del taller.
 - 3.3.0 · De noche, el texto desactivado es algo más claro que antes en las tres paletas, también en
@@ -107,3 +110,18 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 3.4.0 · De noche, el título de la barra queda algo por encima de 13,5 de contraste (hasta 14,2), el
   límite de comodidad del texto de lectura: es una sola línea y se lee de un vistazo. Decisión del
   taller.
+- 3.5.0 · Aviso de bienvenida una sola vez, que obliga a guardar un dato más que la paleta (que ya
+  salió). Pedido por el cliente el 2026-10-26 (informe, apartado 2.1). Quien ya tenía Nocturne lo verá
+  una vez al instalar la 3.5.0: no hay forma fiable de distinguir una instalación de una actualización.
+- 3.5.0 · Con el alto contraste del sistema, Nocturne no pinta nada. Cubre a quien lo necesita sin
+  recuperar la paleta Alto contraste; quien la usaba sin tener el contraste del sistema activado sigue
+  sin ella. Pedido por el cliente el 2026-10-26 (informe, apartado 6.1). Se comprueba al abrir Anki.
+- 3.5.0 · No se añaden sombras de día ni se quitan de noche (informe, apartado 4.4): en las páginas de
+  Anki, el color «sombra» también hace de borde inferior de los botones, y cambiarlo los alteraría.
+  Decisión del taller.
+- 3.5.0 · La simulación de daltonismo solo exige separar la bandera roja y la verde: las cifras de la
+  lista de mazos se distinguen por su columna y las rayas de los botones de respuesta por su texto. Las
+  gráficas de las estadísticas usan colores propios de Anki, que Nocturne no cambia. Decisión del
+  taller.
+- 3.5.0 · No se aplica lo del informe sobre el día de gracia, la meta diaria y la página de
+  felicitación como cierre del día: el cliente lo descartó para Nocturne el 2026-10-26.

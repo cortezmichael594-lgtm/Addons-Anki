@@ -23,7 +23,7 @@ from aqt.qt import QApplication, QEvent, QObject, Qt, QWidget
 from aqt.theme import theme_manager
 
 from . import themes
-from .errors import get_logger, guard
+from .errors import guard, note_failure
 
 # Atributos de DwmSetWindowAttribute (dwmapi.h, Windows 11).
 _DWMWA_USE_IMMERSIVE_DARK_MODE = 20
@@ -121,7 +121,7 @@ class _WindowWatcher(QObject):
                 _paint(obj)
             except Exception:
                 # Un fallo aquí no debe repetirse en cada ventana: se deja de teñir.
-                get_logger().exception("no se pudo teñir la barra de título")
+                note_failure("no se pudo teñir la barra de título")
                 uninstall()
         return False
 
