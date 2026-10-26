@@ -8,6 +8,8 @@
  *                        se veia el contorno de foco.
  * FIX-027 (2026-10-26) — Los bordes de los cuadritos de la fila de arriba (hoy,
  *                        perdonados) se cortaban un poco.
+ * FIX-029 (2026-10-26) — Al subir deprisa con el raton por el mapa, el globo se
+ *                        quedaba abierto y tapaba los dias de arriba.
  */
 
 /* GritMap - estructura de las tarjetas y del mapa de calor.
@@ -268,8 +270,30 @@ body.nightMode #gritmap-root {
     color: var(--gritmap-muted);
 }
 
-#gritmap-root .gritmap-big .gritmap-pct .gritmap-unit {
-    margin-inline-start: 0.05em;
+/* La cifra y su unidad, siempre como piezas separadas a 8 px y centradas
+ * en vertical, tambien el % y las cifras con globo (4.10.0, peticion del
+ * cliente: el % quedaba a otra altura que «tarjetas» o «días»). */
+#gritmap-root .gritmap-big .gritmap-pct,
+#gritmap-root .gritmap-big .gritmap-tipped {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#gritmap-root .gritmap-big .gritmap-pct-space {
+    display: none;
+}
+
+/* Con globo, el subrayado de puntos va solo bajo la cifra, no bajo la
+ * unidad. */
+#gritmap-root .gritmap-big .gritmap-tipped:has(.gritmap-n, .gritmap-pct) {
+    text-decoration: none;
+}
+
+#gritmap-root .gritmap-big .gritmap-tipped .gritmap-n,
+#gritmap-root .gritmap-big .gritmap-tipped .gritmap-pct > span:not(.gritmap-unit, .gritmap-pct-space) {
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
 }
 
 #gritmap-root .gritmap-big.gritmap-muted {
@@ -710,9 +734,19 @@ body.nightMode #gritmap-root {
     color: var(--gritmap-muted);
 }
 
+/* --- FIX-029 (2026-10-26) ---
+ * Sintoma: al mover el raton deprisa de los cuadritos de abajo hacia los de
+ *          arriba, el globo se quedaba abierto y tapaba los dias, que ya no
+ *          se podian recorrer.
+ * Causa: el globo sale encima del dia y recogia el raton para poder leerlo
+ *        con calma; al subir, el raton caia dentro del globo y no en el dia.
+ * Regla: el globo nunca recoge el raton (pointer-events: none): el raton
+ *        siempre llega al dia que tiene debajo.
+ */
 #gritmap-tip {
     position: absolute;
     display: none;
+    pointer-events: none;
     background: var(--gritmap-tipbg);
     color: var(--gritmap-tipfg);
     font-size: 13px;

@@ -9,6 +9,8 @@
  *                        habia que volver a tabular hasta el mapa.
  * FIX-021 (2026-10-13) — En persa y tailandes los meses y el ano salian de
  *                        otro calendario, distinto del de la rejilla.
+ * FIX-029 (2026-10-26) — Al subir deprisa con el raton por el mapa, el globo se
+ *                        quedaba abierto y tapaba los dias de arriba.
  */
 
 /* GritMap - comportamiento del mapa de calor dentro de la pagina de Anki.
@@ -147,6 +149,10 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
                     var piece = document.createElement("span");
                     if (part.type === "percentSign") {
                         piece.className = "gritmap-unit";
+                    } else if (part.type === "literal" && !part.value.trim()) {
+                        /* El espacio del idioma: en las tarjetas lo pone el
+                         * hueco de 8 px entre cifra y unidad (4.10.0). */
+                        piece.className = "gritmap-pct-space";
                     }
                     piece.textContent = part.value;
                     pcts[j].appendChild(piece);
@@ -271,17 +277,13 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         /* La fecha, en gris y mas pequena; lo hecho, debajo y destacado. */
         var text = '<span class="gritmap-tip-date">' + formatDate(cell.getAttribute("data-d"))
             + "</span><br>" + fill(template, { count: formatNumber(count) });
-        /* Los dias que abren Explorar lo dicen en una ultima linea gris: el
-         * puntero en forma de mano no se ve con el teclado (3.6.0). */
-        var cmd = cell.getAttribute("data-gritmap-cmd") || "";
-        var hint = state.texts[cmd.indexOf("future:") === 0 ? "click_future" : "click_past"];
+        /* Sin «Pulse para ver estas tarjetas» (4.10.0, peticion del cliente):
+         * la mano del puntero ya dice que se puede pulsar, y el lector de
+         * pantalla lo anuncia como boton. */
         /* 4.0.0: si el dia esta perdonado (comodin o pausa). */
         var forgiven = cell.getAttribute("data-gritmap-forgiven");
         if (forgiven && state.texts["forgiven_" + forgiven]) {
             text += '<br><span class="gritmap-tip-hint">' + state.texts["forgiven_" + forgiven] + "</span>";
-        }
-        if (cmd && hint) {
-            text += '<br><span class="gritmap-tip-hint">' + hint + "</span>";
         }
         return text;
     }
@@ -463,11 +465,14 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         });
         container.addEventListener("keydown", onKeyDown);
         container.addEventListener("mouseover", function (event) {
-            if (closest(event.target, "#" + TIP_ID)) {
-                /* El raton ha llegado al globo: se queda abierto. */
-                cancelHide();
-                return;
-            }
+            // --- FIX-029 (2026-10-26) ---
+            // Sintoma: al mover el raton deprisa de los cuadritos de abajo hacia los de
+            //          arriba, el globo se quedaba abierto y tapaba los dias, que ya no
+            //          se podian recorrer.
+            // Causa: el globo sale encima del dia y recogia el raton para poder leerlo
+            //        con calma; al subir, el raton caia dentro del globo y no en el dia.
+            // Regla: el globo nunca recoge el raton (pointer-events: none): el raton
+            //        siempre llega al dia que tiene debajo.
             var cell = closest(event.target, "[data-gritmap-tip]");
             if (cell) {
                 cancelHide();
@@ -476,10 +481,10 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         });
         container.addEventListener("mouseout", function (event) {
             /* Pasar de una parte a otra de la misma cifra (etiqueta y valor)
-             * no cierra el globo: asi no parpadea. Al salir del globo o del
-             * dia, se cierra tras un instante. */
-            var from = closest(event.target, "[data-gritmap-tip], #" + TIP_ID);
-            var to = closest(event.relatedTarget, "[data-gritmap-tip], #" + TIP_ID);
+             * no cierra el globo: asi no parpadea. Al salir del dia, se
+             * cierra tras un instante (si entra en otro, cambia sin cerrarse). */
+            var from = closest(event.target, "[data-gritmap-tip]");
+            var to = closest(event.relatedTarget, "[data-gritmap-tip]");
             if (from && from !== to) {
                 hideTipSoon();
             }

@@ -216,11 +216,13 @@ class WidgetTest(unittest.TestCase):
         self.assertIn("del récord", card)
         back = view._streak_card(replace(stats, current_streak=1, longest_streak=45, previous_best=45), DEFAULT_CONFIG, TODAY)
         self.assertIn("Día 1", back)
-        # «récord» en minuscula (cliente, 2026-10-21).
-        self.assertIn("récord:", back)
-        self.assertNotIn("Récord", back)
+        # 4.10.0: el record va en el globo de la cifra, no en la linea gris.
+        self.assertIn('data-gritmap-info="Récord:', back)
+        self.assertNotIn("récord:", back)
         far = view._streak_card(replace(stats, current_streak=3, longest_streak=40), DEFAULT_CONFIG, TODAY)
-        self.assertIn("récord:", far)
+        self.assertIn('data-gritmap-info="Récord:', far)
+        best = view._streak_card(replace(stats, current_streak=40, longest_streak=40), DEFAULT_CONFIG, TODAY)
+        self.assertNotIn("Récord", best)
         # 4.7.0: «a 2 días del récord» solo si el récord es de 7 días o más.
         short = view._streak_card(replace(stats, current_streak=2, longest_streak=4), DEFAULT_CONFIG, TODAY)
         self.assertNotIn("del récord", short)
@@ -331,7 +333,8 @@ class WidgetTest(unittest.TestCase):
         data = json.loads(view.payload_json("", "reviews"))
         self.assertNotIn("goal", data)
         self.assertNotIn("goal_met", data["texts"])
-        self.assertEqual(data["texts"]["click_past"], "Pulse para ver estas tarjetas")
+        # 4.10.0: sin «Pulse para ver estas tarjetas» (peticion del cliente).
+        self.assertNotIn("click_past", data["texts"])
         self.assertEqual(data["texts"]["forgiven_freeze"], "Perdonado con un comodín")
 
     def test_palette_has_four_tones_per_theme(self) -> None:

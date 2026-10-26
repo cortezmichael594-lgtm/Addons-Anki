@@ -92,6 +92,14 @@
       "options.py",
       "web/options.css",
       "web/options.js"
+    ],
+    "FIX-029": [
+      "web/gritmap.css",
+      "web/gritmap.js"
+    ],
+    "FIX-030": [
+      "web/options.css",
+      "web/options.js"
     ]
   }
 }

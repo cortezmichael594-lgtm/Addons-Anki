@@ -1,6 +1,8 @@
 /* Historial de correcciones de este archivo:
  * FIX-028 (2026-10-26) — Al entrar en «Fechas clave», la cabecera quedaba fuera
  *                        de la ventana y el pie a media altura.
+ * FIX-030 (2026-10-26) — Al marcar «Pausar la racha», la cabecera quedaba fuera
+ *                        de la ventana y el pie a media altura.
  */
 
 /* GritMap - panel de opciones a medida (4.9.0).
@@ -361,12 +363,12 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         });
         var minus = el("button", { type: "button", "aria-label": "−", tabindex: "-1" }, ["−"]);
         var plus = el("button", { type: "button", "aria-label": "+", tabindex: "-1" }, ["+"]);
-        var unit = opts.unit ? el("span", { class: "gritmap-o-unit", text: opts.unit }) : null;
-        var node = el("div", { class: "gritmap-o-step" }, [
-            minus,
-            el("span", { class: "gritmap-o-step-value" }, [input, unit]),
-            plus,
-        ]);
+        // La unidad («px») va fuera del campo, como «tarjetas al dia»: asi la
+        // cifra queda centrada en todos los campos (4.10.0).
+        var box = el("div", { class: "gritmap-o-step" }, [minus, input, plus]);
+        var node = opts.unit
+            ? el("div", { class: "gritmap-o-step-row" }, [box, el("span", { class: "gritmap-o-unit", text: opts.unit })])
+            : box;
 
         function show() {
             input.value = String(state.value);
@@ -1614,6 +1616,22 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
 
         window.addEventListener("keydown", onEscape, true);
         document.addEventListener("pointerdown", onOutsideClick, true);
+        // --- FIX-030 (2026-10-26) ---
+        // Sintoma: al marcar «Pausar la racha» (o cualquier casilla de abajo), la
+        //          cabecera desaparecia por arriba y Aceptar y Cancelar quedaban a
+        //          media ventana, con un hueco vacio debajo.
+        // Causa: la casilla de verdad, invisible, se colocaba respecto a la ventana
+        //        y no respecto a su fila, asi que quedaba fuera de la zona que se
+        //        desplaza; al recibir el foco, el navegador desplazaba la pagina
+        //        entera para ensenarla. FIX-028 no lo cubria.
+        // Regla: todo control invisible va colocado dentro de su fila (position:
+        //        relative en el padre), y si la pagina entera se desplazara por lo
+        //        que sea, vuelve arriba en el acto.
+        window.addEventListener("scroll", function () {
+            if (document.scrollingElement && document.scrollingElement.scrollTop !== 0) {
+                document.scrollingElement.scrollTop = 0;
+            }
+        });
         window.addEventListener("resize", function () {
             placeCalendar();
             fitSegmented();

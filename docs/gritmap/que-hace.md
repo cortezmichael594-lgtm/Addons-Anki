@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 4.10.0 · 2026-10-26
+Versión 4.10.1 · 2026-10-26
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub, en tarjetas. Cuenta tarjetas: cada
 tarjeta respondida cuenta una vez por día, aunque la conteste varias veces. Arriba, centrada y
@@ -43,7 +43,8 @@ en el acto, sin esperar a que Anki redibuje la pantalla. El cálculo se hace sin
 
 Hasta cinco tarjetas del mismo ancho, que suman el ancho del mapa: «Hoy», «Racha» (no sale si se
 desactiva «Mostrar racha y meta»), «Promedio diario», «Retención» y «Próxima fecha» (solo si hay
-alguna fecha clave de hoy en adelante). Así quedan cinco, cuatro o tres. Cada una tiene un título, un dato grande y una línea gris de hasta dos renglones (si no
+alguna fecha clave de hoy en adelante). Así quedan cinco, cuatro o tres. Cada una tiene un título, un dato grande (la cifra y, a 8 px, su unidad
+más pequeña y centrada a su altura: «días», «tarjetas» o «%», igual en todas) y una línea gris de hasta dos renglones (si no
 cabe, se corta con «…» y se lee entera al pasar el ratón). No tienen enlaces: al pulsarlas no pasa
 nada. Se reordenan según el ancho del mapa: por debajo de 940 px, dos por fila (con cinco o con tres,
 la última a lo ancho de las dos para que la fila quede cuadrada) y, por debajo de 420 px, una.
@@ -78,11 +79,15 @@ lo último en perderse es si hoy ya cuenta):
 - «· 1 comodín» o «· 2 comodines» si tiene comodines guardados (subrayado de puntos: al pasar el
   ratón o llegar con el tabulador, «Cada 7 días seguidos gana un comodín (2 como máximo). Un día sin
   estudiar gasta uno.»);
-- «· a 3 días del récord» si la racha más larga está a 7 días o menos y es de 7 días o más, o
-  «· récord: 40 días» en los demás casos (si la racha actual es la más larga, no se añade nada).
+- «· a 3 días del récord» si la racha más larga está a 7 días o menos y es de 7 días o más.
+
+El récord va en el globo de la cifra: si la racha más larga es mayor que la actual, la cifra («18»)
+va subrayada de puntos y, al pasar el ratón o llegar con el tabulador, dice «Récord: 40 días». Si la
+racha actual es la más larga, no hay globo.
 
 Casos especiales: si nunca ha estudiado, «0 días» y «hoy pendiente»; si la racha está a cero,
-«0 días» y «Última sesión hace 3 días»; al volver tras romperla, «Día 1» y «récord: 45 días».
+«0 días» y «Última sesión hace 3 días»; al volver tras romperla, «Día 1» con la línea de siempre
+(«✓ hoy»…). En los dos casos, el récord sale en el globo de la cifra.
 
 ### Promedio diario
 
@@ -194,10 +199,11 @@ fechas se añaden en Opciones > «Gestionar fechas».
 
 Sale un globo con la fecha larga en el idioma de Anki (sin «el»), en gris, y, en la línea de abajo, lo
 hecho ese día. Después, en gris y según el caso: si el día está perdonado, «Perdonado con un comodín»
-o «Racha en pausa»; y en los días que se pueden pulsar, «Pulse para ver estas tarjetas» o «Pulse para
-ver las que vencen ese día». El globo no dice nada de la meta. La tecla Esc lo cierra. Se puede llevar
-el ratón encima del globo sin que se cierre; al salir, se cierra tras un instante. Su letra es de
-13 px. En español:
+o «Racha en pausa». Que un día se puede pulsar lo dice el puntero, que cambia a una mano. El globo no
+dice nada de la meta. La tecla Esc lo cierra. El globo nunca atrapa el ratón: si el ratón pasa por
+encima de él, llega al día que hay debajo y el globo cambia a ese día, así que se puede recorrer el
+mapa deprisa en cualquier dirección. Al salir del mapa o de un día, se cierra tras un instante. Su
+letra es de 13 px. En español:
 
 - «lunes, 22 de junio de 2026» / «**9** **tarjetas**» (o «1 tarjeta»).
 - Sin estudio: «… / **Ningún** **repaso**».
@@ -272,10 +278,10 @@ si cancela vuelve a como estaba.
 | Opción | Cómo se elige | Por defecto |
 |---|---|---|
 | Tema de color | Seis fichas en dos columnas (una si algún nombre no cabe), por orden alfabético del nombre en el idioma de Anki (en español: Azul océano, Naranja atardecer, Púrpura real, Rosa suave, Turquesa laguna y Verde clásico), cada una con un cuadrito de su tono en el modo activo (cambia si Anki pasa de día a noche con la ventana abierta). La elegida lleva borde azul, fondo suave y ✓. Con el tabulador se entra en la elegida y las flechas cambian de tema | Verde clásico |
-| Tamaño del mapa | Campo con «−», el número con «px» y «+», de 10 a 60 (el lado de cada cuadrito; el mapa entero crece en proporción). Debajo, la casilla «Ajustado al ancho»: marcada, apaga el campo y dice «El mapa ocupa todo el ancho; los cuadritos miden al menos 10 px.» | 24 px, sin la casilla |
-| Redondeo de esquinas | Campo con «−» y «+», de 0 px hasta la mitad del cuadrito; debajo lo dice: «Hasta la mitad del cuadrito (12 px).» (7 px con «Ajustado al ancho») | 3 px |
+| Tamaño del mapa | Campo con «−», el número (centrado) y «+», seguido de «px» fuera del campo, de 10 a 60 (el lado de cada cuadrito; el mapa entero crece en proporción). Debajo, la casilla «Ajustado al ancho»: marcada, apaga el campo y dice «El mapa ocupa todo el ancho; los cuadritos miden al menos 10 px.» | 24 px, sin la casilla |
+| Redondeo de esquinas | Campo con «−», el número (centrado) y «+», seguido de «px» fuera del campo, de 0 px hasta la mitad del cuadrito; debajo lo dice: «Hasta la mitad del cuadrito (12 px).» (7 px con «Ajustado al ancho») | 3 px |
 
-Los campos con «−» y «+»: se puede escribir el número; las flechas arriba y abajo suben y bajan 1,
+Los campos con «−» y «+» (la cifra siempre centrada; la unidad, fuera, como «tarjetas al día»): se puede escribir el número; las flechas arriba y abajo suben y bajan 1,
 RePág y AvPág 5, Inicio y Fin van al mínimo y al máximo; mantener pulsado «−» o «+» repite. En el
 límite, el botón de ese lado se apaga. Un número fuera de rango se corrige al límite al salir del campo.
 
@@ -462,6 +468,8 @@ el motivo. Sirve para no volver a ello sin querer.
 | Salto o enlace desde «Próxima fecha» hasta su día en el mapa | 4.2.0 | El cliente no quiere enlaces. |
 | Línea de sorpresa «Su mejor día del año» | 4.7.0 | Premiaba un día enorme, que empuja a estudiar a atracones. Ahora es «Su mejor semana del año». |
 | Iniciales de los días a la derecha en árabe y hebreo | Propuesto en 4.7.0, no aplicado | La rejilla va siempre de izquierda a derecha (corrección FIX-023), así que las iniciales van a la izquierda. |
+| «Pulse para ver estas tarjetas» y «Pulse para ver las que vencen ese día» en el globo | 4.10.1 | El cliente no lo quería; la mano del puntero ya dice que se puede pulsar. |
+| Globo que se podía recorrer con el ratón sin cerrarse | 4.10.1 | Tapaba los días de arriba al subir deprisa y dejaba el mapa bloqueado (FIX-029). Ahora el ratón siempre llega al día de debajo. |
 | Texto «No hay repasos antes de…» en las flechas apagadas | Propuesto en 4.7.0, no aplicado | Pide textos nuevos en 51 idiomas; a la espera de que el cliente lo pida. (El anuncio del año, que solo dice la cifra, se añadió en la 4.8.0.) |
 | Encoger el cuadrito cuando el año no cabe | Propuesto de nuevo en 4.8.0, no aplicado | Se mantienen los 24 px; en su lugar, el borde por donde sigue el mapa se desvanece. |
 
@@ -488,6 +496,7 @@ el motivo. Sirve para no volver a ello sin querer.
 | «Récord» con mayúscula en medio de la línea | 4.1.0 | Va en medio de una frase: «récord». |
 | Racha contada en la medida del color | 4.7.0 | Con «Nuevas», un día de solo repasos rompía la racha o gastaba un comodín. Ahora cuenta cualquier respuesta (cliente, 2026-10-22). |
 | «· objetivo 90 %» en la línea gris de «Retención» | 4.10.0 | El cliente lo quiso como globo sobre el porcentaje; la línea dice solo el periodo. |
+| «· récord: 40 días» en la línea gris de «Racha» | 4.10.1 | El cliente lo quiso como globo sobre la cifra de días. |
 | «a 3 días del récord» con récords muy cortos | 4.7.0 | Con un récord de 3 días salía al día siguiente de empezar; ahora solo si el récord es de 7 días o más. |
 | Meta «Terminar lo de hoy» que se descumplía | 4.7.0 | Las tarjetas en aprendizaje volvían a vencer; ahora, cumplida, queda cumplida ese día (FIX-026). |
 | «por día estudiado» en la línea de «Promedio diario» | 4.7.1 | Probado en la 4.7.0; el cliente lo quitó: la línea dice solo el periodo. |
@@ -528,6 +537,7 @@ el motivo. Sirve para no volver a ello sin querer.
 | Meta propuesta por día estudiado | 4.9.0 | No coincidía con el «Promedio diario» de la tarjeta; ahora usa el mismo promedio y lo dice. |
 | «El color mide» (Repasos, Tarjetas, Nuevas) | 4.10.0 | El cliente quiso una sola medida y que se llamara «tarjetas». Se cuentan tarjetas distintas, no respuestas, para que la palabra diga la verdad (regla de FIX-006; decisión del cliente). Una medida guardada antes pasa a «Tarjetas». |
 | Letra de 13 px y espacios de 24 px en el panel | 4.10.0 | El cliente lo veía grande y muy alto; ahora 12 px y espacios algo más ceñidos, con el mismo aspecto. |
+| «px» dentro del campo, junto al número | 4.10.1 | El número quedaba descentrado y cada campo era distinto. «px» va fuera, como «tarjetas al día» (decisión técnica, a pregunta del cliente). |
 | Ventana que cambiaba de alto en cada subpágina | 4.10.0 | En Windows descolocaba la página (FIX-028); ahora el alto se fija al abrir, como mucho 720 px. |
 | Textos del panel seleccionables con el ratón | 4.10.0 | El cliente no los quería; solo se selecciona lo que se escribe en los campos. |
 | Semana según el idioma (empezar en domingo o sábado donde se acostumbra) | Propuesto en 4.9.0, descartado | El navegador de Anki puede no tener ese dato, y cambiaría las iniciales, Inicio y Fin y el calendario; el mapa y el calendario siguen empezando en lunes (decisión del cliente). |

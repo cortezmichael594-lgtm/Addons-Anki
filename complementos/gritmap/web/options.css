@@ -1,6 +1,8 @@
 /* Historial de correcciones de este archivo:
  * FIX-028 (2026-10-26) — Al entrar en «Fechas clave», la cabecera quedaba fuera
  *                        de la ventana y el pie a media altura.
+ * FIX-030 (2026-10-26) — Al marcar «Pausar la racha», la cabecera quedaba fuera
+ *                        de la ventana y el pie a media altura.
  */
 
 /* GritMap - panel de opciones a medida (4.9.0).
@@ -483,22 +485,16 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     outline-offset: -2px;
 }
 
-#gritmap-o-app .gritmap-o-step-value {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0 4px;
-    border-inline: 1px solid var(--gritmap-o-line);
-}
-
 #gritmap-o-app .gritmap-o-step input {
-    width: 4ch;
+    width: calc(4ch + 16px);
+    padding: 0 8px;
     border: 0;
+    border-inline: 1px solid var(--gritmap-o-line);
     background: none;
     color: var(--gritmap-o-fg);
     font: inherit;
     font-variant-numeric: tabular-nums;
-    text-align: end;
+    text-align: center;
 }
 
 #gritmap-o-app .gritmap-o-step input:focus-visible {
@@ -507,6 +503,12 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 
 #gritmap-o-app .gritmap-o-unit {
     color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-step-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 #gritmap-o-app .gritmap-o-goal-row {
@@ -518,7 +520,20 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 }
 
 /* Casillas: un <input type="checkbox"> de verdad, dibujado a medida. */
+/* --- FIX-030 (2026-10-26) ---
+ * Sintoma: al marcar «Pausar la racha» (o cualquier casilla de abajo), la
+ *          cabecera desaparecia por arriba y Aceptar y Cancelar quedaban a
+ *          media ventana, con un hueco vacio debajo.
+ * Causa: la casilla de verdad, invisible, se colocaba respecto a la ventana
+ *        y no respecto a su fila, asi que quedaba fuera de la zona que se
+ *        desplaza; al recibir el foco, el navegador desplazaba la pagina
+ *        entera para ensenarla. FIX-028 no lo cubria.
+ * Regla: todo control invisible va colocado dentro de su fila (position:
+ *        relative en el padre), y si la pagina entera se desplazara por lo
+ *        que sea, vuelve arriba en el acto.
+ */
 #gritmap-o-app .gritmap-o-check {
+    position: relative;
     display: flex;
     align-items: flex-start;
     gap: 8px;

@@ -392,6 +392,16 @@ def _pause_html(cfg: Config, today: date) -> str:
     return fill_html("paused_until", date=_date_html(cfg.pause[1]))
 
 
+def _with_record(big: str, stats: FullStats, current: int) -> str:
+    """La cifra de la racha con el record en su globo (4.10.0, peticion del
+    cliente: el record ya no va en la linea gris). Si la racha actual es la
+    mas larga, sin globo."""
+    if stats.longest_streak <= current:
+        return big
+    record = fill_html("record_was", days=_days_html(stats.longest_streak))
+    return f'<span class="gritmap-tipped"{_info_attrs(record[:1].upper() + record[1:])}>{big}</span>'
+
+
 def _streak_card(stats: FullStats, cfg: Config, today: date) -> str:
     """¿Llevo constancia? Informa sin presionar: nada de avisos de perdida.
 
@@ -406,27 +416,23 @@ def _streak_card(stats: FullStats, cfg: Config, today: date) -> str:
     if current == 0:
         days = stats.last_session
         ago = fill_html(plural_key("ago", days), count=num_html(days))
-        return _mini(t("card_streak"), _days_html(0), html.escape(_label("last_session")) + " " + ago)
-    if current == 1 and stats.previous_best >= 2:
-        # Vuelta tras romperla: un comienzo, no un fracaso (Hopkins, C1).
-        line = fill_html("record_was", days=_days_html(stats.longest_streak))
-        return _mini(t("card_streak"), html.escape(t("day_one")), line)
+        big = _with_record(_days_html(0), stats, 0)
+        return _mini(t("card_streak"), big, html.escape(_label("last_session")) + " " + ago)
+    gap = stats.longest_streak - current
+    # Vuelta tras romperla: un comienzo, no un fracaso (Hopkins, C1).
+    big = html.escape(t("day_one")) if current == 1 and stats.previous_best >= 2 else _days_html(current)
+    big = _with_record(big, stats, current)
     parts = [html.escape(t("streak_today" if stats.today_done else "today_pending"))]
     if pause:
         parts.append(pause)
     if cfg.freezes and stats.freezes_left > 0:
         freezes = fill_html(plural_key("freeze", stats.freezes_left), count=num_html(stats.freezes_left))
         parts.append(f'<span class="gritmap-tipped"{_info_attrs(html.escape(t("freeze_tip")))}>{freezes}</span>')
-    gap = stats.longest_streak - current
     # «Un año seguido» ya no va aqui, donde se cortaba el primero: es la
     # primera linea de sorpresa del mapa (4.8.0).
     if 0 < gap <= _RECORD_GAP_MAX and stats.longest_streak >= _RECORD_NEAR_MIN:
         parts.append(fill_html("record_near", days=_days_html(gap)))
-    elif gap > 0:
-        # La racha mas larga queda a la vista aunque la actual este lejos
-        # (4.1.0: antes estaba en la tarjeta de estadisticas).
-        parts.append(fill_html("record_was", days=_days_html(stats.longest_streak)))
-    return _mini(t("card_streak"), _days_html(current), " · ".join(parts))
+    return _mini(t("card_streak"), big, " · ".join(parts))
 
 
 def _retention_card(stats: FullStats, window: int, fsrs_target: float | None) -> str:
@@ -1021,9 +1027,6 @@ def _texts(measure: str) -> dict[str, str]:
     texts = {
         "none": t("tt_no_reviews"),
         "fnone": t("tt_no_due"),
-        # Ultima linea del globo de los dias que se pueden pulsar (3.6.0).
-        "click_past": t("tt_click_past"),
-        "click_future": t("tt_click_future"),
         # Dias perdonados (4.0.0).
         "forgiven_freeze": t("tt_forgiven_freeze"),
         "forgiven_pause": t("tt_forgiven_pause"),

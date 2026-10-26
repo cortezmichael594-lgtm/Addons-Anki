@@ -141,6 +141,16 @@ Las dos siguientes salieron de la revisión de la versión 3.6.0 (2026-10-21).
   debajo. Por qué: la ventana cambiaba de alto al entrar en cada subpágina y la página entera podía
   desplazarse al poner el cursor en un campo. Regla: el alto de la ventana se fija una vez al abrir y
   la página nunca se desplaza entera: solo su cuerpo, con el título y los botones siempre fijos.
+- FIX-029 · 2026-10-26 · versión 4.10.1 · Qué pasaba: al subir deprisa con el ratón desde los
+  cuadritos de abajo, el globo se quedaba abierto encima de los de arriba y no dejaba recorrerlos. Por
+  qué: el globo recogía el ratón para poder leerlo con calma, y al subir el ratón caía dentro de él.
+  Regla: el globo nunca recoge el ratón; el ratón siempre llega al día que tiene debajo.
+- FIX-030 · 2026-10-26 · versión 4.10.1 · Qué pasaba: al marcar «Pausar la racha», el título de la
+  ventana de opciones desaparecía y Aceptar y Cancelar quedaban a media ventana (el mismo aspecto que
+  FIX-028, que no lo había resuelto del todo). Por qué: las casillas de verdad, invisibles, estaban
+  colocadas respecto a la ventana y no a su fila; al pulsarlas, la página entera se desplazaba para
+  enseñarlas. Regla: todo control invisible va dentro de su fila, y si la página entera se desplazara
+  por lo que sea, vuelve arriba en el acto.
 
 ## Así a propósito
 
@@ -390,3 +400,14 @@ Versión 4.10.0 (petición del cliente del 2026-10-26 sobre la 4.9.0):
 - Las flechas del año, a 5 px de la cifra (1 px más). Lo pidió el cliente.
 - El panel, con letra de 12 px y espacios algo más ceñidos, y como mucho 720 px de alto; lo que no cabe
   se desplaza dentro. Ningún texto se puede seleccionar, salvo lo que se escribe. Lo pidió el cliente.
+
+Versión 4.10.1 (correcciones del cliente del 2026-10-26 sobre la 4.10.0):
+
+- El globo de los días ya no dice «Pulse para ver estas tarjetas» ni «Pulse para ver las que vencen ese
+  día». Lo pidió el cliente.
+- El globo no se puede recorrer con el ratón: el ratón pasa a través de él hasta el día de debajo
+  (FIX-029). Las pautas de accesibilidad prefieren poder leerlo con el ratón encima, pero aquí tapaba
+  el mapa; como el globo solo tiene texto y se abre en cada día, no se pierde nada (criterio técnico).
+- El récord de la racha va en el globo de la cifra de días, no en la línea gris. Lo pidió el cliente.
+- «px» va fuera de los campos de tamaño y redondeo, como «tarjetas al día», y la cifra centrada. El
+  cliente preguntó si quitarlo; se deja fuera del campo para no perder la unidad (criterio técnico).
