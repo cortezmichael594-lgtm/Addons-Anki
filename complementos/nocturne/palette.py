@@ -62,6 +62,16 @@ class Token(TypedDict):
 #   - Los acentos de tarjeta y nota (ACCENT_CARD, ACCENT_NOTE) usan de día los mismos
 #     tonos que las cifras «Nuevas» y «Para repasar», legibles como texto.
 #
+# Versión 3.5.0: la bandera roja (de día #D92121 -> #BE1D1D, de noche #D13939 -> #C12D2D) y la
+# verde (de noche #4C9E5A -> #4DA05B) se separan más en claridad, con el mismo tono, para que se distingan también con
+# deuteranopía y protanopía (simulación de Machado, 2009): en las filas de Explorar solo las
+# separa el color (informe de 2026-10-26, apartado 4.7).
+#
+# Versión 3.5.0: «Aprendiendo» (STATE_LEARN) pasa del naranja al rojo de la paleta, el mismo de
+# ACCENT_DANGER, como en Papel y en Bosque y como en Anki: el naranja significaba a la vez
+# «aprendiéndose» y «Difícil» (un color, una función: Webflow, P2). Lo pidió el cliente el
+# 2026-10-26 sabiendo que se aparta del aspecto original.
+#
 # Versión 3.4.0: NOCTURNE_TITLEBAR, la barra de título de las ventanas en Windows 11 (petición
 # del cliente, 2026-10-21): del matiz del fondo y con más color que él, para que cada paleta
 # tenga su barra: de noche, azul profundo #070C16, más oscuro que el fondo #12161F; de día,
@@ -130,9 +140,9 @@ PALETTE: dict[str, Token] = {
     "FG_FAINT":                      {"css": ("--fg-faint",),                                      "light": "#646C7D",   "dark": "#9AA3B4"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FG_LINK":                       {"css": ("--fg-link",),                                       "light": "#2F63D8",   "dark": "#A3C1F7"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FG_SUBTLE":                     {"css": ("--fg-subtle",),                                     "light": "#4E576A",   "dark": "#B7BECC"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "FLAG_1":                        {"css": ("--flag-1",),                                        "light": "#D92121",   "dark": "#D13939"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "FLAG_1":                        {"css": ("--flag-1",),                                        "light": "#BE1D1D",   "dark": "#C12D2D"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_2":                        {"css": ("--flag-2",),                                        "light": "#E8590C",   "dark": "#C07F3A"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "FLAG_3":                        {"css": ("--flag-3",),                                        "light": "#2F9E44",   "dark": "#4C9E5A"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "FLAG_3":                        {"css": ("--flag-3",),                                        "light": "#2F9E44",   "dark": "#4DA05B"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_4":                        {"css": ("--flag-4",),                                        "light": "#1971C2",   "dark": "#5993C2"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_5":                        {"css": ("--flag-5",),                                        "light": "#C62FAD",   "dark": "#B378C1"},  # colores-ok: paleta del tema, origen de todos sus colores
     "FLAG_6":                        {"css": ("--flag-6",),                                        "light": "#099268",   "dark": "#439C81"},  # colores-ok: paleta del tema, origen de todos sus colores
@@ -149,7 +159,7 @@ PALETTE: dict[str, Token] = {
     "SHADOW_INSET":                  {"css": ("--shadow-inset",),                                  "light": "#1B24301A", "dark": "#05080F4D"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SHADOW_SUBTLE":                 {"css": ("--shadow-subtle",),                                 "light": "#1B243012", "dark": "#05080F33"},  # colores-ok: paleta del tema, origen de todos sus colores
     "STATE_BURIED":                  {"css": ("--state-buried",),                                  "light": "#9A7B3F",   "dark": "#A98754"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "STATE_LEARN":                   {"css": ("--state-learn",),                                   "light": "#B8460A",   "dark": "#F1A95B"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "STATE_LEARN":                   {"css": ("--state-learn",),                                   "light": "#CA2D2D",   "dark": "#F37777"},  # colores-ok: paleta del tema, origen de todos sus colores
     "STATE_MARKED":                  {"css": ("--state-marked",),                                  "light": "#7048E8",   "dark": "#9680D6"},  # colores-ok: paleta del tema, origen de todos sus colores
     "STATE_NEW":                     {"css": ("--state-new",),                                     "light": "#186CB9",   "dark": "#7EBFF4"},  # colores-ok: paleta del tema, origen de todos sus colores
     "STATE_REVIEW":                  {"css": ("--state-review",),                                  "light": "#257A35",   "dark": "#57D06B"},  # colores-ok: paleta del tema, origen de todos sus colores

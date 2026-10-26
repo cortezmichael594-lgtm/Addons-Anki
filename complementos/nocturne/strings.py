@@ -8,19 +8,36 @@ from __future__ import annotations
 
 ADDON_NAME = "Nocturne"
 GROUP_TITLE = "Apariencia"
-PALETTE_LABEL = "Paleta"
-APPLIED = "Paleta «{name}» aplicada."
+DEFAULT_SUFFIX = " (predeterminada)"
+DAY_AND_NIGHT = (
+    "Cada paleta tiene versión de día y de noche, y cambia con el modo que elija "
+    "en las preferencias de Anki."
+)
+HIGH_CONTRAST = (
+    "Su sistema pide más contraste. Mientras siga así, Nocturne deja los colores del "
+    "sistema; la paleta que elija se aplicará cuando vuelva al contraste normal y "
+    "reinicie Anki."
+)
+FAILURES = "Alguna parte de Anki no se pudo pintar y conserva su aspecto normal."
+OPEN_LOG = "Abrir el registro"
+
+# Aviso que sale una sola vez, la primera vez que Anki arranca con Nocturne.
+WELCOME = (
+    "Nocturne está activo. Para elegir Papel o Bosque: Herramientas > Complementos > "
+    "Nocturne > Configuración."
+)
 
 # Nombre y descripción de cada paleta, en el orden de themes.THEMES. Una línea cada
-# una y la misma estructura (petición del cliente, 2026-10-21): colores y acento,
-# y después la forma. Valen para el modo día y para el modo noche.
+# una y la misma estructura (petición del cliente, 2026-10-21): colores y botones,
+# y después la forma. Valen para el modo día y para el modo noche. Desde la 3.5.0,
+# «botones» en lugar de «acento», que es palabra de diseñador.
 THEME_NAMES = {
     "nocturne": "Nocturne",
     "papel": "Papel",
     "bosque": "Bosque",
 }
 THEME_DESCRIPTIONS = {
-    "nocturne": "Grises azulados y acento azul. Letra del sistema y esquinas suaves.",
-    "papel": "Papel y tinta con acento azul petróleo. Títulos con remates, como un libro.",
-    "bosque": "Verdes grisáceos y acento verde azulado. Esquinas redondeadas y filas amplias.",
+    "nocturne": "Grises azulados y botones azules. Letra del sistema y esquinas suaves.",
+    "papel": "Papel y tinta, con botones azul petróleo. Títulos con remates, como un libro.",
+    "bosque": "Verdes grisáceos y botones verde azulado. Esquinas redondeadas y filas amplias.",
 }

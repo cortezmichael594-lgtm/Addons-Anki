@@ -38,7 +38,8 @@ class Look(TypedDict):
     radius: int  # px, esquinas pequeñas de ventanas y páginas; como mucho 6 (APR-059)
     radius_medium: int  # px, recuadros de las páginas
     radius_large: int  # px, botones redondeados de las páginas
-    button_radius: int  # px, botones de las ventanas; como mucho 9 (si no, Qt los dibuja cuadrados)
+    button_radius: int  # px, botones y campos de las ventanas; como mucho 9 (si no, Qt los dibuja
+    # cuadrados). Regla de la versión 3.5.0: los recuadros (radius_medium) llevan el doble.
     row_padding: int  # px arriba y abajo de cada fila de la lista de mazos
     focus_width: int  # px del contorno de foco en las páginas
     gradient: tuple[str, str] | None  # degradado del fondo (día, noche), o ninguno
@@ -65,7 +66,7 @@ NOCTURNE_LOOK: Look = {
     "radius": 6,
     "radius_medium": 12,
     "radius_large": 16,
-    "button_radius": 7,
+    "button_radius": 6,
     "row_padding": 4,
     "focus_width": 2,
     "gradient": ("rgba(59, 111, 224, 0.04)", "rgba(99, 144, 255, 0.07)"),  # colores-ok: degradado del acabado
@@ -79,7 +80,7 @@ PAPEL_LOOK: Look = {
     "radius": 6,
     "radius_medium": 14,
     "radius_large": 18,
-    "button_radius": 8,
+    "button_radius": 7,
     "row_padding": 5,
     "focus_width": 2,
     "gradient": ("rgba(31, 106, 128, 0.035)", "rgba(95, 179, 204, 0.06)"),  # colores-ok: degradado del acabado
@@ -93,7 +94,7 @@ BOSQUE_LOOK: Look = {
     "radius": 6,
     "radius_medium": 16,
     "radius_large": 20,
-    "button_radius": 9,
+    "button_radius": 8,
     "row_padding": 6,
     "focus_width": 2,
     "gradient": ("rgba(15, 118, 110, 0.04)", "rgba(63, 179, 165, 0.07)"),  # colores-ok: degradado del acabado
@@ -127,7 +128,7 @@ PAPEL: dict[str, Token] = _colors(
         "FG_FAINT": ("#6E6557", "#ABA496"),  # colores-ok: paleta del tema
         "FG_LINK": ("#1B6378", "#8FCDE0"),  # colores-ok: paleta del tema
         "FG_SUBTLE": ("#544C40", "#C4BBAB"),  # colores-ok: paleta del tema
-        "FLAG_1": ("#DA2B2B", "#C54C39"),  # colores-ok: paleta del tema
+        "FLAG_1": ("#C02121", "#B34534"),  # colores-ok: paleta del tema
         "FLAG_2": ("#D47425", "#C08138"),  # colores-ok: paleta del tema
         "FLAG_3": ("#1EA24E", "#30A43F"),  # colores-ok: paleta del tema
         "FLAG_4": ("#5187E0", "#4196C8"),  # colores-ok: paleta del tema
@@ -187,9 +188,9 @@ BOSQUE: dict[str, Token] = _colors(
         "FG_FAINT": ("#5E6E63", "#98A99E"),  # colores-ok: paleta del tema
         "FG_LINK": ("#0D6B64", "#7FD0C3"),  # colores-ok: paleta del tema
         "FG_SUBTLE": ("#45554A", "#B0BEB4"),  # colores-ok: paleta del tema
-        "FLAG_1": ("#C7432F", "#C64D3B"),  # colores-ok: paleta del tema
+        "FLAG_1": ("#B23C2A", "#B74635"),  # colores-ok: paleta del tema
         "FLAG_2": ("#C17C2D", "#C48339"),  # colores-ok: paleta del tema
-        "FLAG_3": ("#26A136", "#30A540"),  # colores-ok: paleta del tema
+        "FLAG_3": ("#26A136", "#31A741"),  # colores-ok: paleta del tema
         "FLAG_4": ("#3094CE", "#4699C9"),  # colores-ok: paleta del tema
         "FLAG_5": ("#D756D7", "#D366D3"),  # colores-ok: paleta del tema
         "FLAG_6": ("#259C8C", "#2FA192"),  # colores-ok: paleta del tema

@@ -27,7 +27,7 @@ from aqt import mw
 from aqt.theme import WidgetStyle, theme_manager
 
 from . import themes
-from .errors import get_logger, guard, guard_filter
+from .errors import guard, guard_filter, note_failure
 from .palette import GRADIENT_ALIASES, to_css_rgba
 
 # Medidas de Anki que fija cada paleta (aqt.props) y la clave de su «Look».
@@ -106,7 +106,7 @@ def restyle() -> bool:
         theme_manager._current_widget_style = None
         theme_manager.apply_style()
     except Exception:
-        get_logger().exception("no se pudo reaplicar el estilo de Qt")
+        note_failure("no se pudo reaplicar el estilo de Qt")
         return False
     return True
 
@@ -162,6 +162,10 @@ def _buttons_css(pick: Callable[[str], str]) -> str:
     """Botones de las ventanas (versión 3.1.0): esquinas de la paleta y el botón
     principal relleno del color de acción.
 
+    Versión 3.5.0: botones y campos con la misma esquina, para que 6 y 7 px no se
+    lean como un descuido (Refactoring UI, M2 y P4), y las casillas con una menor
+    (4 px), para que no parezcan botones de opción.
+
     Un solo botón principal por ventana, relleno y con el mayor contraste, y el
     resto con su aspecto normal (Practical UI, P17; Refactoring UI, P11). En Qt, el
     botón «por defecto» es el que se pulsa con Intro, así que el relleno sigue a esa
@@ -169,9 +173,29 @@ def _buttons_css(pick: Callable[[str], str]) -> str:
     foco y 2px (margen 0, que pone Anki) con el ratón encima o con el foco.
     """
     radius = themes.look()["button_radius"]
+    side = getattr(theme_manager, "right", lambda: "right")()
     return f"""
     QPushButton {{
         border-radius: {radius}px;
+    }}
+    QComboBox,
+    QSpinBox,
+    QDateTimeEdit,
+    QLineEdit,
+    QListWidget,
+    QTreeWidget,
+    QListView,
+    QTextEdit,
+    QPlainTextEdit {{
+        border-radius: {radius}px;
+    }}
+    QComboBox::drop-down {{
+        border-top-{side}-radius: {radius}px;
+        border-bottom-{side}-radius: {radius}px;
+    }}
+    QCheckBox::indicator,
+    QMenu::indicator:non-exclusive {{
+        border-radius: 4px;
     }}
     QPushButton:default {{
         background: {pick("BUTTON_PRIMARY_BG")};

@@ -11,8 +11,8 @@ import types
 import unittest
 
 import anki.lang
-from aqt.qt import QApplication, QDialog, QMainWindow, QMenu, Qt, QWidget
-from nocturne import dialogs, strings, themes, titlebar
+from aqt.qt import QApplication, QDialog, QLabel, QMainWindow, QMenu, QPushButton, QRadioButton, Qt, QWidget
+from nocturne import contrast, dialogs, errors, strings, themes, titlebar
 
 _app = QApplication.instance() or QApplication([])
 anki.lang.set_lang("es")  # el título de la ventana sale de las traducciones de Anki
@@ -65,8 +65,82 @@ class OwnerWindowTest(unittest.TestCase):
         assert dialog is not None
         dialog.restore_defaults()
         self.assertEqual(dialog.selected_id(), themes.DEFAULT_THEME)
-        # Solo cambia la elección: la paleta activa no cambia hasta «Aceptar».
+        # La vista previa espera a que la elección lleve un momento quieta.
         self.assertEqual(themes.current_id(), "papel")
+        self.assertTrue(dialog._timer.isActive())
+
+
+class PaletteChoiceTest(unittest.TestCase):
+    """Versión 3.5.0 (informe de 2026-10-26, apartados 2.3, 3.1, 3.2 y 3.3): las tres
+    paletas a la vista, la predeterminada marcada, vista previa y vuelta atrás."""
+
+    def setUp(self) -> None:
+        self.owner = QDialog()
+        themes.select("nocturne")
+
+    def tearDown(self) -> None:
+        errors._failures = 0
+        contrast._stepped_aside = False
+        themes.select("nocturne")
+        self.owner.close()
+
+    def dialog(self) -> dialogs.PaletteDialog:
+        return dialogs.PaletteDialog(self.owner)
+
+    def test_three_options_with_descriptions(self) -> None:
+        dialog = self.dialog()
+        radios = [b.text() for b in dialog.findChildren(QRadioButton)]
+        self.assertEqual(radios, ["Nocturne" + strings.DEFAULT_SUFFIX, "Papel", "Bosque"])
+        texts = [label.text() for label in dialog.findChildren(QLabel)]
+        for description in strings.THEME_DESCRIPTIONS.values():
+            self.assertIn(description, texts)
+        self.assertIn(strings.DAY_AND_NIGHT, texts)
+        self.assertNotIn(strings.HIGH_CONTRAST, texts)
+        self.assertNotIn(strings.FAILURES, texts)
+
+    def test_clicking_a_description_picks_its_palette(self) -> None:
+        dialog = self.dialog()
+        label = next(l for l in dialog.findChildren(QLabel) if l.text() == strings.THEME_DESCRIPTIONS["bosque"])
+        label.mousePressEvent(None)
+        self.assertEqual(dialog.selected_id(), "bosque")
+
+    def test_preview_then_cancel_goes_back(self) -> None:
+        dialog = self.dialog()
+        dialog._buttons["papel"].setChecked(True)
+        dialog._preview()  # lo que hace el temporizador
+        self.assertEqual(themes.current_id(), "papel")
+        dialog.reject()
+        self.assertEqual(themes.current_id(), "nocturne")
+
+    def test_accept_keeps_the_choice(self) -> None:
+        dialog = self.dialog()
+        dialog._buttons["bosque"].setChecked(True)
+        dialog.accept()
+        self.assertEqual(themes.current_id(), "bosque")
+
+    def test_failures_line_only_after_a_failure(self) -> None:
+        errors._failures = 1
+        logs = errors.logs_folder
+        errors.logs_folder = lambda: "/registro"  # type: ignore[assignment]
+        try:
+            dialog = self.dialog()
+        finally:
+            errors.logs_folder = logs  # type: ignore[assignment]
+        self.assertIn(strings.FAILURES, [label.text() for label in dialog.findChildren(QLabel)])
+        self.assertIn(strings.OPEN_LOG, [b.text() for b in dialog.findChildren(QPushButton)])
+
+    def test_high_contrast_no_preview(self) -> None:
+        contrast.step_aside()
+        dialog = self.dialog()
+        self.assertIn(strings.HIGH_CONTRAST, [label.text() for label in dialog.findChildren(QLabel)])
+        dialog._buttons["papel"].setChecked(True)
+        self.assertFalse(dialog._timer.isActive())
+        dialog.accept()
+        # Se guarda (para cuando vuelva el contraste normal), pero no se pinta.
+        self.assertEqual(themes.current_id(), "nocturne")
+
+    def test_contrast_check_is_safe(self) -> None:
+        self.assertIsInstance(contrast.system_wants_more_contrast(), bool)
 
 
 class DescriptionTest(unittest.TestCase):
@@ -79,7 +153,8 @@ class DescriptionTest(unittest.TestCase):
             self.assertLessEqual(len(text), 80, theme_id)
             self.assertEqual(text.count(". "), 1, theme_id)
             self.assertTrue(text.endswith("."), theme_id)
-            self.assertIn("acento", text, theme_id)
+            self.assertIn("botones", text, theme_id)
+            self.assertNotIn("acento", text, theme_id)
             for word in ("noche", "día"):
                 self.assertNotIn(word, text.casefold(), theme_id)
 
