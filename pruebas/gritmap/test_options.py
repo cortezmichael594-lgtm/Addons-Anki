@@ -35,7 +35,7 @@ class ConfigFromPageTest(unittest.TestCase):
         self.assertEqual(cfg.theme, DEFAULT_CONFIG.theme)
         self.assertEqual(cfg.cell_size, 60)
         self.assertEqual(cfg.border_radius, 15)
-        self.assertEqual(cfg.measure, DEFAULT_CONFIG.measure)
+        self.assertEqual(cfg.measure, "cards")
         self.assertEqual(cfg.avg_window, DEFAULT_CONFIG.avg_window)
         self.assertEqual(cfg.goal_mode, DEFAULT_CONFIG.goal_mode)
         self.assertEqual(cfg.goal, 1)
@@ -122,14 +122,16 @@ class GoalProposalTest(unittest.TestCase):
     def test_proposal_uses_the_daily_average_of_the_card(self) -> None:
         # 4.9.0: 4 dias de cada 7 con 72 repasos dan un promedio diario de 41
         # (el de la tarjeta), y la meta propuesta es su 80 % redondeado a 5.
-        past = {d: DayActivity(72, 72, 0) for d in range(1, 29) if d % 7 in (0, 1, 2, 3)}
+        # 4.10.0: la medida es siempre «Tarjetas».
+        past = {d: DayActivity(90, 72, 0) for d in range(1, 29) if d % 7 in (0, 1, 2, 3)}
         data = HeatmapData(past=past, future_counts={}, today=TODAY)
-        state.data = DataEntry(0, False, 0, (), "reviews", data)
-        value, average = options.goal_proposal("reviews", DEFAULT_CONFIG)
+        state.data = DataEntry(0, False, 0, (), "cards", data)
+        value, average = options.goal_proposal("cards", DEFAULT_CONFIG)
         self.assertEqual(average, 41)
         self.assertEqual(value, 35)
-        # Sin historial en esa medida, un valor prudente y sin promedio.
-        self.assertEqual(options.goal_proposal("new", DEFAULT_CONFIG), (10, None))
+        # Sin historial, un valor prudente y sin promedio.
+        state.data = None
+        self.assertEqual(options.goal_proposal("cards", DEFAULT_CONFIG), (30, None))
 
 
 if __name__ == "__main__":

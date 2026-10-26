@@ -33,12 +33,15 @@ en la coleccion tambien se escribe en segundo plano.
 #                        pasar entre modo dia y noche con la ventana abierta.
 # FIX-025 (2026-10-21) — Abierta desde la ventana Complementos, Opciones podia
 #                        quedar detras de ella en Windows.
+# FIX-028 (2026-10-26) — Al entrar en «Fechas clave», la cabecera quedaba fuera
+#                        de la ventana y el pie a media altura.
 
 from __future__ import annotations
 
 import html
 import json
 import re
+import unicodedata
 from dataclasses import dataclass, replace
 from datetime import date, timedelta
 from typing import Any
@@ -73,7 +76,7 @@ from .config import (
     save_appearance,
     save_scoped,
 )
-from .data import MEASURES, WINDOWS, daily_average, full_stats, paused_days, round_half_up
+from .data import WINDOWS, daily_average, full_stats, paused_days, round_half_up
 from .decks import DeckEntry, all_deck_entries
 from .errors import guarded, log_exception
 from .i18n import anki_text, fill, lang, locale_code, plural_key, t, unit_label
@@ -87,6 +90,9 @@ MSG_PREFIX = "gritmapopts:"
 # Ancho fijo del panel y margen que se deja respecto al alto de la pantalla.
 _WIDTH = 560
 _SCREEN_MARGIN = 80
+# Alto maximo de la ventana (4.10.0: ocupaba casi toda la pantalla); lo que no
+# cabe se desplaza dentro del panel.
+_MAX_HEIGHT = 720
 # Nombres de mazo que caben en el resumen de «Excluir mazos».
 _SUMMARY_NAMES = 3
 
@@ -131,13 +137,14 @@ def _theme_swatch_color(name: str) -> str:
     return scale.get(name, scale[DEFAULT_CONFIG.theme])[2]
 
 
-# Orden de los temas (4.7.0): el de serie primero y los demas por tono.
-_THEME_ORDER = ("classic_green", "ocean_blue", "royal_purple", "sunset_orange")
-
-
 def _sorted_theme_names() -> list[str]:
-    order = {name: index for index, name in enumerate(_THEME_ORDER)}
-    return sorted(THEME_NAMES, key=lambda name: (order.get(name, len(order)), name))
+    """Temas por orden alfabetico de su nombre en el idioma de Anki (4.10.0,
+    peticion del cliente), sin distinguir tildes ni mayusculas."""
+    def key(name: str) -> str:
+        label = unicodedata.normalize("NFKD", t(f"theme_{name}"))
+        return "".join(c for c in label if not unicodedata.combining(c)).casefold()
+
+    return sorted(THEME_NAMES, key=key)
 
 
 # Meta propuesta sin historial, en la unidad de cada medida (4.7.0).
@@ -190,7 +197,7 @@ def _texts() -> dict[str, str]:
     """Textos de la pagina: los propios y los que ya trae Anki."""
     own = (
         "nav_opts", "grp_look", "grp_count", "grp_goals", "opt_restore_look", "look_live",
-        "opt_theme", "opt_map_size", "size_fit", "radius_max", "fit_note", "opt_measure",
+        "opt_theme", "opt_map_size", "size_fit", "radius_max", "fit_note",
         "opt_window", "window_help", "applied_on_ok", "opt_exclude", "opt_show_streak",
         "streak_off_note", "opt_goal", "goal_unit_day", "goal_proposal_line", "goal_due_note",
         "opt_freezes", "freeze_tip", "opt_pause", "pause_from", "pause_to", "pause_rule",
@@ -212,10 +219,7 @@ def _texts() -> dict[str, str]:
 
 def _payload(cfg: Config, start: str) -> dict[str, Any]:
     """Todo lo que la pagina necesita para dibujarse entera antes de verse."""
-    proposals = {}
-    for measure in MEASURES:
-        value, average = goal_proposal(measure, cfg)
-        proposals[measure] = {"value": value, "average": average}
+    value, average = goal_proposal(cfg.measure, cfg)
     retired = ""
     if cfg.retired_theme:
         # El tema guardado se retiro en la 4.0.0: se dice una vez, sin
@@ -235,16 +239,13 @@ def _payload(cfg: Config, start: str) -> dict[str, Any]:
             {"name": name, "label": t(f"theme_{name}"), "color": _theme_swatch_color(name)}
             for name in _sorted_theme_names()
         ],
-        "measures": [
-            {"id": m, "label": t(f"measure_{m}"), "help": t(f"measure_{m}_help"), "unit": _unit_word(m)}
-            for m in MEASURES
-        ],
+        "unit": _unit_word(cfg.measure),
         "windows": [
             {"id": days, "label": t("window_all") if days == 0 else fill("window_days", count=days)}
             for days in WINDOWS
         ],
         "goal_modes": [{"id": mode, "label": t(f"goal_{mode}")} for mode in GOAL_MODES],
-        "proposals": proposals,
+        "proposal": {"value": value, "average": average},
         "freezes_now": _freezes_now(cfg),
         "retired": retired,
         "defaults": {
@@ -272,7 +273,6 @@ def _payload(cfg: Config, start: str) -> dict[str, Any]:
             "theme": cfg.theme,
             "cell_size": cfg.cell_size,
             "border_radius": cfg.border_radius,
-            "measure": cfg.measure,
             "avg_window": cfg.avg_window,
             "goal_mode": cfg.goal_mode,
             "goal": cfg.goal,
@@ -313,7 +313,6 @@ def config_from_page(base: Config, chosen: dict[str, Any], existing: dict[int, s
         cell = max(CELL_SIZE_MIN, cell)
     half = (14 if cell == FIT_WIDTH else cell) // 2
     radius = _as_int(chosen.get("border_radius"), base.border_radius, BORDER_RADIUS_MIN, min(BORDER_RADIUS_MAX, half))
-    measure = chosen.get("measure")
     window = chosen.get("avg_window")
     mode = chosen.get("goal_mode")
 
@@ -355,7 +354,6 @@ def config_from_page(base: Config, chosen: dict[str, Any], existing: dict[int, s
         theme=theme if isinstance(theme, str) and theme in THEME_NAMES else base.theme,
         cell_size=cell,
         border_radius=radius,
-        measure=measure if isinstance(measure, str) and measure in MEASURES else base.measure,
         avg_window=window if isinstance(window, int) and window in WINDOWS else base.avg_window,
         goal_mode=mode if isinstance(mode, str) and mode in GOAL_MODES else base.goal_mode,
         goal=_as_int(chosen.get("goal"), base.goal, GOAL_MIN, GOAL_MAX),
@@ -529,9 +527,6 @@ class HeatmapOptionsDialog(QDialog):
             self._web.show()
             self._web.setFocus()
             return None
-        if action == "height":
-            self._fit_height(arg)
-            return None
         if action == "texts":
             existing = self._decks.existing if self._decks is not None else None
             return summary_texts(json.loads(arg), existing)
@@ -552,16 +547,26 @@ class HeatmapOptionsDialog(QDialog):
             return None
         return None
 
+    # --- FIX-028 (2026-10-26) ---
+    # Sintoma: al pulsar «Fechas clave», la cabecera desaparecia por arriba y
+    #          Aceptar y Cancelar quedaban a media ventana, con un hueco vacio
+    #          debajo.
+    # Causa: la ventana cambiaba de alto al entrar en cada subpagina y la pagina
+    #        entera podia desplazarse al llevar el foco a un campo.
+    # Regla: el alto de la ventana se fija una vez al abrir y la pagina entera
+    #        nunca se desplaza: solo el cuerpo del panel.
+    # ---------------------------------------------------------------
     def _fit_height(self, raw: str) -> None:
-        """El alto es el del contenido, hasta el de la pantalla menos 80 px;
-        si no cabe, la pagina desplaza su cuerpo y deja fijos la cabecera y
-        el pie."""
+        """El alto es el de la pagina principal, hasta 720 px o el de la
+        pantalla menos 80 px, y se fija una vez al abrir (4.10.0); si algo no
+        cabe, la pagina desplaza su cuerpo y deja fijos la cabecera y el pie."""
         try:
             wanted = int(float(raw))
         except ValueError:
             return
         screen = self.screen()
         limit = screen.availableGeometry().height() - _SCREEN_MARGIN if screen is not None else wanted
+        limit = min(limit, _MAX_HEIGHT)
         self.resize(self.width(), max(240, min(wanted, limit)))
 
     # Cerrar: Esc, la cruz de la ventana o Cancelar pasan por la pagina, que

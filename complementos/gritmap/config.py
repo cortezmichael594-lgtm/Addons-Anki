@@ -34,7 +34,7 @@ from typing import TypeGuard
 from anki.collection import Collection
 from aqt import mw
 
-from .data import MEASURES, WINDOWS
+from .data import WINDOWS
 from .errors import log_exception
 from .palettes import RETIRED_THEMES, THEME_NAMES
 
@@ -93,8 +93,8 @@ class KeyDate:
 @dataclass(frozen=True)
 class Config:
     theme: str
-    # Que mide el color: "reviews", "cards" o "new" (data.MEASURES). Un "minutes"
-    # guardado por la version 3.0.0 vuelve a "reviews" al leerse.
+    # Que mide el color. Desde la 4.10.0, siempre "cards" (tarjetas distintas
+    # respondidas cada dia); data.MEASURES conserva las otras para los calculos.
     measure: str
     # Lado de cada cuadrito en pixeles (FIT_WIDTH: ajustado al ancho; el
     # dibujo se escala entero, 4.5.0) y redondeo de sus esquinas en pixeles
@@ -122,7 +122,7 @@ class Config:
 
 DEFAULT_CONFIG = Config(
     theme="classic_green",
-    measure="reviews",
+    measure="cards",
     cell_size=24,
     border_radius=3,
     avg_window=30,
@@ -162,7 +162,9 @@ def _as_int(value: object, fallback: int, minimum: int, maximum: int) -> int:
 
 
 def _as_measure(value: object) -> str:
-    return value if isinstance(value, str) and value in MEASURES else DEFAULT_CONFIG.measure
+    # Desde la 4.10.0 solo hay una medida, «Tarjetas» (peticion del cliente,
+    # 2026-10-26): lo guardado por versiones anteriores pasa a ella.
+    return DEFAULT_CONFIG.measure
 
 
 def _as_window(value: object) -> int:

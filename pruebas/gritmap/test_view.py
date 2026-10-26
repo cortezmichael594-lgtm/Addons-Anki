@@ -96,7 +96,9 @@ class WidgetTest(unittest.TestCase):
     def test_average_card(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
         card = html[html.index(">Promedio diario<"):html.index(">Retención<")]
-        self.assertIn('data-n="1240"', card)
+        # 4.10.0: una sola medida, tarjetas distintas.
+        self.assertIn('data-n="900"', card)
+        self.assertIn("tarjetas", card)
         self.assertIn("últimos 30 días", card)
         # Regla de FIX-010: sin dias completos, N/A con el motivo en el globo.
         empty = view.build_widget_html(sample(past={0: DayActivity(5, 5, 1)}), DEFAULT_CONFIG, 0)
@@ -227,7 +229,13 @@ class WidgetTest(unittest.TestCase):
 
     def test_retention_card_with_fsrs_target(self) -> None:
         html = view.build_widget_html(sample(fsrs_target=0.9), DEFAULT_CONFIG, 0, deck_only=True)
-        self.assertIn("objetivo", html)
+        # 4.10.0: el objetivo va en el globo del porcentaje, no en la linea.
+        card = html[html.index(">Retención<"):]
+        card = card[:card.index("</section>")]
+        line = card[card.index('class="gritmap-line"'):]
+        self.assertIn("Objetivo", card)
+        self.assertIn("data-gritmap-info", card)
+        self.assertNotIn("objetivo", line.lower())
         self.assertIn('data-p="90"', html)
 
     def test_next_date_card_only_with_upcoming_dates(self) -> None:
@@ -334,7 +342,8 @@ class WidgetTest(unittest.TestCase):
             self.assertEqual(set(scales), set(palettes.THEME_NAMES))
             for tones in scales.values():
                 self.assertEqual(len(tones), palettes.LEVELS)
-        self.assertEqual(len(palettes.THEME_NAMES), 4)
+        # 4.10.0: vuelven Rosa suave y Turquesa laguna.
+        self.assertEqual(len(palettes.THEME_NAMES), 6)
 
 
 class WebExportsPatternTest(unittest.TestCase):

@@ -87,6 +87,11 @@
     ],
     "FIX-027": [
       "web/gritmap.css"
+    ],
+    "FIX-028": [
+      "options.py",
+      "web/options.css",
+      "web/options.js"
     ]
   }
 }

@@ -1,3 +1,8 @@
+/* Historial de correcciones de este archivo:
+ * FIX-028 (2026-10-26) — Al entrar en «Fechas clave», la cabecera quedaba fuera
+ *                        de la ventana y el pie a media altura.
+ */
+
 /* GritMap - panel de opciones a medida (4.9.0).
  *
  * Python (options.py) pone en la pagina todo lo que hace falta y la pagina se
@@ -235,7 +240,6 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
             theme: c.theme,
             cell_size: c.fit ? 0 : c.cell,
             border_radius: c.radius,
-            measure: c.measure,
             avg_window: c.window,
             goal_mode: c.goal_mode,
             goal: c.goal,
@@ -578,19 +582,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
             ]),
         ]));
 
-        // Que se cuenta
-        S.nodes.measureHelp = el("p", { class: "gritmap-o-rule" });
-        S.nodes.measure = segmented("measure", S.p.measures, c.measure, "gritmap-o-l-measure", function (value) {
-            var proposed = c.goal_mode === "number" && c.goal === S.goalProposed;
-            c.measure = value;
-            if (proposed) {
-                // La meta era la propuesta y no se toco: otra en la unidad
-                // nueva, porque 50 repasos no son 50 nuevas.
-                proposeGoal();
-            }
-            updateMeasure();
-            updateGoal();
-        });
+        // Que se cuenta (4.10.0: sin «El color mide»; solo hay tarjetas)
         S.nodes.window = segmented("window", S.p.windows, c.window, "gritmap-o-l-window", function (value) {
             c.window = value;
         });
@@ -602,11 +594,6 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         page.appendChild(el("section", { class: "gritmap-o-card", "aria-labelledby": "gritmap-o-h-count" }, [
             el("div", { class: "gritmap-o-card-head" }, [el("h2", { id: "gritmap-o-h-count", text: t.grp_count })]),
             el("p", { class: "gritmap-o-card-note", text: t.applied_on_ok }),
-            el("div", { class: "gritmap-o-option" }, [
-                el("span", { class: "gritmap-o-label", id: "gritmap-o-l-measure", text: t.opt_measure }),
-                S.nodes.measure,
-                S.nodes.measureHelp,
-            ]),
             el("div", { class: "gritmap-o-option" }, [
                 el("span", { class: "gritmap-o-label", id: "gritmap-o-l-window", text: t.opt_window }),
                 S.nodes.window,
@@ -768,16 +755,8 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         S.nodes.radiusRule.textContent = fill(S.t.radius_max, { n: half });
     }
 
-    function updateMeasure() {
-        var m = S.p.measures.filter(function (item) {
-            return item.id === S.cfg.measure;
-        })[0] || S.p.measures[0];
-        S.nodes.measureHelp.textContent = m.help;
-        S.nodes.goalUnit.textContent = fill(S.t.goal_unit_day, { unit: m.unit });
-    }
-
     function proposeGoal() {
-        var proposal = S.p.proposals[S.cfg.measure] || { value: S.cfg.goal };
+        var proposal = S.p.proposal;
         S.cfg.goal = proposal.value;
         S.goalProposed = proposal.value;
         S.nodes.goal.set(proposal.value);
@@ -787,7 +766,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         var c = S.cfg;
         S.nodes.goalNumber.hidden = c.goal_mode !== "number";
         S.nodes.goalDue.hidden = c.goal_mode !== "due";
-        var proposal = S.p.proposals[c.measure] || {};
+        var proposal = S.p.proposal;
         var showProposal = c.goal_mode === "number" && proposal.average !== null && proposal.average !== undefined;
         S.nodes.goalProposal.hidden = !showProposal;
         if (showProposal) {
@@ -814,7 +793,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         S.nodes.pauseStart.label.textContent = formatDay(c.pause_start);
         S.nodes.pauseEnd.label.textContent = formatDay(c.pause_end);
         S.nodes.pauseDays.textContent = S.texts.pause_days ? "· " + S.texts.pause_days : "";
-        reportHeight();
+        refreshScroll();
     }
 
     function updateSummaries() {
@@ -850,7 +829,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
             renderDateList();
             S.nodes.kdName.focus();
         }
-        reportHeight();
+        refreshScroll();
     }
 
     function backToMain() {
@@ -867,7 +846,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         if (S.opener) {
             S.opener.focus();
         }
-        reportHeight();
+        refreshScroll();
     }
 
     function buildDecksPage() {
@@ -997,7 +976,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         });
         S.nodes.deckEmpty.hidden = shown > 0;
         updateDeckCount();
-        reportHeight();
+        refreshScroll();
     }
 
     function buildDatesPage() {
@@ -1056,7 +1035,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         S.nodes.kdError.hidden = false;
         S.nodes.kdName.classList.add("gritmap-o-invalid");
         S.nodes.kdName.setAttribute("aria-invalid", "true");
-        reportHeight();
+        refreshScroll();
     }
 
     function clearError() {
@@ -1064,7 +1043,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
             S.nodes.kdError.hidden = true;
             S.nodes.kdName.classList.remove("gritmap-o-invalid");
             S.nodes.kdName.removeAttribute("aria-invalid");
-            reportHeight();
+            refreshScroll();
         }
     }
 
@@ -1282,7 +1261,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
             count: S.cfg.key_dates.length,
             max: S.p.limits.max_key_dates,
         });
-        reportHeight();
+        refreshScroll();
     }
 
     // Calendario propio
@@ -1551,15 +1530,20 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         S.nodes.shell.classList.toggle("gritmap-o-scrolled", overflow && body.scrollTop > 0);
     }
 
-    function reportHeight() {
+    // --- FIX-028 (2026-10-26) ---
+    // Sintoma: al pulsar «Fechas clave», la cabecera desaparecia por arriba y
+    //          Aceptar y Cancelar quedaban a media ventana, con un hueco vacio
+    //          debajo.
+    // Causa: la ventana cambiaba de alto al entrar en cada subpagina y la pagina
+    //        entera podia desplazarse al llevar el foco a un campo.
+    // Regla: el alto de la ventana se fija una vez al abrir y la pagina entera
+    //        nunca se desplaza: solo el cuerpo del panel.
+    function refreshScroll() {
         if (!S.ready) {
             return;
         }
         clearTimeout(heightTimer);
-        heightTimer = setTimeout(function () {
-            sendRaw("height", naturalHeight());
-            updateScrollState();
-        }, 0);
+        heightTimer = setTimeout(updateScrollState, 0);
     }
 
     // Arranque y ordenes de Python
@@ -1580,7 +1564,6 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
             cell: c.cell_size === 0 ? payload.defaults.cell_size || 24 : c.cell_size,
             fit: c.cell_size === 0,
             radius: c.border_radius,
-            measure: c.measure,
             window: c.avg_window,
             goal_mode: c.goal_mode,
             goal: c.goal,
@@ -1622,7 +1605,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         app.appendChild(n.confirm);
 
         updateSize();
-        updateMeasure();
+        S.nodes.goalUnit.textContent = fill(S.t.goal_unit_day, { unit: payload.unit });
         updateGoal();
         updatePause();
         updateStreak();

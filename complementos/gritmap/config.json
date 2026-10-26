@@ -1,6 +1,6 @@
 {
     "theme": "classic_green",
-    "measure": "reviews",
+    "measure": "cards",
     "map_size": 24,
     "map_radius": 3,
     "avg_window": 30,

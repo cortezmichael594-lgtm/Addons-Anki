@@ -136,6 +136,11 @@ Las dos siguientes salieron de la revisión de la versión 3.6.0 (2026-10-21).
   «hoy» y el de los días perdonados se veían cortados un pelín por arriba. Por qué: esos recuadros
   sobresalen un poco del cuadrito y el mapa recortaba todo lo que salía de su dibujo. Regla: lo que se
   dibuja alrededor de un cuadrito siempre cabe entero, también en los bordes del mapa.
+- FIX-028 · 2026-10-26 · versión 4.10.0 · Qué pasaba: al pulsar «Fechas clave» en las opciones, el
+  título de arriba desaparecía y Aceptar y Cancelar quedaban a media ventana, con un hueco vacío
+  debajo. Por qué: la ventana cambiaba de alto al entrar en cada subpágina y la página entera podía
+  desplazarse al poner el cursor en un campo. Regla: el alto de la ventana se fija una vez al abrir y
+  la página nunca se desplaza entera: solo su cuerpo, con el título y los botones siempre fijos.
 
 ## Así a propósito
 
@@ -372,3 +377,16 @@ Versión 4.9.0 (informe «últimos retoques y panel de opciones a medida», apro
   de un mazo la cifra sería la de ese mazo, no la de la racha completa (criterio técnico).
 - La semana que empieza según el idioma se propuso y se descartó: el mapa sigue empezando en lunes.
   Lo decidió el cliente.
+
+Versión 4.10.0 (petición del cliente del 2026-10-26 sobre la 4.9.0):
+
+- Solo hay una medida, «Tarjetas»: se quita «El color mide». El cliente pidió quedarse con
+  «Repasos» pero llamarlo «tarjetas»; como eso chocaba con la regla de FIX-006 (nunca «tarjetas» para
+  contar respuestas), eligió contar tarjetas distintas. Una medida guardada antes pasa a «Tarjetas».
+- Vuelven Rosa suave y Turquesa laguna (seis temas); Rojo fuego sigue retirado porque en la interfaz el
+  rojo significa error. Sus cuatro tonos son colores propios, con la misma luminosidad que los de los
+  otros temas. Los temas van por orden alfabético del nombre. Lo pidió el cliente.
+- El objetivo de retención va en un globo sobre el porcentaje, no en la línea gris. Lo pidió el cliente.
+- Las flechas del año, a 5 px de la cifra (1 px más). Lo pidió el cliente.
+- El panel, con letra de 12 px y espacios algo más ceñidos, y como mucho 720 px de alto; lo que no cabe
+  se desplaza dentro. Ningún texto se puede seleccionar, salvo lo que se escribe. Lo pidió el cliente.

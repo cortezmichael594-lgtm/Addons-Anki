@@ -6127,3 +6127,62 @@ _STRINGS_4_9: dict[str, tuple[str, ...]] = {
 }
 for _code, _texts in _STRINGS_4_9.items():
     STRINGS[_code].update(zip(_KEYS_4_9, _texts))
+
+
+# Textos de la 4.10.0: sin «El color mide», el aviso de la tarjeta «Qué se
+# cuenta» ya solo habla de los mazos excluidos.
+_APPLIED_ON_OK_4_10: dict[str, str] = {
+    "en": "The excluded decks apply when you press OK.",
+    "es": "Los mazos excluidos se aplican al aceptar.",
+    "de": "Ausgeschlossene Stapel gelten nach „OK“.",
+    "fr": "Les paquets exclus s'appliquent en validant.",
+    "it": "I mazzi esclusi si applicano con OK.",
+    "pt": "Os baralhos excluídos aplicam-se ao aceitar.",
+    "nl": "Uitgesloten decks gelden na OK.",
+    "ru": "Исключённые колоды применяются после нажатия «OK».",
+    "pl": "Wykluczone talie zostaną zastosowane po kliknięciu OK.",
+    "tr": "Hariç tutulan desteler Tamam'a basınca uygulanır.",
+    "ja": "除外するデッキは OK を押すと反映されます。",
+    "ko": "제외할 덱은 확인을 누르면 적용됩니다.",
+    "zh_CN": "排除的牌组在按“确定”后生效。",
+    "zh_TW": "排除的牌組在按「確定」後生效。",
+    "ar": "تُطبَّق المجموعات المستبعدة عند الضغط على موافق.",
+    "el": "Οι εξαιρεμένες δεσμίδες εφαρμόζονται με το OK.",
+    "sv": "Uteslutna kortlekar gäller när du trycker på OK.",
+    "da": "Udelukkede stakke gælder, når du trykker OK.",
+    "nb": "Utelatte kortstokker gjelder når du trykker OK.",
+    "fi": "Pois suljetut pakat otetaan käyttöön, kun painat OK.",
+    "cs": "Vyloučené balíčky se použijí po stisknutí OK.",
+    "sk": "Vylúčené balíčky sa použijú po stlačení OK.",
+    "hu": "A kizárt paklik az OK gombbal lépnek életbe.",
+    "ro": "Pachetele excluse se aplică la apăsarea OK.",
+    "uk": "Виключені колоди застосовуються після натискання «OK».",
+    "vi": "Các bộ thẻ bị loại trừ được áp dụng khi bấm OK.",
+    "th": "ชุดการ์ดที่ยกเว้นจะมีผลเมื่อกดตกลง",
+    "ms": "Dek yang dikecualikan berkuat kuasa apabila anda menekan OK.",
+    "tl": "Ilalapat ang mga ibinukod na deck kapag pinindot ang OK.",
+    "he": "החפיסות שאינן נכללות חלות לאחר לחיצה על אישור.",
+    "hr": "Isključeni špilovi primjenjuju se nakon pritiska na U redu.",
+    "sr": "Искључени шпилови примењују се када притиснете У реду.",
+    "sl": "Izključeni kompleti začnejo veljati, ko pritisnete V redu.",
+    "bg": "Изключените тестета се прилагат при натискане на OK.",
+    "ca": "Les baralles excloses s'apliquen en acceptar.",
+    "eu": "Baztertutako sortak Ados sakatzean aplikatzen dira.",
+    "gl": "As barallas excluídas aplícanse ao aceptar.",
+    "et": "Välistatud kaardipakid rakenduvad OK vajutamisel.",
+    "fa": "دسته‌های حذف‌شده با زدن تأیید اعمال می‌شوند.",
+    "mn": "Хассан багцууд OK дарахад хэрэгжинэ.",
+    "be": "Выключаныя калоды ўжываюцца пасля націскання «OK».",
+    "eo": "La ekskluzivitaj kartaroj validas post premo de Bone.",
+    "af": "Uitgeslote dekke geld wanneer u OK druk.",
+    "ga": "Cuirtear na paicéid fágtha ar lár i bhfeidhm nuair a bhrúnn tú OK.",
+    "la": "Fasciculi exclusi valent cum OK premis.",
+    "oc": "Los paquets exclúsis s'aplican en validant.",
+    "uz": "Chiqarib tashlangan to'plamlar OK bosilganda qo'llanadi.",
+    "jbo": ".i lo jmina cu se pilno ba lo nu do danre la'o gy OK gy",
+    "hy": "Բացառված կապոցները կիրառվում են OK սեղմելիս։",
+    "ug": "چىقىرىۋېتىلگەن توپلاملار ماقۇلنى باسقاندا كۈچكە ئىگە بولىدۇ.",
+    "or": "ବାଦ ଦିଆଯାଇଥିବା ଡେକ୍ OK ଦବାଇଲେ ଲାଗୁ ହୁଏ।",
+}
+for _code, _text in _APPLIED_ON_OK_4_10.items():
+    STRINGS[_code]["applied_on_ok"] = _text

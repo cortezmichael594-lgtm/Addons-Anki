@@ -1,3 +1,8 @@
+/* Historial de correcciones de este archivo:
+ * FIX-028 (2026-10-26) — Al entrar en «Fechas clave», la cabecera quedaba fuera
+ *                        de la ventana y el pie a media altura.
+ */
+
 /* GritMap - panel de opciones a medida (4.9.0).
  *
  * El mismo material que las tarjetas del mapa: fondo de Anki, tarjetas de
@@ -52,12 +57,22 @@ html.night-mode #gritmap-o-app {
     --gritmap-o-shadow-float: transparent;
 }
 
+/* --- FIX-028 (2026-10-26) ---
+ * Sintoma: al pulsar «Fechas clave», la cabecera desaparecia por arriba y
+ *          Aceptar y Cancelar quedaban a media ventana, con un hueco vacio
+ *          debajo.
+ * Causa: la ventana cambiaba de alto al entrar en cada subpagina y la pagina
+ *        entera podia desplazarse al llevar el foco a un campo.
+ * Regla: el alto de la ventana se fija una vez al abrir y la pagina entera
+ *        nunca se desplaza: solo el cuerpo del panel.
+ * (overflow: clip y no hidden: hidden aun deja desplazar con el foco.)
+ */
 html,
 body {
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    overflow: clip;
     background: var(--canvas, #F7F8FA);
 }
 
@@ -72,11 +87,22 @@ html.night-mode body {
 
 #gritmap-o-app {
     height: 100%;
-    font-size: 13px;
-    line-height: 20px;
+    font-size: 12px;
+    line-height: 18px;
     color: var(--gritmap-o-fg);
     background: var(--gritmap-o-canvas);
     font-variant-numeric: tabular-nums;
+    /* Ningun texto se selecciona (4.10.0, peticion del cliente), salvo lo
+     * que se escribe en los campos. */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#gritmap-o-app input[type="text"],
+#gritmap-o-app input[type="search"],
+#gritmap-o-app input:not([type]) {
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 #gritmap-o-app [hidden] {
@@ -95,14 +121,14 @@ html.night-mode body {
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 56px;
+    min-height: 48px;
     padding: 0 24px;
 }
 
 #gritmap-o-app .gritmap-o-head h1 {
     margin: 0;
-    font-size: 16px;
-    line-height: 24px;
+    font-size: 15px;
+    line-height: 22px;
     font-weight: 600;
 }
 
@@ -110,7 +136,7 @@ html.night-mode body {
     flex: 1 1 auto;
     overflow-y: auto;
     /* 4 px arriba: el contorno de foco del primer control no se corta. */
-    padding: 4px 16px 16px 16px;
+    padding: 4px 12px 12px 12px;
     /* Al llevar el foco a un control, queda siempre a la vista. */
     scroll-padding: 16px 0;
 }
@@ -124,7 +150,7 @@ html.night-mode body {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
-    min-height: 64px;
+    min-height: 52px;
     align-items: center;
     padding: 0 24px;
 }
@@ -144,12 +170,12 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     background: var(--gritmap-o-card);
     border: 1px solid var(--gritmap-o-card-border);
     border-radius: 10px;
-    padding: 24px;
+    padding: 16px 20px;
     box-shadow: 0 1px 3px var(--gritmap-o-shadow);
 }
 
 #gritmap-o-app .gritmap-o-card + .gritmap-o-card {
-    margin-top: 16px;
+    margin-top: 12px;
 }
 
 #gritmap-o-app .gritmap-o-card-head {
@@ -162,35 +188,35 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 
 #gritmap-o-app .gritmap-o-card-head h2 {
     margin: 0;
-    font-size: 16px;
-    line-height: 24px;
+    font-size: 14px;
+    line-height: 20px;
     font-weight: 600;
 }
 
 #gritmap-o-app .gritmap-o-card-note {
-    margin: 4px 0 0 0;
+    margin: 2px 0 0 0;
     color: var(--gritmap-o-muted);
 }
 
 #gritmap-o-app .gritmap-o-option {
-    margin-top: 24px;
+    margin-top: 16px;
 }
 
 #gritmap-o-app .gritmap-o-label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 600;
 }
 
 #gritmap-o-app .gritmap-o-rule {
-    margin: 8px 0 0 0;
+    margin: 4px 0 0 0;
     color: var(--gritmap-o-muted);
 }
 
 #gritmap-o-app .gritmap-o-two {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 24px;
+    gap: 16px;
 }
 
 #gritmap-o-app .gritmap-o-two > .gritmap-o-option {
@@ -198,7 +224,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 }
 
 #gritmap-o-app .gritmap-o-two {
-    margin-top: 24px;
+    margin-top: 16px;
 }
 
 /* Aviso de tema retirado: franja hundida con icono de informacion. */
@@ -226,7 +252,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 }
 
 #gritmap-o-app .gritmap-o-btn {
-    min-height: 36px;
+    min-height: 32px;
     padding: 0 16px;
     border-radius: 8px;
     border: 1px solid var(--gritmap-o-control);
@@ -258,7 +284,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 
 /* Boton terciario: texto azul sin fondo («Restaurar apariencia», «Deshacer»). */
 #gritmap-o-app .gritmap-o-link {
-    min-height: 32px;
+    min-height: 28px;
     padding: 0 8px;
     border: 0;
     border-radius: 6px;
@@ -275,8 +301,8 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     padding: 0;
     border: 0;
     border-radius: 6px;
@@ -292,7 +318,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    min-height: 32px;
+    min-height: 28px;
     padding: 0 8px 0 4px;
     border: 0;
     border-radius: 6px;
@@ -332,7 +358,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 44px;
+    min-height: 36px;
     padding: 0 12px;
     border: 1px solid var(--gritmap-o-control);
     border-radius: 8px;
@@ -397,7 +423,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 32px;
+    min-height: 28px;
     padding: 0 12px;
     border: 1px solid transparent;
     border-radius: 6px;
@@ -434,7 +460,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 #gritmap-o-app .gritmap-o-step {
     display: inline-flex;
     align-items: stretch;
-    height: 36px;
+    height: 32px;
     border: 1px solid var(--gritmap-o-control);
     border-radius: 8px;
     background: var(--gritmap-o-card);
@@ -442,7 +468,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 }
 
 #gritmap-o-app .gritmap-o-step button {
-    width: 36px;
+    width: 32px;
     padding: 0;
     border: 0;
     background: none;
@@ -496,8 +522,8 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    min-height: 32px;
-    padding: 6px 0;
+    min-height: 28px;
+    padding: 4px 0;
     cursor: pointer;
 }
 
@@ -575,7 +601,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    min-height: 36px;
+    min-height: 32px;
     padding: 0 12px;
     border: 1px solid var(--gritmap-o-control);
     border-radius: 8px;
@@ -603,8 +629,8 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     align-items: center;
     gap: 8px;
     width: 100%;
-    min-height: 56px;
-    padding: 8px 16px;
+    min-height: 48px;
+    padding: 6px 16px;
     border: 1px solid var(--gritmap-o-control);
     border-radius: 8px;
     background: var(--gritmap-o-card);
@@ -651,7 +677,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 /* Subpagina «Excluir mazos» */
 #gritmap-o-app .gritmap-o-search {
     width: 100%;
-    min-height: 36px;
+    min-height: 32px;
     padding: 0 12px;
     border: 1px solid var(--gritmap-o-control);
     border-radius: 8px;
@@ -670,7 +696,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     display: flex;
     align-items: center;
     gap: 4px;
-    min-height: 36px;
+    min-height: 32px;
 }
 
 #gritmap-o-app .gritmap-o-tree .gritmap-o-fold {
@@ -713,7 +739,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px 16px;
-    margin-top: 16px;
+    margin-top: 12px;
 }
 
 #gritmap-o-app .gritmap-o-form .gritmap-o-label {
@@ -722,7 +748,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 
 #gritmap-o-app .gritmap-o-input {
     width: 100%;
-    min-height: 36px;
+    min-height: 32px;
     padding: 0 12px;
     border: 1px solid var(--gritmap-o-control);
     border-radius: 8px;
@@ -745,7 +771,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 16px;
+    margin-top: 12px;
     color: var(--gritmap-o-danger);
 }
 
@@ -759,7 +785,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 44px;
+    min-height: 36px;
     border-radius: 6px;
 }
 
@@ -801,8 +827,8 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 
 #gritmap-o-app .gritmap-o-date-when {
     flex: none;
-    font-size: 12px;
-    line-height: 16px;
+    font-size: 11px;
+    line-height: 14px;
     color: var(--gritmap-o-muted);
 }
 
@@ -825,8 +851,8 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 
 #gritmap-o-app .gritmap-o-count {
     margin: 8px 0 0 0;
-    font-size: 12px;
-    line-height: 16px;
+    font-size: 11px;
+    line-height: 14px;
     color: var(--gritmap-o-muted);
 }
 
@@ -858,8 +884,8 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 }
 
 #gritmap-o-app .gritmap-o-cal-wd {
-    font-size: 12px;
-    line-height: 16px;
+    font-size: 11px;
+    line-height: 14px;
     text-align: center;
     color: var(--gritmap-o-muted);
 }

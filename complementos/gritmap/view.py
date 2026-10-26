@@ -441,8 +441,6 @@ def _retention_card(stats: FullStats, window: int, fsrs_target: float | None) ->
     #        idiomas. Un porcentaje solo se escribe si se ha calculado.
     # ---------------------------------------------------------------
     line = _period_text(window)
-    if fsrs_target is not None:
-        line += " · " + fill_html("fsrs_target", pct=pct_html(round_half_up(fsrs_target * 100)))
     if stats.retention is None:
         # El N/A explica su motivo al pasar el raton, como el del promedio.
         if window > 0:
@@ -451,7 +449,13 @@ def _retention_card(stats: FullStats, window: int, fsrs_target: float | None) ->
             reason = fill_html("ret_na_all", min=num_html(RETENTION_MIN_REVIEWS))
         big = f'<span class="gritmap-tipped"{_info_attrs(reason)}>{_not_available_html()}</span>'
         return _mini(_label("retention"), big, line, "gritmap-muted")
-    return _mini(_label("retention"), pct_html(stats.retention), line)
+    big = pct_html(stats.retention)
+    if fsrs_target is not None:
+        # El objetivo va en el globo del porcentaje, no en la linea gris
+        # (4.10.0, peticion del cliente).
+        target = fill_html("fsrs_target", pct=pct_html(round_half_up(fsrs_target * 100)))
+        big = f'<span class="gritmap-tipped"{_info_attrs(target[:1].upper() + target[1:])}>{big}</span>'
+    return _mini(_label("retention"), big, line)
 
 
 def _average_card(stats: FullStats, measure: str, window: int) -> str:

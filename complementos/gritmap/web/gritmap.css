@@ -399,11 +399,12 @@ body.nightMode #gritmap-root {
 
 
 
-/* «‹ 2026 ›»: las flechas, pegadas al ano que cambian. */
+/* «‹ 2026 ›»: las flechas, pegadas al ano que cambian; a 5 px de la cifra
+ * (4.10.0, peticion del cliente: 1 px mas que antes). */
 #gritmap-root .gritmap-yearnav {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
 
 #gritmap-root .gritmap-yv {

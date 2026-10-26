@@ -13,7 +13,11 @@ class BuildConfigTest(unittest.TestCase):
         self.assertEqual(build_config({}, {}), DEFAULT_CONFIG)
 
     def test_retired_themes_move_to_the_closest(self) -> None:
-        for old, new in (("fire_red", "sunset_orange"), ("rose_pink", "royal_purple"), ("lagoon_turquoise", "ocean_blue")):
+        # Rosa suave y Turquesa laguna vuelven en la 4.10.0: solo Rojo fuego
+        # sigue retirado.
+        for theme in ("rose_pink", "lagoon_turquoise"):
+            self.assertEqual(build_config({"theme": theme}, {}).theme, theme)
+        for old, new in (("fire_red", "sunset_orange"),):
             cfg = build_config({"theme": old}, {})
             self.assertEqual((cfg.theme, cfg.retired_theme), (new, old))
         self.assertEqual(build_config({"theme": "ocean_blue"}, {}).retired_theme, "")

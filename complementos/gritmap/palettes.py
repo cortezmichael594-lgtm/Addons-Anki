@@ -26,6 +26,12 @@ tres quedan por debajo del primer tono de cualquier tema (contraste con la
 tarjeta de 1,32 a 1,64 de dia y de 1,29 a 1,63 de noche, frente a 1,7-1,9 del
 primer tono). Cuatro tan suaves no se distinguirian entre si; tres bastan
 para «poca, normal y mucha carga» (la cifra exacta esta en el globo).
+
+Version 4.10.0 (peticion del cliente, 2026-10-26): vuelven Rosa suave y
+Turquesa laguna, seis temas en total; Rojo fuego sigue retirado. Sus cuatro
+tonos siguen el mismo metodo que los demas: la misma luminosidad percibida
+(OKLCH 0,80, 0,67, 0,54 y 0,41 de dia; 0,42, 0,56, 0,70 y 0,84 de noche) y la
+misma saturacion, recortada donde la pantalla no llega.
 """
 
 # Historial de correcciones de este archivo:
@@ -39,6 +45,8 @@ PAST_LIGHT: dict[str, tuple[str, ...]] = {
     "ocean_blue": ("#8CC3FC", "#519AE2", "#1B71BC", "#004C86"),  # colores-ok: escala aprobada (2026-10-21)
     "royal_purple": ("#C7AFF5", "#A281D9", "#7C58B3", "#553781"),  # colores-ok: escala aprobada (2026-10-21)
     "sunset_orange": ("#F0AD7F", "#D17D3E", "#A75605", "#723902"),  # colores-ok: escala aprobada (2026-10-21)
+    "rose_pink": ("#F2A3C1", "#D27199", "#AA4673", "#79284E"),  # colores-ok: tema recuperado por el cliente (2026-10-26)
+    "lagoon_turquoise": ("#67D2CC", "#0DABA5", "#077F7A", "#025653"),  # colores-ok: tema recuperado por el cliente (2026-10-26)
 }
 
 PAST_DARK: dict[str, tuple[str, ...]] = {
@@ -46,17 +54,18 @@ PAST_DARK: dict[str, tuple[str, ...]] = {
     "ocean_blue": ("#2E5072", "#4378AD", "#61A3E6", "#A2CFFF"),  # colores-ok: escala aprobada (2026-10-21)
     "royal_purple": ("#53446E", "#7E66A6", "#AA8DDE", "#D3BDFE"),  # colores-ok: escala aprobada (2026-10-21)
     "sunset_orange": ("#6A4225", "#A16336", "#D78951", "#FFB98A"),  # colores-ok: escala aprobada (2026-10-21)
+    "rose_pink": ("#6B3C4F", "#A25A77", "#D87DA2", "#FEB0CE"),  # colores-ok: tema recuperado por el cliente (2026-10-26)
+    "lagoon_turquoise": ("#085955", "#048681", "#08B6AF", "#67E2DA"),  # colores-ok: tema recuperado por el cliente (2026-10-26)
 }
 
 FUTURE_LIGHT: tuple[str, ...] = ("#D8DEE8", "#CDD3DD", "#C2C8D2")  # colores-ok: tres grises suaves aprobados (2026-10-26)
 FUTURE_DARK: tuple[str, ...] = ("#343A44", "#3C424C", "#434953")  # colores-ok: tres grises suaves aprobados (2026-10-26)
 
 THEME_NAMES: tuple[str, ...] = tuple(PAST_LIGHT)
-# Temas retirados en la 4.0.0 y el tema al que pasa quien los tenia.
+# Temas retirados en la 4.0.0 y el tema al que pasa quien los tenia. Rosa
+# suave y Turquesa laguna vuelven en la 4.10.0; Rojo fuego sigue fuera.
 RETIRED_THEMES: dict[str, str] = {
     "fire_red": "sunset_orange",
-    "rose_pink": "royal_purple",
-    "lagoon_turquoise": "ocean_blue",
 }
 LEVELS = 4
 # Cortes de los cuatro tonos, en proporcion a la referencia (su promedio de
