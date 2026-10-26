@@ -1,15 +1,24 @@
-"""Ventanas de opciones del complemento.
+"""Ventana de opciones del complemento.
 
-Criterio de idiomas: todo lo que Anki (o Qt, que Anki configura con el mismo
-idioma) ya trae traducido se toma de ahi y no se vuelve a escribir aqui. Eso
-incluye los botones normales de una ventana -- Aceptar, Cancelar y Restaurar
-valores predeterminados -- y el formato en que se escriben las fechas. En los
-idiomas para los que Qt no trae traduccion, esos tres botones toman el texto
-propio del complemento.
+Version 4.9.0 (informe del cliente del 2026-10-26, aprobado el mismo dia): la
+ventana es un panel a medida, hecho del mismo material que las tarjetas del
+mapa. Es una pagina web dentro de la ventana (AnkiWebView, como las opciones
+de mazo de Anki): tres tarjetas con titulo, controles propios y dos
+subpaginas (mazos excluidos y fechas clave) dentro de la misma ventana, en
+lugar de ventanas encima. La guia del taller pide controles estandar en
+Opciones; este panel propio lo pidio el cliente de forma expresa.
 
-La lista de mazos y la configuracion se leen en segundo plano antes de abrir
-la ventana, y lo que se guarda en la coleccion tambien se escribe en segundo
-plano: Anki nunca se queda esperando a la coleccion por esta ventana.
+Reparto del trabajo: la pagina (web/options.js) dibuja y gestiona lo que se
+elige; aqui se prepara lo que necesita, se escriben los textos que dependen
+de plurales y fechas (para que digan lo mismo que el mapa) y se valida y
+guarda lo elegido al aceptar. Nada se guarda antes.
+
+Criterio de idiomas: lo que Anki ya trae traducido (Cancelar, Eliminar,
+Buscar, Anadir, Deshacer, Descartar) se toma de ahi.
+
+La ventana se abre al instante con las opciones guardadas; la lista de mazos
+se lee en segundo plano y llega despues, sin bloquear nada. Lo que se guarda
+en la coleccion tambien se escribe en segundo plano.
 """
 
 # Historial de correcciones de este archivo:
@@ -27,47 +36,20 @@ plano: Anki nunca se queda esperando a la coleccion por esta ventana.
 
 from __future__ import annotations
 
+import html
+import json
 import re
 from dataclasses import dataclass, replace
-from datetime import date
+from datetime import date, timedelta
+from typing import Any
 
 from anki.collection import Collection
-from aqt import colors, gui_hooks, mw
+from aqt import gui_hooks, mw
 from aqt.operations import QueryOp
-from aqt.qt import (
-    QButtonGroup,
-    QCheckBox,
-    QColor,
-    QComboBox,
-    QCoreApplication,
-    QDate,
-    QDateEdit,
-    QDialog,
-    QDialogButtonBox,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QIcon,
-    QKeySequence,
-    QLabel,
-    QLineEdit,
-    QLocale,
-    QPixmap,
-    QPushButton,
-    QRadioButton,
-    QShortcut,
-    QSpinBox,
-    Qt,
-    QTimer,
-    QTreeWidget,
-    QTreeWidgetItem,
-    QVBoxLayout,
-    QWidget,
-    qconnect,
-    sip,
-)
+from aqt.qt import QCloseEvent, QDialog, QLocale, Qt, QVBoxLayout, QWidget, sip
 from aqt.theme import theme_manager
-from aqt.utils import disable_help_button, restoreGeom, saveGeom, tooltip
+from aqt.utils import disable_help_button, restoreGeom, saveGeom
+from aqt.webview import AnkiWebView
 
 from .config import (
     BORDER_RADIUS_MAX,
@@ -78,11 +60,12 @@ from .config import (
     FIT_WIDTH,
     GOAL_MAX,
     GOAL_MIN,
-    MAX_PAUSE_DAYS,
+    GOAL_MODES,
     KEY_DATE_MAX,
     KEY_DATE_MIN,
     MAX_KEY_DATES,
     MAX_LABEL_LEN,
+    MAX_PAUSE_DAYS,
     Config,
     KeyDate,
     clean_label,
@@ -90,17 +73,22 @@ from .config import (
     save_appearance,
     save_scoped,
 )
-from .data import MEASURES, WINDOWS, window_average
+from .data import MEASURES, WINDOWS, daily_average, full_stats, paused_days, round_half_up
 from .decks import DeckEntry, all_deck_entries
 from .errors import guarded, log_exception
-from .i18n import anki_text, fill, lang, plural_key, t, unit_label
+from .i18n import anki_text, fill, lang, locale_code, plural_key, t, unit_label
 from .palettes import PAST_DARK, PAST_LIGHT, THEME_NAMES
 from .state import state
+from .view import countdown_html
 
-# Nombres que caben en el globo del boton de mazos excluidos.
-_TOOLTIP_MAX_NAMES = 15
-_DECK_ROLE = Qt.ItemDataRole.UserRole
-_OWN_STATE_ROLE = Qt.ItemDataRole.UserRole + 1
+# Prefijo de los mensajes de la pagina de opciones (FIX-008: todo lo propio
+# empieza por el nombre del paquete).
+MSG_PREFIX = "gritmapopts:"
+# Ancho fijo del panel y margen que se deja respecto al alto de la pantalla.
+_WIDTH = 560
+_SCREEN_MARGIN = 80
+# Nombres de mazo que caben en el resumen de «Excluir mazos».
+_SUMMARY_NAMES = 3
 
 
 @dataclass(frozen=True)
@@ -123,24 +111,12 @@ def _count_text(base: str, count: int) -> str:
     return fill(plural_key(base, count), count=number)
 
 
-def _date_format() -> str:
-    """Formato corto de fecha del idioma, siempre con el ano en cuatro cifras."""
-    fmt = QLocale().dateFormat(QLocale.FormatType.ShortFormat)
-    if "yyyy" not in fmt:
-        fmt = fmt.replace("yy", "yyyy")
-    return fmt
+def _plain(html_text: str) -> str:
+    """Texto sin etiquetas (la cuenta atras del mapa viene en HTML)."""
+    return html.unescape(re.sub(r"<[^>]+>", "", html_text))
 
 
-def _format_day(day: date) -> str:
-    """Fecha escrita como la escribe Anki en el idioma activo."""
-    qdate = QDate(day.year, day.month, day.day)
-    try:
-        return QLocale().toString(qdate, _date_format())
-    except Exception:
-        return day.isoformat()
-
-
-def _theme_swatch(name: str) -> QIcon:
+def _theme_swatch_color(name: str) -> str:
     """Muestra del tema con el tono que se vera en el mapa ahora mismo."""
     # --- FIX-007 (2026-10-08) --------------------------------------
     # Sintoma: con Anki en modo noche, la muestra de cada tema en el desplegable
@@ -152,9 +128,7 @@ def _theme_swatch(name: str) -> QIcon:
     # Un solo cuadrito, como antes de la 4.0 (peticion del cliente, 4.3.0),
     # con el tercero de los cuatro tonos del tema.
     scale = PAST_DARK if theme_manager.night_mode else PAST_LIGHT
-    pixmap = QPixmap(16, 16)
-    pixmap.fill(QColor(scale.get(name, scale[DEFAULT_CONFIG.theme])[2]))
-    return QIcon(pixmap)
+    return scale.get(name, scale[DEFAULT_CONFIG.theme])[2]
 
 
 # Orden de los temas (4.7.0): el de serie primero y los demas por tono.
@@ -170,124 +144,338 @@ def _sorted_theme_names() -> list[str]:
 _GOAL_FALLBACK = {"reviews": 50, "cards": 30, "new": 10}
 
 
-def goal_proposal(measure: str) -> int:
-    """Meta que se propone al elegir «Un numero»: el 80 % de su promedio de
-    los ultimos 30 dias en esa unidad, redondeado a 5 (Locke y Latham: una
-    meta exigente pero alcanzable). Sin historial, un valor prudente."""
+def goal_proposal(measure: str, cfg: Config | None = None) -> tuple[int, int | None]:
+    """Meta que se propone al elegir «Un numero» y el promedio del que sale.
+
+    Desde la 4.9.0 se calcula con el mismo promedio que la tarjeta «Promedio
+    diario» (por dia natural de los ultimos 30 dias), y la ventana lo dice:
+    el 80 %, redondeado a 5 (Locke y Latham: una meta exigente pero
+    alcanzable). Sin historial, un valor prudente y sin promedio.
+    """
     entry = state.data
     average = None
     if entry is not None and not entry.current_deck_only and entry.measure == measure:
-        average = window_average(entry.data, measure, 30)
+        pause = cfg.pause if cfg is not None else None
+        average = daily_average(entry.data, measure, 30, paused_days(pause, entry.data.today))
     if not average:
-        return _GOAL_FALLBACK.get(measure, DEFAULT_CONFIG.goal)
-    return max(GOAL_MIN, min(GOAL_MAX, 5 * max(1, round(average * 0.8 / 5))))
+        return _GOAL_FALLBACK.get(measure, DEFAULT_CONFIG.goal), None
+    value = max(GOAL_MIN, min(GOAL_MAX, 5 * max(1, round(average * 0.8 / 5))))
+    return value, round_half_up(average)
 
 
-def _standard_buttons(
-    dialog: QDialog, buttons: QDialogButtonBox.StandardButton
-) -> QDialogButtonBox:
-    """Botonera con los textos que ya trae traducidos Qt.
+def _freezes_now(cfg: Config) -> str:
+    """«Ahora tiene 1 comodín.», o nada si no se sabe (pantalla de un mazo)."""
+    entry = state.data
+    if entry is None or entry.current_deck_only:
+        return ""
+    paused = paused_days(cfg.pause, entry.data.today)
+    stats = full_stats(entry.data, entry.measure, cfg.avg_window, True, paused)
+    count = stats.freezes_left
+    return fill("freezes_now", freezes=fill(plural_key("freeze", count), count=count))
 
-    Si Qt no trae traduccion para el idioma de Anki (unos 25 idiomas), los
-    botones toman el texto propio del complemento en lugar de salir en ingles.
+
+def _unit_word(measure: str) -> str:
+    """Unidad de la medida en plural, para el campo de la meta."""
+    if measure == "new":
+        return t("unit_new_other")
+    return t("unit_card_other" if measure == "cards" else "unit_review_other")
+
+
+def _without_px(key: str) -> str:
+    """Rotulo sin «(px)», si el texto ya lo traia."""
+    return re.sub(r"\s*\(px\)", "", t(key))
+
+
+def _texts() -> dict[str, str]:
+    """Textos de la pagina: los propios y los que ya trae Anki."""
+    own = (
+        "nav_opts", "grp_look", "grp_count", "grp_goals", "opt_restore_look", "look_live",
+        "opt_theme", "opt_map_size", "size_fit", "radius_max", "fit_note", "opt_measure",
+        "opt_window", "window_help", "applied_on_ok", "opt_exclude", "opt_show_streak",
+        "streak_off_note", "opt_goal", "goal_unit_day", "goal_proposal_line", "goal_due_note",
+        "opt_freezes", "freeze_tip", "opt_pause", "pause_from", "pause_to", "pause_rule",
+        "opt_key_dates", "opt_save", "opt_cancel", "discard_q", "discard_body", "keep_editing",
+        "decks_sub_note", "decks_no_match", "kd_new", "kd_field_name", "kd_field_date", "kd_name_ph",
+        "kd_name_required", "kd_duplicate", "kd_limit", "kd_count", "kd_deleted", "kd_edit",
+        "month_prev", "month_next", "loading",
+    )
+    texts = {key: t(key) for key in own}
+    texts["opt_radius"] = _without_px("opt_radius")
+    texts["undo"] = anki_text("undo_undo", "w_undo")
+    texts["search"] = anki_text("actions_search", "opt_exclude_btn")
+    texts["add"] = anki_text("actions_add", "kd_add")
+    texts["delete"] = anki_text("actions_delete", "kd_remove")
+    texts["save"] = anki_text("actions_save", "opt_save")
+    texts["discard"] = anki_text("actions_discard", "w_discard")
+    return texts
+
+
+def _payload(cfg: Config, start: str) -> dict[str, Any]:
+    """Todo lo que la pagina necesita para dibujarse entera antes de verse."""
+    proposals = {}
+    for measure in MEASURES:
+        value, average = goal_proposal(measure, cfg)
+        proposals[measure] = {"value": value, "average": average}
+    retired = ""
+    if cfg.retired_theme:
+        # El tema guardado se retiro en la 4.0.0: se dice una vez, sin
+        # preguntar (Hopkins, M3: avisar al cambiar las reglas).
+        retired = fill("theme_retired", old=t(f"theme_{cfg.retired_theme}"), new=t(f"theme_{cfg.theme}"))
+    today = date.today()
+    pause = None
+    if cfg.pause is not None:
+        pause = {"start": cfg.pause[0].isoformat(), "end": cfg.pause[1].isoformat()}
+    return {
+        "prefix": MSG_PREFIX,
+        "locale": locale_code(),
+        "today": today.isoformat(),
+        "start": start,
+        "texts": _texts(),
+        "themes": [
+            {"name": name, "label": t(f"theme_{name}"), "color": _theme_swatch_color(name)}
+            for name in _sorted_theme_names()
+        ],
+        "measures": [
+            {"id": m, "label": t(f"measure_{m}"), "help": t(f"measure_{m}_help"), "unit": _unit_word(m)}
+            for m in MEASURES
+        ],
+        "windows": [
+            {"id": days, "label": t("window_all") if days == 0 else fill("window_days", count=days)}
+            for days in WINDOWS
+        ],
+        "goal_modes": [{"id": mode, "label": t(f"goal_{mode}")} for mode in GOAL_MODES],
+        "proposals": proposals,
+        "freezes_now": _freezes_now(cfg),
+        "retired": retired,
+        "defaults": {
+            "theme": DEFAULT_CONFIG.theme,
+            "cell_size": DEFAULT_CONFIG.cell_size,
+            "border_radius": DEFAULT_CONFIG.border_radius,
+        },
+        "limits": {
+            "cell_min": CELL_SIZE_MIN,
+            "cell_max": CELL_SIZE_MAX,
+            "radius_min": BORDER_RADIUS_MIN,
+            "radius_max": BORDER_RADIUS_MAX,
+            "goal_min": GOAL_MIN,
+            "goal_max": GOAL_MAX,
+            "max_pause": MAX_PAUSE_DAYS,
+            "max_key_dates": MAX_KEY_DATES,
+            "max_label": MAX_LABEL_LEN,
+            "date_min": KEY_DATE_MIN.isoformat(),
+            "date_max": KEY_DATE_MAX.isoformat(),
+            # La pausa empieza hoy como pronto (4.7.0, decision del cliente);
+            # una pausa guardada que ya empezo conserva su inicio.
+            "pause_min": min(today, cfg.pause[0]).isoformat() if cfg.pause else today.isoformat(),
+        },
+        "cfg": {
+            "theme": cfg.theme,
+            "cell_size": cfg.cell_size,
+            "border_radius": cfg.border_radius,
+            "measure": cfg.measure,
+            "avg_window": cfg.avg_window,
+            "goal_mode": cfg.goal_mode,
+            "goal": cfg.goal,
+            "freezes": cfg.freezes,
+            "show_streak": cfg.show_streak,
+            "pause": pause,
+            "excluded": list(cfg.excluded_decks),
+            "key_dates": [{"day": kd.day.isoformat(), "label": kd.label} for kd in cfg.key_dates],
+        },
+    }
+
+
+def _script_safe(payload: str) -> str:
+    """JSON que se puede poner dentro de <script> sin cerrarlo antes de tiempo."""
+    return payload.replace("</", "<\\/").replace("<!--", "<\\u0021--")
+
+
+def _as_day(value: object) -> date | None:
+    try:
+        return date.fromisoformat(str(value))
+    except ValueError:
+        return None
+
+
+def _as_int(value: object, fallback: int, low: int, high: int) -> int:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return fallback
+    return max(low, min(high, int(value)))
+
+
+def config_from_page(base: Config, chosen: dict[str, Any], existing: dict[int, str] | None) -> Config:
+    """Lo elegido en la pagina, validado, sobre la configuracion con la que se
+    abrio (que conserva lo que la pagina no toca). Nada de lo que llega de la
+    pagina se usa sin comprobarlo."""
+    theme = chosen.get("theme")
+    cell = _as_int(chosen.get("cell_size"), base.cell_size, FIT_WIDTH, CELL_SIZE_MAX)
+    if cell != FIT_WIDTH:
+        cell = max(CELL_SIZE_MIN, cell)
+    half = (14 if cell == FIT_WIDTH else cell) // 2
+    radius = _as_int(chosen.get("border_radius"), base.border_radius, BORDER_RADIUS_MIN, min(BORDER_RADIUS_MAX, half))
+    measure = chosen.get("measure")
+    window = chosen.get("avg_window")
+    mode = chosen.get("goal_mode")
+
+    excluded = base.excluded_decks
+    raw_excluded = chosen.get("excluded")
+    if isinstance(raw_excluded, list) and existing is not None:
+        # FIX-016: solo los mazos que existen; los demas se dejan de guardar.
+        excluded = tuple(dict.fromkeys(d for d in raw_excluded if isinstance(d, int) and d in existing))
+
+    key_dates = base.key_dates
+    raw_dates = chosen.get("key_dates")
+    if isinstance(raw_dates, list):
+        found: list[KeyDate] = []
+        for item in raw_dates:
+            if not isinstance(item, dict):
+                continue
+            day = _as_day(item.get("day"))
+            label = clean_label(item.get("label"))
+            if day is None or not label or not KEY_DATE_MIN <= day <= KEY_DATE_MAX:
+                continue
+            key_date = KeyDate(day=day, label=label)
+            if key_date not in found:
+                found.append(key_date)
+        found.sort(key=lambda kd: (kd.day, kd.label.casefold()))
+        key_dates = tuple(found[:MAX_KEY_DATES])
+
+    pause = None
+    raw_pause = chosen.get("pause")
+    if isinstance(raw_pause, dict):
+        start = _as_day(raw_pause.get("start"))
+        end = _as_day(raw_pause.get("end"))
+        earliest = min(date.today(), base.pause[0]) if base.pause else date.today()
+        if start is not None and end is not None and start >= earliest:
+            end = max(start, min(end, start + timedelta(days=MAX_PAUSE_DAYS - 1)))
+            pause = (start, end)
+
+    return replace(
+        base,
+        theme=theme if isinstance(theme, str) and theme in THEME_NAMES else base.theme,
+        cell_size=cell,
+        border_radius=radius,
+        measure=measure if isinstance(measure, str) and measure in MEASURES else base.measure,
+        avg_window=window if isinstance(window, int) and window in WINDOWS else base.avg_window,
+        goal_mode=mode if isinstance(mode, str) and mode in GOAL_MODES else base.goal_mode,
+        goal=_as_int(chosen.get("goal"), base.goal, GOAL_MIN, GOAL_MAX),
+        freezes=bool(chosen.get("freezes", base.freezes)),
+        show_streak=bool(chosen.get("show_streak", base.show_streak)),
+        excluded_decks=excluded,
+        key_dates=key_dates,
+        pause=pause,
+        retired_theme="",
+    )
+
+
+def summary_texts(chosen: dict[str, Any], existing: dict[int, str] | None) -> dict[str, Any]:
+    """Textos que dependen de plurales y fechas, escritos como en el mapa.
+
+    Los resumenes de «Excluir mazos» y «Fechas clave» quedan escritos en sus
+    filas (4.9.0), en lugar de en un globo (Norman: lo que hay que descubrir
+    pasando el raton casi no se usa).
     """
-    box = QDialogButtonBox(buttons)
-    qconnect(box.accepted, dialog.accept)
-    qconnect(box.rejected, dialog.reject)
-    if lang() != "en" and QCoreApplication.translate("QPlatformTheme", "Cancel") == "Cancel":
-        for standard, key in (
-            (QDialogButtonBox.StandardButton.Ok, "opt_save"),
-            (QDialogButtonBox.StandardButton.Cancel, "opt_cancel"),
-            (QDialogButtonBox.StandardButton.RestoreDefaults, "opt_defaults"),
-        ):
-            button = box.button(standard)
-            if button is not None:
-                button.setText(t(key))
-    return box
+    today = date.today()
+    result: dict[str, Any] = {"decks": None, "dates": "", "countdowns": {}, "pause_days": ""}
+    raw_excluded = chosen.get("excluded")
+    if existing is not None and isinstance(raw_excluded, list):
+        # FIX-016: solo se cuentan y se nombran mazos que existen.
+        # El nombre del mazo, sin la ruta de sus padres («Inglés», no
+        # «Idiomas::Inglés»).
+        names = [existing[d].split("::")[-1] for d in raw_excluded if isinstance(d, int) and d in existing]
+        if not names:
+            result["decks"] = t("sum_none_m")
+        else:
+            shown = ", ".join(names[:_SUMMARY_NAMES])
+            if len(names) > _SUMMARY_NAMES:
+                shown += " " + fill("deck_more", count=len(names) - _SUMMARY_NAMES)
+            result["decks"] = f"{_count_text('opt_exclude_count', len(names))}: {shown}"
+    days: list[tuple[date, str]] = []
+    for item in chosen.get("key_dates") or []:
+        if isinstance(item, dict):
+            day = _as_day(item.get("day"))
+            if day is not None:
+                days.append((day, str(item.get("label", ""))))
+                left = (day - today).days
+                result["countdowns"][day.isoformat()] = (
+                    _plain(countdown_html(left)) if left >= 0 else f"({t('kd_past')})"
+                )
+    if not days:
+        result["dates"] = t("sum_none_f")
+    else:
+        count = _count_text("opt_key_dates_count", len(days))
+        upcoming = sorted((d, label) for d, label in days if d >= today)
+        if upcoming:
+            day, label = upcoming[0]
+            when = _plain(countdown_html((day - today).days))
+            result["dates"] = fill("kd_summary_next", dates=count, name=label, when=when)
+        else:
+            result["dates"] = fill("kd_all_past", dates=count)
+    raw_pause = chosen.get("pause")
+    if isinstance(raw_pause, dict):
+        start, end = _as_day(raw_pause.get("start")), _as_day(raw_pause.get("end"))
+        if start is not None and end is not None and end >= start:
+            span = (end - start).days + 1
+            result["pause_days"] = f"{span} {unit_label(span, 'day')}"
+    return result
 
 
-def _help_label(text: str) -> QLabel:
-    """Frase de ayuda bajo un control, siempre a la vista (4.7.0): lo
-    esencial no puede estar solo en un globo, que casi nadie descubre."""
-    label = QLabel(text)
-    label.setWordWrap(True)
-    return label
+class HeatmapOptionsDialog(QDialog):
+    """Panel de opciones a medida (4.9.0): una pagina dentro de la ventana."""
 
-
-def _spin_box(minimum: int, maximum: int) -> QSpinBox:
-    """Campo numerico con sus flechas, como antes de la 4.2 (peticion del
-    cliente, 4.3.0)."""
-    box = QSpinBox()
-    box.setRange(minimum, maximum)
-    box.setSingleStep(1)
-    box.setAccelerated(True)
-    return box
-
-
-class ExcludeDecksDialog(QDialog):
-    """Arbol de mazos con casillas, como en la pantalla principal, y buscador."""
-
-    def __init__(self, parent: QWidget, excluded: tuple[int, ...], decks: _Decks) -> None:
+    def __init__(self, parent: QWidget, cfg: Config, start: str = "") -> None:
         super().__init__(parent)
-        self.setWindowTitle(t("opt_exclude"))
+        self.setWindowTitle(t("opt_title"))
         disable_help_button(self)
-        self.setMinimumWidth(360)
-        self._decks = decks
-        shown = {entry.deck_id for entry in decks.selectable}
-        # Excluidos que existen pero no salen en la lista (un mazo filtrado o
-        # el predeterminado vacio): se conservan tal cual al aceptar.
-        self._hidden_excluded = tuple(
-            deck_id for deck_id in excluded if deck_id in decks.existing and deck_id not in shown
+        self.setWindowModality(Qt.WindowModality.WindowModal)
+        self._base = cfg
+        self._decks: _Decks | None = None
+        self._ready = False
+        self._closing = False
+        # Ordenes para la pagina que llegan antes de que este lista.
+        self._pending: list[str] = []
+        self.result_config: Config | None = None
+
+        self._web = AnkiWebView(self, title="gritmap options")
+        self._web.set_bridge_command(self._on_bridge, self)
+        # La pagina no se ensena hasta que esta dibujada entera: sin
+        # parpadeos (guia, apartado 4). Mientras, se ve el fondo de Anki.
+        self._web.hide()
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._web)
+
+        self.setMinimumWidth(_WIDTH)
+        restoreGeom(self, "gritmapPanel", default_size=(_WIDTH, 640))
+        self.resize(_WIDTH, self.height())
+
+        package = mw.addonManager.addon_from_module(__name__)
+        payload = _script_safe(json.dumps(_payload(cfg, start), ensure_ascii=False))
+        body = (
+            '<div id="gritmap-o-app"></div>'
+            f"<script>GritMapOptions.init({payload});</script>"
         )
-
-        # Sin textos explicativos: la ventana es solo la lista de mazos y su
-        # buscador. Es una decision del cliente; no anadir frases de ayuda.
-        self._search = QLineEdit()
-        self._search.setPlaceholderText(anki_text("actions_search", "opt_exclude_btn"))
-        self._search.setClearButtonEnabled(True)
-        qconnect(self._search.textChanged, self._filter)
-
-        self._tree = QTreeWidget()
-        self._tree.setHeaderHidden(True)
-        self._tree.setUniformRowHeights(True)
-        self._tree.setMinimumHeight(220)
-        excluded_set = set(excluded)
-        items: dict[str, QTreeWidgetItem] = {}
-        for entry in decks.selectable:
-            parent_name = entry.name.rpartition("::")[0]
-            parent_item = items.get(parent_name)
-            item = QTreeWidgetItem([entry.leaf_name])
-            item.setToolTip(0, entry.name)
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-            own = Qt.CheckState.Checked if entry.deck_id in excluded_set else Qt.CheckState.Unchecked
-            item.setCheckState(0, own)
-            item.setData(0, _DECK_ROLE, entry.deck_id)
-            item.setData(0, _OWN_STATE_ROLE, own == Qt.CheckState.Checked)
-            if parent_item is not None:
-                parent_item.addChild(item)
-            else:
-                self._tree.addTopLevelItem(item)
-            items[entry.name] = item
-        self._tree.expandAll()
-        for index in range(self._tree.topLevelItemCount()):
-            top = self._tree.topLevelItem(index)
-            if top is not None:
-                self._sync_children(top)
-        qconnect(self._tree.itemChanged, self._on_item_changed)
-
-        buttons = _standard_buttons(
-            self,
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+        self._web.stdHtml(
+            body,
+            css=[f"/_addons/{package}/web/options.css"],
+            js=[f"/_addons/{package}/web/options.js"],
+            context=self,
         )
+        gui_hooks.theme_did_change.append(self._refresh_swatches)
+        # Por si la pagina no llegara a avisar de que esta lista: a los 3 s se
+        # ensena igualmente, en lugar de dejar la ventana vacia.
+        mw.progress.single_shot(3000, self._show_anyway, False)
 
-        layout = QVBoxLayout()
-        layout.addWidget(self._search)
-        layout.addWidget(self._tree)
-        layout.addWidget(buttons)
-        self.setLayout(layout)
-        restoreGeom(self, "gritmapDecks", default_size=(400, 480))
-        self._search.setFocus()
+    @guarded()
+    def _show_anyway(self) -> None:
+        if not sip.isdeleted(self) and not self._ready:
+            self._ready = True
+            for js in self._pending:
+                self._web.eval(js)
+            self._pending.clear()
+            self._web.show()
 
+    # Mazos, leidos en segundo plano
     # --- FIX-016 (2026-10-13) --------------------------------------
     # Sintoma: al excluir «Idiomas», sus submazos seguian sin marcar en la
     #          lista aunque el mapa ya no los contaba, y el boton decia «3
@@ -299,449 +487,98 @@ class ExcludeDecksDialog(QDialog):
     #        un mazo marcado marca y bloquea a sus submazos, y solo se cuentan
     #        y se nombran mazos que existen.
     # ---------------------------------------------------------------
-    def _sync_children(self, item: QTreeWidgetItem, locked: bool = False) -> None:
-        """Marca y bloquea los submazos de un mazo marcado; si no, les devuelve
-        su propia casilla."""
-        if locked:
-            item.setCheckState(0, Qt.CheckState.Checked)
-            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEnabled)
-        else:
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEnabled)
-            own = bool(item.data(0, _OWN_STATE_ROLE))
-            item.setCheckState(0, Qt.CheckState.Checked if own else Qt.CheckState.Unchecked)
-        child_locked = locked or item.checkState(0) == Qt.CheckState.Checked
-        for index in range(item.childCount()):
-            child = item.child(index)
-            if child is not None:
-                self._sync_children(child, child_locked)
-
-    def _on_item_changed(self, item: QTreeWidgetItem, _column: int) -> None:
-        if not item.flags() & Qt.ItemFlag.ItemIsEnabled:
-            return
-        item.setData(0, _OWN_STATE_ROLE, item.checkState(0) == Qt.CheckState.Checked)
-        self._tree.blockSignals(True)
-        try:
-            self._sync_children(item)
-        finally:
-            self._tree.blockSignals(False)
-
-    def _filter(self, text: str) -> None:
-        """Deja a la vista los mazos cuyo nombre contiene el texto, con sus padres."""
-        wanted = text.strip().casefold()
-
-        def show(item: QTreeWidgetItem) -> bool:
-            name = str(item.toolTip(0)).casefold()
-            visible = not wanted or wanted in name
-            for index in range(item.childCount()):
-                child = item.child(index)
-                if child is not None and show(child):
-                    visible = True
-            item.setHidden(not visible)
-            return visible
-
-        for index in range(self._tree.topLevelItemCount()):
-            top = self._tree.topLevelItem(index)
-            if top is not None:
-                show(top)
-
-    def checked_decks(self) -> tuple[int, ...]:
-        """Mazos marcados por la persona (los submazos bloqueados ya van con su padre)."""
-        ids: list[int] = list(self._hidden_excluded)
-        pending = [self._tree.topLevelItem(i) for i in range(self._tree.topLevelItemCount())]
-        while pending:
-            item = pending.pop()
-            if item is None:
-                continue
-            raw_id = item.data(0, _DECK_ROLE)
-            enabled = bool(item.flags() & Qt.ItemFlag.ItemIsEnabled)
-            if enabled and item.checkState(0) == Qt.CheckState.Checked and isinstance(raw_id, int):
-                ids.append(raw_id)
-            pending.extend(item.child(i) for i in range(item.childCount()))
-        return tuple(ids)
-
-    def done(self, result: int) -> None:
-        try:
-            saveGeom(self, "gritmapDecks")
-        except Exception as exc:
-            log_exception("options.ExcludeDecksDialog.done", exc)
-        super().done(result)
-
-
-def _qdate(day: date) -> QDate:
-    return QDate(day.year, day.month, day.day)
-
-
-class KeyDatesDialog(QDialog):
-    """Dias senalados que se resaltan en el mapa."""
-
-    def __init__(self, parent: QWidget, key_dates: tuple[KeyDate, ...]) -> None:
-        super().__init__(parent)
-        self.setWindowTitle(t("opt_key_dates"))
-        disable_help_button(self)
-        self.setMinimumWidth(420)
-        self._dates: list[KeyDate] = list(key_dates)
-
-        # Sin textos explicativos: solo la lista y los controles para anadir y
-        # quitar. Es una decision del cliente; no anadir aqui frases de ayuda.
-        self._list = QTreeWidget()
-        self._list.setColumnCount(2)
-        self._list.setHeaderHidden(True)
-        self._list.setRootIsDecorated(False)
-        self._list.setUniformRowHeights(True)
-        self._list.setMinimumHeight(160)
-
-        self._name = QLineEdit()
-        self._name.setPlaceholderText(t("kd_name_ph"))
-        self._name.setMaxLength(MAX_LABEL_LEN)
-        self._date = QDateEdit()
-        self._date.setCalendarPopup(True)
-        self._date.setDisplayFormat(_date_format())
-        self._date.setDateRange(_qdate(KEY_DATE_MIN), _qdate(KEY_DATE_MAX))
-        self._date.setDate(QDate.currentDate())
-
-        # «Anadir» es el boton por defecto: Intro tras escribir un nombre anade
-        # la fecha. Con el foco en otro boton, Intro pulsa ese boton.
-        add_button = QPushButton(anki_text("actions_add", "kd_add"))
-        add_button.setDefault(True)
-        qconnect(add_button.clicked, self._add)
-        add_row = QHBoxLayout()
-        add_row.addWidget(self._name, 1)
-        add_row.addWidget(self._date)
-        add_row.addWidget(add_button)
-
-        self._remove_button = QPushButton(anki_text("actions_delete", "kd_remove"))
-        self._remove_button.setEnabled(False)
-        qconnect(self._remove_button.clicked, self._remove)
-        qconnect(self._list.itemSelectionChanged, self._update_remove_state)
-        qconnect(self._list.itemDoubleClicked, self._on_double_click)
-        qconnect(self._list.itemChanged, self._on_item_changed)
-        # El doble clic es el unico modo de editar: asi un clic suelto o una
-        # tecla no cambian un nombre sin querer.
-        self._list.setEditTriggers(QTreeWidget.EditTrigger.NoEditTriggers)
-        # La tecla Supr borra solo con el foco en la lista, nunca mientras se
-        # escribe o con el foco en otro boton.
-        delete = QShortcut(QKeySequence(QKeySequence.StandardKey.Delete), self._list)
-        delete.setContext(Qt.ShortcutContext.WidgetShortcut)
-        qconnect(delete.activated, self._remove)
-        remove_row = QHBoxLayout()
-        remove_row.addStretch(1)
-        remove_row.addWidget(self._remove_button)
-
-        buttons = _standard_buttons(
-            self,
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
-        )
-
-        layout = QVBoxLayout()
-        layout.addWidget(self._list)
-        layout.addLayout(remove_row)
-        layout.addLayout(add_row)
-        layout.addWidget(buttons)
-        self.setLayout(layout)
-        self._rebuild()
-        restoreGeom(self, "gritmapKeyDates", default_size=(460, 420))
-        self._name.setFocus()
-
-    def _sort_dates(self) -> None:
-        self._dates.sort(key=lambda kd: (kd.day, kd.label.casefold()))
-
-    def _rebuild(self, select: KeyDate | None = None) -> None:
-        self._sort_dates()
-        self._list.clear()
-        today = date.today()
-        self._list.blockSignals(True)
-        for key_date in self._dates:
-            # Las ya pasadas, en gris y con «(pasada)» (4.7.0).
-            when = _format_day(key_date.day)
-            if key_date.day < today:
-                when += f" ({t('kd_past')})"
-            item = QTreeWidgetItem([when, key_date.label])
-            # El nombre se corrige con doble clic, sin borrar y volver a anadir.
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
-            if key_date.day < today:
-                muted = theme_manager.qcolor(colors.FG_SUBTLE)
-                item.setForeground(0, muted)
-                item.setForeground(1, muted)
-            self._list.addTopLevelItem(item)
-            if select is not None and key_date == select:
-                self._list.setCurrentItem(item)
-        self._list.resizeColumnToContents(0)
-        self._list.blockSignals(False)
-        self._update_remove_state()
-
-    def _on_double_click(self, item: QTreeWidgetItem, _column: int) -> None:
-        self._list.editItem(item, 1)
-
-    def _on_item_changed(self, item: QTreeWidgetItem, column: int) -> None:
-        """Nombre corregido en la lista; vacio o repetido, vuelve al de antes."""
-        row = self._list.indexOfTopLevelItem(item)
-        if column != 1 or not 0 <= row < len(self._dates):
-            return
-        old = self._dates[row]
-        label = clean_label(item.text(1))
-        renamed = KeyDate(day=old.day, label=label)
-        if label and renamed not in self._dates:
-            self._dates[row] = renamed
-            self._rebuild(select=renamed)
-        else:
-            self._rebuild(select=old)
-
-    def _current_row(self) -> int:
-        item = self._list.currentItem()
-        return self._list.indexOfTopLevelItem(item) if item is not None else -1
-
-    def _update_remove_state(self) -> None:
-        self._remove_button.setEnabled(self._current_row() >= 0)
-
-    def _add(self, _checked: bool = False) -> None:
-        label = clean_label(self._name.text())
-        if not label:
-            tooltip(t("kd_name_required"), parent=self)
-            self._name.setFocus()
-            return
-        if len(self._dates) >= MAX_KEY_DATES:
-            tooltip(fill("kd_limit", count=MAX_KEY_DATES), parent=self)
-            return
-        key_date = KeyDate(day=self._date.date().toPyDate(), label=label)
-        if key_date in self._dates:
-            tooltip(t("kd_duplicate"), parent=self)
-            return
-        self._dates.append(key_date)
-        self._rebuild(select=key_date)
-        self._name.clear()
-        self._name.setFocus()
-
-    def _remove(self, _checked: bool = False) -> None:
-        row = self._current_row()
-        if 0 <= row < len(self._dates):
-            del self._dates[row]
-            # Queda seleccionada la siguiente, para poder borrar varias seguidas.
-            following = self._dates[min(row, len(self._dates) - 1)] if self._dates else None
-            self._rebuild(select=following)
-
-    def selected_dates(self) -> tuple[KeyDate, ...]:
-        self._sort_dates()
-        return tuple(self._dates)
-
-    def done(self, result: int) -> None:
-        try:
-            saveGeom(self, "gritmapKeyDates")
-        except Exception as exc:
-            log_exception("options.KeyDatesDialog.done", exc)
-        super().done(result)
-
-
-class HeatmapOptionsDialog(QDialog):
-    """Opciones en tres recuadros con titulo (vuelven en la 4.4.0, peticion
-    del cliente): Apariencia, Que se cuenta y Metas y fechas.
-
-    4.7.0 (informe de mejora): «Ajustado al ancho» es una casilla a la vista;
-    «Mostrar racha y meta» encabeza su recuadro y apaga lo que depende de
-    ella; las reglas de los comodines y de la pausa van escritas; la medida
-    se elige con tres botones y el redondeo llega como mucho a la mitad del
-    cuadrito."""
-
-    def __init__(self, parent: QWidget, cfg: Config, decks: _Decks) -> None:
-        super().__init__(parent)
-        self.setWindowTitle(t("opt_title"))
-        disable_help_button(self)
-        self.setMinimumWidth(460)
+    # Desde la 4.9.0 la lista la dibuja la pagina (web/options.js), con la
+    # misma regla; aqui se le pasan los mazos que existen y, al aceptar, solo
+    # se guardan esos.
+    def set_decks(self, decks: _Decks) -> None:
         self._decks = decks
+        entries = [
+            {"id": e.deck_id, "name": e.name, "leaf": e.leaf_name, "depth": e.depth} for e in decks.selectable
+        ]
+        selectable = {e.deck_id for e in decks.selectable}
+        # Excluidos que existen pero no salen en la lista (un mazo filtrado o
+        # el predeterminado vacio): se conservan tal cual al aceptar.
+        hidden = [d for d in self._base.excluded_decks if d in decks.existing and d not in selectable]
+        data = {"decks": entries, "hidden": hidden, "existing": [int(d) for d in decks.existing]}
+        self._run(f"GritMapOptions.setDecks({_script_safe(json.dumps(data, ensure_ascii=False))});")
 
-        self._theme = QComboBox()
-        for name in _sorted_theme_names():
-            self._theme.addItem(_theme_swatch(name), t(f"theme_{name}"), name)
-        # Tamano de celda y redondeo: campos numericos con flechas. Mientras
-        # se cambian, el propio mapa cambia al momento (y vuelve a como estaba
-        # si se cancela).
-        # Con un tamano, el mapa entero crece o encoge en proporcion (4.5.0):
-        # el campo es «Tamano del mapa» (4.6.0), y los dos llevan «px» al
-        # final. «Ajustado al ancho» es una casilla al lado que apaga el campo
-        # (4.7.0): escondida bajo el minimo del numero no se descubria.
-        self._cell_size = _spin_box(CELL_SIZE_MIN, CELL_SIZE_MAX)
-        self._cell_size.setSuffix(" px")
-        self._fit = QCheckBox(t("size_fit"))
-        size_box = QWidget()
-        size_row = QHBoxLayout(size_box)
-        size_row.setContentsMargins(0, 0, 0, 0)
-        size_row.addWidget(self._cell_size)
-        size_row.addWidget(self._fit)
-        size_row.addStretch(1)
-        self._border_radius = _spin_box(BORDER_RADIUS_MIN, BORDER_RADIUS_MAX)
-        self._border_radius.setSuffix(" px")
-        self._preview_timer = QTimer(self)
-        self._preview_timer.setSingleShot(True)
-        self._preview_timer.setInterval(80)
-        self._base = cfg
+    def _run(self, js: str) -> None:
+        if self._ready:
+            self._web.eval(js)
+        else:
+            self._pending.append(js)
 
-        # Tres botones de opcion en lugar de una lista (4.7.0): con tres
-        # valores, verlos todos a la vez es mas rapido que abrir una lista.
-        self._measure = QButtonGroup(self)
-        measure_box = QWidget()
-        measure_row = QHBoxLayout(measure_box)
-        measure_row.setContentsMargins(0, 0, 0, 0)
-        self._measure_buttons: dict[str, QRadioButton] = {}
-        for measure in MEASURES:
-            radio = QRadioButton(t(f"measure_{measure}"))
-            self._measure.addButton(radio)
-            self._measure_buttons[measure] = radio
-            measure_row.addWidget(radio)
-        measure_row.addStretch(1)
-        # Una frase bajo «El color mide» dice que cuenta cada medida (3.6.0).
-        self._measure_help = QLabel()
-        self._measure_help.setWordWrap(True)
-        # Periodo del promedio diario y de la retencion (4.1.0: vuelve aqui al
-        # retirarse la tarjeta de estadisticas; peticion del cliente). Desde
-        # la 4.7.1, tres botones de opcion como «El color mide» (cliente).
-        self._avg_window = QButtonGroup(self)
-        window_box = QWidget()
-        window_row = QHBoxLayout(window_box)
-        window_row.setContentsMargins(0, 0, 0, 0)
-        self._window_buttons: dict[int, QRadioButton] = {}
-        for days in WINDOWS:
-            label = t("window_all") if days == 0 else fill("window_days", count=days)
-            radio = QRadioButton(label)
-            self._avg_window.addButton(radio)
-            self._window_buttons[days] = radio
-            window_row.addWidget(radio)
-        window_row.addStretch(1)
-        window_help = _help_label(t("window_help"))
-        applied_help = _help_label(t("applied_on_ok"))
+    # Mensajes de la pagina
+    def _on_bridge(self, cmd: str) -> Any:
+        if not cmd.startswith(MSG_PREFIX):
+            return None
+        action, _sep, arg = cmd[len(MSG_PREFIX):].partition(":")
+        try:
+            return self._handle(action, arg)
+        except Exception as exc:
+            log_exception(f"options.bridge.{action}", exc)
+            return None
 
-        self._goal_mode = QComboBox()
-        for mode in ("none", "number", "due"):
-            self._goal_mode.addItem(t(f"goal_{mode}"), mode)
-        self._goal = QSpinBox()
-        self._goal.setRange(GOAL_MIN, GOAL_MAX)
-        self._goal.setAccelerated(True)
-        goal_box = QWidget()
-        goal_row = QHBoxLayout(goal_box)
-        goal_row.setContentsMargins(0, 0, 0, 0)
-        goal_row.addWidget(self._goal_mode, 1)
-        goal_row.addWidget(self._goal)
-        self._freezes = QCheckBox(t("opt_freezes"))
-        # La regla, escrita debajo y no solo al pasar el raton (4.7.0).
-        self._freezes_help = _help_label(t("freeze_tip"))
-        self._goal_proposed = 0
-        self._loading = False
-        self._pause_on = QCheckBox(t("opt_pause"))
-        self._pause_start = QDateEdit()
-        self._pause_end = QDateEdit()
-        for edit in (self._pause_start, self._pause_end):
-            edit.setCalendarPopup(True)
-            edit.setDisplayFormat(_date_format())
-            edit.setDateRange(_qdate(KEY_DATE_MIN), _qdate(KEY_DATE_MAX))
-        self._pause_end.setToolTip(t("pause_limit"))
-        # Cuantos dias dura, al lado de las fechas, y la regla debajo.
-        self._pause_days = QLabel()
-        self._pause_help = _help_label(t("pause_limit"))
-        pause_box = QWidget()
-        pause_row = QHBoxLayout(pause_box)
-        pause_row.setContentsMargins(0, 0, 0, 0)
-        pause_row.addWidget(self._pause_on)
-        pause_row.addWidget(self._pause_start)
-        pause_row.addWidget(QLabel("–"))
-        pause_row.addWidget(self._pause_end)
-        pause_row.addWidget(self._pause_days)
-        pause_row.addStretch(1)
-        self._show_streak = QCheckBox(t("opt_show_streak"))
+    def _handle(self, action: str, arg: str) -> Any:
+        if action == "ready":
+            self._ready = True
+            self._fit_height(arg)
+            for js in self._pending:
+                self._web.eval(js)
+            self._pending.clear()
+            self._web.show()
+            self._web.setFocus()
+            return None
+        if action == "height":
+            self._fit_height(arg)
+            return None
+        if action == "texts":
+            existing = self._decks.existing if self._decks is not None else None
+            return summary_texts(json.loads(arg), existing)
+        if action == "preview":
+            if state.preview_config is not None:
+                existing = self._decks.existing if self._decks is not None else None
+                state.preview_config(config_from_page(self._base, json.loads(arg), existing))
+            return None
+        if action == "accept":
+            existing = self._decks.existing if self._decks is not None else None
+            self.result_config = config_from_page(self._base, json.loads(arg), existing)
+            self._closing = True
+            self.accept()
+            return None
+        if action == "cancel":
+            self._closing = True
+            QDialog.reject(self)
+            return None
+        return None
 
-        # --- FIX-017 (2026-10-13) --------------------------------------
-        # Sintoma: con el foco en «Seleccionar mazos» o en Restaurar, Intro
-        #          cerraba Opciones y guardaba; en Fechas clave, con el foco en
-        #          Aceptar, Intro intentaba anadir una fecha.
-        # Causa: se les habia quitado a esos botones la respuesta a Intro
-        #        (autoDefault), y entonces Intro iba al boton por defecto.
-        # Regla: los botones conservan la respuesta a Intro que les da Qt; solo
-        #        se elige cual es el boton por defecto.
-        # ---------------------------------------------------------------
-        self._excluded: tuple[int, ...] = ()
-        self._exclude_button = QPushButton()
-        qconnect(self._exclude_button.clicked, self._open_exclude)
+    def _fit_height(self, raw: str) -> None:
+        """El alto es el del contenido, hasta el de la pantalla menos 80 px;
+        si no cabe, la pagina desplaza su cuerpo y deja fijos la cabecera y
+        el pie."""
+        try:
+            wanted = int(float(raw))
+        except ValueError:
+            return
+        screen = self.screen()
+        limit = screen.availableGeometry().height() - _SCREEN_MARGIN if screen is not None else wanted
+        self.resize(self.width(), max(240, min(wanted, limit)))
 
-        self._key_dates: tuple[KeyDate, ...] = ()
-        self._key_dates_button = QPushButton()
-        qconnect(self._key_dates_button.clicked, self._open_key_dates)
+    # Cerrar: Esc, la cruz de la ventana o Cancelar pasan por la pagina, que
+    # pregunta antes de descartar fechas clave escritas (4.9.0).
+    def reject(self) -> None:
+        if self._closing or not self._ready:
+            QDialog.reject(self)
+            return
+        self._web.eval("GritMapOptions.requestCancel();")
 
-        look = QFormLayout()
-        if cfg.retired_theme:
-            # El tema guardado se retiro en la 4.0.0: se dice una vez, sin
-            # preguntar (Hopkins, M3: avisar al cambiar las reglas).
-            notice = QLabel(
-                fill(
-                    "theme_retired",
-                    old=t(f"theme_{cfg.retired_theme}"),
-                    new=t(f"theme_{cfg.theme}"),
-                )
-            )
-            notice.setWordWrap(True)
-            look.addRow(notice)
-        look.addRow(t("opt_theme"), self._theme)
-        look.addRow(t("opt_map_size"), size_box)
-        look.addRow(_without_px("opt_radius"), self._border_radius)
-        counted = QFormLayout()
-        counted.addRow(t("opt_measure"), measure_box)
-        counted.addRow("", self._measure_help)
-        counted.addRow(t("opt_window"), window_box)
-        counted.addRow("", window_help)
-        counted.addRow(t("opt_exclude"), self._exclude_button)
-        counted.addRow("", applied_help)
-        goals = QFormLayout()
-        goals.addRow(self._show_streak)
-        goals.addRow(t("opt_goal"), goal_box)
-        goals.addRow("", self._freezes)
-        goals.addRow("", self._freezes_help)
-        goals.addRow("", pause_box)
-        goals.addRow("", self._pause_help)
-        goals.addRow(t("opt_key_dates"), self._key_dates_button)
-
-        buttons = _standard_buttons(
-            self,
-            QDialogButtonBox.StandardButton.Ok
-            | QDialogButtonBox.StandardButton.Cancel
-            | QDialogButtonBox.StandardButton.RestoreDefaults,
-        )
-        restore_button = buttons.button(QDialogButtonBox.StandardButton.RestoreDefaults)
-        if restore_button is not None:
-            # Dice que restaura y que no toca (3.6.0): quien teme perder sus
-            # mazos excluidos o sus fechas clave puede pulsarlo tranquilo.
-            restore_button.setText(t("opt_restore_look"))
-            restore_button.setToolTip(t("opt_restore_tip"))
-            qconnect(restore_button.clicked, self._restore_defaults)
-        qconnect(self._theme.currentIndexChanged, self._schedule_preview)
-        qconnect(self._cell_size.valueChanged, self._update_size_state)
-        qconnect(self._fit.toggled, self._update_size_state)
-        qconnect(self._border_radius.valueChanged, self._schedule_preview)
-        qconnect(self._preview_timer.timeout, self._send_preview)
-        for radio in self._measure_buttons.values():
-            qconnect(radio.toggled, self._update_measure_help)
-        qconnect(self._goal_mode.currentIndexChanged, self._on_goal_mode)
-        qconnect(self._pause_on.toggled, self._update_pause_state)
-        qconnect(self._pause_start.dateChanged, self._limit_pause)
-        qconnect(self._pause_end.dateChanged, self._update_pause_days)
-        qconnect(self._show_streak.toggled, self._update_streak_state)
-
-        layout = QVBoxLayout()
-        for title, form in ((t("grp_look"), look), (t("grp_count"), counted), (t("grp_goals"), goals)):
-            group = QGroupBox(title)
-            group.setLayout(form)
-            layout.addWidget(group)
-        layout.addSpacing(4)
-        layout.addWidget(buttons)
-        self.setLayout(layout)
-
-        self._apply(cfg)
-        restoreGeom(self, "gritmapOptions")
-        # Se recuerda el ancho y la posicion, pero el alto es siempre el que
-        # pide el contenido: una altura guardada por otra version (con mas o
-        # menos opciones) dejaba un hueco en medio.
-        # Con frases de ayuda que ocupan dos renglones, el alto depende del
-        # ancho: se pide el que corresponde al ancho de la ventana.
-        height = self.sizeHint().height()
-        if layout.hasHeightForWidth():
-            height = max(height, layout.totalHeightForWidth(self.width()))
-        self.resize(self.width(), height)
-        gui_hooks.theme_did_change.append(self._refresh_swatches)
+    def closeEvent(self, event: QCloseEvent | None) -> None:  # noqa: N802 (nombre de Qt)
+        if self._closing or not self._ready:
+            super().closeEvent(event)
+            return
+        if event is not None:
+            event.ignore()
+        self.reject()
 
     # --- FIX-018 (2026-10-13) --------------------------------------
     # Sintoma: con la ventana abierta, al pasar Anki de modo dia a noche (o al
@@ -754,247 +591,36 @@ class HeatmapOptionsDialog(QDialog):
     # ---------------------------------------------------------------
     @guarded()
     def _refresh_swatches(self) -> None:
-        for index in range(self._theme.count()):
-            name = self._theme.itemData(index)
-            if isinstance(name, str):
-                self._theme.setItemIcon(index, _theme_swatch(name))
-
-    def _schedule_preview(self, _value: object = None) -> None:
-        # Se espera un instante: al mantener pulsada una flecha no se
-        # redibuja el mapa en cada paso, solo cuando se para un momento.
-        self._preview_timer.start()
-
-    @guarded()
-    def _send_preview(self) -> None:
-        if state.preview_config is not None:
-            state.preview_config(self.selected_config(self._base))
-
-    def _measure_value(self) -> str:
-        for measure, radio in self._measure_buttons.items():
-            if radio.isChecked():
-                return measure
-        return DEFAULT_CONFIG.measure
-
-    def _set_measure(self, measure: str) -> None:
-        radio = self._measure_buttons.get(measure) or self._measure_buttons[DEFAULT_CONFIG.measure]
-        radio.setChecked(True)
-
-    def _update_measure_help(self, _checked: bool = False) -> None:
-        measure = self._measure_value()
-        self._measure_help.setText(t(f"measure_{measure}_help"))
-        self._goal.setSuffix(" " + _unit_word(measure))
-        # Si la meta es la propuesta y no se ha tocado, se propone otra en la
-        # unidad nueva: 50 repasos no son 50 nuevas.
-        if (
-            not self._loading
-            and self._goal_mode.currentData() == "number"
-            and self._goal.value() == self._goal_proposed
-        ):
-            self._propose_goal()
-
-    def _propose_goal(self) -> None:
-        self._goal_proposed = goal_proposal(self._measure_value())
-        self._goal.setValue(self._goal_proposed)
-
-    def _on_goal_mode(self, _index: int = 0) -> None:
-        # Al pasar a «Un numero», se propone una meta a su medida (4.7.0).
-        if self._goal_mode.currentData() == "number" and not self._loading:
-            self._propose_goal()
-        self._update_goal_state()
-
-    def _update_goal_state(self, _index: int = 0) -> None:
-        on = self._show_streak.isChecked()
-        self._goal.setEnabled(on and self._goal_mode.currentData() == "number")
-
-    def _update_size_state(self, _value: object = None) -> None:
-        """El campo de tamano se apaga con «Ajustado al ancho», y el redondeo
-        llega como mucho a la mitad del cuadrito: mas no cambia nada."""
-        fit = self._fit.isChecked()
-        self._cell_size.setEnabled(not fit)
-        half = (14 if fit else self._cell_size.value()) // 2
-        self._border_radius.setMaximum(max(BORDER_RADIUS_MIN, min(BORDER_RADIUS_MAX, half)))
-        self._schedule_preview()
-
-    def _update_streak_state(self, _checked: bool = False) -> None:
-        """Sin racha ni meta, sus ajustes se ven apagados."""
-        on = self._show_streak.isChecked()
-        for widget in (self._goal_mode, self._freezes, self._freezes_help, self._pause_on, self._pause_help):
-            widget.setEnabled(on)
-        self._update_goal_state()
-        self._update_pause_state()
-
-    def _update_pause_state(self, _checked: bool = False) -> None:
-        on = self._pause_on.isChecked() and self._show_streak.isChecked()
-        self._pause_start.setEnabled(on)
-        self._pause_end.setEnabled(on)
-        self._pause_days.setEnabled(on)
-
-    def _limit_pause(self, start: QDate) -> None:
-        """La pausa dura de 1 a 30 dias: el fin se mueve dentro de ese margen."""
-        self._pause_end.setDateRange(start, start.addDays(MAX_PAUSE_DAYS - 1))
-        self._update_pause_days()
-
-    def _update_pause_days(self, _date: object = None) -> None:
-        days = self._pause_start.date().daysTo(self._pause_end.date()) + 1
-        self._pause_days.setText(f"{days} {unit_label(days, 'day')}" if days > 0 else "")
-
-    # Sub-ventanas
-    def _open_exclude(self, _checked: bool = False) -> None:
-        dialog = ExcludeDecksDialog(self, self._excluded, self._decks)
-        try:
-            if dialog.exec() == QDialog.DialogCode.Accepted:
-                self._excluded = dialog.checked_decks()
-                self._update_exclude_label()
-        finally:
-            dialog.deleteLater()
-
-    def _open_key_dates(self, _checked: bool = False) -> None:
-        dialog = KeyDatesDialog(self, self._key_dates)
-        try:
-            if dialog.exec() == QDialog.DialogCode.Accepted:
-                self._key_dates = dialog.selected_dates()
-                self._update_key_dates_label()
-        finally:
-            dialog.deleteLater()
-
-    # Etiquetas de los dos botones que abren sub-ventanas
-    def _update_exclude_label(self) -> None:
-        names = [self._decks.existing[d] for d in self._excluded if d in self._decks.existing]
-        if names:
-            self._exclude_button.setText(_count_text("opt_exclude_count", len(names)))
-            shown = names[:_TOOLTIP_MAX_NAMES]
-            if len(names) > len(shown):
-                shown.append("…")
-            self._exclude_button.setToolTip("\n".join(shown))
-        else:
-            self._exclude_button.setText(t("opt_exclude_btn"))
-            self._exclude_button.setToolTip("")
-
-    def _update_key_dates_label(self) -> None:
-        count = len(self._key_dates)
-        if count:
-            self._key_dates_button.setText(_count_text("opt_key_dates_count", count))
-            self._key_dates_button.setToolTip(
-                "\n".join(f"{_format_day(kd.day)} — {kd.label}" for kd in self._key_dates)
-            )
-        else:
-            self._key_dates_button.setText(t("opt_key_dates_btn"))
-            self._key_dates_button.setToolTip("")
-
-    def _apply(self, cfg: Config) -> None:
-        # Mientras se cargan los valores guardados no se propone ninguna
-        # meta: la propuesta es solo para cuando la persona cambia algo.
-        self._loading = True
-        try:
-            self._apply_values(cfg)
-        finally:
-            self._loading = False
-
-    def _apply_values(self, cfg: Config) -> None:
-        self._theme.setCurrentIndex(max(self._theme.findData(cfg.theme), 0))
-        self._set_cell_size(cfg.cell_size)
-        self._border_radius.setValue(cfg.border_radius)
-        self._set_measure(cfg.measure)
-        window_radio = self._window_buttons.get(cfg.avg_window) or self._window_buttons[DEFAULT_CONFIG.avg_window]
-        window_radio.setChecked(True)
-        self._goal_mode.setCurrentIndex(max(self._goal_mode.findData(cfg.goal_mode), 0))
-        self._goal.setValue(cfg.goal)
-        self._goal_proposed = cfg.goal
-        self._freezes.setChecked(cfg.freezes)
-        self._show_streak.setChecked(cfg.show_streak)
-        today = QDate.currentDate()
-        if cfg.pause is not None:
-            start, end = _qdate(cfg.pause[0]), _qdate(cfg.pause[1])
-        else:
-            start, end = today, today.addDays(6)
-        self._pause_on.setChecked(cfg.pause is not None)
-        # La pausa empieza hoy como pronto (4.7.0, decision del cliente): los
-        # fallos ya ocurridos los cubren los comodines. Una pausa guardada que
-        # ya empezo conserva su inicio.
-        self._pause_start.setMinimumDate(min(start, today))
-        self._pause_start.setDate(start)
-        self._limit_pause(start)
-        self._pause_end.setDate(end)
-        # FIX-016: solo los mazos que existen; los demas se dejan de guardar.
-        self._excluded = tuple(d for d in cfg.excluded_decks if d in self._decks.existing)
-        self._update_exclude_label()
-        self._key_dates = cfg.key_dates
-        self._update_key_dates_label()
-        self._update_measure_help()
-        self._update_size_state()
-        self._update_streak_state()
-
-    def _restore_defaults(self, _checked: bool = False) -> None:
-        """Vuelve a los valores recomendados de la apariencia.
-
-        Solo repone el recuadro «Apariencia» (tema, tamano y redondeo; desde
-        la 4.7.0, ya no la medida, que esta en otro recuadro): los mazos
-        excluidos, las fechas clave, la meta, los comodines y la pausa son
-        decisiones de la persona y se quedan como estaban, para que pulsar
-        este boton nunca borre nada suyo.
-        """
-        self._theme.setCurrentIndex(max(self._theme.findData(DEFAULT_CONFIG.theme), 0))
-        self._set_cell_size(DEFAULT_CONFIG.cell_size)
-        self._border_radius.setValue(DEFAULT_CONFIG.border_radius)
-
-    def _set_cell_size(self, size: int) -> None:
-        self._fit.setChecked(size == FIT_WIDTH)
-        if size != FIT_WIDTH:
-            self._cell_size.setValue(size)
-        elif self._cell_size.value() == self._cell_size.minimum():
-            self._cell_size.setValue(DEFAULT_CONFIG.cell_size)
-        self._update_size_state()
-
-    def _cell_size_value(self) -> int:
-        """El tamano elegido, o FIT_WIDTH con «Ajustado al ancho» marcado."""
-        return FIT_WIDTH if self._fit.isChecked() else self._cell_size.value()
-
-    def selected_config(self, base: Config) -> Config:
-        """Lo elegido, sobre la configuracion con la que se abrio (que conserva
-        lo que esta ventana no muestra)."""
-        theme_data = self._theme.currentData()
-        theme = theme_data if isinstance(theme_data, str) else DEFAULT_CONFIG.theme
-        measure = self._measure_value()
-        mode = self._goal_mode.currentData()
-        window = next(
-            (days for days, radio in self._window_buttons.items() if radio.isChecked()), DEFAULT_CONFIG.avg_window
-        )
-        pause = None
-        if self._pause_on.isChecked():
-            start = self._pause_start.date().toPyDate()
-            pause = (start, max(start, self._pause_end.date().toPyDate()))
-        return replace(
-            base,
-            theme=theme,
-            measure=str(measure),
-            avg_window=window,
-            cell_size=self._cell_size_value(),
-            border_radius=self._border_radius.value(),
-            goal_mode=mode if isinstance(mode, str) else DEFAULT_CONFIG.goal_mode,
-            goal=self._goal.value(),
-            freezes=self._freezes.isChecked(),
-            show_streak=self._show_streak.isChecked(),
-            excluded_decks=self._excluded,
-            key_dates=self._key_dates,
-            pause=pause,
-            retired_theme="",
-        )
+        colors_now = {name: _theme_swatch_color(name) for name in THEME_NAMES}
+        self._run(f"GritMapOptions.setSwatches({json.dumps(colors_now)});")
 
     def done(self, result: int) -> None:
         # remove no falla si ya se quito antes.
         gui_hooks.theme_did_change.remove(self._refresh_swatches)
         try:
-            saveGeom(self, "gritmapOptions")
+            saveGeom(self, "gritmapPanel")
         except Exception as exc:
             log_exception("options.HeatmapOptionsDialog.done", exc)
+        self._web.cleanup()
         super().done(result)
 
+
+# --- FIX-017 (2026-10-13) --------------------------------------
+# Sintoma: con el foco en «Seleccionar mazos» o en Restaurar, Intro
+#          cerraba Opciones y guardaba; en Fechas clave, con el foco en
+#          Aceptar, Intro intentaba anadir una fecha.
+# Causa: se les habia quitado a esos botones la respuesta a Intro
+#        (autoDefault), y entonces Intro iba al boton por defecto.
+# Regla: los botones conservan la respuesta a Intro que les da Qt; solo
+#        se elige cual es el boton por defecto.
+# ---------------------------------------------------------------
+# Desde la 4.9.0 los botones son de la pagina (web/options.js): son <button>
+# de verdad, sin ningun manejador de Intro propio, asi que Intro pulsa el que
+# tiene el foco; solo en el campo del nombre de una fecha clave Intro anade.
 
 # Se conserva una referencia mientras la ventana existe: sin ella Python
 # podria destruir el objeto y la ventana desapareceria sola.
 _dialog: HeatmapOptionsDialog | None = None
-# Lectura de la coleccion en marcha: evita abrir dos ventanas con dos clics.
-_opening = False
 
 
 def _parent_window() -> QWidget:
@@ -1012,75 +638,71 @@ def _parent_window() -> QWidget:
 
 
 def open_options(start: str = "") -> None:
-    """Lee mazos y opciones en segundo plano y abre la ventana con ellos.
+    """Abre el panel al instante con las opciones guardadas y lee los mazos
+    en segundo plano.
 
-    Con start, al abrirse muestra ademas una de sus listas: "exclude" (el
-    enlace del aviso de mazo excluido) o "keydates" (el enlace «Anadir» de la
-    tarjeta de la proxima fecha).
+    Con start, al abrirse muestra ademas una de sus subpaginas: "exclude"
+    (mazos excluidos) o "keydates" (fechas clave).
     """
-    global _opening
+    global _dialog
     if _dialog is not None and _dialog.isVisible():
         _dialog.raise_()
         _dialog.activateWindow()
         return
-    if _opening or mw.col is None:
+    if mw.col is None:
         return
-    _opening = True
-    generation = state.generation
     parent = _parent_window()
+    if sip.isdeleted(parent) or not parent.isVisible():
+        parent = mw
+    try:
+        cfg = load_config()
+        dialog = HeatmapOptionsDialog(parent, cfg, start)
+    except Exception as exc:
+        log_exception("options.open_options", exc)
+        return
+    _dialog = dialog
+    dialog.finished.connect(lambda result: _on_finished(dialog, cfg, result))
+    dialog.open()
+    _read_decks(dialog)
 
-    def op(col: Collection) -> tuple[Config, _Decks]:
+
+def _read_decks(dialog: HeatmapOptionsDialog) -> None:
+    generation = state.generation
+
+    def op(col: Collection) -> _Decks:
         selectable = all_deck_entries(col, skip_empty_default=True, include_filtered=False)
         existing = {entry.deck_id: entry.name for entry in all_deck_entries(col)}
-        return load_config(col), _Decks(selectable=selectable, existing=existing)
+        return _Decks(selectable=selectable, existing=existing)
 
     @guarded()
-    def on_success(result: tuple[Config, _Decks]) -> None:
-        global _opening
-        _opening = False
-        if generation != state.generation or mw.col is None:
+    def on_success(decks: _Decks) -> None:
+        if generation != state.generation or sip.isdeleted(dialog) or _dialog is not dialog:
             return
-        # Se aplaza para no abrir una ventana modal dentro de la respuesta
-        # de la operacion.
-        mw.progress.single_shot(0, lambda: _show(*result, parent, start), False)
+        dialog.set_decks(decks)
 
     @guarded()
     def on_failure(exc: Exception) -> None:
-        global _opening
-        _opening = False
-        log_exception("options.open_options", exc)
+        log_exception("options.read_decks", exc)
 
     QueryOp(parent=mw, op=op, success=on_success).failure(on_failure).run_in_background()
 
 
-def _show(cfg: Config, decks: _Decks, parent: QWidget, start: str) -> None:
+@guarded()
+def _on_finished(dialog: HeatmapOptionsDialog, cfg: Config, result: int) -> None:
     global _dialog
-    try:
-        # FIX-025: si la ventana de origen se cerro mientras se leian los
-        # mazos, se abre sobre la principal.
-        if sip.isdeleted(parent) or not parent.isVisible():
-            parent = mw
-        _dialog = HeatmapOptionsDialog(parent, cfg, decks)
-        if start == "exclude":
-            mw.progress.single_shot(0, _dialog._open_exclude, False)
-        elif start == "keydates":
-            mw.progress.single_shot(0, _dialog._open_key_dates, False)
-        accepted = _dialog.exec() == QDialog.DialogCode.Accepted
-        selected = _dialog.selected_config(cfg) if accepted else None
-        _dialog.deleteLater()
+    selected = dialog.result_config if result == QDialog.DialogCode.Accepted else None
+    if _dialog is dialog:
         _dialog = None
-        if selected is not None:
-            _save(selected)
-        elif state.preview_config is not None:
-            # Cancelado: el mapa vuelve a como estaba antes de mover nada.
-            state.preview_config(None)
-        elif cfg.retired_theme:
-            # El aviso del tema retirado sale una sola vez: se guarda el tema
-            # nuevo aunque se cancele.
-            save_appearance(cfg)
-    except Exception as exc:
-        _dialog = None
-        log_exception("options.show", exc)
+    dialog.deleteLater()
+    if selected is not None:
+        _save(selected)
+    elif state.preview_config is not None:
+        # Cancelado: el mapa vuelve a como estaba antes de mover nada.
+        state.preview_config(None)
+    if selected is None and cfg.retired_theme:
+        # El aviso del tema retirado sale una sola vez: se guarda el tema
+        # nuevo aunque se cancele.
+        save_appearance(cfg)
 
 
 def _save(selected: Config) -> None:
@@ -1102,15 +724,3 @@ def _save(selected: Config) -> None:
         log_exception("options.save", exc)
 
     QueryOp(parent=mw, op=op, success=on_success).failure(on_failure).run_in_background()
-
-
-def _without_px(key: str) -> str:
-    """Rotulo sin «(px)», si el texto ya lo traia."""
-    return re.sub(r"\s*\(px\)", "", t(key))
-
-
-def _unit_word(measure: str) -> str:
-    """Unidad de la medida en plural, para el campo de la meta."""
-    if measure == "new":
-        return t("unit_new_other")
-    return t("unit_card_other" if measure == "cards" else "unit_review_other")

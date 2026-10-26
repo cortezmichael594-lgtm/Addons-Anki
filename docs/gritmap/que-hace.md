@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 4.8.0 · 2026-10-26
+Versión 4.9.0 · 2026-10-26
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub, en tarjetas. Arriba, centrada y
 con cuadritos de 24 px de serie (con el dibujo de la versión 4.1.0), la tarjeta del mapa, con el año entero (un cuadrito por día: gris sin estudio y cuatro tonos
@@ -23,9 +23,9 @@ Solo lee su colección: nunca cambia tarjetas, notas ni repasos. Lo único que g
 - De serie, el mapa tiene cuadritos de 24 px, centrado; si no cabe en la ventana, se desplaza de
   lado. Con otro tamaño, el mapa entero crece o encoge en proporción (los huecos incluidos, así que
   se ve igual, solo más grande o más pequeño). Con «Ajustado al ancho», ocupa todo el ancho de la
-  pantalla y sus cuadritos crecen o encogen con la ventana (nunca por debajo de 10 px). Las cinco
-  tarjetas pequeñas van debajo y suman exactamente su ancho, con los bordes
-  alineados con los del mapa. Cada tarjeta tiene el fondo un punto más claro
+  pantalla y sus cuadritos crecen o encogen con la ventana (nunca por debajo de 10 px). Las tarjetas
+  pequeñas (de tres a cinco) van debajo y suman el ancho visible del mapa, con los bordes alineados
+  con los de su tarjeta. Cada tarjeta tiene el fondo un punto más claro
   que el de Anki, un borde suave, esquinas redondeadas y su título arriba a la izquierda; de día
   llevan una sombra muy leve y de noche ninguna.
 
@@ -79,7 +79,7 @@ lo último en perderse es si hoy ya cuenta):
   ratón o llegar con el tabulador, «Cada 7 días seguidos gana un comodín (2 como máximo). Un día sin
   estudiar gasta uno.»);
 - «· a 3 días del récord» si la racha más larga está a 7 días o menos y es de 7 días o más, o
-  «· récord: 40 días» en los demás casos (si la racha actual es la más larga, no se añade nada);
+  «· récord: 40 días» en los demás casos (si la racha actual es la más larga, no se añade nada).
 
 Casos especiales: si nunca ha estudiado, «0 días» y «hoy pendiente»; si la racha está a cero,
 «0 días» y «Última sesión hace 3 días»; al volver tras romperla, «Día 1» y «récord: 45 días».
@@ -177,7 +177,7 @@ fechas se añaden en Opciones > «Gestionar fechas».
   (el día en que el total del año cruza 100, 500 o un múltiplo de 1.000). Solo si hoy ya cuenta.
 - En árabe, hebreo, persa y uigur, la navegación del año, el mapa y su pie van de izquierda a derecha,
   como el calendario; el resto sigue la dirección del idioma.
-- Cambiar de año o de tema, tamaño, forma, periodo de las cifras, meta, comodines o pausa no vuelve a leer la
+- Cambiar de año o de tema, tamaño, redondeo, periodo de las cifras, meta, comodines o pausa no vuelve a leer la
   colección: es inmediato. Cambiar la medida o los mazos excluidos sí la vuelve a leer, sin quitar el
   mapa mientras tanto.
 
@@ -189,7 +189,8 @@ fechas se añaden en Opciones > «Gestionar fechas».
   con «hoy pendiente», y promedio y retención «N/A»; sin tarjeta «Próxima fecha»).
 - En la pantalla de un mazo excluido: una tarjeta con «Este mazo está excluido del mapa.»
   y el botón de opciones.
-- Si algo falla: una tarjeta con «No se pudo cargar el mapa de calor.» y el botón de opciones.
+- Si algo falla: una tarjeta con «No se pudo cargar el mapa de calor.», debajo «Vuelva a abrir Anki;
+  si se repite, el detalle está en el registro del complemento.», y el botón de opciones.
 
 ## 5. Al pasar el ratón por un día (o llegar a él con el teclado)
 
@@ -242,58 +243,142 @@ nada).
 
 ## 8. Ventana de opciones
 
-Título «GritMap». Se abre después de leer los mazos y las opciones sin congelar Anki (un segundo clic
-mientras tanto no abre otra), delante de la ventana desde la que se pidió. Tres recuadros con título
-(«Apariencia», «Qué se cuenta» y «Metas y fechas»), con controles estándar de Anki, y los botones
-«Restaurar apariencia» (a la izquierda; al pasar el ratón, «No cambia los mazos excluidos ni las
-fechas clave»), Aceptar y Cancelar (en el orden de cada sistema; Esc cancela). Intro pulsa el botón que tiene el foco. Recuerda
-su ancho y su posición; el alto es siempre el que piden sus opciones, sin huecos. Al aceptar, el mapa se redibuja en su sitio, sin recargar la pantalla.
+Título «GritMap». Es un panel hecho a medida, del mismo material que las tarjetas del mapa (el fondo
+de Anki, tarjetas de capa elevada con borde suave y esquinas redondeadas, la letra de Anki), de día y
+de noche. Un solo azul, el de Anki, marca lo que se pulsa, lo elegido y el foco del teclado; los
+colores de los temas solo aparecen en sus muestras. No hay animaciones.
 
-En este orden:
+- Se abre al instante, delante de la ventana desde la que se pidió, con las opciones guardadas; la
+  lista de mazos se lee después sin congelar Anki (mientras tanto, la fila «Excluir mazos» muestra un
+  hueco gris). Un segundo clic no abre otra: trae la que ya está abierta. El contenido no se ve hasta
+  que está dibujado entero (si por algo tardara, a los 3 segundos se ve igualmente).
+- Mide 560 px de ancho y el alto de su contenido, como mucho el de la pantalla menos 80 px; si no
+  cabe, el cuerpo se desplaza y la cabecera («Opciones») y el pie (Cancelar y Aceptar) quedan fijos.
+  Recuerda su posición.
+- Arriba, si tenía un tema retirado (Rojo fuego, Rosa suave o Turquesa laguna), una franja gris con
+  un icono de información lo dice una vez: «Su tema «Rojo fuego» se ha retirado; ahora usa «Naranja
+  atardecer».». El tema retirado pasa sin preguntar a Naranja atardecer, Púrpura real o Azul océano.
+- Nada se guarda hasta pulsar Aceptar. Al aceptar, el mapa se redibuja en su sitio, sin recargar la
+  pantalla. Aceptar y Cancelar van en el orden de cada sistema (en Windows, Aceptar primero).
 
-| Recuadro | Opción | Valores | Por defecto |
-|---|---|---|---|
-| Apariencia | Tema de color | Verde clásico, Azul océano, Púrpura real y Naranja atardecer (el de serie primero y los demás por tono), cada uno con un cuadrito de su tono en el modo activo (cambia si Anki pasa de día a noche) | Verde clásico |
-| Apariencia | Tamaño del mapa | Campo numérico con flechas, de 10 px a 60 px (el lado de cada cuadrito; el mapa entero crece en proporción) y, al lado, la casilla «Ajustado al ancho», que apaga el campo y hace que el mapa ocupe todo el ancho | 24 px, sin la casilla |
-| Apariencia | Redondeo de esquinas | Campo numérico con flechas, de 0 px a la mitad del tamaño elegido (7 px con «Ajustado al ancho»; más ya no cambiaría nada) | 3 px |
-| Qué se cuenta | El color mide | Tres botones de opción: Repasos, Tarjetas, Nuevas; debajo, «Cada respuesta cuenta una», «Cada tarjeta cuenta una vez por día» o «Solo las tarjetas que empezó ese día» | Repasos |
-| Qué se cuenta | Periodo de las cifras | Tres botones de opción, como «El color mide»: «30 días», «365 días» y «Todo el historial»; debajo, «Vale para el promedio diario y la retención.» | 30 días |
-| Qué se cuenta | Excluir mazos | Botón «Seleccionar mazos» (o «1 mazo excluido», «2 mazos excluidos», con hasta 15 nombres al pasar el ratón y «…» si hay más); debajo, «La medida y los mazos excluidos se aplican al aceptar.» | Ninguno |
-| Metas y fechas | Mostrar racha y meta | Casilla, la primera del recuadro. Desmarcada, la meta, los comodines y la pausa se ven apagados | Marcada |
-| Metas y fechas | Meta diaria | «Sin meta», «Un número» (con el número, de 1 a 9.999, en la unidad de la medida) o «Terminar lo de hoy». Al elegir «Un número» se propone el 80 % de su promedio de los últimos 30 días en esa unidad, redondeado a 5; sin historial, 50 repasos, 30 tarjetas o 10 nuevas. Si cambia la medida sin haber tocado el número, se propone otro en la unidad nueva | Sin meta |
-| Metas y fechas | Comodines | Casilla «Perdonar días sueltos con comodines»; debajo, escrita, la regla: «Cada 7 días seguidos gana un comodín (2 como máximo). Un día sin estudiar gasta uno.» | Marcada |
-| Metas y fechas | Pausa | Casilla «Pausar la racha» con las fechas de inicio (hoy como pronto) y fin (como mucho 29 días después del inicio) y, al lado, cuántos días dura («15 días»); debajo, «La pausa dura 30 días como máximo.» | Desmarcada |
-| Metas y fechas | Fechas clave | Botón «Gestionar fechas» (o «1 fecha marcada», «3 fechas marcadas», con la lista al pasar el ratón) | Ninguna |
+### Tarjeta «Apariencia»
 
-- Mientras cambia el tema, el tamaño o el redondeo, el mapa de detrás cambia al momento (un
-  instante después de soltar la flecha), sin guardar nada; si cancela, vuelve a como estaba. La medida
-  y los mazos excluidos se ven al aceptar, porque piden leer la colección.
-- «Restaurar apariencia» repone solo el recuadro «Apariencia»: tema, tamaño y redondeo. No toca la
-  medida, los mazos excluidos, las fechas clave, la meta, los comodines, la pausa ni el periodo.
-- Un tamaño de 8 o 9 px guardado por versiones anteriores pasa a 10 px.
-- Si tenía Rojo fuego, Rosa suave o Turquesa laguna, retirados en esta versión, pasa sin preguntar a
-  Naranja atardecer, Púrpura real o Azul océano, y la ventana lo dice una vez, arriba: «Su tema «Rojo
-  fuego» se ha retirado; ahora usa «Naranja atardecer».».
-- Al pasar a la 4.6.0, el mapa toma los valores de serie (24 px y 3 px de redondeo): el tamaño y el
-  redondeo guardados por la 4.2 a la 4.5 se dejan de leer. Si venía de la 4.0 o la 4.1 con
-  «Redondeado», el redondeo pasa a 8 px; las opciones «Tamaño» y «Forma» de esas versiones se
-  dejan de guardar.
-- Excluir mazos: árbol de mazos con casillas, como en la pantalla principal (sin mazos filtrados ni
-  el mazo predeterminado vacío), con un buscador encima («Buscar», el texto de Anki). Marcar un mazo
-  marca y bloquea (en gris) sus submazos; al desmarcarlo, cada submazo vuelve a su propia casilla. Lo
-  excluido no cuenta en ningún mapa. Solo se cuentan y se nombran mazos que existen.
-- Fechas clave: lista en dos columnas, ordenada por fecha: fecha corta (con el año en cuatro cifras) y
-  nombre; las ya pasadas, en gris y con «(pasada)» tras la fecha. Un doble clic en el nombre permite
-  corregirlo en la propia lista (si queda vacío o repetido, vuelve al de antes); el botón
-  «Eliminar» (o la tecla Supr con el foco en la lista; tras borrar queda seleccionada la siguiente);
-  un campo con el ejemplo «p. ej., examen de Matemáticas» (60 caracteres como máximo), un selector de
-  fecha con calendario (de 2000 a 2100; hoy por defecto) y el botón «Añadir». Intro en el campo añade.
-  Avisos: «Falta el nombre de la fecha.», «Esa fecha con ese nombre ya está en la lista.» y «Caben
-  hasta 50 fechas.».
+En su título, a la derecha, «Restaurar apariencia»: vuelve al tema, tamaño y redondeo de serie (Verde
+clásico, 24 px, 3 px), solo de esta tarjeta, y junto a él aparece «Deshacer» hasta el siguiente cambio;
+como no se guarda nada, Cancelar también lo deshace. Debajo del título: «Se ve ya en el mapa; se guarda
+al aceptar.»: mientras cambia el tema, el tamaño o el redondeo, el mapa de detrás cambia al momento, y
+si cancela vuelve a como estaba.
+
+| Opción | Cómo se elige | Por defecto |
+|---|---|---|
+| Tema de color | Cuatro fichas en dos columnas (una si algún nombre no cabe): Verde clásico, Azul océano, Púrpura real y Naranja atardecer, cada una con un cuadrito de su tono en el modo activo (cambia si Anki pasa de día a noche con la ventana abierta). La elegida lleva borde azul, fondo suave y ✓. Con el tabulador se entra en la elegida y las flechas cambian de tema | Verde clásico |
+| Tamaño del mapa | Campo con «−», el número con «px» y «+», de 10 a 60 (el lado de cada cuadrito; el mapa entero crece en proporción). Debajo, la casilla «Ajustado al ancho»: marcada, apaga el campo y dice «El mapa ocupa todo el ancho; los cuadritos miden al menos 10 px.» | 24 px, sin la casilla |
+| Redondeo de esquinas | Campo con «−» y «+», de 0 px hasta la mitad del cuadrito; debajo lo dice: «Hasta la mitad del cuadrito (12 px).» (7 px con «Ajustado al ancho») | 3 px |
+
+Los campos con «−» y «+»: se puede escribir el número; las flechas arriba y abajo suben y bajan 1,
+RePág y AvPág 5, Inicio y Fin van al mínimo y al máximo; mantener pulsado «−» o «+» repite. En el
+límite, el botón de ese lado se apaga. Un número fuera de rango se corrige al límite al salir del campo.
+
+### Tarjeta «Qué se cuenta»
+
+Debajo del título: «La medida y los mazos excluidos se aplican al aceptar.», porque piden leer la
+colección.
+
+| Opción | Cómo se elige | Por defecto |
+|---|---|---|
+| El color mide | Tres botones en un carril: Repasos, Tarjetas, Nuevas (el elegido, en seminegrita con borde azul); debajo, «Cada respuesta cuenta una», «Cada tarjeta cuenta una vez por día» o «Solo las tarjetas que empezó ese día» | Repasos |
+| Periodo de las cifras | Tres botones en un carril: «30 días», «365 días» y «Todo el historial»; debajo, «Vale para el promedio diario y la retención.» | 30 días |
+| Excluir mazos | Una fila que abre su subpágina, con su resumen escrito: «Ninguno» o «2 mazos excluidos: Inglés, Japonés» (hasta tres nombres y «y 2 más») | Ninguno |
+
+Si en algún idioma un valor no cabe en su botón, el carril pasa entero a una lista vertical; nunca se
+corta un texto dentro de un botón.
+
+### Tarjeta «Metas y fechas»
+
+Primero, la casilla «Mostrar racha y meta» (marcada de serie). Lo que depende de ella va debajo,
+agrupado por una línea a la izquierda; desmarcada, se ve apagado y una línea explica: «La meta, los
+comodines y la pausa no cuentan mientras esté desmarcada; se conservan.»
+
+| Opción | Cómo se elige | Por defecto |
+|---|---|---|
+| Meta diaria | Tres botones: «Sin meta», «Un número» y «Terminar lo de hoy». Con «Un número», debajo, el campo con «−» y «+» (de 1 a 9.999) seguido de la unidad («repasos al día», «tarjetas al día», «nuevas al día») y la propuesta: «Propuesta: el 80 % de su promedio diario (41).». Con «Terminar lo de hoy»: «Las tarjetas que vencen hoy, con los límites diarios de Anki.» | Sin meta |
+| Comodines | Casilla «Perdonar días sueltos con comodines» y, debajo, la regla y cuántos tiene ahora: «Cada 7 días seguidos gana un comodín (2 como máximo). Un día sin estudiar gasta uno. Ahora tiene 1 comodín.» (cuántos tiene solo se dice si la ventana se abre desde la lista de mazos) | Marcada |
+| Pausa | Casilla «Pausar la racha». Marcada, debajo: «Desde [26 oct 2026] hasta [1 nov 2026] · 7 días»; cada fecha es un botón que abre el calendario. El inicio, hoy como pronto (una pausa guardada que ya empezó conserva su inicio); el fin, como mucho 29 días después del inicio; el calendario no deja elegir otros días. Regla escrita: «Los días de pausa sin estudio no rompen la racha ni gastan comodines. Dura 30 días como máximo.» | Desmarcada (de 7 días si se marca) |
+| Fechas clave | Una fila que abre su subpágina, con su resumen: «Ninguna», «3 fechas marcadas · próxima: Examen de Anatomía, faltan 23 días» o «2 fechas marcadas, todas pasadas». No depende de «Mostrar racha y meta» | Ninguna |
+
+La meta propuesta: al elegir «Un número» se propone el 80 % de su promedio diario de los últimos 30
+días en esa unidad (el mismo promedio, por día natural, que la tarjeta «Promedio diario»), redondeado
+a 5. Quien estudia 4 días de cada 7 con 72 repasos esos días tiene un promedio de 41 y se le proponen
+35. Sin historial (o abierta desde la pantalla de un mazo, o con otra medida que la del mapa), 50
+repasos, 30 tarjetas o 10 nuevas, sin línea de propuesta. Si cambia la medida sin haber tocado el
+número, se propone otro en la unidad nueva.
+
+### Subpágina «Excluir mazos»
+
+Sustituye al cuerpo de la ventana; arriba, «‹ Opciones» vuelve a la página principal (también Esc), y
+el pie sigue con Cancelar y Aceptar, porque todo se guarda o se descarta junto. Al volver, el foco
+vuelve a la fila «Excluir mazos».
+
+- Un buscador («Buscar», el texto de Anki) deja a la vista los mazos cuyo nombre lo contiene, con sus
+  padres; sin resultados, «Ningún mazo coincide.».
+- Los mazos, como en la pantalla principal (sin mazos filtrados ni el predeterminado vacío), con
+  casilla y, los que tienen submazos, un botón para plegarlos y desplegarlos (desplegados al abrir).
+  Marcar un mazo marca y apaga sus submazos; al desmarcarlo, cada submazo vuelve a su propia casilla.
+  Debajo: «Al excluir un mazo se excluyen también sus submazos.» y el recuento («2 mazos excluidos:
+  Inglés, Japonés»). Lo excluido no cuenta en ningún mapa. Solo se cuentan y se nombran mazos que
+  existen; un mazo filtrado o el predeterminado vacío que estuviera excluido se conservan.
+- Mientras se lee la lista de mazos, filas grises en su lugar.
+
+### Subpágina «Fechas clave»
+
+Con la misma cabecera y el mismo pie que la de mazos.
+
+- Arriba, la tarjeta «Nueva fecha»: «Nombre» (con el ejemplo «p. ej., examen de Matemáticas», 60
+  caracteres como máximo), «Fecha» (un botón con la fecha, hoy de serie, que abre el calendario; de
+  2000 a 2100) y «Añadir». Intro en el nombre añade. Los avisos salen encima de los campos, en rojo con
+  un icono, y se borran al escribir: «Falta el nombre de la fecha.», «Esa fecha con ese nombre ya está
+  en la lista.» y «Caben hasta 50 fechas.».
+- Debajo, la lista ordenada por fecha. Cada fila: el rombo del mapa (lleno en las que vienen, hueco y
+  gris en las pasadas), la fecha corta con el año, el nombre (gris en las pasadas), la cuenta atrás en
+  gris («faltan 23 días»; en las pasadas, «(pasada)») y dos botones: editar (lápiz) y eliminar
+  (papelera).
+- Editar: el nombre y la fecha se cambian en la propia fila; Intro o «Guardar» guardan y Esc lo deja
+  como estaba. Un nombre vacío o repetido vuelve al de antes. El doble clic en el nombre también edita.
+- Eliminar (también Supr con el foco en la fila): la fila desaparece y en su lugar queda «Se eliminó
+  «Parcial».» con «Deshacer», hasta el siguiente cambio. No se pregunta antes.
+- Debajo de la lista: «3 de 50 fechas».
+
+### Calendario
+
+Una capa flotante bajo el botón de fecha, con el aspecto del mapa: mes y año («octubre de 2026») con
+botones para el mes anterior y el siguiente; las iniciales de los días desde el lunes; los días en
+cuadritos de 32 px. Hoy lleva el borde del color del texto, como en el mapa; el día elegido, relleno
+azul; los días con fecha clave, un rombo pequeño bajo el número; los días fuera de rango se ven
+apagados y no responden. Teclas: flechas (día a día y semana a semana), Inicio y Fin (lunes y domingo
+de la semana), RePág y AvPág (mes anterior y siguiente; con Mayús, año), Intro elige y cierra, Esc
+cierra sin cambiar. Un clic fuera también lo cierra.
+
+### Cerrar
+
+Esc cierra siempre lo de más arriba: primero el calendario, después la edición de una fecha, después
+la subpágina (volviendo a la principal) y, en la principal, la ventana, como Cancelar (también la cruz
+de la ventana). Cancelar no guarda nada y el mapa vuelve a como estaba. Si se añadieron, cambiaron o
+eliminaron fechas clave, antes pregunta: «¿Descartar los cambios?», «Se perderán las fechas clave que
+ha añadido, cambiado o eliminado.», con «Descartar» y «Seguir editando» (el foco, en «Seguir
+editando»). Es la única pregunta: todo lo demás se vuelve a elegir en un clic. Intro pulsa el botón que
+tiene el foco.
+
+### Accesibilidad
+
+Los controles son botones, casillas y botones de opción de verdad, dibujados a medida: el tabulador
+los recorre, el lector de pantalla los anuncia por su nombre («Eliminar Examen de Anatomía»), y al
+restaurar la apariencia o eliminar una fecha lo dice en voz alta. El foco del teclado se ve con un
+contorno azul de 2 px. Todos los botones miden al menos 32 px. Con el alto contraste de Windows, todo
+control tiene borde, lo elegido se marca con borde y ✓, y el foco usa el color del sistema.
 
 ## 9. Qué guarda y dónde
 
-- La apariencia y las metas (tema, medida, tamaño, forma, periodo de las cifras, meta, comodines y
+- La apariencia y las metas (tema, medida, tamaño, redondeo, periodo de las cifras, meta, comodines y
   mostrar racha y meta), en la configuración de complementos de este ordenador: vale para todos los
   perfiles y no se sincroniza. Los ajustes de versiones anteriores que ya no existen (píxeles,
   comparativa semanal y estadísticas plegadas) se dejan de guardar al aceptar las opciones.
@@ -332,7 +417,8 @@ los meses los escribe el navegador de Anki en su idioma; en español, con punto 
 
 Nunca abre la ventana de error de Anki: el detalle queda en el registro del complemento (un archivo
 de texto en la carpeta de registros del perfil de Anki) y, en el sitio del mapa, sale «No se pudo
-cargar el mapa de calor.», con el botón de opciones. Anki sigue funcionando.
+cargar el mapa de calor.» con, debajo, qué hacer («Vuelva a abrir Anki; si se repite, el detalle está
+en el registro del complemento.») y el botón de opciones. Anki sigue funcionando.
 
 ## 13. Qué no hace
 
@@ -433,7 +519,16 @@ el motivo. Sirve para no volver a ello sin querer.
 | Pausa que empieza en un día pasado | 4.7.0 | Servía para tapar después un fallo; los fallos sueltos ya los cubren los comodines (decisión del cliente). |
 | Temas por orden alfabético | 4.7.0 | El de serie va primero y los demás por tono. |
 | Tira de cuatro tonos como muestra de cada tema | Propuesto en 4.7.0, no aplicado | Se mantiene un solo cuadrito, como pidió el cliente con una captura en la 4.3.0. |
-| Letras subrayadas para manejar Opciones con Alt | Propuesto en 4.7.0, no aplicado | Piden cambiar los textos en 51 idiomas; a la espera de que el cliente lo pida. |
+| Letras subrayadas para manejar Opciones con Alt | Propuesto en 4.7.0, no aplicado | Piden cambiar los textos en 51 idiomas; el tabulador y las flechas ya recorren la ventana. |
+| Ventana con los controles estándar de Anki (recuadros grises de Qt) | 4.9.0 | Parecía otro producto junto al mapa. Ahora es un panel a medida, del mismo material que las tarjetas (petición del cliente). |
+| «Seleccionar mazos» y «Gestionar fechas» como ventanas encima de Opciones | 4.9.0 | Ventana sobre ventana: se perdía el contexto y no se sabía a cuál afectaba Esc. Ahora son subpáginas dentro de la misma ventana. |
+| Resumen de mazos excluidos y fechas clave solo en un globo | 4.9.0 | Ahora va escrito en su fila. |
+| «Restaurar apariencia» en el pie, con un globo que explicaba su alcance | 4.9.0 | Ahora está en el título de la tarjeta que restaura, con «Deshacer». |
+| Corregir una fecha clave solo con un doble clic sin señal, y eliminar sin poder deshacer | 4.9.0 | Ahora hay botones de editar (nombre y fecha) y eliminar, y «Deshacer» al eliminar; el doble clic queda como atajo. |
+| Selector de fecha del sistema | 4.9.0 | Distinto en cada ordenador y sin relación con el mapa; ahora es un calendario propio con hoy y las fechas clave marcados. |
+| Esperar a leer los mazos para abrir la ventana | 4.9.0 | Ahora se abre al instante; solo el resumen de mazos espera. |
+| Meta propuesta por día estudiado | 4.9.0 | No coincidía con el «Promedio diario» de la tarjeta; ahora usa el mismo promedio y lo dice. |
+| Semana según el idioma (empezar en domingo o sábado donde se acostumbra) | Propuesto en 4.9.0, descartado | El navegador de Anki puede no tener ese dato, y cambiaría las iniciales, Inicio y Fin y el calendario; el mapa y el calendario siguen empezando en lunes (decisión del cliente). |
 
 ### Otros
 

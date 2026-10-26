@@ -84,6 +84,9 @@
     ],
     "FIX-026": [
       "view.py"
+    ],
+    "FIX-027": [
+      "web/gritmap.css"
     ]
   }
 }

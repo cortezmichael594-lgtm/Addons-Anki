@@ -1,0 +1,976 @@
+/* GritMap - panel de opciones a medida (4.9.0).
+ *
+ * El mismo material que las tarjetas del mapa: fondo de Anki, tarjetas de
+ * capa elevada con borde suave y esquinas de 10 px, la letra de Anki y la
+ * escala de espacios 4, 8, 16, 24 y 32. Un solo azul (el de accion de
+ * Anki) para lo que se pulsa, lo elegido y el foco; los colores de los
+ * temas solo en sus muestras. Todo sale de la paleta Nocturne; el borde de
+ * los controles es NOCTURNE_CONTROL_BORDER (3:1 o mas), que no tiene
+ * variable CSS. Sin animaciones.
+ *
+ * Todo lleva el prefijo «gritmap-» (regla de FIX-008).
+ */
+
+#gritmap-o-app {
+    --gritmap-o-canvas: var(--canvas, #F7F8FA);
+    --gritmap-o-card: var(--canvas-elevated, #FBFCFE);
+    --gritmap-o-overlay: var(--canvas-overlay, #FBFCFE);
+    --gritmap-o-inset: var(--canvas-inset, #EEF0F4);
+    --gritmap-o-fg: var(--fg, #1B2430);
+    --gritmap-o-muted: var(--fg-subtle, #4E576A);
+    --gritmap-o-card-border: var(--border-subtle, #E8EAF0);
+    --gritmap-o-line: var(--border, #DADEE7);
+    --gritmap-o-control: #878C97; /* colores-ok: NOCTURNE_CONTROL_BORDER (día), sin variable CSS en Anki */
+    --gritmap-o-accent: var(--button-primary-bg, #3B6FE0);
+    --gritmap-o-on-accent: var(--highlight-fg, #FFFFFF);
+    --gritmap-o-focus: var(--border-focus, #3B6FE0);
+    --gritmap-o-selected: var(--nocturne-row-highlight, #EAEEF8);
+    --gritmap-o-hover: var(--button-gradient-start, #EDF0F5);
+    --gritmap-o-danger: var(--accent-danger, #CA2D2D);
+    --gritmap-o-shadow: var(--shadow-subtle, #1B243012);
+    --gritmap-o-shadow-float: var(--shadow, #1B243026);
+}
+
+html.night-mode #gritmap-o-app {
+    --gritmap-o-canvas: var(--canvas, #12161F);
+    --gritmap-o-card: var(--canvas-elevated, #212836);
+    --gritmap-o-overlay: var(--canvas-overlay, #293040);
+    --gritmap-o-inset: var(--canvas-inset, #0F131B);
+    --gritmap-o-fg: var(--fg, #D6DAE1);
+    --gritmap-o-muted: var(--fg-subtle, #B7BECC);
+    --gritmap-o-card-border: var(--border-subtle, #1F2635);
+    --gritmap-o-line: var(--border, #2C3444);
+    --gritmap-o-control: #727B8C; /* colores-ok: NOCTURNE_CONTROL_BORDER (noche), sin variable CSS en Anki */
+    --gritmap-o-accent: var(--button-primary-bg, #4066E6);
+    --gritmap-o-on-accent: var(--highlight-fg, #FFFFFF);
+    --gritmap-o-focus: var(--border-focus, #6390FF);
+    --gritmap-o-selected: var(--nocturne-row-highlight, #19233F);
+    --gritmap-o-hover: var(--button-gradient-start, #2E3747);
+    --gritmap-o-danger: var(--accent-danger, #F37777);
+    /* De noche no hay sombras: la profundidad la dan los fondos. */
+    --gritmap-o-shadow: transparent;
+    --gritmap-o-shadow-float: transparent;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--canvas, #F7F8FA);
+}
+
+html.night-mode body {
+    background: var(--canvas, #12161F);
+}
+
+#gritmap-o-app,
+#gritmap-o-app * {
+    box-sizing: border-box;
+}
+
+#gritmap-o-app {
+    height: 100%;
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--gritmap-o-fg);
+    background: var(--gritmap-o-canvas);
+    font-variant-numeric: tabular-nums;
+}
+
+#gritmap-o-app [hidden] {
+    display: none !important;
+}
+
+/* Cabecera y pie fijos; el cuerpo se desplaza si no cabe. */
+#gritmap-o-app .gritmap-o-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#gritmap-o-app .gritmap-o-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 56px;
+    padding: 0 24px;
+}
+
+#gritmap-o-app .gritmap-o-head h1 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+}
+
+#gritmap-o-app .gritmap-o-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    /* 4 px arriba: el contorno de foco del primer control no se corta. */
+    padding: 4px 16px 16px 16px;
+    /* Al llevar el foco a un control, queda siempre a la vista. */
+    scroll-padding: 16px 0;
+}
+
+#gritmap-o-app .gritmap-o-scrolled .gritmap-o-head {
+    border-bottom: 1px solid var(--gritmap-o-line);
+}
+
+#gritmap-o-app .gritmap-o-foot {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    min-height: 64px;
+    align-items: center;
+    padding: 0 24px;
+}
+
+#gritmap-o-app .gritmap-o-overflow .gritmap-o-foot {
+    border-top: 1px solid var(--gritmap-o-line);
+}
+
+/* En Windows, Aceptar va primero, como en sus ventanas; en macOS y Linux, a
+ * la derecha. */
+body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
+    order: -1;
+}
+
+/* Tarjetas */
+#gritmap-o-app .gritmap-o-card {
+    background: var(--gritmap-o-card);
+    border: 1px solid var(--gritmap-o-card-border);
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: 0 1px 3px var(--gritmap-o-shadow);
+}
+
+#gritmap-o-app .gritmap-o-card + .gritmap-o-card {
+    margin-top: 16px;
+}
+
+#gritmap-o-app .gritmap-o-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#gritmap-o-app .gritmap-o-card-head h2 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+}
+
+#gritmap-o-app .gritmap-o-card-note {
+    margin: 4px 0 0 0;
+    color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-option {
+    margin-top: 24px;
+}
+
+#gritmap-o-app .gritmap-o-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+#gritmap-o-app .gritmap-o-rule {
+    margin: 8px 0 0 0;
+    color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-two {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+}
+
+#gritmap-o-app .gritmap-o-two > .gritmap-o-option {
+    margin-top: 0;
+}
+
+#gritmap-o-app .gritmap-o-two {
+    margin-top: 24px;
+}
+
+/* Aviso de tema retirado: franja hundida con icono de informacion. */
+#gritmap-o-app .gritmap-o-notice {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--gritmap-o-inset);
+}
+
+#gritmap-o-app .gritmap-o-notice svg {
+    flex: none;
+    margin-top: 2px;
+    color: var(--gritmap-o-muted);
+}
+
+/* Botones */
+#gritmap-o-app button {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+    cursor: pointer;
+}
+
+#gritmap-o-app .gritmap-o-btn {
+    min-height: 36px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid var(--gritmap-o-control);
+    background: var(--gritmap-o-card);
+    color: var(--gritmap-o-fg);
+}
+
+#gritmap-o-app .gritmap-o-btn:hover {
+    background: var(--gritmap-o-hover);
+}
+
+#gritmap-o-app .gritmap-o-btn:active,
+#gritmap-o-app .gritmap-o-step button:active,
+#gritmap-o-app .gritmap-o-row:active {
+    transform: translateY(1px);
+}
+
+#gritmap-o-app .gritmap-o-primary {
+    border-color: var(--gritmap-o-accent);
+    background: var(--gritmap-o-accent);
+    color: var(--gritmap-o-on-accent);
+    font-weight: 600;
+}
+
+#gritmap-o-app .gritmap-o-primary:hover {
+    background: var(--gritmap-o-accent);
+    filter: brightness(1.06);
+}
+
+/* Boton terciario: texto azul sin fondo («Restaurar apariencia», «Deshacer»). */
+#gritmap-o-app .gritmap-o-link {
+    min-height: 32px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--gritmap-o-accent);
+    font-weight: 600;
+}
+
+#gritmap-o-app .gritmap-o-link:hover {
+    background: var(--gritmap-o-hover);
+}
+
+#gritmap-o-app .gritmap-o-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--gritmap-o-fg);
+}
+
+#gritmap-o-app .gritmap-o-icon-btn:hover {
+    background: var(--gritmap-o-hover);
+}
+
+#gritmap-o-app .gritmap-o-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 32px;
+    padding: 0 8px 0 4px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--gritmap-o-accent);
+    font-weight: 600;
+}
+
+#gritmap-o-app .gritmap-o-back:hover {
+    background: var(--gritmap-o-hover);
+}
+
+/* Foco del teclado: contorno azul de 2 px separado 2 px (WCAG 2.4.13). Anki
+ * quita el contorno de todos sus botones; por eso !important (APR-061). */
+#gritmap-o-app button:focus-visible,
+#gritmap-o-app input:focus-visible,
+#gritmap-o-app .gritmap-o-chip:has(input:focus-visible),
+#gritmap-o-app .gritmap-o-seg label:has(input:focus-visible),
+#gritmap-o-app .gritmap-o-check:has(input:focus-visible) .gritmap-o-box {
+    outline: 2px solid var(--gritmap-o-focus) !important;
+    outline-offset: 2px;
+}
+
+/* Fichas de tema: botones de opcion de verdad, con su teclado. */
+#gritmap-o-app .gritmap-o-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#gritmap-o-app .gritmap-o-chips.gritmap-o-one-col {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+#gritmap-o-app .gritmap-o-chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--gritmap-o-control);
+    border-radius: 8px;
+    background: var(--gritmap-o-card);
+    cursor: pointer;
+}
+
+#gritmap-o-app .gritmap-o-chip:hover {
+    background: var(--gritmap-o-hover);
+}
+
+#gritmap-o-app .gritmap-o-chip:has(input:checked) {
+    border: 2px solid var(--gritmap-o-accent);
+    padding: 0 11px;
+    background: var(--gritmap-o-selected);
+}
+
+#gritmap-o-app .gritmap-o-chip input,
+#gritmap-o-app .gritmap-o-seg input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
+
+#gritmap-o-app .gritmap-o-swatch {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+#gritmap-o-app .gritmap-o-chip-name {
+    flex: 1;
+    min-width: 0;
+}
+
+#gritmap-o-app .gritmap-o-tick {
+    flex: none;
+    visibility: hidden;
+    color: var(--gritmap-o-accent);
+}
+
+#gritmap-o-app .gritmap-o-chip:has(input:checked) .gritmap-o-tick {
+    visibility: visible;
+}
+
+/* Botones segmentados: un carril hundido con tres valores. */
+#gritmap-o-app .gritmap-o-seg {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 8px;
+    background: var(--gritmap-o-inset);
+}
+
+#gritmap-o-app .gritmap-o-seg label {
+    position: relative;
+    flex: 1 1 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    text-align: center;
+    color: var(--gritmap-o-muted);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#gritmap-o-app .gritmap-o-seg label:hover {
+    color: var(--gritmap-o-fg);
+}
+
+#gritmap-o-app .gritmap-o-seg label:has(input:checked) {
+    background: var(--gritmap-o-card);
+    border-color: var(--gritmap-o-accent);
+    color: var(--gritmap-o-fg);
+    font-weight: 600;
+}
+
+/* Si algun valor no cabe en su idioma, el carril pasa a lista vertical:
+ * nunca se corta un texto dentro de un boton. */
+#gritmap-o-app .gritmap-o-seg.gritmap-o-vertical {
+    flex-direction: column;
+}
+
+#gritmap-o-app .gritmap-o-seg.gritmap-o-vertical label {
+    justify-content: flex-start;
+    white-space: normal;
+    text-align: start;
+}
+
+/* Campo numerico con − y + */
+#gritmap-o-app .gritmap-o-step {
+    display: inline-flex;
+    align-items: stretch;
+    height: 36px;
+    border: 1px solid var(--gritmap-o-control);
+    border-radius: 8px;
+    background: var(--gritmap-o-card);
+    overflow: hidden;
+}
+
+#gritmap-o-app .gritmap-o-step button {
+    width: 36px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 16px;
+}
+
+#gritmap-o-app .gritmap-o-step button:hover:not(:disabled) {
+    background: var(--gritmap-o-hover);
+}
+
+#gritmap-o-app .gritmap-o-step button:focus-visible {
+    outline-offset: -2px;
+}
+
+#gritmap-o-app .gritmap-o-step-value {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 4px;
+    border-inline: 1px solid var(--gritmap-o-line);
+}
+
+#gritmap-o-app .gritmap-o-step input {
+    width: 4ch;
+    border: 0;
+    background: none;
+    color: var(--gritmap-o-fg);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+}
+
+#gritmap-o-app .gritmap-o-step input:focus-visible {
+    outline-offset: 0;
+}
+
+#gritmap-o-app .gritmap-o-unit {
+    color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-goal-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+/* Casillas: un <input type="checkbox"> de verdad, dibujado a medida. */
+#gritmap-o-app .gritmap-o-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 32px;
+    padding: 6px 0;
+    cursor: pointer;
+}
+
+#gritmap-o-app .gritmap-o-check input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+
+#gritmap-o-app .gritmap-o-box {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    border: 1px solid var(--gritmap-o-control);
+    border-radius: 4px;
+    background: var(--gritmap-o-card);
+    color: transparent;
+}
+
+#gritmap-o-app .gritmap-o-check input:checked + .gritmap-o-box {
+    border-color: var(--gritmap-o-accent);
+    background: var(--gritmap-o-accent);
+    color: var(--gritmap-o-on-accent);
+}
+
+#gritmap-o-app .gritmap-o-check-text {
+    font-weight: 600;
+}
+
+/* Lo que depende de «Mostrar racha y meta», agrupado por una linea a la
+ * izquierda (region comun). */
+#gritmap-o-app .gritmap-o-group {
+    margin-top: 8px;
+    padding-inline-start: 16px;
+    border-inline-start: 2px solid var(--gritmap-o-line);
+}
+
+#gritmap-o-app .gritmap-o-group > .gritmap-o-option:first-child {
+    margin-top: 8px;
+}
+
+/* Apagado: atenuado y con una linea que dice por que. */
+#gritmap-o-app .gritmap-o-off {
+    opacity: 0.45;
+}
+
+#gritmap-o-app .gritmap-o-off * {
+    cursor: default !important;
+}
+
+#gritmap-o-app :disabled {
+    cursor: default;
+}
+
+#gritmap-o-app .gritmap-o-step button:disabled {
+    opacity: 0.35;
+}
+
+/* Pausa: «Desde [26 oct. 2026] hasta [9 nov. 2026] · 15 días». */
+#gritmap-o-app .gritmap-o-pause {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 8px 0 0 26px;
+}
+
+#gritmap-o-app .gritmap-o-date-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--gritmap-o-control);
+    border-radius: 8px;
+    background: var(--gritmap-o-card);
+    color: var(--gritmap-o-fg);
+}
+
+#gritmap-o-app .gritmap-o-date-btn:hover {
+    background: var(--gritmap-o-hover);
+}
+
+#gritmap-o-app .gritmap-o-date-btn svg {
+    color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-sub-rule {
+    margin: 8px 0 0 26px;
+    color: var(--gritmap-o-muted);
+}
+
+/* Filas de resumen (mazos excluidos, fechas clave): toda la fila es un
+ * boton que abre su subpagina. */
+#gritmap-o-app .gritmap-o-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 56px;
+    padding: 8px 16px;
+    border: 1px solid var(--gritmap-o-control);
+    border-radius: 8px;
+    background: var(--gritmap-o-card);
+    text-align: start;
+}
+
+#gritmap-o-app .gritmap-o-row:hover {
+    background: var(--gritmap-o-hover);
+}
+
+#gritmap-o-app .gritmap-o-row-text {
+    flex: 1;
+    min-width: 0;
+}
+
+#gritmap-o-app .gritmap-o-row-title {
+    display: block;
+    font-weight: 600;
+}
+
+#gritmap-o-app .gritmap-o-row-summary {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-chevron {
+    flex: none;
+    color: var(--gritmap-o-muted);
+}
+
+/* Hueco gris mientras se leen los mazos, como el esqueleto del mapa. */
+#gritmap-o-app .gritmap-o-bone {
+    display: inline-block;
+    width: 160px;
+    height: 12px;
+    border-radius: 6px;
+    background: var(--gritmap-o-inset);
+    vertical-align: middle;
+}
+
+/* Subpagina «Excluir mazos» */
+#gritmap-o-app .gritmap-o-search {
+    width: 100%;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--gritmap-o-control);
+    border-radius: 8px;
+    background: var(--gritmap-o-card);
+    color: var(--gritmap-o-fg);
+    font: inherit;
+}
+
+#gritmap-o-app .gritmap-o-tree {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#gritmap-o-app .gritmap-o-tree li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 36px;
+}
+
+#gritmap-o-app .gritmap-o-tree .gritmap-o-fold {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-tree .gritmap-o-fold-space {
+    flex: none;
+    width: 24px;
+}
+
+#gritmap-o-app .gritmap-o-tree .gritmap-o-check {
+    flex: 1;
+    min-width: 0;
+}
+
+#gritmap-o-app .gritmap-o-tree .gritmap-o-check-text {
+    font-weight: 400;
+}
+
+#gritmap-o-app .gritmap-o-tree .gritmap-o-locked {
+    opacity: 0.45;
+    cursor: default;
+}
+
+#gritmap-o-app .gritmap-o-empty {
+    margin: 8px 0;
+    color: var(--gritmap-o-muted);
+}
+
+/* Subpagina «Fechas clave» */
+#gritmap-o-app .gritmap-o-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 16px;
+    margin-top: 16px;
+}
+
+#gritmap-o-app .gritmap-o-form .gritmap-o-label {
+    margin-bottom: 4px;
+}
+
+#gritmap-o-app .gritmap-o-input {
+    width: 100%;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--gritmap-o-control);
+    border-radius: 8px;
+    background: var(--gritmap-o-card);
+    color: var(--gritmap-o-fg);
+    font: inherit;
+}
+
+#gritmap-o-app .gritmap-o-input.gritmap-o-invalid {
+    border-color: var(--gritmap-o-danger);
+}
+
+#gritmap-o-app .gritmap-o-form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+#gritmap-o-app .gritmap-o-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    color: var(--gritmap-o-danger);
+}
+
+#gritmap-o-app .gritmap-o-dates {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#gritmap-o-app .gritmap-o-dates li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    border-radius: 6px;
+}
+
+#gritmap-o-app .gritmap-o-dates li + li {
+    border-top: 1px solid var(--gritmap-o-card-border);
+}
+
+#gritmap-o-app .gritmap-o-diamond {
+    flex: none;
+    width: 12px;
+    height: 12px;
+}
+
+#gritmap-o-app .gritmap-o-diamond polygon {
+    fill: var(--gritmap-o-fg);
+}
+
+#gritmap-o-app .gritmap-o-past .gritmap-o-diamond polygon {
+    fill: none;
+    stroke: var(--gritmap-o-muted);
+    stroke-width: 1.6px;
+}
+
+#gritmap-o-app .gritmap-o-date-day {
+    flex: none;
+    min-width: 96px;
+}
+
+#gritmap-o-app .gritmap-o-past .gritmap-o-date-day,
+#gritmap-o-app .gritmap-o-past .gritmap-o-date-name {
+    color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-date-name {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+#gritmap-o-app .gritmap-o-date-when {
+    flex: none;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-date-edit {
+    display: flex;
+    flex: 1;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+#gritmap-o-app .gritmap-o-date-edit .gritmap-o-input {
+    flex: 1;
+    min-width: 140px;
+}
+
+#gritmap-o-app .gritmap-o-undo-row {
+    color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-count {
+    margin: 8px 0 0 0;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--gritmap-o-muted);
+}
+
+/* Calendario propio, con el aspecto del mapa (capa flotante). */
+#gritmap-o-app .gritmap-o-cal {
+    position: fixed;
+    z-index: 10;
+    width: 272px;
+    padding: 12px;
+    border: 1px solid var(--gritmap-o-card-border);
+    border-radius: 10px;
+    background: var(--gritmap-o-overlay);
+    box-shadow: 0 8px 24px var(--gritmap-o-shadow-float);
+}
+
+#gritmap-o-app .gritmap-o-cal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+#gritmap-o-app .gritmap-o-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 32px);
+    gap: 4px;
+    direction: ltr;
+}
+
+#gritmap-o-app .gritmap-o-cal-wd {
+    font-size: 12px;
+    line-height: 16px;
+    text-align: center;
+    color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-cal-day {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: none;
+    font-variant-numeric: tabular-nums;
+}
+
+#gritmap-o-app .gritmap-o-cal-day:hover:not(:disabled) {
+    background: var(--gritmap-o-hover);
+}
+
+/* Hoy, con el borde del color del texto, como en el mapa. */
+#gritmap-o-app .gritmap-o-cal-day.gritmap-o-today {
+    border-color: var(--gritmap-o-fg);
+}
+
+#gritmap-o-app .gritmap-o-cal-day[aria-selected="true"] {
+    background: var(--gritmap-o-accent);
+    color: var(--gritmap-o-on-accent);
+    font-weight: 600;
+}
+
+#gritmap-o-app .gritmap-o-cal-day:disabled {
+    color: var(--gritmap-o-muted);
+    opacity: 0.45;
+}
+
+#gritmap-o-app .gritmap-o-cal-day.gritmap-o-other {
+    color: var(--gritmap-o-muted);
+}
+
+/* Los dias con fecha clave llevan un rombo pequeno bajo el numero. */
+#gritmap-o-app .gritmap-o-cal-day.gritmap-o-key::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 3px;
+    width: 5px;
+    height: 5px;
+    background: currentColor;
+    transform: translateX(-50%);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+/* Pregunta antes de descartar fechas clave: un <dialog> de verdad. */
+#gritmap-o-app dialog {
+    max-width: 400px;
+    padding: 24px;
+    border: 1px solid var(--gritmap-o-card-border);
+    border-radius: 10px;
+    background: var(--gritmap-o-overlay);
+    color: var(--gritmap-o-fg);
+    box-shadow: 0 8px 24px var(--gritmap-o-shadow-float);
+}
+
+#gritmap-o-app dialog::backdrop {
+    background: var(--shadow, #1B243026);
+}
+
+#gritmap-o-app dialog h2 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+}
+
+#gritmap-o-app dialog p {
+    margin: 0;
+    color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+/* Zona invisible para los avisos hablados del lector de pantalla. */
+#gritmap-o-app .gritmap-o-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Colores forzados (alto contraste de Windows): todo control tiene borde
+ * real; lo elegido se marca con borde y ✓; el foco, con el resaltado del
+ * sistema. Solo las muestras de los temas conservan su color. */
+@media (forced-colors: active) {
+    #gritmap-o-app .gritmap-o-seg label:has(input:checked),
+    #gritmap-o-app .gritmap-o-chip:has(input:checked) {
+        border-color: Highlight;
+    }
+
+    #gritmap-o-app .gritmap-o-swatch {
+        forced-color-adjust: none;
+    }
+
+    #gritmap-o-app button:focus-visible,
+    #gritmap-o-app input:focus-visible {
+        outline-color: Highlight !important;
+    }
+}

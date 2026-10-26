@@ -6,6 +6,8 @@
  *                        rotulo.
  * FIX-024 (2026-10-21) — Al llegar con el tabulador a los botones del mapa no
  *                        se veia el contorno de foco.
+ * FIX-027 (2026-10-26) — Los bordes de los cuadritos de la fila de arriba (hoy,
+ *                        perdonados) se cortaban un poco.
  */
 
 /* GritMap - estructura de las tarjetas y del mapa de calor.
@@ -414,9 +416,23 @@ body.nightMode #gritmap-root {
 }
 
 /* El mapa a su tamano; si no cabe, se desplaza de lado con la barra de Anki. */
+/* --- FIX-027 (2026-10-26) ---
+ * Sintoma: en la fila de arriba (y en la primera y la ultima columna), el
+ *          borde de hoy y el discontinuo de los perdonados se veian cortados.
+ * Causa: esos bordes se dibujan a caballo del cuadrito y sobresalen del
+ *        dibujo, que recortaba lo que quedaba fuera; la rejilla, ademas,
+ *        recorta en vertical.
+ * Regla: lo que se dibuja alrededor de un cuadrito cabe siempre: el dibujo
+ *        no recorta y la rejilla deja un margen de 2 px por los cuatro lados.
+ */
 #gritmap-root .gritmap-grid {
     overflow-x: auto;
     overflow-y: hidden;
+    padding: 2px;
+}
+
+#gritmap-root .gritmap-grid svg {
+    overflow: visible;
 }
 
 /* Si el ano no cabe (4.8.0): el borde por donde sigue el mapa se desvanece,
@@ -656,6 +672,12 @@ body.nightMode #gritmap-root {
 
 #gritmap-root .gritmap-msg {
     color: var(--gritmap-muted);
+}
+
+#gritmap-root .gritmap-msg-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
 }
 
 /* Mientras se calcula la primera vez: las tarjetas con huecos grises donde

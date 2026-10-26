@@ -922,7 +922,9 @@ def build_widget_html(
 
 
 def error_html() -> str:
-    return _message_card("load_error")
+    # Debajo, que hacer (4.9.0): el fallo no deja a nadie sin salida.
+    hint = f'<span class="gritmap-msg-hint">{html.escape(t("load_error_hint"))}</span>'
+    return _message_card("load_error", hint)
 
 
 # Contenedor y paleta

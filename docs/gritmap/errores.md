@@ -132,6 +132,10 @@ Las dos siguientes salieron de la revisión de la versión 3.6.0 (2026-10-21).
   tarjetas en aprendizaje vuelven a vencer horas después y la meta se recalculaba con ellas. Regla:
   una meta cumplida queda cumplida el resto del día; solo vuelve atrás si se deshace la respuesta que
   la cumplió.
+- FIX-027 · 2026-10-26 · versión 4.9.0 · Qué pasaba: en la fila de arriba del mapa, el recuadro de
+  «hoy» y el de los días perdonados se veían cortados un pelín por arriba. Por qué: esos recuadros
+  sobresalen un poco del cuadrito y el mapa recortaba todo lo que salía de su dibujo. Regla: lo que se
+  dibuja alrededor de un cuadrito siempre cabe entero, también en los bordes del mapa.
 
 ## Así a propósito
 
@@ -352,3 +356,19 @@ Versión 4.8.0 (revisión de experiencia de uso aprobada por el cliente el 2026-
 - El objetivo de retención sale también en la lista de mazos si todos los mazos que cuentan usan la
   misma retención deseada.
 
+Versión 4.9.0 (informe «últimos retoques y panel de opciones a medida», aprobado por el cliente el
+2026-10-26):
+
+- La ventana de opciones es un panel dibujado a medida, no controles estándar de Anki. Lo pidió el
+  cliente, aunque la guía de interfaz prefiere lo nativo; por eso se cuidan aparte el teclado, el modo
+  noche y el modo de alto contraste.
+- Los colores del panel son los de la paleta Nocturne, no los que proponía el informe: ningún color
+  inventado (criterio técnico).
+- Al cerrar sin aceptar, solo se pregunta si hay cambios en las fechas clave; el resto se descarta sin
+  preguntar, porque se ve al instante y se rehace en un momento. Lo decidió el cliente.
+- La meta propuesta parte del mismo «Promedio diario» que enseña la tarjeta, para que las dos cifras
+  cuadren. Sustituye a la decisión de la 4.8.0 de proponerla por día estudiado.
+- «Ahora tiene N comodines» solo aparece si el mapa abierto es el de la lista de mazos: en la pantalla
+  de un mazo la cifra sería la de ese mazo, no la de la racha completa (criterio técnico).
+- La semana que empieza según el idioma se propuso y se descartó: el mapa sigue empezando en lunes.
+  Lo decidió el cliente.
