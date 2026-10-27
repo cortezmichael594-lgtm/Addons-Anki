@@ -15,6 +15,7 @@ instante cuando Anki la redibuja, mientras se calculan los datos al dia.
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import replace
 from datetime import date
 
@@ -29,7 +30,7 @@ from aqt.webview import WebContent
 
 from . import config, i18n, view
 from .config import Config, load_config
-from .data import HeatmapData, days_offset, fetch_data, year_bounds
+from .data import HeatmapData, answered_and_still_due, days_offset, fetch_data, year_bounds
 from .decks import DeckScope, build_scope, day_search
 from .errors import guarded, guarded_filter, log_exception
 from .options import open_options
@@ -83,6 +84,8 @@ def _draw(entry: DataEntry, cfg: Config, remember: bool = True) -> None:
             min(state.year_offset, data.today.year - min_year),
         )
         deck_only = entry.current_deck_only
+        if remember and not deck_only:
+            data = _note_goal_day(entry, data, cfg)
         # La meta cumplida se celebra una vez: la primera vez que se dibuja
         # despues de cruzarla (al volver a la lista de mazos tras repasar).
         met = not deck_only and cfg.show_streak and view.goal_met(data, cfg)
@@ -109,6 +112,38 @@ def _draw(entry: DataEntry, cfg: Config, remember: bool = True) -> None:
         state.remember_page((entry.current_deck_only, entry.deck_id), remembered)
 
 
+def _note_goal_day(entry: DataEntry, data: HeatmapData, cfg: Config) -> HeatmapData:
+    """Apunta hoy como dia con meta, cumplida o no (4.11.0), si cambio.
+
+    Solo con meta, con «Mostrar racha y meta» y fuera de la pantalla de un
+    mazo. Se guarda en segundo plano; mientras, los datos en memoria ya lo
+    llevan, para no volver a guardarlo en cada dibujado.
+    """
+    if not cfg.show_streak:
+        return data
+    progress = view.goal_progress(data, cfg)
+    if progress is None:
+        return data
+    key = data.today.isoformat()
+    mark = (cfg.goal_mode, progress[1] > 0 and progress[0] >= progress[1])
+    if data.goal_days.get(key) == mark:
+        return data
+    data = replace(data, goal_days={**data.goal_days, key: mark})
+    if state.data is entry:
+        state.data = replace(entry, data=replace(entry.data, goal_days=data.goal_days))
+    day, mode, met = data.today, mark[0], mark[1]
+
+    def op(col: Collection) -> None:
+        config.record_goal_day(col, day, mode, met)
+
+    @guarded()
+    def on_failure(exc: Exception) -> None:
+        log_exception("controller.record_goal_day", exc)
+
+    QueryOp(parent=mw, op=op, success=lambda _result: None).failure(on_failure).run_in_background()
+    return data
+
+
 def _request_data(current_deck_only: bool, cfg: Config) -> None:
     """Pide los datos en segundo plano y dibuja el mapa cuando lleguen."""
     if mw.col is None:
@@ -122,12 +157,18 @@ def _request_data(current_deck_only: bool, cfg: Config) -> None:
         deck_id = int(col.decks.get_current_id()) if current_deck_only else 0
         scope = build_scope(col, excluded, current_deck_only)
         data = fetch_data(col, scope, measure)
+        data = replace(data, goal_days=config.read_goal_days(col))
         if current_deck_only:
             data = replace(data, fsrs_target=_fsrs_target(col, deck_id))
         else:
+            # Cada tarjeta cuenta una vez en «Terminar lo de hoy» (4.11.0): las
+            # de aprendizaje ya respondidas hoy que vuelven a vencer estan ya
+            # entre las hechas.
+            remaining = _due_remaining(col.sched.deck_due_tree(), scope)
+            remaining -= answered_and_still_due(col, scope, int(time.time()))
             data = replace(
                 data,
-                due_remaining=_due_remaining(col.sched.deck_due_tree(), scope),
+                due_remaining=max(0, remaining),
                 fsrs_target=_shared_fsrs_target(col, scope),
             )
         return data, deck_id

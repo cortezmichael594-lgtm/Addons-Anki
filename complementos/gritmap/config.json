@@ -7,5 +7,6 @@
     "goal_mode": "none",
     "goal": 50,
     "freezes": true,
-    "show_streak": true
+    "show_streak": true,
+    "study_plan": ""
 }

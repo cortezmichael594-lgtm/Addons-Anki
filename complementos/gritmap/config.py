@@ -54,7 +54,10 @@ CELL_SIZE_MIN, CELL_SIZE_MAX = 10, 60
 # El redondeo va en pixeles reales del cuadrito (4.6.0); por encima de la
 # mitad del cuadrito ya es un circulo.
 BORDER_RADIUS_MIN, BORDER_RADIUS_MAX = 0, 15
-GOAL_MODES: tuple[str, ...] = ("none", "number", "due")
+# Orden de los botones de la meta (4.11.0, informe aprobado por el cliente):
+# «Terminar lo de hoy» antes que «Un numero», porque sigue el calendario de
+# repasos de Anki y lo que va antes se considera antes.
+GOAL_MODES: tuple[str, ...] = ("none", "due", "number")
 GOAL_MIN, GOAL_MAX = 1, 9999
 MAX_PAUSE_DAYS = 30
 
@@ -62,6 +65,9 @@ MAX_PAUSE_DAYS = 30
 # pequeno (mazos excluidos y fechas clave); la configuracion de la coleccion se
 # envia entera en cada sincronizacion, por eso no debe crecer.
 COL_KEY = "gritmap"
+# Dias con meta que se guardan en la coleccion (4.11.0): los 14 del historial
+# de Opciones y la semana en curso, con margen. Lo mas antiguo se borra.
+GOAL_DAYS_KEEP = 21
 
 APPEARANCE_KEYS = (
     "theme",
@@ -73,6 +79,7 @@ APPEARANCE_KEYS = (
     "goal",
     "freezes",
     "show_streak",
+    "study_plan",
 )
 # Claves de versiones anteriores que se dejan de guardar (3.x, y el tamano y
 # el redondeo de la 4.2 y la 4.3, que se guardaban en pixeles fijos: la 4.4.0
@@ -118,6 +125,9 @@ class Config:
     # Tema retirado que tenia guardado (4.0.0), para avisar en Opciones; no
     # se guarda.
     retired_theme: str = ""
+    # Plan «Suelo estudiar…» (4.11.0): cuando suele estudiar, en sus palabras;
+    # vacio si no lo ha escrito.
+    study_plan: str = ""
 
 
 DEFAULT_CONFIG = Config(
@@ -366,6 +376,7 @@ def build_config(stored: dict[str, object], scoped: dict[str, object]) -> Config
         key_dates=_as_key_dates(scoped.get("key_dates")),
         pause=_as_pause(scoped.get("pause")),
         retired_theme=raw_theme if isinstance(raw_theme, str) and raw_theme in RETIRED_THEMES else "",
+        study_plan=clean_label(stored.get("study_plan")),
     )
 
 
@@ -383,6 +394,7 @@ def save_appearance(cfg: Config) -> None:
             "goal": cfg.goal,
             "freezes": cfg.freezes,
             "show_streak": cfg.show_streak,
+            "study_plan": cfg.study_plan,
         }
     )
     for key in _OLD_APPEARANCE_KEYS:
@@ -419,7 +431,62 @@ def save_scoped(col: Collection, cfg: Config) -> None:
     }
     if cfg.pause is not None:
         scoped["pause"] = {"start": cfg.pause[0].isoformat(), "end": cfg.pause[1].isoformat()}
+    # Los dias con meta (4.11.0) no se tocan desde Opciones: se conservan.
+    previous = _collection_config(col) or {}
+    if "goal_days" in previous:
+        scoped["goal_days"] = previous["goal_days"]
     col.set_config(COL_KEY, scoped)
+
+
+def goal_days_from(scoped: dict[str, object] | None) -> dict[str, tuple[str, bool]]:
+    """Dias con meta guardados: fecha ISO -> (tipo de meta, cumplida).
+
+    Lo que no sirva (escrito a mano, de otra version) se descarta.
+    """
+    raw = scoped.get("goal_days") if scoped else None
+    out: dict[str, tuple[str, bool]] = {}
+    if not isinstance(raw, dict):
+        return out
+    for key, value in raw.items():
+        if (
+            isinstance(key, str)
+            and _as_day_iso(key)
+            and isinstance(value, list)
+            and len(value) == 2
+            and value[0] in GOAL_MODES[1:]
+            and isinstance(value[1], (bool, int))
+        ):
+            out[key] = (str(value[0]), bool(value[1]))
+    return out
+
+
+def read_goal_days(col: Collection) -> dict[str, tuple[str, bool]]:
+    """Dias con meta de la coleccion indicada (desde una operacion)."""
+    return goal_days_from(_collection_config(col))
+
+
+def record_goal_day(col: Collection, day: date, mode: str, met: bool) -> None:
+    """Apunta en la coleccion el dia de hoy con su meta y si se cumplio.
+
+    Mismo criterio que save_scoped: set_config directo y sin entrada de
+    deshacer, porque es un dato de la interfaz, no estudio. Solo se guardan
+    los ultimos GOAL_DAYS_KEEP dias, para que no crezca.
+    """
+    stored = _collection_config(col)
+    scoped: dict[str, object] = dict(stored) if stored else {}
+    days = goal_days_from(scoped)
+    days[day.isoformat()] = (mode, met)
+    keep = sorted(days)[-GOAL_DAYS_KEEP:]
+    scoped["goal_days"] = {key: [days[key][0], days[key][1]] for key in keep}
+    col.set_config(COL_KEY, scoped)
+
+
+def _as_day_iso(value: str) -> bool:
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
 
 
 def migrate_to_collection() -> None:

@@ -136,3 +136,39 @@ class GoalProposalTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GoalHistoryTest(unittest.TestCase):
+    def setUp(self) -> None:
+        anki.lang.current_lang = "es"
+        i18n.reset()
+        self._saved = state.data
+
+    def tearDown(self) -> None:
+        state.data = self._saved
+
+    def test_history_needs_seven_days_and_gives_advice(self) -> None:
+        def with_marks(marks: dict[str, tuple[str, bool]]) -> None:
+            data = HeatmapData(past={}, future_counts={}, today=TODAY, goal_days=marks)
+            state.data = DataEntry(0, False, 0, (), "cards", data)
+
+        day = lambda n: (TODAY - timedelta(days=n)).isoformat()  # noqa: E731
+        with_marks({day(n): ("due", n <= 3) for n in range(1, 7)})
+        self.assertEqual(options.goal_history(DEFAULT_CONFIG), {})
+        with_marks({**{day(n): ("due", n <= 3) for n in range(1, 9)}, day(0): ("due", True), day(20): ("due", True)})
+        history = options.goal_history(DEFAULT_CONFIG)["due"]
+        self.assertEqual(history["text"], "Cumplida 3 de los últimos 8 días.")
+        self.assertIn("nuevas al día", history["advice"])
+        # Los dias de pausa no cuentan; los de otro tipo de meta, tampoco.
+        paused = replace(DEFAULT_CONFIG, pause=(TODAY - timedelta(days=8), TODAY - timedelta(days=7)))
+        self.assertEqual(options.goal_history(paused), {})
+        with_marks({day(n): ("number", True) for n in range(1, 15)})
+        history = options.goal_history(DEFAULT_CONFIG)
+        self.assertEqual(history["number"]["text"], "Cumplida 14 de los últimos 14 días.")
+        self.assertEqual(history["number"]["advice"], "")
+        self.assertNotIn("due", history)
+
+    def test_plan_is_cleaned(self) -> None:
+        cfg = options.config_from_page(DEFAULT_CONFIG, {"study_plan": "  después\\nde comer " + "x" * 80}, EXISTING)
+        self.assertLessEqual(len(cfg.study_plan), 60)
+        self.assertTrue(cfg.study_plan.startswith("después"))

@@ -250,10 +250,12 @@ body.nightMode #gritmap-root {
 
 /* El dato grande de cada tarjeta: 20 px en seminegrita, cifras de ancho
  * fijo para que no bailen. */
+/* La cifra y su unidad van por la linea base, a 4 px (4.11.0, informe
+ * aprobado por el cliente: centrada, la unidad parecia flotar). */
 #gritmap-root .gritmap-big {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    align-items: baseline;
+    gap: 4px;
     min-height: 32px;
     font-size: 20px;
     font-weight: 600;
@@ -265,17 +267,23 @@ body.nightMode #gritmap-root {
 }
 
 #gritmap-root .gritmap-big .gritmap-unit {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 400;
     color: var(--gritmap-muted);
 }
 
-/* La cifra y su unidad, siempre como piezas separadas a 8 px y centradas
- * en vertical, tambien el % y las cifras con globo (4.10.0, peticion del
- * cliente: el % quedaba a otra altura que «tarjetas» o «días»). */
+/* La cifra y su unidad, siempre como piezas separadas, tambien el % y las
+ * cifras con globo (4.10.0, peticion del cliente: el % quedaba a otra altura
+ * que «tarjetas» o «días»); desde la 4.11.0, por la linea base y a 4 px. */
 #gritmap-root .gritmap-big .gritmap-pct,
 #gritmap-root .gritmap-big .gritmap-tipped {
     display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+/* El anillo de la meta no tiene linea base: va centrado con su texto. */
+#gritmap-root .gritmap-big.gritmap-big-ring {
     align-items: center;
     gap: 8px;
 }
@@ -759,6 +767,14 @@ body.nightMode #gritmap-root {
     z-index: 9999;
     border: 1px solid var(--gritmap-tipb);
     box-shadow: 0 6px 18px var(--gritmap-shadow);
+}
+
+/* 4.11.0 (informe aprobado por el cliente): la regla de FIX-029 vale para el
+ * globo de los dias del mapa, donde se recorre deprisa. Los globos de las
+ * tarjetas de debajo (comodines, record, objetivo, N/A) si se pueden recorrer
+ * con el raton (WCAG 2.2, criterio 1.4.13). */
+#gritmap-tip.gritmap-tip-hover {
+    pointer-events: auto;
 }
 
 /* Respeta el ajuste "reducir animaciones" de Anki y el del sistema. */

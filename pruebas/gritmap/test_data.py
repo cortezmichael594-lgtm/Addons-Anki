@@ -222,6 +222,23 @@ class CollectionDataTest(unittest.TestCase):
             stamp, cid, ease, last_ivl, kind,
         )
 
+    def test_learning_cards_count_once_for_the_goal(self) -> None:
+        """4.11.0: una tarjeta en aprendizaje respondida hoy que vuelve a
+        vencer no cuenta dos veces en «Terminar lo de hoy»."""
+        db = self.col.db
+        assert db is not None
+        now = self.cutoff - 7200
+        answered, untouched, other_deck = self.cards[0], self.cards[3], self.cards[2]
+        for cid in (answered, untouched, other_deck):
+            db.execute("update cards set queue = 1, type = 1, due = ? where id = ?", now - 60, cid)
+        self.add_revlog(answered, 0, 1, 0, 0)
+        self.add_revlog(other_deck, 0, 1, 0, 0, 1)
+        self.assertEqual(data.answered_and_still_due(self.col, decks.WHOLE_COLLECTION, now), 2)
+        scope = decks.build_scope(self.col, (self.other,), False)
+        self.assertEqual(data.answered_and_still_due(self.col, scope, now), 1)
+        # Lo que vence mas alla de «aprender por adelantado» no cuenta todavia.
+        self.assertEqual(data.answered_and_still_due(self.col, decks.WHOLE_COLLECTION, now - 3600), 0)
+
     def test_empty_collection(self) -> None:
         result = data.fetch_data(self.col, decks.WHOLE_COLLECTION)
         self.assertEqual(result.past, {})

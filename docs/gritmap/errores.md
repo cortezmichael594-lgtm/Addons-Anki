@@ -411,3 +411,22 @@ Versión 4.10.1 (correcciones del cliente del 2026-10-26 sobre la 4.10.0):
 - El récord de la racha va en el globo de la cifra de días, no en la línea gris. Lo pidió el cliente.
 - «px» va fuera de los campos de tamaño y redondeo, como «tarjetas al día», y la cifra centrada. El
   cliente preguntó si quitarlo; se deja fuera del campo para no perder la unidad (criterio técnico).
+
+Versión 4.11.0 (informe «análisis final y el lugar de la meta diaria», aplicado entero a petición del
+cliente el 2026-10-27, y su corrección «Objetivo: x»):
+
+- El globo de los días del mapa sigue sin poder recorrerse con el ratón (FIX-029). Es una desviación
+  conocida del criterio 1.4.13 de WCAG 2.2 (contenido que se pueda recorrer con el puntero): arregla un
+  fallo real, y con el teclado se obtiene lo mismo. Los globos de las tarjetas de debajo sí se pueden
+  recorrer. Lo decidió el cliente con el informe. No «arreglar» sin preguntar.
+- Cada día con meta se apunta en la colección (tipo de meta y si se cumplió), solo los últimos 21 días.
+  Es lo único, además de las opciones, que guarda GritMap; no toca tarjetas, notas ni repasos.
+- La cuenta de la semana no dice «de 7» y el historial solo cuenta los días en que GritMap vio la meta:
+  un día estudiado solo en el móvil no aparece como fallo. Los umbrales (desde 2 días; 7 de 14 días;
+  la mitad para el consejo) son criterio del informe, sin estudio que los fije.
+- «Terminar lo de hoy» va antes que «Un número» y «Sin meta» sigue de serie.
+- La unidad del dato va por la línea base, a 4 px y a 13 px. Sustituye a la decisión de la 4.10.0
+  (centrada a 8 px); el cliente pidió que fuera igual en todas, y lo sigue siendo.
+- Rosa suave y Turquesa laguna ya tenían la misma escalera de contraste que los demás temas (de 1,50 a
+  1,76 entre tonos de día y 7,1 o más del vacío al cuarto tono): no se cambian.
+- En español, las fechas cortas llevan punto en el mes («26 oct.»), aunque el navegador no lo ponga.

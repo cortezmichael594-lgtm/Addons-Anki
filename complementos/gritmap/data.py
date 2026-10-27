@@ -159,6 +159,9 @@ class HeatmapData:
     # Meta «Terminar lo de hoy» ya cumplida hoy: cuantas tarjetas hicieron
     # falta (FIX-026); None si aun no se cumplio.
     due_reached: int | None = None
+    # Dias con meta guardados en la coleccion (4.11.0): fecha ISO -> (tipo de
+    # meta, si se cumplio). Solo las ultimas semanas.
+    goal_days: dict[str, tuple[str, bool]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -266,6 +269,28 @@ def revlog_deck_filter(scope: DeckScope) -> str:
         ids = _id_list(scope.exclude_ids)
         parts.append(f" and cid not in (select id from cards where did in {ids} or odid in {ids})")
     return "".join(parts)
+
+
+def answered_and_still_due(col: Collection, scope: DeckScope, now_seconds: int) -> int:
+    """Tarjetas en aprendizaje que ya se respondieron hoy y vuelven a vencer
+    ahora (4.11.0).
+
+    La meta «Terminar lo de hoy» suma las respondidas hoy y las que aun
+    vencen; estas estan en los dos grupos y no deben contar dos veces. Se
+    usa la misma ventana que Anki para el aprendizaje («aprender por
+    adelantado», collapseTime), que es la que cuenta en la lista de mazos.
+    """
+    db = _db(col)
+    cutoff_seconds = int(col.sched.day_cutoff)
+    start_ms = (cutoff_seconds - 86400) * 1000
+    collapse = col.get_config("collapseTime", 1200)
+    ahead = int(collapse) if isinstance(collapse, (int, float)) else 1200
+    count = db.scalar(
+        f"select count() from cards where queue = 1 and due <= {int(now_seconds) + ahead}"
+        f"{cards_deck_filter(scope)}"
+        f" and id in (select cid from revlog where id >= {start_ms} and {_NOT_A_REVIEW})"
+    )
+    return int(count or 0)
 
 
 def anki_today(cutoff_seconds: int, utc_offset: timedelta | None = None) -> date:
@@ -706,8 +731,8 @@ def surprise(data: HeatmapData, measure: str, stats: FullStats) -> tuple[str, in
     """Una sorpresa verdadera de hoy, como mucho una (4.0.0, informe ap. 8).
 
     Solo cuando ocurre y con datos reales, por este orden: un ano seguido,
-    nueva racha mas larga, mejor semana del ano, mes completo y una cifra
-    redonda del ano
+    nueva racha mas larga, mejor semana del ano, cierre del ano (4.11.0), mes
+    completo y una cifra redonda del ano
     (100, 500 y cada 1.000). Devuelve la clave y la cifra, o None.
 
     4.7.0: «mejor semana» en lugar de «mejor dia», para premiar lo constante
@@ -732,6 +757,15 @@ def surprise(data: HeatmapData, measure: str, stats: FullStats) -> tuple[str, in
     ]
     if _best_week(data, measure):
         return "best_week", 0
+    # Cierre del ano (4.11.0): el 31 de diciembre, para todos, no solo para
+    # quien lleva 365 dias de racha; por delante de «Mes completo».
+    if data.today.month == 12 and data.today.day == 31:
+        studied = sum(
+            1
+            for days_ago, day in data.past.items()
+            if (data.today - timedelta(days=days_ago)).year == year and is_active(day, "reviews")
+        )
+        return "year_close", studied
     month_days = range(data.today.day)
     if (data.today + timedelta(days=1)).month != data.today.month and all(
         d in data.past and is_active(data.past[d], "reviews") for d in month_days

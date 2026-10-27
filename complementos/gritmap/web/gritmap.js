@@ -59,6 +59,8 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
          * teclado (4.7.0). */
         pendingFocus: null,
         hideTimer: null,
+        /* Dia cuyo globo se recoloca tras desplazar el mapa con el teclado. */
+        retipCell: null,
     };
     var LIVE_ID = "gritmap-live";
 
@@ -92,6 +94,19 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
                 return null;
             }
         }
+    }
+
+    /* Fecha corta con el mes abreviado. En espanol, la abreviatura lleva
+     * punto («26 oct. 2026», «5 nov.»: DPD, «abreviatura»), que el navegador
+     * no pone; igual en el mapa y en Opciones (4.11.0). */
+    function shortDate(fmt, day) {
+        var spanish = String(state.locale || "").toLowerCase().indexOf("es") === 0;
+        if (!spanish || !fmt.formatToParts) {
+            return fmt.format(day);
+        }
+        return fmt.formatToParts(day).map(function (part) {
+            return part.type === "month" && part.value.slice(-1) !== "." ? part.value + "." : part.value;
+        }).join("");
     }
 
     /* --- FIX-019 (2026-10-13) ---
@@ -235,7 +250,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         for (var d = 0; shortFmt && d < dates.length; d++) {
             var shortDay = parseDay(dates[d].getAttribute("data-gritmap-date"));
             if (shortDay) {
-                dates[d].textContent = shortFmt.format(shortDay);
+                dates[d].textContent = shortDate(shortFmt, shortDay);
             }
         }
     }
@@ -295,6 +310,9 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             return;
         }
         var info = cell.getAttribute("data-gritmap-info");
+        /* Los globos de las tarjetas se pueden recorrer con el raton; el de
+         * los dias, no (FIX-029). 4.11.0, informe aprobado por el cliente. */
+        bubble.classList.toggle("gritmap-tip-hover", !!info);
         if (info) {
             /* Globo de una cifra de las estadisticas: el texto viene hecho. */
             bubble.innerHTML = info;
@@ -376,6 +394,34 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         cell.setAttribute("role", cell.hasAttribute("data-gritmap-cmd") ? "button" : "img");
         cell.setAttribute("aria-label", plainTip(cell));
         cell.focus({ preventScroll: false });
+        keepOutOfFade(container, cell);
+    }
+
+    /* El dia con el foco nunca queda bajo el borde desvanecido (4.11.0;
+     * WCAG 2.2, criterios 2.4.11 y 1.4.11): si cae en los 40 px que se
+     * desvanecen y hay mapa por ese lado, el mapa se desplaza lo justo. */
+    var FADE_PX = 40;
+
+    function keepOutOfFade(container, cell) {
+        var grid = container.querySelector(".gritmap-grid");
+        if (!grid || grid.scrollWidth - grid.clientWidth <= 1) {
+            return;
+        }
+        var box = grid.getBoundingClientRect();
+        var spot = cell.getBoundingClientRect();
+        var margin = FADE_PX + 4;
+        var before = grid.scrollLeft;
+        if (spot.right > box.right - margin) {
+            grid.scrollLeft += spot.right - (box.right - margin);
+        } else if (spot.left < box.left + margin) {
+            grid.scrollLeft -= (box.left + margin) - spot.left;
+        }
+        if (grid.scrollLeft !== before) {
+            /* Este desplazamiento no debe cerrar el globo del dia: se vuelve a
+             * poner en su sitio cuando llegue el aviso de desplazamiento. */
+            state.retipCell = cell;
+        }
+        updateEdgeFade(container);
     }
 
     function plainTip(cell) {
@@ -465,6 +511,12 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         });
         container.addEventListener("keydown", onKeyDown);
         container.addEventListener("mouseover", function (event) {
+            if (closest(event.target, "#" + TIP_ID)) {
+                /* El raton ha llegado a un globo de tarjeta: se queda abierto.
+                 * (El de los dias nunca recibe el raton.) */
+                cancelHide();
+                return;
+            }
             // --- FIX-029 (2026-10-26) ---
             // Sintoma: al mover el raton deprisa de los cuadritos de abajo hacia los de
             //          arriba, el globo se quedaba abierto y tapaba los dias, que ya no
@@ -483,8 +535,8 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             /* Pasar de una parte a otra de la misma cifra (etiqueta y valor)
              * no cierra el globo: asi no parpadea. Al salir del dia, se
              * cierra tras un instante (si entra en otro, cambia sin cerrarse). */
-            var from = closest(event.target, "[data-gritmap-tip]");
-            var to = closest(event.relatedTarget, "[data-gritmap-tip]");
+            var from = closest(event.target, "[data-gritmap-tip], #" + TIP_ID);
+            var to = closest(event.relatedTarget, "[data-gritmap-tip], #" + TIP_ID);
             if (from && from !== to) {
                 hideTipSoon();
             }
@@ -511,7 +563,13 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         /* Si el mapa se desplaza lateralmente, el globo dejaria de apuntar a
          * su celda: se oculta en cuanto empieza el desplazamiento. */
         container.addEventListener("scroll", function (event) {
-            hideTip();
+            if (state.retipCell) {
+                var retip = state.retipCell;
+                state.retipCell = null;
+                showTip(retip);
+            } else {
+                hideTip();
+            }
             if (closest(event.target, ".gritmap-grid")) {
                 updateEdgeFade(container);
             }

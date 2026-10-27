@@ -59,3 +59,45 @@ class BuildConfigTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GoalDaysTest(unittest.TestCase):
+    """4.11.0: dias con meta guardados en una coleccion TEMPORAL."""
+
+    def setUp(self) -> None:
+        import tempfile
+        from pathlib import Path
+
+        from anki.collection import Collection
+
+        self._tmp = tempfile.TemporaryDirectory()
+        self.col = Collection(str(Path(self._tmp.name) / "prueba.anki2"))
+
+    def tearDown(self) -> None:
+        self.col.close()
+        self._tmp.cleanup()
+
+    def test_marks_are_kept_short_and_survive_saving_options(self) -> None:
+        from datetime import timedelta
+
+        from gritmap import config
+
+        start = date(2026, 10, 1)
+        for offset in range(30):
+            config.record_goal_day(self.col, start + timedelta(days=offset), "due", offset % 2 == 0)
+        days = config.read_goal_days(self.col)
+        self.assertEqual(len(days), config.GOAL_DAYS_KEEP)
+        self.assertEqual(days["2026-10-30"], ("due", False))
+        self.assertNotIn("2026-10-01", days)
+        # Hoy se puede corregir (al deshacer la respuesta que la cumplio).
+        config.record_goal_day(self.col, date(2026, 10, 30), "due", True)
+        self.assertEqual(config.read_goal_days(self.col)["2026-10-30"], ("due", True))
+        # Guardar las opciones no borra las marcas.
+        config.save_scoped(self.col, DEFAULT_CONFIG)
+        self.assertEqual(len(config.read_goal_days(self.col)), config.GOAL_DAYS_KEEP)
+
+    def test_bad_marks_are_ignored(self) -> None:
+        from gritmap.config import goal_days_from
+
+        raw = {"goal_days": {"2026-10-01": ["due", 1], "malo": ["due", 1], "2026-10-02": ["none", 1], "2026-10-03": "x"}}
+        self.assertEqual(goal_days_from(raw), {"2026-10-01": ("due", True)})

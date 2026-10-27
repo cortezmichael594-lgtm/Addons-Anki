@@ -170,6 +170,43 @@ def goal_proposal(measure: str, cfg: Config | None = None) -> tuple[int, int | N
     return value, round_half_up(average)
 
 
+# Historial de la meta (4.11.0): 14 dias completos, y solo si hay al menos 7
+# con datos de ese tipo de meta (criterio del informe, sin estudio que lo fije).
+_HISTORY_DAYS = 14
+_HISTORY_MIN = 7
+
+
+def goal_history(cfg: Config) -> dict[str, dict[str, str]]:
+    """Por tipo de meta, «Cumplida 12 de los últimos 14 días.» y, con
+    «Terminar lo de hoy» cumplida la mitad de los dias o menos, el consejo
+    de bajar las nuevas. Solo cuentan los dias en que GritMap vio esa meta
+    (los dias sin datos no son fallos) y no los de pausa."""
+    entry = state.data
+    if entry is None:
+        return {}
+    today = entry.data.today
+    paused = paused_days(cfg.pause, today)
+    out: dict[str, dict[str, str]] = {}
+    for mode in GOAL_MODES[1:]:
+        marks = []
+        for days_ago in range(1, _HISTORY_DAYS + 1):
+            if days_ago in paused:
+                continue
+            mark = entry.data.goal_days.get((today - timedelta(days=days_ago)).isoformat())
+            if mark is not None and mark[0] == mode:
+                marks.append(mark[1])
+        if len(marks) < _HISTORY_MIN:
+            continue
+        met = sum(marks)
+        total = len(marks)
+        days = f"{total} {unit_label(total, 'day')}"
+        item = {"text": fill("goal_history", met=met, days=days), "advice": ""}
+        if mode == "due" and met * 2 <= total:
+            item["advice"] = t("goal_advice")
+        out[mode] = item
+    return out
+
+
 def _freezes_now(cfg: Config) -> str:
     """«Ahora tiene 1 comodín.», o nada si no se sabe (pantalla de un mazo)."""
     entry = state.data
@@ -199,7 +236,8 @@ def _texts() -> dict[str, str]:
         "nav_opts", "grp_look", "grp_count", "grp_goals", "opt_restore_look", "look_live",
         "opt_theme", "opt_map_size", "size_fit", "radius_max", "fit_note",
         "opt_window", "window_help", "applied_on_ok", "opt_exclude", "opt_show_streak",
-        "streak_off_note", "opt_goal", "goal_unit_day", "goal_proposal_line", "goal_due_note",
+        "streak_off_note", "opt_goal", "goal_unit_day", "goal_proposal_line2", "goal_due_note",
+        "goal_number_note", "plan_label", "plan_ph",
         "opt_freezes", "freeze_tip", "opt_pause", "pause_from", "pause_to", "pause_rule",
         "opt_key_dates", "opt_save", "opt_cancel", "discard_q", "discard_body", "keep_editing",
         "decks_sub_note", "decks_no_match", "kd_new", "kd_field_name", "kd_field_date", "kd_name_ph",
@@ -247,6 +285,7 @@ def _payload(cfg: Config, start: str) -> dict[str, Any]:
         "goal_modes": [{"id": mode, "label": t(f"goal_{mode}")} for mode in GOAL_MODES],
         "proposal": {"value": value, "average": average},
         "freezes_now": _freezes_now(cfg),
+        "goal_history": goal_history(cfg),
         "retired": retired,
         "defaults": {
             "theme": DEFAULT_CONFIG.theme,
@@ -278,6 +317,7 @@ def _payload(cfg: Config, start: str) -> dict[str, Any]:
             "goal": cfg.goal,
             "freezes": cfg.freezes,
             "show_streak": cfg.show_streak,
+            "study_plan": cfg.study_plan,
             "pause": pause,
             "excluded": list(cfg.excluded_decks),
             "key_dates": [{"day": kd.day.isoformat(), "label": kd.label} for kd in cfg.key_dates],
@@ -359,6 +399,7 @@ def config_from_page(base: Config, chosen: dict[str, Any], existing: dict[int, s
         goal=_as_int(chosen.get("goal"), base.goal, GOAL_MIN, GOAL_MAX),
         freezes=bool(chosen.get("freezes", base.freezes)),
         show_streak=bool(chosen.get("show_streak", base.show_streak)),
+        study_plan=clean_label(chosen.get("study_plan", base.study_plan)),
         excluded_decks=excluded,
         key_dates=key_dates,
         pause=pause,

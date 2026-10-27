@@ -363,3 +363,62 @@ class WebExportsPatternTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GoalTest(unittest.TestCase):
+    """4.11.0: la meta diaria del informe «el lugar de la meta diaria»."""
+
+    def setUp(self) -> None:
+        anki.lang.current_lang = "es"
+        i18n.reset()
+
+    def today_card(self, data: HeatmapData, **cfg: object) -> str:
+        return view._today_card(data, replace(DEFAULT_CONFIG, **cfg), False, False)
+
+    def test_goal_order(self) -> None:
+        from gritmap.config import GOAL_MODES
+
+        self.assertEqual(GOAL_MODES, ("none", "due", "number"))
+
+    def test_nothing_due_shows_no_ring(self) -> None:
+        idle = sample(past={1: DayActivity(10, 10, 0)}, due_remaining=0)
+        card = self.today_card(idle, goal_mode="due")
+        self.assertNotIn("gritmap-ring", card)
+        self.assertIn("0 tarjetas", re.sub("<[^>]+>", "", card))
+
+    def test_up_to_date_and_week_count(self) -> None:
+        # Martes 13: el lunes 12 tambien se cumplio; el domingo 11 no cuenta.
+        marks = {"2026-10-12": ("due", True), "2026-10-11": ("due", True), "2026-10-10": ("due", False)}
+        card = self.today_card(sample(due_remaining=0, goal_days=marks), goal_mode="due")
+        text = re.sub("<[^>]+>", "", card)
+        self.assertIn("Al día", text)
+        self.assertIn("2 días esta semana", text)
+        alone = self.today_card(sample(), goal_mode="number", goal=5)
+        self.assertIn("Meta cumplida", alone)
+        self.assertNotIn("esta semana", alone)
+
+    def test_study_plan_while_today_is_pending(self) -> None:
+        stats = view.full_stats(sample())
+        cfg = replace(DEFAULT_CONFIG, study_plan="después de <desayunar>")
+        pending = view._streak_card(replace(stats, current_streak=5, longest_streak=5, today_done=False), cfg, TODAY)
+        self.assertIn("hoy pendiente · después de &lt;desayunar&gt;", pending)
+        done = view._streak_card(replace(stats, current_streak=5, longest_streak=5, today_done=True), cfg, TODAY)
+        self.assertNotIn("desayunar", done)
+
+    def test_year_close_line(self) -> None:
+        last = date(2026, 12, 31)
+        past = {d: DayActivity(3, 3, 0) for d in (0, 3, 5, 9, 400)}
+        data = HeatmapData(past=past, future_counts={}, today=last)
+        found = view.surprise(data, "cards", view.full_stats(data))
+        self.assertEqual(found, ("year_close", 4))
+        self.assertIn("2026: 4 días con estudio", re.sub("<[^>]+>", "", view._surprise_html(found, "cards", 2026)))
+
+    def test_zero_is_written_as_zero_cards(self) -> None:
+        payload = json.loads(view.payload_json("", "cards"))
+        self.assertIn("0", payload["texts"]["none"])
+        self.assertIn("tarjetas", payload["texts"]["none"])
+        self.assertNotIn("Ningún", payload["texts"]["none"])
+
+    def test_retention_target_has_a_colon(self) -> None:
+        html = view.build_widget_html(sample(fsrs_target=0.9), DEFAULT_CONFIG, 0, deck_only=True)
+        self.assertIn('data-gritmap-info="Objetivo: ', html)

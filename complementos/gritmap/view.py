@@ -325,6 +325,11 @@ def goal_progress(data: HeatmapData, cfg: Config) -> tuple[int, int] | None:
     if cfg.goal_mode == "due" and data.due_remaining is not None:
         done = _today_value(data, "cards")
         goal = done + data.due_remaining
+        if goal == 0:
+            # Hoy no vence nada ni se ha estudiado: una meta de 0 no es una
+            # meta, y un ✓ sin estudiar seria falso (4.11.0). «Hoy» se ve
+            # como sin meta.
+            return None
         # --- FIX-026 (2026-10-22) ---------------------------------------
         # Sintoma: con «Terminar lo de hoy» ya cumplida, la tarjeta volvia a
         #          «faltan 3» al rato, sin haber hecho nada mal.
@@ -368,12 +373,39 @@ def _today_card(data: HeatmapData, cfg: Config, deck_only: bool, celebrate: bool
         # aumento de 150 ms (animacion pedida por el cliente, dentro de la
         # guia: solo escala y transparencia; nada si se pide reducir).
         check_class = "gritmap-check gritmap-celebrate" if celebrate else "gritmap-check"
-        line = f'<span class="{check_class}" aria-hidden="true">✓</span> ' + html.escape(t("goal_done"))
+        # «Al día» con «Terminar lo de hoy»: dice justo lo logrado (4.11.0).
+        done_text = t("goal_up_to_date" if cfg.goal_mode == "due" else "goal_done")
+        line = f'<span class="{check_class}" aria-hidden="true">✓</span> ' + html.escape(done_text)
+        met_days = goal_week_count(data)
+        if met_days >= 2:
+            line += " · " + fill_html("goal_week", days=_days_html(met_days))
     else:
         left = goal - value
         unit = count_html(left, cfg.measure) if cfg.goal_mode == "number" else count_html(left, "cards")
         line = fill_html("goal_left", count=unit)
     return _mini(t("card_today"), big, line, "gritmap-big-ring")
+
+
+def goal_week_count(data: HeatmapData) -> int:
+    """Dias con la meta cumplida de lunes a hoy, hoy incluido (4.11.0).
+
+    Sin denominador: un dia sin datos (estudiado solo en el movil) no
+    aparece como fallo. Se llama con la meta de hoy ya cumplida.
+    """
+    monday = data.today - timedelta(days=data.today.weekday())
+    count = 1
+    for key, (_mode, met) in data.goal_days.items():
+        day = _iso_day(key)
+        if met and day is not None and monday <= day < data.today:
+            count += 1
+    return count
+
+
+def _iso_day(value: str) -> date | None:
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
 
 
 def _date_html(day: date) -> str:
@@ -423,6 +455,9 @@ def _streak_card(stats: FullStats, cfg: Config, today: date) -> str:
     big = html.escape(t("day_one")) if current == 1 and stats.previous_best >= 2 else _days_html(current)
     big = _with_record(big, stats, current)
     parts = [html.escape(t("streak_today" if stats.today_done else "today_pending"))]
+    if not stats.today_done and cfg.study_plan:
+        # Plan «Suelo estudiar…» (4.11.0): mientras hoy este pendiente.
+        parts[0] += " · " + html.escape(cfg.study_plan)
     if pause:
         parts.append(pause)
     if cfg.freezes and stats.freezes_left > 0:
@@ -459,8 +494,9 @@ def _retention_card(stats: FullStats, window: int, fsrs_target: float | None) ->
     if fsrs_target is not None:
         # El objetivo va en el globo del porcentaje, no en la linea gris
         # (4.10.0, peticion del cliente).
-        target = fill_html("fsrs_target", pct=pct_html(round_half_up(fsrs_target * 100)))
-        big = f'<span class="gritmap-tipped"{_info_attrs(target[:1].upper() + target[1:])}>{big}</span>'
+        # «Objetivo: 90 %» (4.11.0, correccion del cliente).
+        target = fill_html("fsrs_target_tip", pct=pct_html(round_half_up(fsrs_target * 100)))
+        big = f'<span class="gritmap-tipped"{_info_attrs(target)}>{big}</span>'
     return _mini(_label("retention"), big, line)
 
 
@@ -776,8 +812,7 @@ def build_legend(
     en el globo, y las muestras de lo que salga en el ano que se ve."""
     # El redondeo de la leyenda sigue al del mapa, a escala de su cuadrito.
     radius = min(_radius_units(cfg) * 11 / _CELL, 5.5)
-    none_key = "tt_new_none" if cfg.measure == "new" else "tt_no_reviews"
-    cells = [_legend_cell("gritmap-lg-c0", t(none_key), radius)]
+    cells = [_legend_cell("gritmap-lg-c0", _zero_text(cfg.measure), radius)]
     for index, (low, high) in enumerate(legend_ranges(thresholds)):
         cells.append(_legend_cell(f"gritmap-lg-c{index + 1}", _range_html(low, high, cfg.measure), radius))
     parts = [
@@ -806,13 +841,15 @@ def build_legend(
     return "".join(parts)
 
 
-def _surprise_html(found: tuple[str, int] | None, measure: str) -> str:
+def _surprise_html(found: tuple[str, int] | None, measure: str, year: int) -> str:
     """La sorpresa del dia, si la hay: una linea, con datos reales."""
     if found is None:
         return ""
     key, value = found
     if key == "year_total":
         text = fill_html("surprise_year", total=count_html(value, measure))
+    elif key == "year_close":
+        text = fill_html("year_close", year=html.escape(str(year)), days=_days_html(value))
     elif key == "year_streak":
         text = html.escape(t("year_streak"))
     else:
@@ -856,7 +893,7 @@ def build_activity(
     left = (
         f'<span class="gritmap-empty-hint">{message}</span>'
         if message
-        else _surprise_html(surprise(data, cfg.measure, stats) if stats else None, cfg.measure)
+        else _surprise_html(surprise(data, cfg.measure, stats) if stats else None, cfg.measure, data.today.year)
     )
     legend = "" if message else build_legend(data, cfg, year, thresholds, forgiven)
     body = (
@@ -1003,6 +1040,15 @@ def palette_style_tag(cfg: Config) -> str:
 # ---------------------------------------------------------------------------
 
 
+def _zero_text(measure: str) -> str:
+    """Lo hecho un dia sin estudio, en la unidad de la medida: «0 tarjetas»
+    (4.11.0; antes «Ningún repaso»)."""
+    if measure == "new":
+        return t("tt_new_none")
+    base = "tt_cards" if measure == "cards" else "tt_reviews"
+    return plural_form(base, plural_category(lang(), 0)).replace("{count}", "0")
+
+
 def _texts(measure: str) -> dict[str, str]:
     """Plantillas del globo de los dias, segun lo que mide el color."""
     # --- FIX-006 (2026-10-08) --------------------------------------
@@ -1025,7 +1071,8 @@ def _texts(measure: str) -> dict[str, str]:
     # ---------------------------------------------------------------
     base = "tt_cards" if measure == "cards" else "tt_reviews"
     texts = {
-        "none": t("tt_no_reviews"),
+        # «0 tarjetas», como en «Hoy», no «Ningún repaso» (4.11.0).
+        "none": _zero_text(measure),
         "fnone": t("tt_no_due"),
         # Dias perdonados (4.0.0).
         "forgiven_freeze": t("tt_forgiven_freeze"),

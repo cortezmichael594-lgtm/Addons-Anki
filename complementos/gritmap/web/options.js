@@ -152,10 +152,26 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         }
     }
 
+    /* Fecha corta con el mes abreviado. En espanol, la abreviatura lleva
+     * punto («26 oct. 2026», «5 nov.»: DPD, «abreviatura»), que el navegador
+     * no pone; igual en el mapa y en Opciones (4.11.0). */
+    function shortDate(fmt, day) {
+        var spanish = String(S.p.locale || "").toLowerCase().indexOf("es") === 0;
+        if (!spanish || !fmt.formatToParts) {
+            return fmt.format(day);
+        }
+        return fmt.formatToParts(day).map(function (part) {
+            return part.type === "month" && part.value.slice(-1) !== "." ? part.value + "." : part.value;
+        }).join("");
+    }
+
     function formatDay(iso, options) {
         var fmt = formatter(options || { day: "numeric", month: "short", year: "numeric" });
         var day = parseDay(iso);
-        return fmt && day ? fmt.format(day) : iso;
+        if (!fmt || !day) {
+            return iso;
+        }
+        return options ? fmt.format(day) : shortDate(fmt, day);
     }
 
     /* El canal con Python (pycmd) lo crea Anki un instante despues de leer
@@ -247,6 +263,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
             goal: c.goal,
             freezes: c.freezes,
             show_streak: c.show_streak,
+            study_plan: c.study_plan,
             pause: c.pause_on ? { start: c.pause_start, end: c.pause_end } : null,
             excluded: effectiveExcluded(),
             key_dates: c.key_dates.slice(),
@@ -630,8 +647,28 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         S.nodes.goalNumber = el("div", {}, [
             el("div", { class: "gritmap-o-goal-row" }, [S.nodes.goal.node, S.nodes.goalUnit]),
             S.nodes.goalProposal = el("p", { class: "gritmap-o-rule" }),
+            el("p", { class: "gritmap-o-rule", text: t.goal_number_note }),
         ]);
         S.nodes.goalDue = el("p", { class: "gritmap-o-rule", text: t.goal_due_note });
+        // Historial de la meta (4.11.0): cuantos dias se cumplio, para
+        // ajustarla; con «Terminar lo de hoy», un consejo si cuesta.
+        S.nodes.goalHistory = el("p", { class: "gritmap-o-rule" });
+        S.nodes.goalAdvice = el("p", { class: "gritmap-o-rule" });
+
+        // Plan «Suelo estudiar…» (4.11.0): se dice en la linea de «Racha»
+        // mientras hoy este pendiente.
+        S.nodes.plan = el("input", {
+            type: "text",
+            class: "gritmap-o-input",
+            id: "gritmap-o-plan",
+            maxlength: String(S.p.limits.max_label),
+            placeholder: t.plan_ph,
+            autocomplete: "off",
+            value: c.study_plan,
+        });
+        S.nodes.plan.addEventListener("input", function () {
+            c.study_plan = S.nodes.plan.value;
+        });
 
         var freezes = checkbox(t.opt_freezes, c.freezes, function (on) {
             c.freezes = on;
@@ -675,12 +712,18 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
                 S.nodes.goalMode,
                 S.nodes.goalNumber,
                 S.nodes.goalDue,
+                S.nodes.goalHistory,
+                S.nodes.goalAdvice,
             ]),
             el("div", { class: "gritmap-o-option" }, [freezes.node, el("p", { class: "gritmap-o-sub-rule", text: freezeRule })]),
             el("div", { class: "gritmap-o-option" }, [
                 pause.node,
                 S.nodes.pauseDetail,
                 el("p", { class: "gritmap-o-sub-rule", text: t.pause_rule }),
+            ]),
+            el("div", { class: "gritmap-o-option" }, [
+                el("label", { class: "gritmap-o-label", for: "gritmap-o-plan", text: t.plan_label }),
+                S.nodes.plan,
             ]),
         ]);
 
@@ -772,8 +815,13 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         var showProposal = c.goal_mode === "number" && proposal.average !== null && proposal.average !== undefined;
         S.nodes.goalProposal.hidden = !showProposal;
         if (showProposal) {
-            S.nodes.goalProposal.textContent = fill(S.t.goal_proposal_line, { n: proposal.average });
+            S.nodes.goalProposal.textContent = fill(S.t.goal_proposal_line2, { n: proposal.value, m: proposal.average });
         }
+        var history = (S.p.goal_history || {})[c.goal_mode] || {};
+        S.nodes.goalHistory.hidden = !history.text;
+        S.nodes.goalHistory.textContent = history.text || "";
+        S.nodes.goalAdvice.hidden = !history.advice;
+        S.nodes.goalAdvice.textContent = history.advice || "";
     }
 
     function updateStreak() {
@@ -1311,6 +1359,9 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         node.textContent = "";
         var monthFmt = formatter({ month: "long", year: "numeric" });
         var title = monthFmt ? monthFmt.format(new Date(year, month, 1)) : year + "-" + (month + 1);
+        // Es un titulo: primera letra en mayuscula, aunque el mes vaya en
+        // minuscula («Octubre de 2026»; DPD, «mayúsculas»), 4.11.0.
+        title = title.charAt(0).toLocaleUpperCase(S.p.locale) + title.slice(1);
         node.setAttribute("aria-label", title);
         node.appendChild(el("div", { class: "gritmap-o-cal-head" }, [
             el("button", { type: "button", class: "gritmap-o-icon-btn", "aria-label": S.t.month_prev, onclick: function () {
@@ -1571,6 +1622,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
             goal: c.goal,
             freezes: c.freezes,
             show_streak: c.show_streak,
+            study_plan: c.study_plan || "",
             pause_on: !!c.pause,
             pause_start: c.pause ? c.pause.start : today,
             pause_end: c.pause ? c.pause.end : addDays(today, 6),
