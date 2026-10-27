@@ -376,14 +376,14 @@ def _today_card(data: HeatmapData, cfg: Config, deck_only: bool, celebrate: bool
         # guia: solo escala y transparencia; nada si se pide reducir).
         # «Al día» con «Terminar lo de hoy»: dice justo lo logrado (4.11.0).
         done_text = t("goal_up_to_date" if cfg.goal_mode == "due" else "goal_done")
-        line = _check_html(done_text, celebrate)
-        met_days = goal_week_count(data)
-        if met_days >= 2:
-            line += " · " + fill_html("goal_week", days=_days_html(met_days))
+        # La cuenta de la semana sale desde el primer dia (4.11.2, peticion
+        # del cliente), y el historial va en el globo de «✓ Meta cumplida».
+        line = _with_tip(_check_html(done_text, celebrate), _goal_record_tip(data, cfg, True))
+        line += " · " + fill_html("goal_week", days=_days_html(goal_week_count(data)))
     else:
         left = goal - value
         unit = count_html(left, cfg.measure) if cfg.goal_mode == "number" else count_html(left, "cards")
-        line = fill_html("goal_left", count=unit)
+        line = _with_tip(fill_html("goal_left", count=unit), _goal_record_tip(data, cfg, False))
     return _mini(t("card_today"), big, line, "gritmap-big-ring")
 
 
@@ -393,6 +393,41 @@ def _check_html(text: str, celebrate: bool = False) -> str:
     label = text[1:].lstrip() if text.startswith("✓") else text
     check_class = "gritmap-check gritmap-celebrate" if celebrate else "gritmap-check"
     return f'<span class="{check_class}" aria-hidden="true">✓</span> ' + html.escape(label)
+
+
+# Dias completos que mira el historial de la meta (4.11.0).
+GOAL_HISTORY_DAYS = 14
+
+
+def goal_record(
+    data: HeatmapData, mode: str, pause: tuple[date, date] | None, today_met: bool = False
+) -> tuple[int, int]:
+    """(dias cumplidos, dias con datos) de esa meta en los ultimos 14 dias
+    completos, sin los de pausa ni los dias sin datos (no son fallos). Con
+    today_met, hoy cuenta tambien: solo si ya se cumplio, porque un dia a
+    medias no es un fallo."""
+    paused = paused_days(pause, data.today)
+    marks = [True] if today_met else []
+    for days_ago in range(1, GOAL_HISTORY_DAYS + 1):
+        if days_ago in paused:
+            continue
+        mark = data.goal_days.get((data.today - timedelta(days=days_ago)).isoformat())
+        if mark is not None and mark[0] == mode:
+            marks.append(mark[1])
+    return sum(marks), len(marks)
+
+
+def _goal_record_tip(data: HeatmapData, cfg: Config, today_met: bool) -> str:
+    """Globo de la linea de la meta en «Hoy» (4.11.2, peticion del cliente):
+    «Cumplida 6 de los últimos 8 días.», desde que hay dos dias con datos."""
+    met, total = goal_record(data, cfg.goal_mode, cfg.pause, today_met)
+    if total < 2:
+        return ""
+    return fill_html("goal_history", met=num_html(met), days=_days_html(total))
+
+
+def _with_tip(content: str, tip: str) -> str:
+    return f'<span class="gritmap-tipped"{_info_attrs(tip)}>{content}</span>' if tip else content
 
 
 def goal_week_count(data: HeatmapData) -> int:

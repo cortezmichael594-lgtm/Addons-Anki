@@ -82,7 +82,7 @@ from .errors import guarded, log_exception
 from .i18n import anki_text, fill, lang, locale_code, plural_key, t, unit_label
 from .palettes import PAST_DARK, PAST_LIGHT, THEME_NAMES
 from .state import state
-from .view import countdown_html
+from .view import countdown_html, goal_record
 
 # Prefijo de los mensajes de la pagina de opciones (FIX-008: todo lo propio
 # empieza por el nombre del paquete).
@@ -170,9 +170,8 @@ def goal_proposal(measure: str, cfg: Config | None = None) -> tuple[int, int | N
     return value, round_half_up(average)
 
 
-# Historial de la meta (4.11.0): 14 dias completos, y solo si hay al menos 7
-# con datos de ese tipo de meta (criterio del informe, sin estudio que lo fije).
-_HISTORY_DAYS = 14
+# Historial de la meta (4.11.0): solo si hay al menos 7 dias con datos de ese
+# tipo de meta (criterio del informe, sin estudio que lo fije).
 _HISTORY_MIN = 7
 
 
@@ -184,21 +183,11 @@ def goal_history(cfg: Config) -> dict[str, dict[str, str]]:
     entry = state.data
     if entry is None:
         return {}
-    today = entry.data.today
-    paused = paused_days(cfg.pause, today)
     out: dict[str, dict[str, str]] = {}
     for mode in GOAL_MODES[1:]:
-        marks = []
-        for days_ago in range(1, _HISTORY_DAYS + 1):
-            if days_ago in paused:
-                continue
-            mark = entry.data.goal_days.get((today - timedelta(days=days_ago)).isoformat())
-            if mark is not None and mark[0] == mode:
-                marks.append(mark[1])
-        if len(marks) < _HISTORY_MIN:
+        met, total = goal_record(entry.data, mode, cfg.pause)
+        if total < _HISTORY_MIN:
             continue
-        met = sum(marks)
-        total = len(marks)
         days = f"{total} {unit_label(total, 'day')}"
         item = {"text": fill("goal_history", met=met, days=days), "advice": ""}
         if mode == "due" and met * 2 <= total:

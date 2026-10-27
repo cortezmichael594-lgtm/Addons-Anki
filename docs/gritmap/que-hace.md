@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 4.11.1 · 2026-10-27
+Versión 4.11.2 · 2026-10-27
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub, en tarjetas. Cuenta tarjetas: cada
 tarjeta respondida cuenta una vez por día, aunque la conteste varias veces. Arriba, centrada y
@@ -54,9 +54,12 @@ la última a lo ancho de las dos para que la fila quede cuadrada) y, por debajo 
 - Sin meta: las tarjetas respondidas hoy («35 tarjetas») y, debajo, las de los 7 últimos días
   completos (terminan ayer): «448 tarjetas en 7 días».
 - Con la meta «Un número»: un anillo pequeño que se llena con lo hecho, «80 de 100» y, debajo,
-  «faltan 20 tarjetas». Al cumplirla, «✓ Meta cumplida» y, desde el segundo día de la semana con la
-  meta cumplida, «· 5 días esta semana» (cuenta de lunes a hoy, empieza de cero cada lunes y no dice
-  «de 7»: un día sin datos, por ejemplo estudiado solo en el móvil, no aparece como fallo); si la supera, «120 de 100», con el anillo
+  «faltan 20 tarjetas». Al cumplirla, «✓ Meta cumplida · 1 día esta semana» (la cuenta sale desde el
+  primer día; va de lunes a hoy, empieza de cero cada lunes y no dice «de 7»: un día sin datos, por
+  ejemplo estudiado solo en el móvil, no aparece como fallo). «✓ Meta cumplida» (o «faltan 20
+  tarjetas» mientras no se cumple) va subrayado de puntos desde que hay dos días con datos de esa
+  meta: al pasar el ratón o llegar con el tabulador, el historial, «Cumplida 6 de los últimos 8
+  días.» (los últimos 14 días completos con datos, sin los de pausa, y hoy si ya la cumplió); si la supera, «120 de 100», con el anillo
   cerrado. La primera vez que se dibuja después de cumplirla (al volver a la lista de mazos tras
   repasar), el ✓ aparece con un leve aumento de 150 ms; si Anki o el sistema piden reducir las
   animaciones (en Anki viene así de serie), aparece con un fundido de 150 ms, sin moverse. No se
@@ -525,6 +528,9 @@ el motivo. Sirve para no volver a ello sin querer.
 | «Objetivo 90 %» sin dos puntos | 4.11.0 | El cliente lo quiso «Objetivo: 90 %», como «Récord: 40 días». |
 | Meta «Terminar lo de hoy» con anillo aunque no venciera nada | 4.11.0 | Una meta de 0 no es una meta, y un ✓ sin estudiar sería falso. |
 | «✓ Meta cumplida» también con «Terminar lo de hoy» | 4.11.0 | «✓ Al día» dice justo lo logrado y distingue las dos metas. |
+| Cuenta de la semana solo desde 2 días | 4.11.2 | El cliente la quiso desde el primer día. |
+| Historial de la meta solo en Opciones | 4.11.2 | El cliente lo quiso también en «Hoy», como «N de N»: va en el globo de la línea de la meta, donde está la meta (la línea queda corta y el detalle, a un gesto). |
+| Textos de ayuda del panel a 2-4 px de lo que explican | 4.11.2 | Iban muy pegados; ahora a 4 px bajo el título de cada tarjeta y a 8 px los demás. |
 | Cumplir la meta sin dejar rastro | 4.11.0 | Sin rastro, la meta no daba información para ajustarla. Ahora, la cuenta de la semana y el historial de Opciones. |
 | Racha de días con la meta cumplida, comodines ganados con la meta, insignia de semana perfecta | Propuesto como idea en 4.11.0, descartado | Subirían la acción mínima, mezclarían dos sistemas y son insignias; un día sin cumplir la meta no debe pesar. |
 | Confeti, sonido o frases al cumplir la meta; aviso si no se ha cumplido | Descartado en 4.11.0 | La felicitación no ayudó a formar el hábito en los estudios citados y los avisos lo frenan. |

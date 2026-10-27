@@ -393,9 +393,18 @@ class GoalTest(unittest.TestCase):
         text = re.sub("<[^>]+>", "", card)
         self.assertIn("Al día", text)
         self.assertIn("2 días esta semana", text)
+        # 4.11.2: la cuenta sale desde el primer dia, y el historial en el
+        # globo de «✓ Meta cumplida» desde dos dias con datos.
         alone = self.today_card(sample(), goal_mode="number", goal=5)
         self.assertIn("Meta cumplida", alone)
-        self.assertNotIn("esta semana", alone)
+        self.assertIn("1 día esta semana", re.sub("<[^>]+>", "", alone))
+        self.assertNotIn("data-gritmap-info", alone)
+        self.assertIn("Cumplida", card)
+        tip = re.search(r'data-gritmap-info="([^"]*)"', card)
+        assert tip is not None
+        import html as html_module
+
+        self.assertIn("Cumplida 3 de los últimos 4 días", re.sub("<[^>]+>", "", html_module.unescape(tip.group(1))))
 
     def test_study_plan_while_today_is_pending(self) -> None:
         stats = view.full_stats(sample())

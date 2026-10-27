@@ -197,8 +197,10 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     font-weight: 600;
 }
 
+/* Separaciones de los textos de ayuda respecto a lo que explican (4.11.2,
+ * peticion del cliente: iban muy pegados): un paso mas de la escala. */
 #gritmap-o-app .gritmap-o-card-note {
-    margin: 2px 0 0 0;
+    margin: 4px 0 0 0;
     color: var(--gritmap-o-muted);
 }
 
@@ -213,7 +215,7 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 }
 
 #gritmap-o-app .gritmap-o-rule {
-    margin: 4px 0 0 0;
+    margin: 8px 0 0 0;
     color: var(--gritmap-o-muted);
 }
 
@@ -511,6 +513,12 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+/* «Ajustado al ancho» bajo el campo de tamano: 8 px en total (4 de margen
+ * y 4 del relleno de la casilla), como los textos de ayuda. */
+#gritmap-o-app .gritmap-o-step-row + .gritmap-o-check {
+    margin-top: 4px;
 }
 
 #gritmap-o-app .gritmap-o-goal-row {

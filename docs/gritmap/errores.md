@@ -434,3 +434,14 @@ cliente el 2026-10-27, y su corrección «Objetivo: x»):
 - Rosa suave y Turquesa laguna ya tenían la misma escalera de contraste que los demás temas (de 1,50 a
   1,76 entre tonos de día y 7,1 o más del vacío al cuarto tono): no se cambian.
 - En español, las fechas cortas llevan punto en el mes («26 oct.»), aunque el navegador no lo ponga.
+
+Versión 4.11.2 (petición del cliente del 2026-10-27 sobre la 4.11.1):
+
+- La cuenta de la semana sale desde el primer día («1 día esta semana»). Lo pidió el cliente.
+- El historial «Cumplida N de los últimos N días.» va en el globo de la línea de la meta en «Hoy». El
+  cliente pidió «N de N» en un globo y dejó el sitio a las buenas prácticas: va donde vive la meta
+  (tarjeta «Hoy»), la línea queda corta y el detalle se ve a un gesto (revelación progresiva). Sale
+  desde 2 días con datos y cuenta hoy solo si ya se cumplió, porque un día a medias no es un fallo. En
+  Opciones sigue saliendo desde 7 días.
+- Los textos de ayuda del panel, a 8 px de lo que explican (4 px bajo el título de cada tarjeta).
+  Lo pidió el cliente.
