@@ -422,3 +422,12 @@ class GoalTest(unittest.TestCase):
     def test_retention_target_has_a_colon(self) -> None:
         html = view.build_widget_html(sample(fsrs_target=0.9), DEFAULT_CONFIG, 0, deck_only=True)
         self.assertIn('data-gritmap-info="Objetivo: ', html)
+
+    def test_both_check_marks_look_the_same(self) -> None:
+        # FIX-031: el ✓ de «✓ hoy» y el de «✓ Meta cumplida», la misma pieza.
+        stats = view.full_stats(sample())
+        streak = view._streak_card(replace(stats, current_streak=5, longest_streak=5, today_done=True), DEFAULT_CONFIG, TODAY)
+        goal = self.today_card(sample(), goal_mode="number", goal=5)
+        mark = '<span class="gritmap-check" aria-hidden="true">✓</span> '
+        self.assertIn(mark + "hoy", streak)
+        self.assertIn(mark + "Meta cumplida", goal)

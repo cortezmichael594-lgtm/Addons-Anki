@@ -151,6 +151,10 @@ Las dos siguientes salieron de la revisión de la versión 3.6.0 (2026-10-21).
   colocadas respecto a la ventana y no a su fila; al pulsarlas, la página entera se desplazaba para
   enseñarlas. Regla: todo control invisible va dentro de su fila, y si la página entera se desplazara
   por lo que sea, vuelve arriba en el acto.
+- FIX-031 · 2026-10-27 · versión 4.11.1 · Qué pasaba: el ✓ de «✓ hoy» en la tarjeta «Racha» era gris
+  y fino, y el de «✓ Meta cumplida» en «Hoy», del color del texto y más grueso. Por qué: uno iba dentro
+  del texto traducido y el otro tenía su propio estilo. Regla: todo ✓ de las tarjetas se dibuja con la
+  misma pieza, con el mismo aspecto.
 
 ## Así a propósito
 

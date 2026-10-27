@@ -44,6 +44,8 @@ de los globos tambien los pone el navegador.
 # FIX-026 (2026-10-22) — La meta «Terminar lo de hoy», ya cumplida, volvia a
 #                        «faltan 3» cuando vencian otra vez tarjetas en
 #                        aprendizaje.
+# FIX-031 (2026-10-27) — El ✓ de «✓ hoy» (Racha) no se veia igual que el de
+#                        «✓ Meta cumplida» (Hoy).
 
 from __future__ import annotations
 
@@ -372,10 +374,9 @@ def _today_card(data: HeatmapData, cfg: Config, deck_only: bool, celebrate: bool
         # Al cumplirla, la primera vez que se dibuja: el ✓ aparece con un leve
         # aumento de 150 ms (animacion pedida por el cliente, dentro de la
         # guia: solo escala y transparencia; nada si se pide reducir).
-        check_class = "gritmap-check gritmap-celebrate" if celebrate else "gritmap-check"
         # «Al día» con «Terminar lo de hoy»: dice justo lo logrado (4.11.0).
         done_text = t("goal_up_to_date" if cfg.goal_mode == "due" else "goal_done")
-        line = f'<span class="{check_class}" aria-hidden="true">✓</span> ' + html.escape(done_text)
+        line = _check_html(done_text, celebrate)
         met_days = goal_week_count(data)
         if met_days >= 2:
             line += " · " + fill_html("goal_week", days=_days_html(met_days))
@@ -384,6 +385,14 @@ def _today_card(data: HeatmapData, cfg: Config, deck_only: bool, celebrate: bool
         unit = count_html(left, cfg.measure) if cfg.goal_mode == "number" else count_html(left, "cards")
         line = fill_html("goal_left", count=unit)
     return _mini(t("card_today"), big, line, "gritmap-big-ring")
+
+
+def _check_html(text: str, celebrate: bool = False) -> str:
+    """«✓ texto» con el ✓ como pieza propia, igual en «Hoy» y en «Racha»
+    (FIX-031). Si el texto traducido ya lleva el ✓ delante, se quita."""
+    label = text[1:].lstrip() if text.startswith("✓") else text
+    check_class = "gritmap-check gritmap-celebrate" if celebrate else "gritmap-check"
+    return f'<span class="{check_class}" aria-hidden="true">✓</span> ' + html.escape(label)
 
 
 def goal_week_count(data: HeatmapData) -> int:
@@ -454,7 +463,18 @@ def _streak_card(stats: FullStats, cfg: Config, today: date) -> str:
     # Vuelta tras romperla: un comienzo, no un fracaso (Hopkins, C1).
     big = html.escape(t("day_one")) if current == 1 and stats.previous_best >= 2 else _days_html(current)
     big = _with_record(big, stats, current)
-    parts = [html.escape(t("streak_today" if stats.today_done else "today_pending"))]
+    # --- FIX-031 (2026-10-27) ---------------------------------------
+    # Sintoma: el ✓ de «✓ hoy» en «Racha» era gris y fino, y el de «✓ Meta
+    #          cumplida» en «Hoy», del color del texto y en seminegrita.
+    # Causa: el de la racha iba dentro del texto traducido y el de la meta,
+    #        en su propia pieza con estilo.
+    # Regla: todo ✓ de las tarjetas se dibuja con la misma pieza
+    #        (_check_html), con el mismo aspecto.
+    # ----------------------------------------------------------------
+    if stats.today_done:
+        parts = [_check_html(t("streak_today"))]
+    else:
+        parts = [html.escape(t("today_pending"))]
     if not stats.today_done and cfg.study_plan:
         # Plan «Suelo estudiar…» (4.11.0): mientras hoy este pendiente.
         parts[0] += " · " + html.escape(cfg.study_plan)

@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 4.11.0 · 2026-10-27
+Versión 4.11.1 · 2026-10-27
 
 Mapa de calor de su estudio, como el de las contribuciones de GitHub, en tarjetas. Cuenta tarjetas: cada
 tarjeta respondida cuenta una vez por día, aunque la conteste varias veces. Arriba, centrada y
@@ -82,7 +82,8 @@ Días seguidos estudiando hasta hoy («18 días»). Cuenta cualquier respuesta. 
 estudiado todavía hoy. La línea gris dice, por este orden (si no cabe, se corta por el final, así que
 lo último en perderse es si hoy ya cuenta):
 
-- «✓ hoy» si hoy ya cuenta, u «hoy pendiente» si todavía no; si ha escrito su plan en Opciones
+- «✓ hoy» si hoy ya cuenta (el ✓, igual que el de «✓ Meta cumplida»: del color del texto y en
+  seminegrita), u «hoy pendiente» si todavía no; si ha escrito su plan en Opciones
   («Suelo estudiar»), mientras hoy esté pendiente lo añade: «hoy pendiente · después de desayunar»;
 - «· en pausa hasta el 5 nov.» mientras dure una pausa de la racha (la fecha, en el idioma de Anki);
 - «· 1 comodín» o «· 2 comodines» si tiene comodines guardados (subrayado de puntos: al pasar el
