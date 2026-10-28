@@ -130,6 +130,7 @@ class PanelDialog(QDialog):
         self._chosen = self._original
         self._preview_enabled = not contrast.stepped_aside()
         self._ready = False
+        self._loaded = False
         self._closing = False
         self._on_timeout = on_timeout
         self._timer = QTimer(self)
@@ -139,6 +140,7 @@ class PanelDialog(QDialog):
 
         self._web = AnkiWebView(self, title="nocturne panel")
         self._web.set_bridge_command(self._on_bridge, self)
+        self._web.loadFinished.connect(self._on_load_finished)
         # La página no se enseña hasta que está dibujada entera: sin parpadeos.
         self._web.hide()
         layout = QVBoxLayout(self)
@@ -168,10 +170,20 @@ class PanelDialog(QDialog):
         if mw is not None:
             mw.progress.single_shot(READY_TIMEOUT_MS, self._check_ready, False)
 
-    # La página avisa de que está lista; si no, salida de emergencia.
+    def _on_load_finished(self, ok: bool) -> None:
+        self._loaded = ok
+
+    # La página avisa de que está lista. Si a los 3 s no lo ha hecho pero ha cargado (la
+    # primera vez en una sesión, el navegador de Anki puede tardar en arrancar), se enseña
+    # igualmente, como GritMap; si ni siquiera ha cargado, salida de emergencia.
     @guard
     def _check_ready(self) -> None:
         if self._ready or self._closing:
+            return
+        if self._loaded:
+            self._ready = True
+            self._web.show()
+            self._web.setFocus()
             return
         note_failure("el panel no se dibujó en %s ms", READY_TIMEOUT_MS)
         self._close_quietly()

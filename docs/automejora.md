@@ -620,6 +620,15 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Comprobado: 2026-10-28, con Anki 26.09.3 y PyQt6 6.11.0.
 - Origen: FIX-008 de Atelier 3.7.1.
 
+### APR-068 · pycmd llega tarde
+- Qué es: Anki inyecta en sus páginas un script en el punto DocumentReady que crea un QWebChannel y, cuando conecta, define pycmd (y bridgeCommand) y envía «domDone». Hasta entonces pycmd no existe.
+- Por qué es buena práctica: una página que avisa a Python al cargar (por ejemplo, «estoy lista») pierde el aviso con «pycmd is not defined» (FIX-011 de Atelier: el panel no se mostraba nunca).
+- Para qué sirve: toda página propia que hable con Python al cargar.
+- Cómo se aplica: una cola de mensajes que se vacía cuando typeof window.pycmd === "function", comprobándolo cada 10 ms; en las pruebas que dibujan la página, definir pycmd después de cargar.
+- Fuente: aqt/webview.py (_create_bridge_script: QWebChannel, InjectionPoint.DocumentReady, pycmd("domDone")); reproducción con la página dibujada en QtWebEngine 6.11 y prueba test_page_waits_for_pycmd.
+- Comprobado: 2026-10-28, con Anki 26.09.3.
+- Origen: FIX-011 de Atelier 3.7.2.
+
 ## Retirados
 
 Aprendizajes que dejaron de valer, con fecha y motivo («- APR-NNN (AAAA-MM-DD): motivo»). Su número no

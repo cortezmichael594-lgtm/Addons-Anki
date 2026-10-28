@@ -32,6 +32,9 @@
     ],
     "FIX-010": [
       "webview_style.py"
+    ],
+    "FIX-011": [
+      "web/panel.js"
     ]
   }
 }
