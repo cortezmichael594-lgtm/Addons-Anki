@@ -41,6 +41,7 @@ class Look(TypedDict):
     radius_large: int  # px, botones redondeados de las páginas
     button_radius: int  # px, botones y campos de las ventanas; como mucho 9 (si no, Qt los dibuja
     # cuadrados). Regla de la versión 3.5.0: los recuadros (radius_medium) llevan el doble.
+    # Versión 3.7.0: dos familias, suaves (6 y 12) y redondeadas (8 y 16), separadas un 33 %.
     row_padding: int  # px arriba y abajo de cada fila de la lista de mazos
     focus_width: int  # px del contorno de foco en las páginas
     gradient: tuple[str, str] | None  # degradado del fondo (día, noche), o ninguno
@@ -79,9 +80,9 @@ PAPEL_LOOK: Look = {
     "heading_tracking": "0",
     "reading_line_height": "1.6",
     "radius": 6,
-    "radius_medium": 14,
-    "radius_large": 18,
-    "button_radius": 7,
+    "radius_medium": 12,
+    "radius_large": 16,
+    "button_radius": 6,
     "row_padding": 5,
     "focus_width": 2,
     "gradient": ("rgba(31, 106, 128, 0.035)", "rgba(95, 179, 204, 0.06)"),  # colores-ok: degradado del acabado
@@ -227,9 +228,9 @@ LAVANDA_LOOK: Look = {
     "heading_tracking": "-0.01em",
     "reading_line_height": "1.55",
     "radius": 6,
-    "radius_medium": 14,
-    "radius_large": 18,
-    "button_radius": 7,
+    "radius_medium": 12,
+    "radius_large": 16,
+    "button_radius": 6,
     "row_padding": 5,
     "focus_width": 2,
     "gradient": ("rgba(123, 71, 212, 0.04)", "rgba(159, 111, 243, 0.07)"),  # colores-ok: degradado del acabado

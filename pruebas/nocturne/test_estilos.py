@@ -28,9 +28,11 @@ class ConfigTest(unittest.TestCase):
 
     def test_welcome_only_once(self) -> None:
         # Versión 3.5.0: el aviso de bienvenida sale una sola vez.
-        self.assertFalse(config.welcome_shown({"palette": "papel"}))
-        self.assertFalse(config.welcome_shown(None))
-        self.assertTrue(config.welcome_shown({"palette": "papel", "welcome_shown": True}))
+        self.assertEqual(config.notice_for({"palette": "papel"}), "welcome")
+        self.assertEqual(config.notice_for(None), "welcome")
+        # Versión 3.7.0: quien vio la bienvenida de Nocturne recibe una vez el aviso de nombre.
+        self.assertEqual(config.notice_for({"palette": "papel", "welcome_shown": True}), "renamed")
+        self.assertIsNone(config.notice_for({"welcome_shown": True, "renamed_shown": True}))
         self.assertEqual(config.palette_from({"palette": "papel", "welcome_shown": True}), "papel")
 
     def test_select_validates(self) -> None:
@@ -125,6 +127,12 @@ class WebStyleTest(unittest.TestCase):
             self.assertIn("a:focus-visible { outline:", css, theme_id)
             self.assertIn("text-underline-offset: 0.18em;", css, theme_id)
 
+    def test_quiet_review_side_buttons(self) -> None:
+        css = self.css_for("nocturne")
+        self.assertIn("td.stat > button { background: transparent; border-color: transparent;", css)
+        self.assertIn("--nocturne-control-radius:", css)
+        self.assertIn("--nocturne-control-border:", css)
+
     def test_switching_changes_the_css(self) -> None:
         first = self.css_for("papel")
         second = self.css_for("nocturne")
@@ -182,6 +190,15 @@ class QtStyleTest(unittest.TestCase):
             fields = sheet[sheet.index("QComboBox,\n    QSpinBox,") :]
             self.assertIn(f"border-radius: {radius}px;", fields[: fields.index("}")], theme_id)
             self.assertIn("QMenu::indicator:non-exclusive {\n        border-radius: 4px;", sheet, theme_id)
+
+    def test_one_way_to_mark_selection(self) -> None:
+        # Versión 3.7.0: menús y listas desplegables con el tinte de acción y texto normal.
+        for theme_id, data in themes.THEMES.items():
+            sheet = self.qss(theme_id, True)
+            colors = data["colors"]
+            part = sheet[sheet.index("QMenu::item:selected,") :]
+            self.assertIn(f"background-color: {to_css_rgba(colors['NOCTURNE_ROW_HIGHLIGHT']['dark'])};", part, theme_id)
+            self.assertIn(f"color: {to_css_rgba(colors['FG']['dark'])};", part, theme_id)
 
     def test_other_widget_styles_untouched(self) -> None:
         theming.mw = types.SimpleNamespace(  # type: ignore[assignment]

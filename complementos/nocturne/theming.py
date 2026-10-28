@@ -155,6 +155,7 @@ def on_style_did_init(style: str) -> str:
 """
         + _buttons_css(pick)
         + _tooltip_css(pick)
+        + _selection_css(pick)
     )
 
 
@@ -232,6 +233,25 @@ def _tooltip_css(pick: Callable[[str], str]) -> str:
         background-color: {pick("CANVAS_OVERLAY")};
         border: 1px solid {pick("BORDER_SUBTLE")};
         padding: 4px 6px;
+    }}
+"""
+
+
+def _selection_css(pick: Callable[[str], str]) -> str:
+    """Versión 3.7.0 (informe del 2026-10-28, apartado 9): una sola forma de marcar lo
+    seleccionado en todo Anki, el tinte de acción con el texto normal, como la fila del
+    mazo actual y las filas de Explorar. El relleno de acción con texto blanco queda
+    para el botón principal (Practical UI, P17). Y las cabeceras de las columnas de
+    Explorar en el texto secundario, como las de la lista de mazos (Refactoring UI, P8).
+    Solo color y grosor de letra: nada cambia de tamaño ni de sitio."""
+    return f"""
+    QMenu::item:selected,
+    QComboBox::item:selected {{
+        background-color: {pick("NOCTURNE_ROW_HIGHLIGHT")};
+        color: {pick("FG")};
+    }}
+    QHeaderView::section {{
+        color: {pick("FG_SUBTLE")};
     }}
 """
 

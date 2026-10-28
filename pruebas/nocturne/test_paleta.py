@@ -413,6 +413,18 @@ class ActionStrokeTest(unittest.TestCase):
             self.assertGreater(_luminance(stroke), _luminance(fill), theme)
 
 
+class SecondaryTextOnButtonsTest(unittest.TestCase):
+    """Versión 3.7.0: las cabeceras de Explorar van en el texto secundario sobre el
+    fondo de botón, y los nombres del panel sobre el tinte de la fila elegida."""
+
+    def test_reads(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                for surface in ("BUTTON_BG", "BUTTON_HOVER", "NOCTURNE_ROW_HIGHLIGHT"):
+                    ratio = contrast(color("FG_SUBTLE", mode, theme), color(surface, mode, theme))
+                    self.assertGreaterEqual(ratio, 4.5, f"{theme} ({mode}) sobre {surface}: {ratio:.2f}")
+
+
 class ActionVersusMeaningTest(unittest.TestCase):
     """Versión 3.6.0: el color de acción no se confunde con los colores con significado
     de las rayas de respuesta («Otra vez» rojo, «Difícil» naranja). Si tiene un matiz

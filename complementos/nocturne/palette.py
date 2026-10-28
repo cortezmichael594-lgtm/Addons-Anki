@@ -164,7 +164,7 @@ PALETTE: dict[str, Token] = {
     "STATE_NEW":                     {"css": ("--state-new",),                                     "light": "#186CB9",   "dark": "#7EBFF4"},  # colores-ok: paleta del tema, origen de todos sus colores
     "STATE_REVIEW":                  {"css": ("--state-review",),                                  "light": "#257A35",   "dark": "#57D06B"},  # colores-ok: paleta del tema, origen de todos sus colores
     "STATE_SUSPENDED":               {"css": ("--state-suspended",),                              "light": "#868E96",   "dark": "#848E9C"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "NOCTURNE_CONTROL_BORDER":       {"css": (),                                                   "light": "#878C97",   "dark": "#727B8C"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "NOCTURNE_CONTROL_BORDER":       {"css": ("--nocturne-control-border",),                         "light": "#878C97",   "dark": "#727B8C"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_ROW_HIGHLIGHT":        {"css": ("--nocturne-row-highlight",),                          "light": "#EAEEF8",   "dark": "#19233F"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_PRIMARY_PRESSED":      {"css": (),                                                     "light": "#284EAA",   "dark": "#2B45AA"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_PRIMARY_RING":         {"css": (),                                                     "light": "#1C3A8A",   "dark": "#A9C4FF"},  # colores-ok: paleta del tema, origen de todos sus colores
