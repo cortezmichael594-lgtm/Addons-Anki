@@ -20,6 +20,7 @@ debajo la descripción de la elegida.
 
 # Historial de correcciones de este archivo:
 # FIX-007 (2026-10-21): la ventana de paletas quedaba detrás de la de complementos.
+# FIX-008 (2026-10-28): «Abrir el registro» no hacía nada y cada pulsación anotaba otro fallo.
 
 from __future__ import annotations
 
@@ -182,8 +183,14 @@ class PaletteDialog(QDialog):
         row.addWidget(button)
         return row
 
+    # --- FIX-008 (2026-10-28) ---
+    # Síntoma: al pulsar «Abrir el registro» no se abría nada, y cada pulsación anotaba en el
+    #          registro «fallo en _open_log».
+    # Causa: el botón de Qt avisa con un dato (si está marcado) y la función no lo aceptaba.
+    # Regla: toda función conectada a la señal clicked de un botón acepta ese dato
+    #        (_checked: bool = False), también si va envuelta en guard.
     @guard
-    def _open_log(self) -> None:
+    def _open_log(self, _checked: bool = False) -> None:
         folder = errors.logs_folder()
         if folder:
             openFolder(folder)

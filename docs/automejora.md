@@ -611,6 +611,15 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Comprobado: 2026-10-26, con Anki 26.09.3.
 - Origen: Nocturne 3.5.0 (informe de mejoras, apartado 4.4).
 
+### APR-067 · La señal clicked manda un dato
+- Qué es: QAbstractButton::clicked(bool checked = false) entrega siempre ese valor a la función conectada. PyQt lo pasa como argumento posicional cuando la función acepta argumentos, y una función envuelta en un decorador con *args (como guard) lo recibe aunque no lo declare.
+- Por qué es buena práctica: sin el parámetro, el botón no hace nada y cada pulsación es un fallo (FIX-008 de Atelier).
+- Para qué sirve: todo botón de cualquier complemento.
+- Cómo se aplica: declare `_checked: bool = False` en la función, o conecte una lambda sin argumentos.
+- Fuente: doc.qt.io, QAbstractButton::clicked; prueba en pruebas/nocturne/test_ventana.py (test_failures_line_only_after_a_failure), que falló antes del arreglo y pasa después.
+- Comprobado: 2026-10-28, con Anki 26.09.3 y PyQt6 6.11.0.
+- Origen: FIX-008 de Atelier 3.7.1.
+
 ## Retirados
 
 Aprendizajes que dejaron de valer, con fecha y motivo («- APR-NNN (AAAA-MM-DD): motivo»). Su número no

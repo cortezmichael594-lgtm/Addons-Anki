@@ -1,3 +1,6 @@
+// Historial de correcciones de este archivo:
+// FIX-009 (2026-10-28): el panel no se mostraba nunca y siempre se abría la ventana sencilla.
+
 // Atelier - panel de configuración a medida (versión 3.7.0).
 //
 // Dibuja la lista de paletas y gestiona la elección con el patrón de grupo de
@@ -261,26 +264,31 @@
             updateEdges(shell, body);
         });
 
-        // Cuando está dibujada: se pide el alto justo y se enseña con el foco en la
-        // paleta elegida.
-        requestAnimationFrame(function () {
-            requestAnimationFrame(function () {
-                // Alto del contenido del cuerpo (no el del hueco que ocupa ahora).
-                var last = body.lastElementChild;
-                var padding = parseFloat(getComputedStyle(body).paddingBottom) || 0;
-                var content = last.getBoundingClientRect().bottom - body.getBoundingClientRect().top
-                    + body.scrollTop + padding;
-                var wanted = head.offsetHeight + content + foot.offsetHeight;
-                var selected = state.rows.filter(function (node) {
-                    return node.dataset.id === state.current;
-                })[0];
-                if (selected) {
-                    selected.focus();
-                }
-                updateEdges(shell, body);
-                send("ready", Math.ceil(wanted));
-            });
-        });
+        // --- FIX-009 (2026-10-28) ---
+        // Síntoma: al pulsar «Configuración» no aparecía el panel: a los 3 segundos se abría
+        //          siempre la ventana sencilla de emergencia y el registro decía «el panel no se
+        //          dibujó en 3000 ms».
+        // Causa: el aviso de «lista» esperaba al siguiente fotograma (requestAnimationFrame),
+        //        pero la página está oculta hasta que avisa, y una página oculta no pinta
+        //        fotogramas: cada una esperaba a la otra.
+        // Regla: una página que se enseña cuando avisa de que está lista avisa sin esperar a
+        //        pintar (con setTimeout), midiendo su contenido, que se calcula aunque no se vea.
+        setTimeout(function () {
+            // Alto del contenido del cuerpo (no el del hueco que ocupa ahora).
+            var last = body.lastElementChild;
+            var padding = parseFloat(getComputedStyle(body).paddingBottom) || 0;
+            var content = last.getBoundingClientRect().bottom - body.getBoundingClientRect().top
+                + body.scrollTop + padding;
+            var wanted = head.offsetHeight + content + foot.offsetHeight;
+            var selected = state.rows.filter(function (node) {
+                return node.dataset.id === state.current;
+            })[0];
+            if (selected) {
+                selected.focus();
+            }
+            updateEdges(shell, body);
+            send("ready", Math.ceil(wanted));
+        }, 0);
     }
 
     window.NocturnePanel = { init: init, setNight: setNight };

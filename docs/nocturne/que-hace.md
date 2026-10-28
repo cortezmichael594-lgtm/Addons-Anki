@@ -1,6 +1,6 @@
 # Qué hace «Atelier»
 
-Versión 3.7.0 · 2026-10-28
+Versión 3.7.1 · 2026-10-28
 
 Temas de color para Anki, en modo día y en modo noche. Trae cinco paletas (Nocturne, Papel, Bosque,
 Lavanda y Atardecer), y Nocturne está elegida de serie. Hasta la 3.5.0 el complemento se llamaba
@@ -93,6 +93,8 @@ cliente del 2026-10-28): es una página dentro de la ventana, como las opciones 
 - Para un lector de pantalla, la lista es un grupo de botones de opción llamado «Paleta»; cada opción
   se lee por su nombre, con la descripción como información adicional; las miniaturas no se leen.
 - El texto del panel no se puede seleccionar con el ratón, como en GritMap.
+- En la 3.7.0 el panel no llegaba a mostrarse y siempre salía la ventana sencilla; se corrigió en la
+  3.7.1 (FIX-009, en errores).
 - Salida de emergencia: si el panel falla al crearse o no avisa de que está dibujado en 3 segundos,
   se cierra sin cambiar nada y se abre la ventana sencilla: una fila «Paleta» con una lista desplegable
   de las cinco paletas (por orden alfabético, con su muestra de color), la descripción de la elegida
@@ -175,6 +177,9 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   así que no se ve primero blanca. En Windows 10, macOS y Linux la barra queda como siempre.
 - Ayudas emergentes (el recuadro que aparece al dejar el ratón sobre un botón): con el mismo fondo, el
   mismo borde suave y algo de margen que los menús, en vez de confundirse con la ventana.
+- Lista de mazos (desde la 3.7.1): la tabla de los mazos tiene el fondo de los recuadros de la
+  paleta, el mismo que las tarjetas de GritMap (mapa de calor y cifras), en vez del fondo
+  semitransparente de Anki: un solo material para todo lo que va encima del fondo.
 - Lista de mazos: las cabeceras de las columnas (Mazo, Nuevas, Aprendiendo...) van en el texto
   secundario y algo menos gruesas. Pantalla de un mazo: las etiquetas «Nuevas:», «Aprendiendo:» y «A
   repasar:» van en el texto secundario. Así destacan las cifras, que es lo que se viene a mirar. Solo en

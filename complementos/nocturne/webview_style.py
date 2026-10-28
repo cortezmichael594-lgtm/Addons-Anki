@@ -31,6 +31,8 @@ así que la paleta se respeta siempre, llegue nuestro estilo antes o después.
 #                        apilado, en vez de uno solo anclado a la esquina.
 # FIX-006 (2026-10-21) — En la pantalla de estudio, los datos del mazo se resaltaban
 #                        al pasar el ratón, como si fueran una fila de la lista de mazos.
+# FIX-010 (2026-10-28) — Al pasar el ratón por un botón de respuesta salía una raya de
+#                        color arriba, además de la de abajo.
 
 from __future__ import annotations
 
@@ -259,6 +261,11 @@ def _surface_css() -> str:
         # Regla: todo lo que se inyecta para una pantalla concreta se limita a sus propios
         #        elementos (aquí, las filas de mazo: «tr.deck»), nunca a etiquetas genéricas.
         f"{_SURFACE} tr.deck > td {{ padding-block: {look['row_padding']}px; }}",
+        # Versión 3.7.1 (petición del cliente, 2026-10-28): la tabla de la lista de mazos con
+        # el fondo de los recuadros (capa elevada), el mismo que las tarjetas de GritMap, en
+        # vez del cristal semitransparente de Anki: un solo material para todo lo que está
+        # «encima» del fondo. Limitado a esa tabla (regla de FIX-006).
+        f"html {_SURFACE} table:has(tr.deck) {{ background: var(--canvas-elevated); }}",
         (
             f"html {_SURFACE} tr.deck:is(.current, :hover) > td"
             " { background: var(--nocturne-row-highlight); }"
@@ -340,11 +347,18 @@ _ANSWER_COLORS = {
 
 
 def _answer_marks() -> list[str]:
+    # --- FIX-010 (2026-10-28) ---
+    # Síntoma: con el ratón encima de un botón de respuesta (por ejemplo «Fácil») salía una
+    #          raya fina de su color arriba del botón, además de la de abajo.
+    # Causa: el navegador repite como un mosaico las imágenes de fondo también bajo el borde, y
+    #        con el ratón encima Anki pone un borde semitransparente: asomaba la repetición de
+    #        la raya de abajo.
+    # Regla: toda raya o dibujo hecho con imágenes de fondo lleva background-repeat: no-repeat.
     rules = []
     for ease, value in _ANSWER_COLORS.items():
         mark = f"linear-gradient(to top, {value} 0 3px, transparent 3px)"
         button = f"html {_SURFACE} button[data-ease='{ease}']"
-        rules.append(f"{button} {{ background-image: {mark}; }}")
+        rules.append(f"{button} {{ background-image: {mark}; background-repeat: no-repeat; }}")
         rules.append(
             f"{button}:hover {{ background-image: {mark},"
             " linear-gradient(180deg, var(--button-gradient-start), var(--button-gradient-end)); }"

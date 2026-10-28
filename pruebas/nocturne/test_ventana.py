@@ -101,6 +101,7 @@ class PaletteChoiceTest(unittest.TestCase):
 
     def setUp(self) -> None:
         self.owner = QDialog()
+        self._open_folder = dialogs.openFolder
         themes.select("nocturne")
 
     def tearDown(self) -> None:
@@ -162,6 +163,19 @@ class PaletteChoiceTest(unittest.TestCase):
             errors.logs_folder = logs  # type: ignore[assignment]
         self.assertIn(strings.FAILURES, [label.text() for label in dialog.findChildren(QLabel)])
         self.assertIn(strings.OPEN_LOG, [b.text() for b in dialog.findChildren(QPushButton)])
+        # Regresión de FIX-008: pulsar el botón no falla (la señal manda un dato).
+        before = errors.failures()
+        opened = []
+        dialogs.openFolder = opened.append  # type: ignore[assignment]
+        errors.logs_folder = lambda: "/registro"  # type: ignore[assignment]
+        try:
+            button = next(b for b in dialog.findChildren(QPushButton) if b.text() == strings.OPEN_LOG)
+            button.click()
+        finally:
+            errors.logs_folder = logs  # type: ignore[assignment]
+            dialogs.openFolder = self._open_folder  # type: ignore[assignment]
+        self.assertEqual(errors.failures(), before)
+        self.assertEqual(opened, ["/registro"])
 
     def test_high_contrast_no_preview(self) -> None:
         contrast.step_aside()

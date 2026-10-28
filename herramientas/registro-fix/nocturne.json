@@ -22,6 +22,16 @@
     ],
     "FIX-007": [
       "dialogs.py"
+    ],
+    "FIX-008": [
+      "dialogs.py"
+    ],
+    "FIX-009": [
+      "web/panel.css",
+      "web/panel.js"
+    ],
+    "FIX-010": [
+      "webview_style.py"
     ]
   }
 }
