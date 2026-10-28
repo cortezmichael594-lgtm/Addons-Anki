@@ -11,7 +11,7 @@ import types
 import unittest
 
 import anki.lang
-from aqt.qt import QApplication, QDialog, QLabel, QMainWindow, QMenu, QPushButton, QRadioButton, Qt, QWidget
+from aqt.qt import QApplication, QComboBox, QDialog, QLabel, QMainWindow, QMenu, QPushButton, Qt, QWidget
 from nocturne import contrast, dialogs, errors, strings, themes, titlebar
 
 _app = QApplication.instance() or QApplication([])
@@ -49,7 +49,7 @@ class OwnerWindowTest(unittest.TestCase):
         self.assertEqual(dialog.windowModality(), Qt.WindowModality.WindowModal)
         self.assertTrue(dialog.isVisible())
         # Como la configuración de cualquier complemento en Anki, y sin el botón «?».
-        self.assertEqual(dialog.windowTitle(), "Configurar 'Nocturne'")
+        self.assertEqual(dialog.windowTitle(), "Configurar 'Atelier'")
         self.assertFalse(dialog.windowFlags() & Qt.WindowType.WindowContextHelpButtonHint)
 
     def test_shows_the_current_palette(self) -> None:
@@ -71,8 +71,8 @@ class OwnerWindowTest(unittest.TestCase):
 
 
 class PaletteChoiceTest(unittest.TestCase):
-    """Versión 3.5.0 (informe de 2026-10-26, apartados 2.3, 3.1, 3.2 y 3.3): las tres
-    paletas a la vista, la predeterminada marcada, vista previa y vuelta atrás."""
+    """Versión 3.5.0 (informe de 2026-10-26): la predeterminada marcada, vista previa y
+    vuelta atrás. Versión 3.6.0: lista con muestras, como en GritMap."""
 
     def setUp(self) -> None:
         self.owner = QDialog()
@@ -87,26 +87,35 @@ class PaletteChoiceTest(unittest.TestCase):
     def dialog(self) -> dialogs.PaletteDialog:
         return dialogs.PaletteDialog(self.owner)
 
-    def test_three_options_with_descriptions(self) -> None:
+    def test_list_with_swatches_like_gritmap(self) -> None:
+        # Versión 3.6.0: el diseño de las opciones de GritMap, con las cinco paletas.
         dialog = self.dialog()
-        radios = [b.text() for b in dialog.findChildren(QRadioButton)]
-        self.assertEqual(radios, ["Nocturne" + strings.DEFAULT_SUFFIX, "Papel", "Bosque"])
+        combo = dialog.findChild(QComboBox)
+        assert combo is not None
+        names = [combo.itemText(i) for i in range(combo.count())]
+        self.assertEqual(names, ["Nocturne" + strings.DEFAULT_SUFFIX, "Papel", "Bosque", "Lavanda", "Atardecer"])
+        for i in range(combo.count()):
+            self.assertFalse(combo.itemIcon(i).isNull(), names[i])
         texts = [label.text() for label in dialog.findChildren(QLabel)]
-        for description in strings.THEME_DESCRIPTIONS.values():
-            self.assertIn(description, texts)
+        self.assertIn(strings.THEME_DESCRIPTIONS["nocturne"], texts)
         self.assertIn(strings.DAY_AND_NIGHT, texts)
         self.assertNotIn(strings.HIGH_CONTRAST, texts)
         self.assertNotIn(strings.FAILURES, texts)
 
-    def test_clicking_a_description_picks_its_palette(self) -> None:
+    def test_description_follows_the_choice(self) -> None:
         dialog = self.dialog()
-        label = next(l for l in dialog.findChildren(QLabel) if l.text() == strings.THEME_DESCRIPTIONS["bosque"])
-        label.mousePressEvent(None)
-        self.assertEqual(dialog.selected_id(), "bosque")
+        dialog.select("lavanda")
+        self.assertIn(strings.THEME_DESCRIPTIONS["lavanda"], [label.text() for label in dialog.findChildren(QLabel)])
+
+    def test_swatch_takes_the_palette_colors(self) -> None:
+        for theme_id, data in themes.THEMES.items():
+            canvas, _border, accent = dialogs.swatch_colors(theme_id, night=True)
+            self.assertEqual(canvas, data["colors"]["CANVAS"]["dark"], theme_id)
+            self.assertEqual(accent, data["colors"]["BUTTON_PRIMARY_BG"]["dark"], theme_id)
 
     def test_preview_then_cancel_goes_back(self) -> None:
         dialog = self.dialog()
-        dialog._buttons["papel"].setChecked(True)
+        dialog.select("papel")
         dialog._preview()  # lo que hace el temporizador
         self.assertEqual(themes.current_id(), "papel")
         dialog.reject()
@@ -114,9 +123,9 @@ class PaletteChoiceTest(unittest.TestCase):
 
     def test_accept_keeps_the_choice(self) -> None:
         dialog = self.dialog()
-        dialog._buttons["bosque"].setChecked(True)
+        dialog.select("atardecer")
         dialog.accept()
-        self.assertEqual(themes.current_id(), "bosque")
+        self.assertEqual(themes.current_id(), "atardecer")
 
     def test_failures_line_only_after_a_failure(self) -> None:
         errors._failures = 1
@@ -133,7 +142,7 @@ class PaletteChoiceTest(unittest.TestCase):
         contrast.step_aside()
         dialog = self.dialog()
         self.assertIn(strings.HIGH_CONTRAST, [label.text() for label in dialog.findChildren(QLabel)])
-        dialog._buttons["papel"].setChecked(True)
+        dialog.select("papel")
         self.assertFalse(dialog._timer.isActive())
         dialog.accept()
         # Se guarda (para cuando vuelva el contraste normal), pero no se pinta.

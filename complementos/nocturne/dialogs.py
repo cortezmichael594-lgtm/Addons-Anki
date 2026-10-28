@@ -1,13 +1,18 @@
-"""Ventana de configuración: elegir una de las tres paletas.
+"""Ventana de configuración: elegir una de las cinco paletas.
 
-Se hace como las de Anki (Preferencias > Interfaz de usuario): un recuadro con su
-título, controles estándar y los botones estándar, sin colores ni hojas de estilo
-propias, para que herede el tema, el teclado y el idioma.
+Se hace como las de Anki (Preferencias > Interfaz de usuario): controles estándar
+y los botones estándar, sin hojas de estilo propias, para que herede el tema, el
+teclado y el idioma.
 
-Versión 3.5.0: las tres paletas a la vista, cada una con su botón de opción y su
-descripción debajo, para compararlas sin abrir una lista (Practical UI, P19), y vista
-previa: al elegir una, se aplica en el acto a todo Anki; «Aceptar» la conserva y
-«Cancelar», Esc o la X vuelven a la que había (Norman, golfo de evaluación).
+Versión 3.5.0: vista previa. Al elegir una paleta se aplica en el acto a todo Anki;
+«Aceptar» la conserva y «Cancelar», Esc o la X vuelven a la que había (Norman, golfo
+de evaluación).
+
+Versión 3.6.0 (petición del cliente, 2026-10-28): el mismo diseño que las opciones
+de GritMap, para que los dos complementos se vean de la misma familia: una fila
+«Paleta» con una lista desplegable en la que cada paleta lleva su muestra de color
+(el fondo de la paleta con un punto de su color de acción, en el modo activo), y
+debajo la descripción de la elegida.
 """
 
 # Historial de correcciones de este archivo:
@@ -15,28 +20,30 @@ previa: al elegir una, se aplica en el acto a todo Anki; «Aceptar» la conserva
 
 from __future__ import annotations
 
-from typing import Any
-
 from anki.lang import without_unicode_isolation
-from aqt import mw
+from aqt import gui_hooks, mw
 from aqt.qt import (
-    QButtonGroup,
+    QColor,
+    QComboBox,
     QDialog,
     QDialogButtonBox,
-    QGroupBox,
+    QFormLayout,
     QHBoxLayout,
+    QIcon,
     QKeySequence,
     QLabel,
     QLayout,
+    QPainter,
     QPalette,
+    QPixmap,
     QPushButton,
-    QRadioButton,
-    QStyle,
+    QSize,
     Qt,
     QTimer,
     QVBoxLayout,
     QWidget,
 )
+from aqt.theme import theme_manager
 from aqt.utils import disable_help_button, openFolder, tr
 
 from . import actions, config, contrast, errors, strings, themes
@@ -45,21 +52,46 @@ from .errors import guard
 # La vista previa espera a que la elección lleve este tiempo quieta, para que recorrer
 # las paletas con las flechas no repinte Anki a cada paso.
 PREVIEW_DELAY_MS = 200
+_SWATCH = 16  # px, como las muestras de los temas de GritMap
 
 
-class _DescriptionLabel(QLabel):
-    """Descripción de una paleta: pulsarla también elige la paleta (objetivo mayor)."""
+def swatch_colors(theme_id: str, night: bool) -> tuple[str, str, str]:
+    """Fondo, borde y color de acción de una paleta en el modo indicado."""
+    palette = themes.THEMES[theme_id]["colors"]
 
-    def __init__(self, text: str, button: QRadioButton) -> None:
-        super().__init__(text)
-        self._button = button
-        # Texto secundario: el color que Anki da a los textos de ejemplo de los campos,
-        # que sigue al tema y a la paleta sin pintar nada a mano.
-        self.setForegroundRole(QPalette.ColorRole.PlaceholderText)
+    def pick(name: str) -> str:
+        entry = palette[name]
+        return entry["dark"] if night else entry["light"]
 
-    def mousePressEvent(self, event: Any) -> None:
-        self._button.setChecked(True)
-        self._button.setFocus()
+    return pick("CANVAS"), pick("BORDER_STRONG"), pick("BUTTON_PRIMARY_BG")
+
+
+def _swatch(theme_id: str) -> QIcon:
+    """Muestra de la paleta en el modo activo: su fondo con un punto de su acción.
+
+    Regla de FIX-007 de GritMap: toda muestra de color se toma del modo activo, leído
+    en el momento de pintarla.
+    """
+    canvas, border, accent = swatch_colors(theme_id, theme_manager.night_mode)
+    pixmap = QPixmap(_SWATCH, _SWATCH)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.setPen(QColor(border))
+    painter.setBrush(QColor(canvas))
+    painter.drawRoundedRect(0, 0, _SWATCH - 1, _SWATCH - 1, 3, 3)
+    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setBrush(QColor(accent))
+    painter.drawEllipse(4, 4, _SWATCH - 9, _SWATCH - 9)
+    painter.end()
+    return QIcon(pixmap)
+
+
+def _subtle(label: QLabel) -> QLabel:
+    """Texto secundario: el color que Anki da a los textos de ejemplo de los campos,
+    que sigue al tema y a la paleta sin pintar nada a mano."""
+    label.setForegroundRole(QPalette.ColorRole.PlaceholderText)
+    return label
 
 
 class PaletteDialog(QDialog):
@@ -80,45 +112,37 @@ class PaletteDialog(QDialog):
         self._timer.setInterval(PREVIEW_DELAY_MS)
         self._timer.timeout.connect(self._preview)
 
-        group = QGroupBox(strings.GROUP_TITLE)
-        options = QVBoxLayout(group)
-        options.setSpacing(12)  # entre una paleta y la siguiente (Practical UI, P12)
-        style = self.style()
-        indent = 0
-        if style is not None:
-            indent = style.pixelMetric(QStyle.PixelMetric.PM_ExclusiveIndicatorWidth) + style.pixelMetric(
-                QStyle.PixelMetric.PM_RadioButtonLabelSpacing
-            )
-        self._group = QButtonGroup(self)
-        self._buttons: dict[str, QRadioButton] = {}
+        self._combo = QComboBox()
+        self._combo.setIconSize(QSize(_SWATCH, _SWATCH))
         for theme_id in themes.THEMES:
             name = strings.THEME_NAMES[theme_id]
             if theme_id == themes.DEFAULT_THEME:
                 name += strings.DEFAULT_SUFFIX
-            button = QRadioButton(name)
-            self._group.addButton(button)
-            self._buttons[theme_id] = button
-            description = _DescriptionLabel(strings.THEME_DESCRIPTIONS[theme_id], button)
-            # Alineada con el nombre, no con el círculo.
-            description.setContentsMargins(indent, 0, 0, 0)
-            option = QVBoxLayout()
-            option.setSpacing(4)  # nombre y descripción, juntos
-            option.addWidget(button)
-            option.addWidget(description)
-            options.addLayout(option)
-        note = QLabel(strings.DAY_AND_NIGHT)
+            self._combo.addItem(_swatch(theme_id), name, theme_id)
+        self._description = _subtle(QLabel())
+        # Ancho de la descripción más larga: al cambiar de paleta, la ventana no cambia
+        # de tamaño y ninguna línea se corta.
+        metrics = self._description.fontMetrics()
+        self._description.setMinimumWidth(
+            max(metrics.horizontalAdvance(text) for text in strings.THEME_DESCRIPTIONS.values())
+        )
+        note = _subtle(QLabel(strings.DAY_AND_NIGHT))
         note.setWordWrap(True)
-        note.setForegroundRole(QPalette.ColorRole.PlaceholderText)
-        options.addWidget(note)
+
+        form = QFormLayout()
+        form.addRow(strings.PALETTE_LABEL, self._combo)
+        form.addRow("", self._description)
+        form.addRow("", note)
 
         layout = QVBoxLayout(self)
         if not self._preview_enabled:
             notice = QLabel(strings.HIGH_CONTRAST)
             notice.setWordWrap(True)
             layout.addWidget(notice)
-        layout.addWidget(group)
+        layout.addLayout(form)
         if errors.failures() and errors.logs_folder():
             layout.addLayout(self._failures_row())
+        layout.addSpacing(6)
 
         box = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok
@@ -137,16 +161,19 @@ class PaletteDialog(QDialog):
         # Tamaño justo para su contenido, como los diálogos pequeños de Anki.
         layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
-        self._buttons[self._original].setChecked(True)
-        self._buttons[self._original].setFocus()  # el teclado empieza en la paleta activa
-        self._group.buttonToggled.connect(self._on_toggled)
+        self.select(self._original)
+        self._show_description()
+        self._combo.currentIndexChanged.connect(self._on_changed)
+        self._combo.setFocus()  # el teclado empieza en la lista
+        # Regla de FIX-018 de GritMap: las muestras se repintan al cambiar de día a noche,
+        # y el gancho se quita al cerrar la ventana.
+        gui_hooks.theme_did_change.append(self._refresh_swatches)
 
     def _failures_row(self) -> QHBoxLayout:
         """Solo si hubo fallos en la sesión: una línea y un botón para ver el registro."""
         row = QHBoxLayout()
-        text = QLabel(strings.FAILURES)
+        text = _subtle(QLabel(strings.FAILURES))
         text.setWordWrap(True)
-        text.setForegroundRole(QPalette.ColorRole.PlaceholderText)
         button = QPushButton(strings.OPEN_LOG)
         button.setAutoDefault(False)
         button.clicked.connect(self._open_log)
@@ -160,18 +187,32 @@ class PaletteDialog(QDialog):
         if folder:
             openFolder(folder)
 
+    @guard
+    def _refresh_swatches(self) -> None:
+        for index in range(self._combo.count()):
+            theme_id = self._combo.itemData(index)
+            if isinstance(theme_id, str):
+                self._combo.setItemIcon(index, _swatch(theme_id))
+
+    def select(self, theme_id: str) -> None:
+        index = self._combo.findData(theme_id)
+        if index >= 0:
+            self._combo.setCurrentIndex(index)
+
     def selected_id(self) -> str:
-        for theme_id, button in self._buttons.items():
-            if button.isChecked():
-                return theme_id
-        return themes.current_id()
+        theme_id = self._combo.currentData()
+        return theme_id if isinstance(theme_id, str) else themes.current_id()
+
+    def _show_description(self) -> None:
+        self._description.setText(strings.THEME_DESCRIPTIONS[self.selected_id()])
 
     def restore_defaults(self) -> None:
         """Elige Nocturne, y la vista previa la muestra."""
-        self._buttons[themes.DEFAULT_THEME].setChecked(True)
+        self.select(themes.DEFAULT_THEME)
 
-    def _on_toggled(self, _button: QRadioButton, checked: bool) -> None:
-        if checked and self._preview_enabled:
+    def _on_changed(self, _index: int) -> None:
+        self._show_description()
+        if self._preview_enabled:
             self._timer.start()
 
     @guard
@@ -196,6 +237,11 @@ class PaletteDialog(QDialog):
         if self._preview_enabled and themes.current_id() != self._original:
             actions.apply_palette(self._original)
         super().reject()
+
+    def done(self, result: int) -> None:
+        # Se quita aquí, nunca desde dentro del propio gancho; remove no falla si ya no está.
+        gui_hooks.theme_did_change.remove(self._refresh_swatches)
+        super().done(result)
 
 
 # Referencia a la ventana abierta, para que el recolector de basura no la cierre.
