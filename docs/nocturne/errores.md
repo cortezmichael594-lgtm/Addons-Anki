@@ -1,4 +1,4 @@
-# Errores de «Nocturne»
+# Errores de «Atelier» (antes «Nocturne»)
 
 Registro en lenguaje llano de los fallos de este complemento. Lo mantiene Claude Code: cada corrección
 del código (FIX-NNN) tiene aquí su línea con el mismo número, y el comprobador vigila que no falte
@@ -125,3 +125,13 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   taller.
 - 3.5.0 · No se aplica lo del informe sobre el día de gracia, la meta diaria y la página de
   felicitación como cierre del día: el cliente lo descartó para Nocturne el 2026-10-26.
+- 3.6.0 · El complemento se llama «Atelier» y su paleta de serie, «Nocturne». La carpeta interna y el
+  paquete siguen llamándose «nocturne»: si cambiaran, Anki lo trataría como un complemento nuevo,
+  instalaría dos y perdería la paleta guardada. Elegido por el cliente el 2026-10-28.
+- 3.6.0 · La ventana usa una lista desplegable con muestras, como GritMap, en lugar de los botones de
+  opción de la 3.5.0 (que el informe de mejoras recomendaba para comparar las descripciones). Pedido por
+  el cliente el 2026-10-28: los dos complementos, con el mismo diseño. La descripción de la paleta
+  elegida sigue debajo de la lista.
+- 3.6.0 · El cobre de Atardecer tiene un matiz parecido al naranja de «Difícil» y de la bandera
+  naranja; se distingue por claridad (mucho más oscuro) y lo vigila una prueba. Decisión del taller,
+  dentro de la paleta que eligió el cliente.

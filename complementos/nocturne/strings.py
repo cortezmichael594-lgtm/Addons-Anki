@@ -6,25 +6,25 @@ predeterminados») los pone Anki o Qt, traducidos a su idioma.
 
 from __future__ import annotations
 
-ADDON_NAME = "Nocturne"
-GROUP_TITLE = "Apariencia"
+ADDON_NAME = "Atelier"
+PALETTE_LABEL = "&Paleta"  # Alt+P lleva a la lista
 DEFAULT_SUFFIX = " (predeterminada)"
 DAY_AND_NIGHT = (
     "Cada paleta tiene versión de día y de noche, y cambia con el modo que elija "
     "en las preferencias de Anki."
 )
 HIGH_CONTRAST = (
-    "Su sistema pide más contraste. Mientras siga así, Nocturne deja los colores del "
+    "Su sistema pide más contraste. Mientras siga así, Atelier deja los colores del "
     "sistema; la paleta que elija se aplicará cuando vuelva al contraste normal y "
     "reinicie Anki."
 )
 FAILURES = "Alguna parte de Anki no se pudo pintar y conserva su aspecto normal."
 OPEN_LOG = "Abrir el registro"
 
-# Aviso que sale una sola vez, la primera vez que Anki arranca con Nocturne.
+# Aviso que sale una sola vez, la primera vez que Anki arranca con el complemento.
 WELCOME = (
-    "Nocturne está activo. Para elegir Papel o Bosque: Herramientas > Complementos > "
-    "Nocturne > Configuración."
+    "Atelier está activo, con la paleta Nocturne. Para elegir otra: Herramientas > "
+    "Complementos > Atelier > Configuración."
 )
 
 # Nombre y descripción de cada paleta, en el orden de themes.THEMES. Una línea cada
@@ -35,9 +35,13 @@ THEME_NAMES = {
     "nocturne": "Nocturne",
     "papel": "Papel",
     "bosque": "Bosque",
+    "lavanda": "Lavanda",
+    "atardecer": "Atardecer",
 }
 THEME_DESCRIPTIONS = {
     "nocturne": "Grises azulados y botones azules. Letra del sistema y esquinas suaves.",
     "papel": "Papel y tinta, con botones azul petróleo. Títulos con remates, como un libro.",
     "bosque": "Verdes grisáceos y botones verde azulado. Esquinas redondeadas y filas amplias.",
+    "lavanda": "Grises lila y botones violeta. Letra del sistema y esquinas suaves.",
+    "atardecer": "Melocotón y marrón cálido, con botones cobre. Esquinas redondeadas.",
 }

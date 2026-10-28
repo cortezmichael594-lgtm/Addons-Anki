@@ -413,6 +413,22 @@ class ActionStrokeTest(unittest.TestCase):
             self.assertGreater(_luminance(stroke), _luminance(fill), theme)
 
 
+class ActionVersusMeaningTest(unittest.TestCase):
+    """Versión 3.6.0: el color de acción no se confunde con los colores con significado
+    de las rayas de respuesta («Otra vez» rojo, «Difícil» naranja). Si tiene un matiz
+    parecido (el cobre de Atardecer), se separa por claridad (Webflow, P2)."""
+
+    def test_action_is_not_a_meaning(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                action = color("BUTTON_PRIMARY_BG", mode, theme)
+                for name in ("FLAG_2", "STATE_LEARN", "ACCENT_DANGER"):
+                    other = color(name, mode, theme)
+                    if hue_distance(action, other) < 30:
+                        ratio = contrast(action, other)
+                        self.assertGreaterEqual(ratio, 1.5, f"{theme} ({mode}): acción y {name}: {ratio:.2f}")
+
+
 # Simulación de daltonismo de Machado, Oliveira y Fernandes (2009), gravedad máxima,
 # sobre valores lineales.
 _CVD = {
@@ -470,7 +486,8 @@ class NightDepthTest(unittest.TestCase):
 
 class FamilyTest(unittest.TestCase):
     """Cada paleta tiene una sola familia de neutros (Webflow, P4; Refactoring UI,
-    P20): grises azulados en Nocturne, cálidos en Papel de día, verdosos en Bosque.
+    P20): grises azulados en Nocturne, cálidos en Papel de día, verdosos en Bosque,
+    lila en Lavanda y melocotón y marrón en Atardecer.
     Papel de noche («Tinta», 3.2.0) une fondos azul petróleo, de la familia del color
     de acción, con texto crema. Ninguno es blanco ni negro puro."""
 
@@ -485,8 +502,11 @@ class FamilyTest(unittest.TestCase):
         ("nocturne", "light"): (220, 220), ("nocturne", "dark"): (220, 220),
         ("papel", "light"): (36, 36), ("papel", "dark"): (198, 38),
         ("bosque", "light"): (138, 138), ("bosque", "dark"): (138, 138),
+        # Versión 3.6.0: grises lila en Lavanda y cálidos (melocotón y marrón) en Atardecer.
+        ("lavanda", "light"): (262, 262), ("lavanda", "dark"): (262, 262),
+        ("atardecer", "light"): (24, 24), ("atardecer", "dark"): (24, 24),
     }
-    MARGIN = {"nocturne": 6, "papel": 12, "bosque": 12}
+    MARGIN = {"nocturne": 6, "papel": 12, "bosque": 12, "lavanda": 6, "atardecer": 6}
 
     def check(self, theme: str, mode: str, names: tuple[str, ...], center: float) -> None:
         for name in names:
