@@ -1,0 +1,386 @@
+/* Atelier - panel de configuración a medida (versión 3.7.0).
+ *
+ * El mismo material que el panel de GritMap 4.11.2: fondo de Anki, recuadros de capa
+ * elevada con borde suave, la letra de Anki, cabecera de 14 px y textos de 12, espacios
+ * de 4, 8, 16 y 32 px (12 dentro de las filas) y sin animaciones. No hay colores
+ * propios: todo sale de las variables de Anki, que Atelier redefine con la paleta
+ * activa, así que durante la vista previa el panel cambia con ella. Los colores de
+ * las miniaturas los pone la página con los de cada paleta.
+ *
+ * Todo lleva el prefijo «nocturne-», el nombre del paquete.
+ */
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: clip;
+    background: var(--canvas);
+}
+
+#nocturne-panel,
+#nocturne-panel * {
+    box-sizing: border-box;
+}
+
+#nocturne-panel {
+    height: 100%;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--fg);
+    background: var(--canvas);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#nocturne-panel [hidden] {
+    display: none !important;
+}
+
+/* Cabecera y pie fijos; el cuerpo se desplaza si no cabe. */
+#nocturne-panel .nocturne-p-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#nocturne-panel .nocturne-p-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 24px;
+}
+
+#nocturne-panel .nocturne-p-head h1 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#nocturne-panel .nocturne-p-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    /* 4 px arriba: el contorno de foco de la primera fila no se corta. */
+    padding: 4px 24px 16px 24px;
+    scroll-padding: 16px 0;
+}
+
+#nocturne-panel .nocturne-p-scrolled .nocturne-p-head {
+    border-bottom: 1px solid var(--border);
+}
+
+#nocturne-panel .nocturne-p-foot {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    min-height: 56px;
+    padding: 0 24px;
+}
+
+#nocturne-panel .nocturne-p-overflow .nocturne-p-foot {
+    border-top: 1px solid var(--border);
+}
+
+/* En Windows, Aceptar va primero, como en sus ventanas. */
+body.isWin #nocturne-panel .nocturne-p-foot .nocturne-p-primary {
+    order: -1;
+}
+
+/* Textos */
+#nocturne-panel .nocturne-p-intro,
+#nocturne-panel .nocturne-p-note {
+    margin: 0;
+    color: var(--fg-subtle);
+}
+
+#nocturne-panel .nocturne-p-intro {
+    margin-bottom: 16px;
+}
+
+#nocturne-panel .nocturne-p-note {
+    margin-top: 16px;
+}
+
+/* Franjas de aviso: arriba, en el fondo hundido y sin rojo. */
+#nocturne-panel .nocturne-p-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: var(--canvas-inset);
+    border-radius: var(--nocturne-control-radius, 6px);
+}
+
+#nocturne-panel .nocturne-p-banner svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    stroke: var(--fg-subtle);
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+#nocturne-panel .nocturne-p-banner span {
+    flex: 1 1 auto;
+}
+
+/* Rótulos «Día» y «Noche», una sola vez, encima de las miniaturas. */
+#nocturne-panel .nocturne-p-modes {
+    display: flex;
+    gap: 8px;
+    padding: 0 13px 4px 13px;
+    color: var(--fg-subtle);
+}
+
+#nocturne-panel .nocturne-p-modes span {
+    width: 80px;
+}
+
+#nocturne-panel .nocturne-p-modes .nocturne-p-active {
+    color: var(--fg);
+    font-weight: 600;
+}
+
+/* Filas de paleta: botones de opción dibujados como recuadros. */
+#nocturne-panel .nocturne-p-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#nocturne-panel .nocturne-p-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 76px;
+    padding: 12px;
+    background: var(--canvas-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--border-radius-medium, 12px);
+    box-shadow: 0 1px 3px var(--shadow-subtle);
+    cursor: pointer;
+    outline: none;
+}
+
+html.night-mode #nocturne-panel .nocturne-p-row {
+    box-shadow: none;
+}
+
+#nocturne-panel .nocturne-p-row:hover {
+    border-color: var(--nocturne-control-border, var(--border-strong));
+}
+
+/* Elegida: borde de 2 px por dentro (nada se mueve), tinte de acción y ✓. */
+#nocturne-panel .nocturne-p-row[aria-checked="true"] {
+    background: var(--nocturne-row-highlight);
+    border-color: var(--border-focus);
+    box-shadow: inset 0 0 0 1px var(--border-focus);
+}
+
+#nocturne-panel .nocturne-p-row:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+}
+
+#nocturne-panel .nocturne-p-thumbs {
+    flex: none;
+    display: flex;
+    gap: 8px;
+}
+
+#nocturne-panel .nocturne-p-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+#nocturne-panel .nocturne-p-name {
+    font-weight: 600;
+}
+
+#nocturne-panel .nocturne-p-default {
+    margin-inline-start: 6px;
+    color: var(--fg-subtle);
+    font-weight: normal;
+}
+
+#nocturne-panel .nocturne-p-desc {
+    margin-top: 4px;
+    color: var(--fg-subtle);
+}
+
+#nocturne-panel .nocturne-p-check {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    stroke: var(--border-focus);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    visibility: hidden;
+}
+
+#nocturne-panel .nocturne-p-row[aria-checked="true"] .nocturne-p-check {
+    visibility: visible;
+}
+
+/* Miniatura: la lista de mazos reducida (80 × 48 px) con los colores de la paleta. */
+#nocturne-panel .nocturne-p-thumb {
+    position: relative;
+    width: 80px;
+    height: 48px;
+    overflow: hidden;
+    background: var(--t-canvas);
+    border: 1px solid var(--t-line);
+    border-radius: var(--t-radius);
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-bar {
+    position: absolute;
+    top: 5px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-bar i {
+    width: 8px;
+    height: 2px;
+    background: var(--t-faint);
+    border-radius: 1px;
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-card {
+    position: absolute;
+    top: 12px;
+    left: 7px;
+    width: 64px;
+    height: 22px;
+    padding: 4px 5px;
+    background: var(--t-card);
+    border: 1px solid var(--t-line);
+    border-radius: 3px;
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-line {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 3px;
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-line + .nocturne-t-line {
+    margin-top: 5px;
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-line b {
+    width: 24px;
+    height: 3px;
+    border-radius: 1px;
+    background: var(--t-fg);
+    margin-inline-end: auto;
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-line + .nocturne-t-line b {
+    width: 17px;
+    background: var(--t-subtle);
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-line i {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-new {
+    background: var(--t-new);
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-learn {
+    background: var(--t-learn);
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-review {
+    background: var(--t-review);
+}
+
+#nocturne-panel .nocturne-p-thumb .nocturne-t-button {
+    position: absolute;
+    bottom: 5px;
+    left: 27px;
+    width: 26px;
+    height: 6px;
+    border-radius: 2px;
+    background: var(--t-action);
+}
+
+/* Botones del pie, del mismo alto que los de GritMap (32 px). */
+#nocturne-panel button {
+    min-height: 32px;
+    padding: 0 16px;
+    font: inherit;
+    font-weight: 600;
+    color: var(--fg);
+    background: var(--canvas-elevated);
+    border: 1px solid var(--nocturne-control-border, var(--border-strong));
+    border-radius: var(--nocturne-control-radius, 6px);
+    cursor: pointer;
+}
+
+#nocturne-panel button:hover {
+    background: var(--canvas-inset);
+}
+
+#nocturne-panel button:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+}
+
+#nocturne-panel .nocturne-p-primary {
+    color: var(--highlight-fg);
+    background: var(--button-primary-bg);
+    border-color: var(--button-primary-bg);
+}
+
+#nocturne-panel .nocturne-p-primary:hover {
+    background: var(--button-primary-gradient-end);
+    border-color: var(--button-primary-gradient-end);
+}
+
+#nocturne-panel .nocturne-p-banner button {
+    flex: none;
+    min-height: 28px;
+    padding: 0 12px;
+    white-space: nowrap;
+}
+
+/* Contraste del sistema: colores del sistema en todo, salvo las miniaturas, que son
+ * justo lo que se elige. */
+@media (forced-colors: active) {
+    #nocturne-panel .nocturne-p-row {
+        border: 1px solid CanvasText;
+    }
+
+    #nocturne-panel .nocturne-p-row[aria-checked="true"] {
+        border: 2px solid Highlight;
+    }
+
+    #nocturne-panel .nocturne-p-check {
+        stroke: Highlight;
+    }
+
+    #nocturne-panel .nocturne-p-thumb,
+    #nocturne-panel .nocturne-p-thumb * {
+        forced-color-adjust: none;
+    }
+}

@@ -13,7 +13,7 @@ from __future__ import annotations
 from aqt import gui_hooks, mw
 from aqt.utils import tooltip
 
-from . import config, contrast, dialogs, strings, theming, themes, titlebar, webview_style
+from . import config, contrast, dialogs, panel, strings, theming, themes, titlebar, webview_style
 from .errors import guard, note_failure
 
 
@@ -21,8 +21,11 @@ from .errors import guard, note_failure
 def _welcome() -> None:
     """La primera vez que Anki arranca con Nocturne, un aviso con el camino para
     cambiar de paleta (Norman, descubribilidad). Solo una vez."""
-    if config.take_welcome():
+    notice = config.take_notice()
+    if notice == "welcome":
         tooltip(strings.WELCOME, period=6000)
+    elif notice == "renamed":
+        tooltip(strings.RENAMED, period=6000)
 
 
 @guard
@@ -36,8 +39,10 @@ def _setup() -> None:
     # 0) La paleta elegida en la configuración (Nocturne si no hay ninguna válida).
     themes.select(config.load())
 
-    # Elegir paleta y el aviso de bienvenida, en cualquier caso.
+    # Elegir paleta y el aviso de bienvenida, en cualquier caso. El panel de
+    # configuración es una página: sus dos archivos se publican con un patrón cerrado.
     mw.addonManager.setConfigAction(__name__, dialogs.open_dialog)
+    mw.addonManager.setWebExports(__name__, panel.WEB_PATTERN)
     gui_hooks.profile_did_open.append(_on_profile_open)
 
     # Si el sistema pide más contraste, Nocturne no pinta nada (versión 3.5.0).

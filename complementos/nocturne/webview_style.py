@@ -147,6 +147,8 @@ def _var_block(selector: str, mode: Mode) -> str:
     lines.append(f"  --border-radius: {look['radius']}px;")
     lines.append(f"  --border-radius-medium: {look['radius_medium']}px;")
     lines.append(f"  --border-radius-large: {look['radius_large']}px;")
+    # Versión 3.7.0: la esquina de botones y campos, para el panel de configuración.
+    lines.append(f"  --nocturne-control-radius: {look['button_radius']}px;")
     # Versión 3.3.0: los cambios al pasar el ratón, en 100 ms en vez de 180: así se
     # perciben instantáneos (Saffer, P4; Norman, retroalimentación). Solo esta
     # duración: el fundido de las tarjetas (--transition-medium) es de Anki y no cambia.
@@ -287,6 +289,18 @@ def _surface_css() -> str:
         (
             f"html {_SURFACE} tr:has(> td > b > :is(.new-count, .learn-count, .review-count))"
             " > td:first-child { color: var(--fg-subtle); }"
+        ),
+        # Versión 3.7.0: «Editar» y «Más» del repaso como botones discretos (sin fondo
+        # ni borde; fondo suave al pasar el ratón, como la barra superior), para que los
+        # botones de respuesta sean lo único con forma de botón (Refactoring UI, P11). El
+        # borde queda transparente, no se quita: nada cambia de tamaño.
+        (
+            f"html {_SURFACE} td.stat > button {{ background: transparent;"
+            " border-color: transparent; box-shadow: none; }"
+        ),
+        (
+            f"html {_SURFACE} td.stat > button:hover"
+            " { background: var(--button-gradient-start); }"
         ),
         # Texto seleccionado en las páginas de Anki (no en las tarjetas).
         f"{_SURFACE} ::selection {{ background: var(--selected-bg); }}",

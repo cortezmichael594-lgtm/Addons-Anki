@@ -12,7 +12,7 @@ import unittest
 
 import anki.lang
 from aqt.qt import QApplication, QComboBox, QDialog, QLabel, QMainWindow, QMenu, QPushButton, Qt, QWidget
-from nocturne import contrast, dialogs, errors, strings, themes, titlebar
+from nocturne import contrast, dialogs, errors, panel, strings, themes, titlebar
 
 _app = QApplication.instance() or QApplication([])
 anki.lang.set_lang("es")  # el título de la ventana sale de las traducciones de Anki
@@ -24,6 +24,7 @@ class OwnerWindowTest(unittest.TestCase):
 
     def setUp(self) -> None:
         self._mw = dialogs.mw
+        self._panel_class = panel.PanelDialog
         self.main = QMainWindow()
         self.addons = QDialog(self.main)  # hace de ventana de complementos
         self.addons.show()
@@ -31,11 +32,20 @@ class OwnerWindowTest(unittest.TestCase):
             app=types.SimpleNamespace(activeWindow=lambda: self.addons)
         )
 
+        # Sin navegador en las pruebas: el panel falla al crearse y se abre la ventana
+        # sencilla, que es la salida de emergencia (versión 3.7.0).
+        def no_panel(owner: QWidget, on_timeout: object) -> QDialog:
+            raise RuntimeError("sin página en las pruebas")
+
+        panel.PanelDialog = no_panel  # type: ignore[assignment,misc]
+
     def tearDown(self) -> None:
         if dialogs._dialog is not None:
             dialogs._dialog.reject()
         dialogs.mw = self._mw  # type: ignore[assignment]
+        panel.PanelDialog = self._panel_class  # type: ignore[misc]
         dialogs._dialog = None
+        errors._failures = 0
         self.addons.close()
         self.main.close()
         themes.select("nocturne")
@@ -49,8 +59,23 @@ class OwnerWindowTest(unittest.TestCase):
         self.assertEqual(dialog.windowModality(), Qt.WindowModality.WindowModal)
         self.assertTrue(dialog.isVisible())
         # Como la configuración de cualquier complemento en Anki, y sin el botón «?».
-        self.assertEqual(dialog.windowTitle(), "Configurar 'Atelier'")
+        self.assertEqual(dialog.windowTitle(), "Atelier")
         self.assertFalse(dialog.windowFlags() & Qt.WindowType.WindowContextHelpButtonHint)
+
+    def test_panel_opens_over_the_window_that_asks(self) -> None:
+        # Con el panel, también sobre la ventana que lo pide (regla de FIX-007).
+        received = []
+
+        class FakePanel(QDialog):
+            def __init__(self, owner: QWidget, on_timeout: object) -> None:
+                super().__init__(owner)
+                received.append(owner)
+
+        panel.PanelDialog = FakePanel  # type: ignore[assignment,misc]
+        dialogs.open_dialog()
+        self.assertEqual(received, [self.addons])
+        assert dialogs._dialog is not None
+        self.assertIsInstance(dialogs._dialog, FakePanel)
 
     def test_shows_the_current_palette(self) -> None:
         themes.select("bosque")
@@ -93,7 +118,7 @@ class PaletteChoiceTest(unittest.TestCase):
         combo = dialog.findChild(QComboBox)
         assert combo is not None
         names = [combo.itemText(i) for i in range(combo.count())]
-        self.assertEqual(names, ["Nocturne" + strings.DEFAULT_SUFFIX, "Papel", "Bosque", "Lavanda", "Atardecer"])
+        self.assertEqual(names, ["Atardecer", "Bosque", "Lavanda", "Nocturne" + strings.DEFAULT_SUFFIX, "Papel"])
         for i in range(combo.count()):
             self.assertFalse(combo.itemIcon(i).isNull(), names[i])
         texts = [label.text() for label in dialog.findChildren(QLabel)]
@@ -150,6 +175,44 @@ class PaletteChoiceTest(unittest.TestCase):
 
     def test_contrast_check_is_safe(self) -> None:
         self.assertIsInstance(contrast.system_wants_more_contrast(), bool)
+
+
+class PanelTest(unittest.TestCase):
+    """Versión 3.7.0 (informe del 2026-10-28): panel a medida con las cinco paletas a la
+    vista, por orden alfabético, cada una con su miniatura de día y de noche."""
+
+    def test_alphabetical_order(self) -> None:
+        self.assertEqual(panel.ordered_ids(), ["atardecer", "bosque", "lavanda", "nocturne", "papel"])
+
+    def test_payload_has_both_thumbnails_and_texts(self) -> None:
+        data = panel.payload("bosque", night=True, failures=False, stepped_aside=False)
+        self.assertEqual([p["id"] for p in data["palettes"]], panel.ordered_ids())
+        self.assertEqual(data["current"], "bosque")
+        self.assertEqual(data["texts"]["modeNote"], strings.MODE_NOTE_NIGHT)
+        for entry in data["palettes"]:
+            colors = themes.THEMES[entry["id"]]["colors"]
+            self.assertEqual(entry["day"]["canvas"], colors["CANVAS"]["light"][:7])
+            self.assertEqual(entry["night"]["action"], colors["BUTTON_PRIMARY_BG"]["dark"][:7])
+            self.assertEqual(entry["isDefault"], entry["id"] == "nocturne")
+        papel = next(p for p in data["palettes"] if p["id"] == "papel")
+        self.assertIn("Georgia", papel["headingFont"])
+
+    def test_script_safe(self) -> None:
+        self.assertNotIn("</", panel._script_safe('{"a": "</script>"}'))
+
+    def test_web_exports_are_closed(self) -> None:
+        import re
+
+        pattern = re.compile(panel.WEB_PATTERN)
+        self.assertTrue(pattern.fullmatch("web/panel.css"))
+        self.assertTrue(pattern.fullmatch("web/panel.js"))
+        for bad in ("web/../../otro/x.js", "web/panel.css/../x.js", "web/otro.js", "web/sub/panel.js"):
+            self.assertIsNone(pattern.fullmatch(bad), bad)
+
+    def test_bridge_orders(self) -> None:
+        # Las órdenes de la página, sin ventana: elegir, vista previa y aceptar.
+        dialog = panel.PanelDialog.__new__(panel.PanelDialog)
+        self.assertTrue(callable(dialog.handle))
 
 
 class DescriptionTest(unittest.TestCase):

@@ -1,4 +1,7 @@
-"""Ventana de configuración: elegir una de las cinco paletas.
+"""Ventana sencilla de configuración: elegir una de las cinco paletas.
+
+Desde la versión 3.7.0 es la salida de emergencia del panel a medida (panel.py): se
+abre si el panel falla o no se dibuja en 3 segundos.
 
 Se hace como las de Anki (Preferencias > Interfaz de usuario): controles estándar
 y los botones estándar, sin hojas de estilo propias, para que herede el tema, el
@@ -20,7 +23,6 @@ debajo la descripción de la elegida.
 
 from __future__ import annotations
 
-from anki.lang import without_unicode_isolation
 from aqt import gui_hooks, mw
 from aqt.qt import (
     QColor,
@@ -44,10 +46,10 @@ from aqt.qt import (
     QWidget,
 )
 from aqt.theme import theme_manager
-from aqt.utils import disable_help_button, openFolder, tr
+from aqt.utils import disable_help_button, openFolder
 
-from . import actions, config, contrast, errors, strings, themes
-from .errors import guard
+from . import actions, config, contrast, errors, panel, strings, themes
+from .errors import guard, note_failure
 
 # La vista previa espera a que la elección lleve este tiempo quieta, para que recorrer
 # las paletas con las flechas no repinte Anki a cada paso.
@@ -100,9 +102,8 @@ class PaletteDialog(QDialog):
     def __init__(self, parent: QWidget | None) -> None:
         super().__init__(parent)
         # El mismo título que Anki pone a la configuración de cualquier complemento.
-        self.setWindowTitle(
-            without_unicode_isolation(tr.addons_config_window_title(name=strings.ADDON_NAME))
-        )
+        # Versión 3.7.0: el título es el nombre del complemento, como el panel.
+        self.setWindowTitle(strings.ADDON_NAME)
         disable_help_button(self)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self._original = themes.current_id()
@@ -114,7 +115,7 @@ class PaletteDialog(QDialog):
 
         self._combo = QComboBox()
         self._combo.setIconSize(QSize(_SWATCH, _SWATCH))
-        for theme_id in themes.THEMES:
+        for theme_id in panel.ordered_ids():  # orden alfabético, como el panel
             name = strings.THEME_NAMES[theme_id]
             if theme_id == themes.DEFAULT_THEME:
                 name += strings.DEFAULT_SUFFIX
@@ -245,7 +246,7 @@ class PaletteDialog(QDialog):
 
 
 # Referencia a la ventana abierta, para que el recolector de basura no la cierre.
-_dialog: PaletteDialog | None = None
+_dialog: QDialog | None = None
 
 
 def _owner() -> QWidget | None:
@@ -269,6 +270,23 @@ def open_dialog() -> None:
     #        padre; se crea en cada apertura, como hace Anki con la suya, porque la ventana
     #        de complementos se destruye al cerrarse y se llevaría una ventana reutilizada.
     """
+    global _dialog
+    owner = _owner()
+    if owner is None:
+        return
+    # Versión 3.7.0: el panel a medida; si falla al crearse o no se dibuja en 3 s, la
+    # ventana sencilla de controles de Anki, que hace lo mismo.
+    try:
+        _dialog = panel.PanelDialog(owner, on_timeout=_open_simple)
+    except Exception:
+        note_failure("no se pudo crear el panel; se abre la ventana sencilla")
+        _open_simple()
+        return
+    _dialog.open()
+
+
+@guard
+def _open_simple() -> None:
     global _dialog
     owner = _owner()
     if owner is None:

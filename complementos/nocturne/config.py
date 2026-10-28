@@ -43,21 +43,35 @@ def save(theme_id: str) -> None:
     mw.addonManager.writeConfig(__name__, config)
 
 
-def welcome_shown(config: Any) -> bool:
-    """True si el aviso de bienvenida ya se mostró."""
-    return isinstance(config, dict) and config.get(WELCOME_KEY) is True
+RENAMED_KEY = "renamed_shown"
 
 
-def take_welcome() -> bool:
-    """True la primera vez que se pide; lo anota para que no se repita."""
+def notice_for(config: Any) -> str | None:
+    """Qué aviso único toca: «welcome» a quien instala por primera vez, «renamed» a quien
+    ya tenía el complemento con el nombre de Nocturne (vio su bienvenida) y nada si ya
+    vio el que le toca."""
+    if not isinstance(config, dict):
+        return "welcome"
+    if config.get(WELCOME_KEY) is not True:
+        return "welcome"
+    if config.get(RENAMED_KEY) is not True:
+        return "renamed"
+    return None
+
+
+def take_notice() -> str | None:
+    """El aviso único que toca (y lo anota para que no se repita). Quien lo recibe por
+    primera vez ya conoce el nombre nuevo, así que queda anotado también el de nombre."""
     from aqt import mw
 
     if mw is None:
-        return False
+        return None
     config = mw.addonManager.getConfig(__name__)
-    if welcome_shown(config):
-        return False
+    notice = notice_for(config)
+    if notice is None:
+        return None
     data = dict(config) if isinstance(config, dict) else {}
     data[WELCOME_KEY] = True
+    data[RENAMED_KEY] = True
     mw.addonManager.writeConfig(__name__, data)
-    return True
+    return notice

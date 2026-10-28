@@ -1,6 +1,6 @@
 # Qué hace «Atelier»
 
-Versión 3.6.0 · 2026-10-28
+Versión 3.7.0 · 2026-10-28
 
 Temas de color para Anki, en modo día y en modo noche. Trae cinco paletas (Nocturne, Papel, Bosque,
 Lavanda y Atardecer), y Nocturne está elegida de serie. Hasta la 3.5.0 el complemento se llamaba
@@ -32,8 +32,10 @@ cliente.
 - La primera vez que Anki arranca con el complemento instalado, un segundo y medio después de abrirse
   la ventana principal, sale durante 6 segundos el aviso de Anki «Atelier está activo, con la paleta
   Nocturne. Para elegir otra: Herramientas > Complementos > Atelier > Configuración.». Solo una vez: no
-  vuelve a salir, ni al cambiar de perfil ni al actualizar (quien ya vio el aviso de la 3.5.0 no lo
-  vuelve a ver).
+  vuelve a salir, ni al cambiar de perfil ni al actualizar.
+- A quien ya tenía el complemento cuando se llamaba Nocturne (vio su aviso de bienvenida), en su
+  lugar sale una sola vez «Nocturne ahora se llama Atelier. Su paleta sigue igual.» (desde la
+  3.7.0).
 - La paleta elegida se nota en todas las ventanas de Anki (la principal, Explorar, Añadir, Editar,
   Preferencias, menús, listas, tablas, casillas, botones, barras de desplazamiento y diálogos) y en sus
   páginas (barra superior, lista de mazos, pantalla de un mazo, repaso alrededor de la tarjeta y sus
@@ -41,39 +43,61 @@ cliente.
 - No cambia el aspecto de las tarjetas, que decide su plantilla, ni toca páginas de internet que otro
   complemento abra dentro de Anki.
 
-## 2. La ventana de configuración
+## 2. El panel de configuración (desde la 3.7.0)
 
-- Con el mismo diseño que las opciones de GritMap (petición del cliente, 2026-10-28), para que los dos
-  complementos se vean de la misma familia, y hecha con controles de Anki: hereda el tema, el teclado
-  y el idioma. Título: «Configurar 'Atelier'», el mismo que Anki pone a la configuración de cualquier
-  complemento. Sin el botón «?» en la barra de título.
-- Se abre encima de la ventana de complementos y, mientras está abierta, esa ventana no responde
-  (como con cualquier diálogo de Anki). Aparece centrada sobre ella y con el tamaño justo para su
-  contenido.
-- Una fila «Paleta» con una lista desplegable: «Nocturne (predeterminada)», «Papel», «Bosque»,
-  «Lavanda» y «Atardecer». Cada una lleva a su izquierda su muestra de color, como los temas de
-  GritMap: un cuadrito con el fondo de la paleta, su borde y un punto de su color de acción, en el modo
-  (día o noche) que tenga Anki en ese momento; si cambia de modo con la ventana abierta, las muestras
-  cambian. Alt+P lleva a la lista; con la lista seleccionada, las flechas cambian de paleta. Al
-  abrirla, está elegida la paleta activa.
-- Debajo, en el texto secundario, la descripción de la paleta elegida (textos en el apartado 3), que
-  cambia al cambiar de paleta, y la línea «Cada paleta tiene versión de día y de noche, y cambia con
-  el modo que elija en las preferencias de Anki.». La ventana no cambia de tamaño al cambiar de
-  paleta.
-- Vista previa: al elegir una paleta, a los 200 milisegundos de dejar quieta la elección (para que
-  recorrerlas con las flechas no repinte Anki a cada paso), se aplica a todo Anki, también a la propia
-  ventana y a lo que se ve detrás. «Aceptar» (también Ctrl+Intro, como en la configuración de Anki) la
-  conserva y la guarda, sin más avisos: el cambio ya se ha visto. «Cancelar», Esc o la X vuelven a la
-  paleta que había al abrir la ventana.
-- «Restaurar los valores predeterminados» elige Nocturne y también la muestra; como las demás, se
-  conserva con «Aceptar» o se deshace con «Cancelar». Los nombres de los botones los pone Anki en su
-  idioma.
-- Solo si en la sesión algo no se pudo pintar, encima de los botones sale la línea «Alguna parte de
-  Anki no se pudo pintar y conserva su aspecto normal.» con el botón «Abrir el registro», que abre la
-  carpeta del registro del complemento. Sin fallos, esa línea no existe.
-- Si su sistema pide más contraste (apartado 5), arriba sale: «Su sistema pide más contraste. Mientras
-  siga así, Atelier deja los colores del sistema; la paleta que elija se aplicará cuando vuelva al
-  contraste normal y reinicie Anki.». Se puede elegir y guardar la paleta, pero sin vista previa.
+Un panel a medida, con el mismo material y las mismas medidas que el de GritMap 4.11.2 (informe del
+cliente del 2026-10-28): es una página dentro de la ventana, como las opciones de mazo de Anki.
+
+- Título de la ventana: «Atelier», sin el botón «?». Se abre centrado encima de la ventana de
+  complementos, que no responde mientras está abierto (como con cualquier diálogo de Anki). Mide
+  560 px de ancho y el alto justo para su contenido (unos 650 px con la interfaz al 100 %), como
+  mucho 720 px o el alto de la pantalla menos 80 px; si no cabe, el cuerpo se desplaza y la cabecera
+  y el pie quedan fijos. No se enseña hasta que está dibujado, para que no parpadee.
+- Cabecera «Paleta» (14 px, seminegrita). Debajo, en el texto secundario: «Elija una paleta: se ve
+  ya en Anki y se guarda al aceptar.».
+- Encima de la lista, una sola vez, los rótulos «Día» y «Noche»: el del modo en que está Anki, en el
+  color del texto y en seminegrita; el otro, en el secundario. Cambian si Anki cambia de modo con el
+  panel abierto.
+- Las cinco paletas a la vista, una debajo de otra y por orden alfabético, como los temas de GritMap:
+  Atardecer, Bosque, Lavanda, Nocturne y Papel. Cada una es un recuadro de 76 px de alto con:
+  - dos miniaturas de 80 × 48 px, la de día y la de noche, que son la lista de mazos reducida a lo
+    que cambia entre paletas: su fondo, su borde, la barra superior, un recuadro con dos filas (texto
+    principal y secundario) y los tres puntos azul, rojo y verde de Nuevas, Aprendiendo y A repasar, y
+    un botón del color de acción, con la esquina de esa paleta. La de día va siempre en sus colores
+    de día y la de noche en los de noche, esté Anki como esté;
+  - el nombre (en Papel, en su letra de títulos, Georgia o Cambria), con «predeterminada» detrás en
+    Nocturne, y debajo la descripción (apartado 3);
+  - a la derecha, una marca ✓ en la elegida.
+- La elegida lleva borde de 2 px en el tono de trazo de acción, por dentro (nada se mueve), el fondo
+  con el tinte de acción y la ✓. Con el ratón encima, el borde se oscurece. Toda la fila se pulsa.
+- Un clic en una paleta la aplica al momento a todo Anki, también al propio panel. Con el teclado: el
+  tabulador entra en la paleta elegida; las flechas (arriba, abajo, izquierda o derecha) pasan a la
+  siguiente y la eligen, y de la última vuelven a la primera; se aplica cuando la elección lleva 200
+  milisegundos quieta, para que recorrerlas no repinte Anki a cada paso; la barra espaciadora elige la
+  que tiene el foco. El foco se ve con un contorno de 2 px del color de acción.
+- «Aceptar» (o Ctrl+Intro) conserva y guarda la paleta, sin más avisos: el cambio ya se ha visto.
+  «Cancelar», Esc o la X vuelven a la paleta que había al abrir el panel. En Windows, «Aceptar» va
+  primero, como en sus ventanas; en macOS y Linux, a la derecha. «Aceptar» es el único botón relleno.
+- Debajo de la lista: «Cada paleta tiene versión de día y de noche. Anki está ahora en modo noche; el
+  modo se cambia en Preferencias de Anki.» (o «modo día»).
+- No hay «Restaurar los valores predeterminados»: Nocturne ya dice «predeterminada» en su fila y un
+  clic la elige.
+- Avisos, arriba y en una franja de fondo hundido con un icono de aviso, sin rojo:
+  - solo si en la sesión algo no se pudo pintar: «Alguna parte de Anki no se pudo pintar y conserva su
+    aspecto normal.», con el botón «Abrir el registro», que abre la carpeta del registro;
+  - si su sistema pide más contraste (apartado 5), en lugar de la línea de introducción: «Su sistema
+    pide más contraste: Atelier deja sus colores. La paleta que elija se aplicará cuando vuelva al
+    contraste normal y reinicie Anki.». Se puede elegir y guardar, sin vista previa. Con los temas de
+    contraste de Windows, el panel se dibuja con los colores del sistema salvo las miniaturas, que
+    conservan los suyos porque son lo que se elige.
+- Para un lector de pantalla, la lista es un grupo de botones de opción llamado «Paleta»; cada opción
+  se lee por su nombre, con la descripción como información adicional; las miniaturas no se leen.
+- El texto del panel no se puede seleccionar con el ratón, como en GritMap.
+- Salida de emergencia: si el panel falla al crearse o no avisa de que está dibujado en 3 segundos,
+  se cierra sin cambiar nada y se abre la ventana sencilla: una fila «Paleta» con una lista desplegable
+  de las cinco paletas (por orden alfabético, con su muestra de color), la descripción de la elegida
+  debajo, la misma vista previa y los botones «Restaurar los valores predeterminados», «Cancelar» y
+  «Aceptar». El fallo queda en el registro y en la línea de aviso de la próxima vez.
 - Solo se elige la paleta: no hay ajustes sueltos. Así lo decidió el cliente (2026-10-21).
 
 ## 3. Las cinco paletas
@@ -95,16 +119,16 @@ después su forma. Valen para el día y para la noche. Desde la 3.5.0 dicen «bo
   texto #2A2520, acento #1F6A80. De noche («Tinta», elegida por el cliente el 2026-10-21): fondo azul
   petróleo muy oscuro #10171A, de la misma familia que el acento, y texto crema #E3DAC9; acento
   #1F6E85. Títulos de las páginas en Georgia (o Cambria), en negrita; descripciones con más espacio
-  entre líneas; esquinas de 7px en botones y campos y 14px en los recuadros; filas de la lista de mazos un poco más holgadas;
+  entre líneas; esquinas de 6px en botones y campos y 12px en los recuadros (desde la 3.7.0; antes 7 y 14); filas de la lista de mazos un poco más holgadas;
   degradado azul petróleo muy tenue.
 - Bosque. «Verdes grisáceos y botones verde azulado. Esquinas redondeadas y filas amplias.». Fondo
   #F3F7F4 y #111814; texto #17251C y #D5E0D8; acento #0F766E y #0E7068. Las esquinas más redondeadas de
   las cinco junto con Atardecer (8px en botones y campos y 16px en los recuadros), las filas más
   holgadas y un degradado verde azulado muy tenue.
-- Lavanda (desde la 3.6.0). «Grises lila y botones violeta. Letra del sistema y esquinas suaves.».
+- Lavanda (desde la 3.6.0). «Grises lila y botones violeta. Letra y esquinas como Nocturne.».
   Fondo #F8F7FA de día y #17121F de noche; texto #231B30 y #DAD6E1; violeta de acción #7B47D4 y
-  #804CDA. Fría y tranquila, como Nocturne pero en lila. Esquinas de 7px en botones y campos y 14px en
-  los recuadros; degradado violeta muy tenue. Barra de título lila: #FBFAFE de día y #0C0716 de noche.
+  #804CDA. Fría y tranquila, como Nocturne pero en lila. Esquinas de 6px en botones y campos y 12px en
+  los recuadros (desde la 3.7.0; antes 7 y 14); degradado violeta muy tenue. Barra de título lila: #FBFAFE de día y #0C0716 de noche.
 - Atardecer (desde la 3.6.0). «Melocotón y marrón cálido, con botones cobre. Esquinas redondeadas.».
   Fondo melocotón muy claro #FCF8F5 de día y marrón cálido #1F1712 de noche; texto #261C15 y #E1DAD6;
   cobre de acción #845727 y #8F5D27. Cálida, para estudiar con luz baja. Esquinas de 8px en botones y
@@ -170,6 +194,14 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   los trazos (contornos de foco, anillo del botón principal, bordes de casillas con el ratón o el foco
   y enlaces). De día casi coinciden; de noche el de trazo es más claro, y se ve a 3 a 1 o más sobre
   cualquier fondo (a 4,3 o más sobre el de la ventana).
+- Repaso (desde la 3.7.0): «Editar» y «Más», a los lados de la barra inferior, sin fondo ni borde
+  (el borde queda transparente, así que no cambian de tamaño) y con un fondo suave al pasar el ratón,
+  como la barra superior: así, los botones de respuesta son lo único con forma de botón.
+- Menús y listas desplegables de las ventanas (desde la 3.7.0): la opción con el ratón o el teclado
+  encima se marca con el tinte de acción y el texto normal, como la fila del mazo actual y las filas de
+  Explorar, en vez del relleno azul con texto blanco de Anki: una sola forma de marcar lo
+  seleccionado. Las cabeceras de las columnas de Explorar van en el texto secundario, como las de la
+  lista de mazos.
 - Repaso: los intervalos que salen encima de los botones de respuesta («10 min», «4 d») van en el texto
   secundario y con cifras de igual ancho (desde la 3.5.0). «Comenzar a estudiar» ya va relleno del
   color de acción con texto blanco: lo hace Anki con el azul de la paleta. Las cifras en cero de la
@@ -190,7 +222,8 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   apagado. Al moverse con Tab entre botones, el relleno sigue al botón que respondería a Intro.
 - Esquinas según la paleta, con una regla para todas (desde la 3.5.0): botones y campos (de texto,
   listas desplegables, listas) llevan la misma esquina, y los recuadros de las páginas, el doble.
-  Nocturne 6 y 12px, Papel y Lavanda 7 y 14px, Bosque y Atardecer 8 y 16px. Las casillas, 4px, para que no parezcan botones
+  Desde la 3.7.0, dos familias separadas un 33 %: suaves (6 y 12px: Nocturne, Papel y Lavanda) y
+  redondeadas (8 y 16px: Bosque y Atardecer). Las casillas, 4px, para que no parezcan botones
   de opción (estos siguen redondos).
 - Casillas y botones de opción con un borde visible sin marcar; con el ratón encima o con el foco, el
   borde toma el color de acción.
@@ -237,7 +270,8 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
 
 ## 7. Qué guarda
 
-- El nombre de la paleta elegida y, desde la 3.5.0, que ya salió el aviso de bienvenida, en la
+- El nombre de la paleta elegida y que ya salieron el aviso de bienvenida (desde la 3.5.0) y el del
+  nombre nuevo (desde la 3.7.0), en la
   configuración del complemento (la que Anki guarda en su carpeta de complementos). No es un ajuste:
   no aparece en ninguna ventana. Es la misma para todos los perfiles. No viaja con la sincronización.
 - Si esa configuración falta, es antigua o tiene un valor que no existe (por ejemplo, «grafito» o

@@ -135,3 +135,20 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 3.6.0 · El cobre de Atardecer tiene un matiz parecido al naranja de «Difícil» y de la bandera
   naranja; se distingue por claridad (mucho más oscuro) y lo vigila una prueba. Decisión del taller,
   dentro de la paleta que eligió el cliente.
+- 3.7.0 · La ventana de configuración es un panel a medida (una página), no controles de Anki como
+  pide la guía del taller. Pedido por el cliente el 2026-10-28 (informe, apartados 2 a 7), para que
+  sea igual que el de GritMap. Si el panel falla o no se dibuja en 3 segundos, se abre la ventana
+  sencilla de controles de Anki.
+- 3.7.0 · El panel no tiene «Restaurar los valores predeterminados»: Nocturne dice «predeterminada»
+  en su fila. La ventana sencilla de emergencia sí lo conserva. Pedido por el cliente (informe, 3.3).
+- 3.7.0 · Paletas por orden alfabético (Atardecer, Bosque, Lavanda, Nocturne, Papel), como los temas de
+  GritMap, en lugar de la de serie primero. Pedido por el cliente (informe, 3.4).
+- 3.7.0 · Papel y Lavanda pasan de esquinas de 7 y 14 px a 6 y 12, para formar dos familias claras
+  (suaves y redondeadas). El informe proponía también, para Papel, 4 y 8 px («casi rectas»); no se ha
+  aplicado porque cambia a la vista una paleta que ya se usa: queda a decisión del cliente.
+- 3.7.0 · Las pestañas de Anki no cambian (el informe proponía una raya de 2 px): Anki ya marca la
+  activa rellena del color de acción con texto blanco, que no depende solo del tono. Decisión del
+  taller.
+- 3.7.0 · No hay simulación de daltonismo de las series de las estadísticas: sus gráficas usan colores
+  propios de Anki que Atelier no cambia, así que no hay nada que comprobar desde el complemento.
+  Decisión del taller.

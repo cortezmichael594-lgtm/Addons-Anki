@@ -19,9 +19,32 @@ HIGH_CONTRAST = (
     "reinicie Anki."
 )
 FAILURES = "Alguna parte de Anki no se pudo pintar y conserva su aspecto normal."
+
+# Panel a medida (versión 3.7.0, informe del 2026-10-28).
+PANEL_TITLE = "Paleta"
+PANEL_INTRO = "Elija una paleta: se ve ya en Anki y se guarda al aceptar."
+DAY = "Día"
+NIGHT = "Noche"
+DEFAULT_WORD = "predeterminada"
+MODE_NOTE_DAY = (
+    "Cada paleta tiene versión de día y de noche. Anki está ahora en modo día; el modo "
+    "se cambia en Preferencias de Anki."
+)
+MODE_NOTE_NIGHT = (
+    "Cada paleta tiene versión de día y de noche. Anki está ahora en modo noche; el modo "
+    "se cambia en Preferencias de Anki."
+)
+HIGH_CONTRAST_BANNER = (
+    "Su sistema pide más contraste: Atelier deja sus colores. La paleta que elija se "
+    "aplicará cuando vuelva al contraste normal y reinicie Anki."
+)
+ACCEPT = "Aceptar"
+CANCEL = "Cancelar"
 OPEN_LOG = "Abrir el registro"
 
 # Aviso que sale una sola vez, la primera vez que Anki arranca con el complemento.
+# A quien ya tenía el complemento con el nombre antiguo (3.5.0 o anterior), una vez.
+RENAMED = "Nocturne ahora se llama Atelier. Su paleta sigue igual."
 WELCOME = (
     "Atelier está activo, con la paleta Nocturne. Para elegir otra: Herramientas > "
     "Complementos > Atelier > Configuración."
@@ -42,6 +65,6 @@ THEME_DESCRIPTIONS = {
     "nocturne": "Grises azulados y botones azules. Letra del sistema y esquinas suaves.",
     "papel": "Papel y tinta, con botones azul petróleo. Títulos con remates, como un libro.",
     "bosque": "Verdes grisáceos y botones verde azulado. Esquinas redondeadas y filas amplias.",
-    "lavanda": "Grises lila y botones violeta. Letra del sistema y esquinas suaves.",
+    "lavanda": "Grises lila y botones violeta. Letra y esquinas como Nocturne.",
     "atardecer": "Melocotón y marrón cálido, con botones cobre. Esquinas redondeadas.",
 }
