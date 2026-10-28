@@ -1,5 +1,6 @@
 // Historial de correcciones de este archivo:
 // FIX-009 (2026-10-28): el panel no se mostraba nunca y siempre se abría la ventana sencilla.
+// FIX-011 (2026-10-28): con la 3.7.1, el panel seguía sin mostrarse.
 
 // Atelier - panel de configuración a medida (versión 3.7.0).
 //
@@ -17,8 +18,31 @@
     var SVG = "http://www.w3.org/2000/svg";
     var state = { data: null, rows: [], current: null };
 
+    // --- FIX-011 (2026-10-28) ---
+    // Síntoma: con la 3.7.1 el panel seguía sin mostrarse: a los 3 segundos salía la ventana
+    //          sencilla y el registro decía «el panel no se dibujó en 3000 ms».
+    // Causa: Anki crea pycmd cuando la página ha terminado de cargar y se ha conectado con él;
+    //        el panel avisaba antes, pycmd aún no existía y el aviso se perdía con un error.
+    //        Las pruebas no lo veían porque definían pycmd desde el principio.
+    // Regla: todo mensaje de una página a Anki espera a que exista pycmd (cada 10 ms, como
+    //        GritMap), y las pruebas de una página crean pycmd tarde, como Anki.
+    var outbox = [];
+
+    function flush() {
+        if (typeof window.pycmd !== "function") {
+            setTimeout(flush, 10);
+            return;
+        }
+        while (outbox.length) {
+            window.pycmd(outbox.shift());
+        }
+    }
+
     function send(action, arg) {
-        pycmd("nocturne:" + action + (arg === undefined ? "" : ":" + arg));
+        outbox.push("nocturne:" + action + (arg === undefined ? "" : ":" + arg));
+        if (outbox.length === 1) {
+            flush();
+        }
     }
 
     function el(tag, className, text) {

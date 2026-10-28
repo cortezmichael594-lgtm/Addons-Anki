@@ -69,6 +69,16 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   el ratón encima. Regla: toda raya o dibujo hecho como fondo lleva la orden de no repetirse. Prueba:
   «test_toolbar_and_answer_buttons».
 
+- FIX-011 · 2026-10-28 · versión 3.7.2 · Qué pasaba: con la 3.7.1 el panel seguía sin mostrarse y
+  salía la ventana sencilla («el panel no se dibujó en 3000 ms»): FIX-009 arregló una causa, pero no
+  la principal. Por qué: Anki crea la función con la que la página le habla cuando la página ha
+  terminado de cargar; el panel avisaba antes, la función aún no existía y el aviso se perdía. Las
+  pruebas no lo veían porque la creaban desde el principio. Regla: toda página espera a que exista esa
+  función antes de hablar con Anki (como GritMap), y las pruebas la crean tarde, como Anki. Además,
+  si a los 3 segundos la página ha cargado pero no ha avisado (la primera vez en una sesión, el
+  navegador de Anki puede tardar en arrancar), se enseña igualmente. Prueba:
+  «test_page_waits_for_pycmd»; y, dibujándola como la carga Anki, antes daba «pycmd is not defined» y
+  ahora avisa con 646 px.
 ## Así a propósito
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.

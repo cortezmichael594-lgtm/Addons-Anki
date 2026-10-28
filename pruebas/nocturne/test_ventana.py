@@ -223,6 +223,16 @@ class PanelTest(unittest.TestCase):
         for bad in ("web/../../otro/x.js", "web/panel.css/../x.js", "web/otro.js", "web/sub/panel.js"):
             self.assertIsNone(pattern.fullmatch(bad), bad)
 
+    def test_page_waits_for_pycmd(self) -> None:
+        # Regresión de FIX-011: Anki crea pycmd tarde; la página solo lo usa cuando existe.
+        import re
+        from pathlib import Path
+
+        js = (Path(panel.__file__).parent / "web" / "panel.js").read_text(encoding="utf-8")
+        calls = re.findall(r"[\w.]*pycmd\(", js)
+        self.assertEqual(calls, ["window.pycmd("], calls)
+        self.assertIn('typeof window.pycmd !== "function"', js)
+
     def test_bridge_orders(self) -> None:
         # Las órdenes de la página, sin ventana: elegir, vista previa y aceptar.
         dialog = panel.PanelDialog.__new__(panel.PanelDialog)

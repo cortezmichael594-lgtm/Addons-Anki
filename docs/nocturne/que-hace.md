@@ -1,6 +1,6 @@
 # Qué hace «Atelier»
 
-Versión 3.7.1 · 2026-10-28
+Versión 3.7.2 · 2026-10-28
 
 Temas de color para Anki, en modo día y en modo noche. Trae cinco paletas (Nocturne, Papel, Bosque,
 Lavanda y Atardecer), y Nocturne está elegida de serie. Hasta la 3.5.0 el complemento se llamaba
@@ -93,9 +93,11 @@ cliente del 2026-10-28): es una página dentro de la ventana, como las opciones 
 - Para un lector de pantalla, la lista es un grupo de botones de opción llamado «Paleta»; cada opción
   se lee por su nombre, con la descripción como información adicional; las miniaturas no se leen.
 - El texto del panel no se puede seleccionar con el ratón, como en GritMap.
-- En la 3.7.0 el panel no llegaba a mostrarse y siempre salía la ventana sencilla; se corrigió en la
-  3.7.1 (FIX-009, en errores).
-- Salida de emergencia: si el panel falla al crearse o no avisa de que está dibujado en 3 segundos,
+- En la 3.7.0 y la 3.7.1 el panel no llegaba a mostrarse y siempre salía la ventana sencilla; se
+  corrigió en la 3.7.2 (FIX-009 y FIX-011, en errores).
+- Si a los 3 segundos la página ha cargado pero aún no ha avisado de que está lista (la primera vez en
+  una sesión, el navegador de Anki puede tardar en arrancar), el panel se enseña igualmente.
+- Salida de emergencia: si el panel falla al crearse o su página no ha cargado a los 3 segundos,
   se cierra sin cambiar nada y se abre la ventana sencilla: una fila «Paleta» con una lista desplegable
   de las cinco paletas (por orden alfabético, con su muestra de color), la descripción de la elegida
   debajo, la misma vista previa y los botones «Restaurar los valores predeterminados», «Cancelar» y
