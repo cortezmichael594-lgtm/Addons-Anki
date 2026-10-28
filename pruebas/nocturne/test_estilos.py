@@ -99,6 +99,8 @@ class WebStyleTest(unittest.TestCase):
                             (3, "var(--state-review)"), (4, "var(--state-new)")):
             self.assertIn(f"button[data-ease='{ease}'] {{ background-image: linear-gradient(to top, {value}", css)
             self.assertIn(f"button[data-ease='{ease}']:hover", css)
+        # Regresión de FIX-010: la raya no se repite arriba del botón.
+        self.assertIn("background-repeat: no-repeat; }", css)
 
     def test_quick_transitions_and_quiet_labels(self) -> None:
         # Versión 3.3.0: respuesta en 100 ms y etiquetas en el texto secundario, cada
@@ -132,6 +134,11 @@ class WebStyleTest(unittest.TestCase):
         self.assertIn("td.stat > button { background: transparent; border-color: transparent;", css)
         self.assertIn("--nocturne-control-radius:", css)
         self.assertIn("--nocturne-control-border:", css)
+
+    def test_deck_table_same_material_as_cards(self) -> None:
+        for theme_id in themes.THEMES:
+            css = self.css_for(theme_id)
+            self.assertIn("table:has(tr.deck) { background: var(--canvas-elevated); }", css, theme_id)
 
     def test_switching_changes_the_css(self) -> None:
         first = self.css_for("papel")

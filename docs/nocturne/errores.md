@@ -51,6 +51,24 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   pide (la activa, no la principal) y se abre delante de ella, bloqueándola mientras esté abierta,
   como hace Anki con la suya. Prueba: «OwnerWindowTest», que falló antes del arreglo y pasa después.
 
+- FIX-008 · 2026-10-28 · versión 3.7.1 · Qué pasaba: en la ventana sencilla de configuración, al pulsar
+  «Abrir el registro» no se abría nada y cada pulsación anotaba otro fallo en el registro (por eso la
+  línea de aviso no desaparecía). Por qué: el botón avisa con un dato (si está marcado) y la función no
+  lo aceptaba. Regla: toda función conectada a la pulsación de un botón acepta ese dato. Prueba: la de
+  la línea de fallos pulsa el botón; falló antes del arreglo y pasa después.
+- FIX-009 · 2026-10-28 · versión 3.7.1 · Qué pasaba: el panel de configuración de la 3.7.0 no se
+  mostraba nunca: a los 3 segundos se abría siempre la ventana sencilla de emergencia, y el registro
+  decía «el panel no se dibujó en 3000 ms». Por qué: el panel está oculto hasta que avisa de que está
+  listo, y esperaba a pintarse para avisar; una página oculta no se pinta, así que cada uno esperaba
+  al otro. Además, oculto no sabía su ancho y habría pedido 1.878 px de alto. Regla: una página que se
+  enseña cuando avisa de que está lista avisa sin esperar a pintarse, y mide su alto con el ancho de
+  la ventana. Comprobado dibujándola oculta: antes no avisaba; ahora avisa con 646 px.
+- FIX-010 · 2026-10-28 · versión 3.7.1 · Qué pasaba: al pasar el ratón por un botón de respuesta (por
+  ejemplo «Fácil») salía una raya fina de su color arriba del botón, además de la de abajo. Por qué: el
+  navegador repetía la raya como un mosaico y asomaba por el borde semitransparente que Anki pone con
+  el ratón encima. Regla: toda raya o dibujo hecho como fondo lleva la orden de no repetirse. Prueba:
+  «test_toolbar_and_answer_buttons».
+
 ## Así a propósito
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.

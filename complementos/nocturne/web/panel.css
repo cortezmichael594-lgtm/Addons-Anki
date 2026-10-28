@@ -1,3 +1,7 @@
+/* Historial de correcciones de este archivo:
+ * FIX-009 (2026-10-28): el panel no se mostraba nunca y siempre se abría la ventana sencilla.
+ */
+
 /* Atelier - panel de configuración a medida (versión 3.7.0).
  *
  * El mismo material que el panel de GritMap 4.11.2: fondo de Anki, recuadros de capa
@@ -26,6 +30,12 @@ body {
 
 #nocturne-panel {
     height: 100%;
+    /* --- FIX-009 (2026-10-28) ---
+     * Síntoma: el panel no se mostraba y, al arreglar su aviso, pedía 1.878 px de alto.
+     * Causa: oculta hasta estar lista, la página no sabe su ancho y parte las líneas.
+     * Regla: el contenido tiene el ancho mínimo de la ventana (560 px), para medir su alto
+     *        igual oculto que visible. */
+    min-width: 560px;
     font-size: 12px;
     line-height: 16px;
     color: var(--fg);
