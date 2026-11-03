@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import colorsys
 import unittest
+from typing import ClassVar
 
 from aqt.browser.table import adjusted_bg_color
+
 from nocturne.palette import PALETTE
 from nocturne.themes import THEMES
 
@@ -48,7 +50,7 @@ def saturation(value: str) -> float:
 def blend(top: str, below: str) -> str:
     """Color resultante de un color con transparencia (#RRGGBBAA) sobre otro."""
     alpha = int(top[7:9], 16) / 255 if len(top) > 7 else 1.0
-    mixed = (alpha * a + (1 - alpha) * b for a, b in zip(_rgb(top), _rgb(below)))
+    mixed = (alpha * a + (1 - alpha) * b for a, b in zip(_rgb(top), _rgb(below), strict=False))
     return "#" + "".join(f"{round(c * 255):02X}" for c in mixed)
 
 
@@ -92,8 +94,18 @@ class TextContrastTest(unittest.TestCase):
     rojo de aviso quedaban por debajo de 4,5:1 (hasta 3,0:1). Vale para todas las
     paletas, también sobre el resaltado de la fila del mazo."""
 
-    TEXT = ("FG", "FG_SUBTLE", "FG_FAINT", "FG_LINK", "STATE_NEW", "STATE_LEARN", "STATE_REVIEW", "ACCENT_DANGER",
-            "ACCENT_CARD", "ACCENT_NOTE")
+    TEXT = (
+        "FG",
+        "FG_SUBTLE",
+        "FG_FAINT",
+        "FG_LINK",
+        "STATE_NEW",
+        "STATE_LEARN",
+        "STATE_REVIEW",
+        "ACCENT_DANGER",
+        "ACCENT_CARD",
+        "ACCENT_NOTE",
+    )
 
     def test_text_reads_on_every_surface(self) -> None:
         for theme in THEMES:
@@ -111,8 +123,13 @@ class PrimaryButtonTest(unittest.TestCase):
     en un azul más claro y su texto blanco bajaba a 3,9:1 (día) y 3,6:1 (noche).
     Desde 3.1.0 incluye el botón principal relleno de las ventanas (pulsado y anillo)."""
 
-    BLUES = ("BUTTON_PRIMARY_BG", "BUTTON_PRIMARY_GRADIENT_START", "BUTTON_PRIMARY_GRADIENT_END", "HIGHLIGHT_BG",
-             "NOCTURNE_PRIMARY_PRESSED")
+    BLUES = (
+        "BUTTON_PRIMARY_BG",
+        "BUTTON_PRIMARY_GRADIENT_START",
+        "BUTTON_PRIMARY_GRADIENT_END",
+        "HIGHLIGHT_BG",
+        "NOCTURNE_PRIMARY_PRESSED",
+    )
 
     def test_white_text_reads_in_every_state(self) -> None:
         for theme in THEMES:
@@ -128,14 +145,18 @@ class PrimaryButtonTest(unittest.TestCase):
             for mode in MODES:
                 ring = color("NOCTURNE_PRIMARY_RING", mode, theme)
                 self.assertGreaterEqual(contrast(ring, color("CANVAS", mode, theme)), 3.0, f"{theme} ({mode})")
-                self.assertGreaterEqual(contrast(ring, color("BUTTON_PRIMARY_BG", mode, theme)), 1.5, f"{theme} ({mode})")
+                self.assertGreaterEqual(
+                    contrast(ring, color("BUTTON_PRIMARY_BG", mode, theme)), 1.5, f"{theme} ({mode})"
+                )
 
     def test_states_get_darker(self) -> None:
         # Reposo, ratón encima y pulsado se distinguen: cada uno más oscuro.
         for theme in THEMES:
             for mode in MODES:
-                levels = [_luminance(color(n, mode, theme)) for n in
-                          ("BUTTON_PRIMARY_BG", "BUTTON_PRIMARY_GRADIENT_END", "NOCTURNE_PRIMARY_PRESSED")]
+                levels = [
+                    _luminance(color(n, mode, theme))
+                    for n in ("BUTTON_PRIMARY_BG", "BUTTON_PRIMARY_GRADIENT_END", "NOCTURNE_PRIMARY_PRESSED")
+                ]
                 self.assertGreater(levels[0], levels[1], f"{theme} ({mode})")
                 self.assertGreater(levels[1], levels[2], f"{theme} ({mode})")
 
@@ -181,8 +202,18 @@ class ExplorerRowsTest(unittest.TestCase):
     bandera quedaba entre 2,9:1 y 4,3:1. Anki pinta la fila con el color de la
     bandera aclarado de día y oscurecido de noche (APR-058)."""
 
-    ROWS = ("FLAG_1", "FLAG_2", "FLAG_3", "FLAG_4", "FLAG_5", "FLAG_6", "FLAG_7",
-            "STATE_MARKED", "STATE_SUSPENDED", "STATE_BURIED")
+    ROWS = (
+        "FLAG_1",
+        "FLAG_2",
+        "FLAG_3",
+        "FLAG_4",
+        "FLAG_5",
+        "FLAG_6",
+        "FLAG_7",
+        "STATE_MARKED",
+        "STATE_SUSPENDED",
+        "STATE_BURIED",
+    )
 
     def test_row_text_reads(self) -> None:
         for theme in THEMES:
@@ -216,9 +247,13 @@ class FlagMeaningTest(unittest.TestCase):
     Practical UI, P9)."""
 
     # Colores de Anki 26.09.3 (_aqt/colors.py): día y noche.
-    ANKI = {
-        "FLAG_1": ("#ef4444", "#f87171"), "FLAG_2": ("#fb923c", "#fdba74"), "FLAG_3": ("#4ade80", "#86efac"),
-        "FLAG_4": ("#3b82f6", "#60a5fa"), "FLAG_5": ("#e879f9", "#f0abfc"), "FLAG_6": ("#2dd4bf", "#5eead4"),
+    ANKI: ClassVar[dict[str, tuple[str, str]]] = {
+        "FLAG_1": ("#ef4444", "#f87171"),
+        "FLAG_2": ("#fb923c", "#fdba74"),
+        "FLAG_3": ("#4ade80", "#86efac"),
+        "FLAG_4": ("#3b82f6", "#60a5fa"),
+        "FLAG_5": ("#e879f9", "#f0abfc"),
+        "FLAG_6": ("#2dd4bf", "#5eead4"),
         "FLAG_7": ("#a855f7", "#c084fc"),
     }
 
@@ -231,7 +266,7 @@ class FlagMeaningTest(unittest.TestCase):
     def test_flags_keep_their_name(self) -> None:
         for theme in THEMES:
             for name, originals in self.ANKI.items():
-                for mode, original in zip(MODES, originals):
+                for mode, original in zip(MODES, originals, strict=False):
                     delta = hue_distance(color(name, mode, theme), original)
                     self.assertLessEqual(delta, 20.0, f"{theme}: {name} ({mode}): {delta:.0f}°")
 
@@ -240,9 +275,25 @@ class NightSaturationTest(unittest.TestCase):
     """Versión 3.1.0: de noche, los colores con significado no van saturados al
     máximo, para que no «vibren» sobre el fondo oscuro (Orbix, M3 y C3)."""
 
-    NAMES = ("STATE_NEW", "STATE_LEARN", "STATE_REVIEW", "STATE_MARKED", "STATE_SUSPENDED", "STATE_BURIED",
-             "ACCENT_DANGER", "ACCENT_CARD", "ACCENT_NOTE", "FG_LINK",
-             "FLAG_1", "FLAG_2", "FLAG_3", "FLAG_4", "FLAG_5", "FLAG_6", "FLAG_7")
+    NAMES = (
+        "STATE_NEW",
+        "STATE_LEARN",
+        "STATE_REVIEW",
+        "STATE_MARKED",
+        "STATE_SUSPENDED",
+        "STATE_BURIED",
+        "ACCENT_DANGER",
+        "ACCENT_CARD",
+        "ACCENT_NOTE",
+        "FG_LINK",
+        "FLAG_1",
+        "FLAG_2",
+        "FLAG_3",
+        "FLAG_4",
+        "FLAG_5",
+        "FLAG_6",
+        "FLAG_7",
+    )
 
     def test_night_colors_are_not_saturated(self) -> None:
         for theme in THEMES:
@@ -271,7 +322,9 @@ class NightComfortTest(unittest.TestCase):
             ratio = contrast(color("FG", "dark", theme), color("CANVAS", "dark", theme))
             self.assertLessEqual(ratio, 13.5, theme)
             for surface in SURFACES:
-                self.assertGreaterEqual(contrast(color("FG", "dark", theme), color(surface, "dark", theme)), 7.0, surface)
+                self.assertGreaterEqual(
+                    contrast(color("FG", "dark", theme), color(surface, "dark", theme)), 7.0, surface
+                )
 
     def test_selected_text_matches_text(self) -> None:
         for theme in THEMES:
@@ -303,7 +356,7 @@ class PerceivedContrastTest(unittest.TestCase):
     Practical UI (cifras del cap. 3): 75 para el texto principal, 60 para el
     secundario y 45 para lo menos importante."""
 
-    TEXT_SURFACES = SURFACES + ("CANVAS_CODE",)
+    TEXT_SURFACES = (*SURFACES, "CANVAS_CODE")
 
     def minimums(self, theme: str) -> tuple[tuple[str, int], ...]:
         return (("FG", 75), ("FG_SUBTLE", 60), ("FG_FAINT", 45), ("FG_LINK", 60))
@@ -314,20 +367,27 @@ class PerceivedContrastTest(unittest.TestCase):
                 for name, minimum in self.minimums(theme):
                     for surface in self.TEXT_SURFACES:
                         value = apca(color(name, mode, theme), color(surface, mode, theme))
-                        self.assertGreaterEqual(value, minimum, f"{theme}: {name} sobre {surface} ({mode}): {value:.1f}")
+                        self.assertGreaterEqual(
+                            value, minimum, f"{theme}: {name} sobre {surface} ({mode}): {value:.1f}"
+                        )
 
     def test_text_on_buttons(self) -> None:
         for theme in THEMES:
             for mode in MODES:
                 for surface in ("BUTTON_BG", "BUTTON_HOVER"):
-                    self.assertGreaterEqual(contrast(color("FG", mode, theme), color(surface, mode, theme)), 4.5, surface)
+                    self.assertGreaterEqual(
+                        contrast(color("FG", mode, theme), color(surface, mode, theme)), 4.5, surface
+                    )
                     self.assertGreaterEqual(apca(color("FG", mode, theme), color(surface, mode, theme)), 75, surface)
 
     def test_three_distinct_text_levels(self) -> None:
         # La jerarquía se nota: cada nivel de texto pierde contraste frente al anterior.
         for theme in THEMES:
             for mode in MODES:
-                levels = [contrast(color(n, mode, theme), color("CANVAS", mode, theme)) for n in ("FG", "FG_SUBTLE", "FG_FAINT")]
+                levels = [
+                    contrast(color(n, mode, theme), color("CANVAS", mode, theme))
+                    for n in ("FG", "FG_SUBTLE", "FG_FAINT")
+                ]
                 self.assertGreater(levels[0], levels[1] * 1.15, f"{theme} ({mode})")
                 self.assertGreater(levels[1], levels[2] * 1.15, f"{theme} ({mode})")
 
@@ -458,7 +518,7 @@ def _simulate(value: str, kind: str) -> str:
         return c * 12.92 if c <= 0.0031308 else 1.055 * c ** (1 / 2.4) - 0.055
 
     rgb = [lin(c) for c in _rgb(value)]
-    out = [srgb(sum(m * c for m, c in zip(row, rgb))) for row in _CVD[kind]]
+    out = [srgb(sum(m * c for m, c in zip(row, rgb, strict=False))) for row in _CVD[kind]]
     return "#" + "".join(f"{round(c * 255):02X}" for c in out)
 
 
@@ -492,7 +552,7 @@ class NightDepthTest(unittest.TestCase):
     def test_higher_is_lighter(self) -> None:
         for theme in THEMES:
             values = [_luminance(color(name, "dark", theme)) for name in self.ORDER]
-            for lower, upper, a, b in zip(values, values[1:], self.ORDER, self.ORDER[1:]):
+            for lower, upper, a, b in zip(values, values[1:], self.ORDER, self.ORDER[1:], strict=False):
                 self.assertLess(lower, upper, f"{theme}: {a} debería ser más oscuro que {b}")
 
 
@@ -504,21 +564,38 @@ class FamilyTest(unittest.TestCase):
     de acción, con texto crema. Ninguno es blanco ni negro puro."""
 
     SURFACES_AND_LINES = (
-        "CANVAS_INSET", "CANVAS_CODE", "CANVAS", "CANVAS_ELEVATED", "CANVAS_OVERLAY", "BUTTON_BG",
-        "BUTTON_HOVER", "BORDER_SUBTLE", "BORDER", "BORDER_STRONG", "NOCTURNE_CONTROL_BORDER",
-        "SCROLLBAR_BG", "SCROLLBAR_BG_HOVER", "SCROLLBAR_BG_ACTIVE", "FG_DISABLED",
+        "CANVAS_INSET",
+        "CANVAS_CODE",
+        "CANVAS",
+        "CANVAS_ELEVATED",
+        "CANVAS_OVERLAY",
+        "BUTTON_BG",
+        "BUTTON_HOVER",
+        "BORDER_SUBTLE",
+        "BORDER",
+        "BORDER_STRONG",
+        "NOCTURNE_CONTROL_BORDER",
+        "SCROLLBAR_BG",
+        "SCROLLBAR_BG_HOVER",
+        "SCROLLBAR_BG_ACTIVE",
+        "FG_DISABLED",
     )
     TEXT = ("FG_FAINT", "FG_SUBTLE", "FG")
     # (paleta, modo): (tono central de fondos y líneas, tono central del texto), con un margen.
-    FAMILY = {
-        ("nocturne", "light"): (220, 220), ("nocturne", "dark"): (220, 220),
-        ("papel", "light"): (36, 36), ("papel", "dark"): (198, 38),
-        ("bosque", "light"): (138, 138), ("bosque", "dark"): (138, 138),
+    FAMILY: ClassVar[dict[tuple[str, str], tuple[int, int]]] = {
+        ("nocturne", "light"): (220, 220),
+        ("nocturne", "dark"): (220, 220),
+        ("papel", "light"): (36, 36),
+        ("papel", "dark"): (198, 38),
+        ("bosque", "light"): (138, 138),
+        ("bosque", "dark"): (138, 138),
         # Versión 3.6.0: grises lila en Lavanda y cálidos (melocotón y marrón) en Atardecer.
-        ("lavanda", "light"): (262, 262), ("lavanda", "dark"): (262, 262),
-        ("atardecer", "light"): (24, 24), ("atardecer", "dark"): (24, 24),
+        ("lavanda", "light"): (262, 262),
+        ("lavanda", "dark"): (262, 262),
+        ("atardecer", "light"): (24, 24),
+        ("atardecer", "dark"): (24, 24),
     }
-    MARGIN = {"nocturne": 6, "papel": 12, "bosque": 12, "lavanda": 6, "atardecer": 6}
+    MARGIN: ClassVar[dict[str, int]] = {"nocturne": 6, "papel": 12, "bosque": 12, "lavanda": 6, "atardecer": 6}
 
     def check(self, theme: str, mode: str, names: tuple[str, ...], center: float) -> None:
         for name in names:
@@ -554,7 +631,7 @@ class AnkiScreensTest(unittest.TestCase):
             if name != "FLAG_2":
                 return value
             # color-mix(in srgb, var(--flag-2) 85%, var(--fg)), como en la página.
-            mixed = (0.85 * a + 0.15 * b for a, b in zip(_rgb(value), _rgb(color("FG", mode, theme))))
+            mixed = (0.85 * a + 0.15 * b for a, b in zip(_rgb(value), _rgb(color("FG", mode, theme)), strict=False))
             return "#" + "".join(f"{round(c * 255):02X}" for c in mixed)
 
         for theme in THEMES:
@@ -569,12 +646,12 @@ class IdentityTest(unittest.TestCase):
     """Nocturne conserva su aspecto original: mismo fondo, mismo azul de acción, y
     los colores con significado mantienen su tono."""
 
-    ORIGINAL = {
+    ORIGINAL: ClassVar[dict[str, tuple[str, str]]] = {
         "CANVAS": ("#F7F8FA", "#12161F"),
         "BUTTON_PRIMARY_BG": ("#3B6FE0", "#4066E6"),
         "HIGHLIGHT_BG": ("#3B6FE0", "#4066E6"),
     }
-    HUES = {
+    HUES: ClassVar[dict[str, tuple[str, str]]] = {
         "STATE_NEW": ("#1971C2", "#74C0FC"),
         # Versión 3.5.0: «Aprendiendo» en el rojo de la paleta, a petición del cliente.
         "STATE_LEARN": ("#E03131", "#FF6B6B"),
@@ -596,7 +673,7 @@ class IdentityTest(unittest.TestCase):
 
     def test_corrected_colors_keep_their_hue(self) -> None:
         for name, originals in self.HUES.items():
-            for mode, original in zip(MODES, originals):
+            for mode, original in zip(MODES, originals, strict=False):
                 delta = hue_distance(color(name, mode), original)
                 self.assertLessEqual(delta, 6.0, f"{name} ({mode}): {delta:.1f}°")
 

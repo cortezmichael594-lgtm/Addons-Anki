@@ -12,6 +12,7 @@ import unittest
 
 import anki.lang
 from aqt.qt import QApplication, QComboBox, QDialog, QLabel, QMainWindow, QMenu, QPushButton, Qt, QWidget
+
 from nocturne import contrast, dialogs, errors, panel, strings, themes, titlebar
 
 _app = QApplication.instance() or QApplication([])

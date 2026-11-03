@@ -8,13 +8,25 @@ from __future__ import annotations
 
 import re
 import unittest
+from typing import ClassVar
 
 import anki.lang
+
 from gritmap import i18n
 
 PLURAL_BASES = (
-    "unit_day", "unit_review", "unit_card", "unit_new", "ago", "kd_left",
-    "tt_reviews", "tt_cards", "tt_due", "tt_new", "opt_exclude_count", "opt_key_dates_count",
+    "unit_day",
+    "unit_review",
+    "unit_card",
+    "unit_new",
+    "ago",
+    "kd_left",
+    "tt_reviews",
+    "tt_cards",
+    "tt_due",
+    "tt_new",
+    "opt_exclude_count",
+    "opt_key_dates_count",
 )
 
 
@@ -57,7 +69,7 @@ class StringsTest(unittest.TestCase):
 class PluralRulesTest(unittest.TestCase):
     """Tabla fija de casos CLDR (las reglas que usa el navegador)."""
 
-    CASES = {
+    CASES: ClassVar[dict[str, dict[int, str]]] = {
         "ru": {1: "one", 2: "few", 5: "many", 11: "many", 21: "one", 22: "few"},
         "pl": {1: "one", 22: "few", 25: "many", 12: "many"},
         "cs": {1: "one", 3: "few", 5: "other"},

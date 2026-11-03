@@ -11,7 +11,8 @@ import types
 import unittest
 
 from aqt.theme import WidgetStyle
-from nocturne import config, theming, themes, webview_style
+
+from nocturne import config, themes, theming, webview_style
 from nocturne.palette import to_css_rgba
 
 
@@ -95,8 +96,12 @@ class WebStyleTest(unittest.TestCase):
     def test_toolbar_and_answer_buttons(self) -> None:
         css = self.css_for("nocturne")
         self.assertIn(".toolbar .hitem:hover", css)
-        for ease, value in ((1, "var(--accent-danger)"), (2, "color-mix(in srgb, var(--flag-2) 85%, var(--fg))"),
-                            (3, "var(--state-review)"), (4, "var(--state-new)")):
+        for ease, value in (
+            (1, "var(--accent-danger)"),
+            (2, "color-mix(in srgb, var(--flag-2) 85%, var(--fg))"),
+            (3, "var(--state-review)"),
+            (4, "var(--state-new)"),
+        ):
             self.assertIn(f"button[data-ease='{ease}'] {{ background-image: linear-gradient(to top, {value}", css)
             self.assertIn(f"button[data-ease='{ease}']:hover", css)
         # Regresión de FIX-010: la raya no se repite arriba del botón.
@@ -123,7 +128,9 @@ class WebStyleTest(unittest.TestCase):
             self.assertIn("text-wrap: pretty;", css, theme_id)
             self.assertIn("accent-color: var(--border-focus);", css, theme_id)
             self.assertIn("@media (prefers-reduced-motion: reduce)", css, theme_id)
-            self.assertIn(":is(.nobold, .stattxt) { color: var(--fg-subtle); font-variant-numeric: tabular-nums; }", css, theme_id)
+            self.assertIn(
+                ":is(.nobold, .stattxt) { color: var(--fg-subtle); font-variant-numeric: tabular-nums; }", css, theme_id
+            )
             self.assertIn("html body.reduce-motion:not(.card) { --transition: 0ms; }", css, theme_id)
             # Foco visible también en enlaces y en la barra superior (Anki lo oculta allí).
             self.assertIn("a:focus-visible { outline:", css, theme_id)
