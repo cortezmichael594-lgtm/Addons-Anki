@@ -1,0 +1,42 @@
+# GitHub repite las comprobaciones en cada subida, con Anki 26.09.3, y guarda el .ankiaddon de cada
+# complemento que cambió como artefacto «entrega» (pestaña Actions > ejecución > Artifacts).
+name: Comprobar
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONUTF8: "1"
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Historial completo: comprobar.py compara con la rama principal para saber qué complementos cambiaron.
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-*.txt
+      - name: Instalar la pieza gráfica que necesita Qt
+        run: sudo apt-get update -q && sudo apt-get install -y -q libegl1
+      - name: Instalar Anki y las herramientas
+        run: python -m pip install -q -r requirements-dev.txt -r requirements-anki.txt
+      - name: Comprobar
+        run: python herramientas/comprobar.py --ci
+      - name: Empaquetar los complementos cambiados
+        run: python herramientas/comprobar.py --paquetes entregas
+      - uses: actions/upload-artifact@v7
+        with:
+          name: entrega
+          path: entregas/*.ankiaddon
+          if-no-files-found: ignore
+          retention-days: 30

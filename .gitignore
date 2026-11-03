@@ -1,3 +1,46 @@
+# Entornos y dependencias instaladas
+.venv/
+venv/
+env/
+node_modules/
+
+# Cachés
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
 .mypy_cache/
+.ruff_cache/
+.cache/
+.coverage
+htmlcov/
+
+# Salidas (en GitHub Actions, el .ankiaddon de cada complemento cambiado se guarda como artefacto
+# «entrega»; los entregados se conservan en paquetes/, que sí va en el repositorio)
+entregas/
+dist/
+build/
+*.egg-info/
+
+# Colecciones y copias de Anki: datos de la persona, nunca en el repositorio
+*.anki2
+*.anki21
+*.anki21b
+*.colpkg
+collection.media/
+
+# Secretos y ajustes personales
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.log

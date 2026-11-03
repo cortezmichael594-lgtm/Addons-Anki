@@ -2,9 +2,8 @@
 
 Documento del proyecto, comprobado contra el código de Anki 26.09.3. Léalo entero antes
 de diseñar o escribir cualquier ventana, menú, botón o página. Los nombres de aquí son
-los que existen en esa versión; ante cualquier duda, confírmelos en el código real del
-entorno (`.venv`, carpetas `aqt` y `_aqt`): localice el archivo con Glob y busque con Grep
-en ese archivo, porque Grep no entra en las carpetas de `.venv`.
+los que existen en esa versión; ante cualquier duda, confírmelos en el código real de
+Anki instalado (carpetas `aqt` y `_aqt`; `python herramientas/preparar.py` dice dónde está).
 
 ## 1. Nativo primero
 
@@ -57,7 +56,7 @@ inventa colores: los toma de ahí.
 - **Aviso de nombres.** En el documento de Nocturne, la fila `BUTTON_HOVER` corresponde,
   en Anki 26.09.3, a `BUTTON_GRADIENT_START` (CSS `--button-gradient-start`). El nombre
   `colors.BUTTON_HOVER` no existe y daría error. Anki tiene además `BUTTON_GRADIENT_END`.
-  Antes de usar un token, confírmelo con Grep en `_aqt/colors.py` del `.venv`.
+  Antes de usar un token, confírmelo con Grep en `_aqt/colors.py` del Anki instalado.
 - **Reglas de coherencia.** Un único azul de acción (`BUTTON_PRIMARY_BG` o `HIGHLIGHT_BG`),
   con `HIGHLIGHT_FG` encima; fondos con `CANVAS` y `CANVAS_ELEVATED`, nunca negro ni blanco
   puros; rojos y verdes solo de `ACCENT_DANGER`, `ACCENT_NOTE`, `STATE_*` y `FLAG_*`; todo

@@ -1,0 +1,17 @@
+# Saltos de línea LF en todos los textos, también en Windows, para que el PC,
+# la nube y GitHub vean los mismos archivos.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binarios: nunca se tocan.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.zip binary
+*.ankiaddon binary
+*.pdf binary

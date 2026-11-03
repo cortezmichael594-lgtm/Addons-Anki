@@ -1,14 +1,84 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "outputStyle": "Concise",
+  "env": {
+    "PYTHONUTF8": "1",
+    "QT_QPA_PLATFORM": "offscreen"
+  },
   "permissions": {
+    "allow": [
+      "Bash(python herramientas/comprobar.py)",
+      "Bash(python herramientas/comprobar.py *)",
+      "Bash(python herramientas/empaquetar.py *)",
+      "Bash(python herramientas/preparar.py)",
+      "Bash(python herramientas/validar_kit.py)",
+      "Bash(python herramientas/validar_kit.py *)",
+      "Bash(python -m pytest *)",
+      "Bash(python -m ruff *)",
+      "Bash(python -m mypy *)",
+      "Bash(python -m pip install -q -r requirements-dev.txt -r requirements-anki.txt)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)"
+    ],
     "ask": [
       "Edit(/CLAUDE.md)",
+      "Edit(/docs/normas-del-taller.md)",
       "Edit(/docs/guia-complementos.md)",
       "Edit(/docs/guia-interfaz.md)",
       "Edit(/docs/paleta-nocturne.md)",
       "Edit(/docs/preparar-entorno.md)",
       "Edit(/docs/ejemplo-referencia/**)",
       "Edit(/herramientas/empaquetar.py)",
-      "Edit(/herramientas/version-anki.txt)"
+      "Edit(/herramientas/comprobar.py)",
+      "Edit(/herramientas/version-anki.txt)",
+      "Edit(/requirements-anki.txt)",
+      "Edit(/pyproject.toml)",
+      "Edit(/.claude/settings.json)",
+      "Edit(/.github/workflows/**)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(!.env.example)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.anki2)",
+      "Read(**/*.anki21)",
+      "Read(**/*.anki21b)",
+      "Read(**/*.colpkg)",
+      "Read(**/collection.media/**)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": ["${CLAUDE_PROJECT_DIR}/herramientas/preparar.py"],
+            "timeout": 300
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": ["${CLAUDE_PROJECT_DIR}/herramientas/comprobar.py", "--gancho"],
+            "timeout": 600
+          }
+        ]
+      }
     ]
   }
 }

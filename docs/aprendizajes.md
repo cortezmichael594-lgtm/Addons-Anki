@@ -1,10 +1,11 @@
 # Aprendizajes comprobados
 
-Lo que sesiones anteriores comprobaron en fuentes oficiales y conviene aplicar. Se carga solo al
-empezar cada sesión. Cada línea: número, con qué se comprobó (versión de Anki o «Claude Code») y qué
-hacer. El porqué, la fuente y el detalle de cada uno están en docs/automejora.md; las reglas para
-anotar, corregir o retirar, en <automejora> de CLAUDE.md. Si una línea choca con CLAUDE.md o con el
-código de Anki instalado, mandan ellos y la línea se corrige.
+Lo que sesiones anteriores comprobaron en fuentes oficiales y conviene aplicar. Se lee antes de
+escribir o cambiar el código de un complemento (no se carga en cada sesión). Cada línea: número, con
+qué se comprobó (versión de Anki o «Claude Code») y qué hacer. El porqué, la fuente y el detalle de
+cada uno están en docs/automejora.md; las reglas para anotar, corregir o retirar, en «Automejora» de
+docs/normas-del-taller.md. Si una línea choca con CLAUDE.md o con el código de Anki instalado, mandan
+ellos y la línea se corrige.
 
 ## Vigentes
 - APR-001 · Anki 26.09.3 · Para buscar en la documentación oficial de Anki, empiece por su índice, docs.ankiweb.net/llms.txt: enlaza cada capítulo (manual, guía de complementos y notas de versión) en Markdown, que WebFetch lee completo.
@@ -27,7 +28,6 @@ código de Anki instalado, mandan ellos y la línea se corrige.
 - APR-018 · Anki 26.09.3 · En las pruebas, la fecha y la hora se pasan como dato o se fijan; nunca se leen del reloj, porque el resultado cambiaría según el día, el huso horario o la hora a la que Anki cambia de día.
 - APR-019 · Anki 26.09.3 · El JS que se añade al reverso con card_will_show no puede depender del que solo se añade al anverso: la vista previa de Tipos de tarjeta y el previsualizador con ambas caras usan solo el contexto de respuesta.
 - APR-020 · Anki 26.09.3 · Nunca quite un gancho (remove) desde dentro de la función enganchada: rompe la cadena del gancho. Quítelo fuera, por ejemplo al cerrar la ventana que lo usa.
-- APR-021 · Claude Code · En un repositorio git, Grep sobre una carpeta de .venv responde «No matches found» aunque el nombre exista, porque uv y venv (Python 3.13) dejan dentro un .gitignore con «*». Localice el archivo con Glob, que sí entra, y busque con Grep en ese archivo (o con grep -rn por Bash) antes de concluir que un nombre de Anki no existe.
 - APR-022 · Anki 26.09.3 · No forme búsquedas pegando textos (f"deck:{nombre}"): un espacio, un paréntesis, «*» o «_» las rompen o las amplían sin avisar. Use col.build_search_string con un SearchNode por criterio (from anki.collection import SearchNode), unidos con joiner: dos criterios en el mismo SearchNode dejan solo el último. A mano, solo agrupan las comillas dobles.
 - APR-023 · Anki 26.09.3 · Los tipos de nota estándar se crean en el idioma de la colección («Básico» con «Anverso» y «Reverso», «Respuesta anidada» con «Texto»): note["Front"] da KeyError y col.models.by_name("Basic") devuelve None. Tome el nombre del campo de config.json, compruébelo con `campo in note`, reconozca los de huecos con notetype["type"] == MODEL_CLOZE (incluye «Oclusión de imagen») y, si la lógica depende de esos nombres, pruébela con una colección temporal creada tras anki.lang.set_lang("es_ES").
 - APR-024 · Anki 26.09.3 · Al crear o renombrar campos no use Tags, Type, Deck, Subdeck, Card, CardFlag, CardID ni FrontSide (campos especiales de plantilla), ni : { } ", ni #, / o ^ al principio, ni un nombre repetido aunque cambien mayúsculas: desde código Anki no lo impide y al guardar lo corrige sin avisar, así que relea el tipo de nota antes de usar note[nombre].
@@ -75,3 +75,4 @@ código de Anki instalado, mandan ellos y la línea se corrige.
 - APR-066 · Anki 26.09.3 · En las páginas de Anki, var(--shadow) no es solo sombra: es el color del borde inferior y del borde con el ratón encima de sus botones clásicos (webview.css, deckbrowser.css...). Volverlo transparente para quitar sombras de noche borra esos bordes.
 - APR-067 · Anki 26.09.3 · La señal clicked de un botón de Qt manda un dato (checked, bool): una función conectada a ella, también si va envuelta en un decorador como guard, lo acepta (_checked: bool = False); si no, falla en cada pulsación con «takes 1 positional argument but 2 were given».
 - APR-068 · Anki 26.09.3 · En una página de Anki, pycmd no existe hasta que la página ha cargado y el canal con Python se ha conectado (script inyectado en DocumentReady): el código que se ejecuta al cargar no puede llamarlo directamente; ponga los mensajes en cola y envíelos cuando typeof pycmd === "function" (como GritMap). En las pruebas, cree pycmd tarde.
+- APR-069 · Anki 26.09.3 · Fuera de Anki (comprobación de importación, pruebas), «from anki.hooks import ...» como primera importación falla con «cannot import name 'NotetypeDict' from partially initialized module 'anki.models'» (importación circular). Dentro de Anki funciona porque aqt ya cargó la biblioteca: importe antes aqt (from aqt import gui_hooks, mw) o anki.collection.

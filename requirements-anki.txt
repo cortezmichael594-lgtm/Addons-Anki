@@ -1,0 +1,5 @@
+# La misma versión de Anki que usa la persona (herramientas/version-anki.txt), para comprobar los
+# nombres de la API con mypy y ejecutar las pruebas. No es una dependencia de los complementos:
+# Anki no instala bibliotecas ajenas y los complementos solo usan lo que Anki ya trae.
+# PyPI escribe 26.9.3 donde Anki dice 26.09.3. En Linux necesita además la pieza gráfica libegl1.
+aqt[qt]==26.9.3
