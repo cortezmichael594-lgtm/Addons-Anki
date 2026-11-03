@@ -9,16 +9,17 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 from anki.collection import Collection
+
 from gritmap import data, decks
 from gritmap.data import DayActivity, HeatmapData
 
 
 def _utc(text: str) -> int:
-    return int(datetime.fromisoformat(text).replace(tzinfo=timezone.utc).timestamp())
+    return int(datetime.fromisoformat(text).replace(tzinfo=UTC).timestamp())
 
 
 class AnkiTodayTest(unittest.TestCase):
@@ -132,7 +133,11 @@ class CollectionDataTest(unittest.TestCase):
         db.execute(
             "insert into revlog (id, cid, usn, ease, ivl, lastIvl, factor, time, type)"
             " values (?, ?, -1, ?, 1, ?, 2500, 6000, ?)",
-            stamp, cid, ease, last_ivl, kind,
+            stamp,
+            cid,
+            ease,
+            last_ivl,
+            kind,
         )
 
     def test_empty_collection(self) -> None:

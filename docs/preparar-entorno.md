@@ -1,57 +1,40 @@
 # Preparar el entorno de trabajo
 
-Se hace una sola vez, y de nuevo si Anki cambia de versión. Todo queda dentro de esta carpeta (en `.venv/`), salvo `uv` si hiciera falta instalarlo. Avise al cliente, en una frase, de que tarda unos minutos y descarga unos 300 MB. Los comandos están escritos con barra normal (`/`) para que valgan en PowerShell y en Git Bash.
+El taller trabaja en la nube (claude.ai/code). Cada sesión arranca en un ordenador temporal con Ubuntu 24.04 y Python 3.13 que no trae Anki: hay que instalar la misma versión que usa la persona, porque con ella se comprueban los nombres de la API y se ejecutan las pruebas, y una pieza gráfica del sistema (libegl1) sin la que Qt no arranca en Linux. Las versiones están fijadas en `requirements-anki.txt` (Anki) y `requirements-dev.txt` (ruff, mypy, pytest y PyYAML).
 
-## 1. Buscar un Python válido
+## 1. Script de preparación (lo pone la persona, una vez)
 
-Pruebe por este orden y quédese con el primero que dé una versión 3.10 o superior (mejor 3.13):
+En claude.ai/code, en la pantalla de sesión nueva: selector de entorno (el primer control bajo el cuadro de texto) › pase el ratón por la fila del entorno y pulse el icono de ajustes de su derecha › «Setup script». Pegue este texto y guarde con «Save changes»:
 
-1. `uv --version`. Con uv no hace falta tener Python: si falta, uv lo descarga.
-2. `py -3.13 --version`.
-3. `python --version`. Si abre la Tienda de Microsoft o no imprime nada, es el falso `python` de Windows: cuente que no hay Python.
-
-Si no hay ninguno, explique al cliente que `uv` es un instalador de Python de código abierto (de Astral) y pida permiso antes de instalarlo, porque se instala fuera de esta carpeta:
-
-```
-winget install --id=astral-sh.uv -e
+```bash
+#!/bin/bash
+# Anki 26.09.3 y las herramientas del taller: mismas versiones que requirements-anki.txt y requirements-dev.txt.
+apt-get update -q && apt-get install -y -q libegl1 || true
+python -m pip install -q "aqt[qt]==26.9.3" ruff==0.17.3 mypy==2.4.1 pytest==9.2.0 pyyaml==6.0.3 || true
 ```
 
-Si después `uv` no se reconoce, llámelo por su ruta completa (`%LOCALAPPDATA%\Microsoft\WinGet\Links\uv.exe`) o pida al cliente que cierre y vuelva a abrir Claude Code.
-
-## 2. Crear el entorno
-
-- Con uv: `uv venv .venv --python 3.13`
-- Sin uv: `py -3.13 -m venv .venv` (o `python -m venv .venv`)
-
-## 3. Instalar lo mismo que usa Anki
-
-La versión de `aqt` debe coincidir con la de Anki del cliente, porque con ella se comprueban los nombres de la API. PyPI escribe `26.9.3` donde Anki dice `26.09.3`. Se instala también `mypy`, que detecta nombres inventados.
-
-- Con uv: `uv pip install --python .venv/Scripts/python.exe "aqt[qt]==26.9.3" mypy`
-- Sin uv: `.venv/Scripts/python -m pip install "aqt[qt]==26.9.3" mypy`
+El script se ejecuta como administrador antes de la primera sesión y el resultado queda en caché (unos siete días), así que las sesiones siguientes arrancan con todo instalado. El acceso a la red de serie («Trusted») basta: incluye PyPI y los repositorios de Ubuntu. Los `|| true` evitan que un fallo de red impida abrir la sesión; en ese caso, la red de seguridad del apartado 2 lo instala.
 
 No copie `"aqt[qt6]"`, aunque lo digan la guía oficial («Editor Setup») y la página de betas: ese extra no existe en aqt 26.9.3, pip solo avisa y deja PyQt6 sin fijar a la versión que trae Anki (APR-054).
 
-## 4. Comprobar
+## 2. Red de seguridad en cada sesión
 
-`.venv/Scripts/python herramientas/empaquetar.py --autoprueba` debe terminar en «AUTOPRUEBA: CORRECTA». Esa prueba crea un complemento mínimo en una carpeta temporal y recorre todo el proceso (mypy, importación y empaquetado), así que confirma que el entorno y la herramienta funcionan.
+`python herramientas/preparar.py` (en claude.ai/code lo lanza solo un gancho al empezar; en un hilo de proyecto, a mano) comprueba que lo instalado coincide con los requirements; si falta algo o tiene otra versión, lo instala con pip, y si falta libEGL, con apt-get. Después dice dónde está el código de Anki y lo pendiente según `empaquetar.py --revision`.
 
-Sesiones en la nube (claude.ai/code, con Linux): el intérprete es `.venv/bin/python`. Si la autoprueba falla con «libEGL.so.1: cannot open shared object file», a ese ordenador temporal le falta una pieza gráfica del sistema. Pida permiso al cliente (se instala fuera de esta carpeta, solo en ese ordenador), instálela con `apt-get install -y libegl1` y repita la autoprueba. En Windows no hace falta.
+## 3. Comprobar
 
-## 5. Control de versiones (opcional)
+`python herramientas/empaquetar.py --autoprueba` debe terminar en «AUTOPRUEBA: CORRECTA». Esa prueba crea un complemento mínimo en una carpeta temporal y recorre todo el proceso (mypy, importación y empaquetado), así que confirma que el entorno y la herramienta funcionan. Si falla con «libEGL.so.1: cannot open shared object file», falta la pieza gráfica: `apt-get install -y libegl1`.
 
-Si git está instalado y no hay repositorio: `git init`. No instale git.
-
-## 6. Resumen al cliente
+## 4. Resumen a la persona
 
 En cuatro líneas como máximo: qué ha quedado preparado y qué falta, si falta algo.
 
 ## Anki ha cambiado de versión
 
-El cliente actualiza Anki con Herramientas > «Comprobar actualizaciones» (desde 26.05 descarga e instala la versión nueva); no con el botón del mismo nombre de la ventana Complementos, que solo actualiza complementos. Cuando diga que ha actualizado Anki a la versión X.Y.Z (Ayuda > «Acerca de Anki»):
+La persona actualiza Anki con Herramientas › «Comprobar actualizaciones» (desde 26.05 descarga e instala la versión nueva); no con el botón del mismo nombre de la ventana Complementos, que solo actualiza complementos. Cuando diga que ha actualizado Anki a la versión X.Y.Z (Ayuda › «Acerca de Anki»):
 
-1. Cambie `herramientas/version-anki.txt` y los datos de `<entorno>` de `CLAUDE.md`. Es un cambio de las reglas pedido por el cliente: guarde antes la copia en `herramientas/copias/` y regístrelo en «Cambios aprobados» de `docs/automejora.md` con la huella nueva (véase `<automejora>`).
-2. Reinstale en el entorno: `uv pip install --python .venv/Scripts/python.exe "aqt[qt]==X.Y.Z" mypy` (sin cero a la izquierda en el mes: 26.09.3 se escribe 26.9.3). Si PyPI aún no publica esa versión, dígaselo al cliente y espere.
-3. Lea las notas de esa versión en https://github.com/ankitects/anki/releases (desde la 23.12 están ahí y no en el manual) y apunte lo que afecte a los complementos.
-4. Ejecute `empaquetar.py` sobre cada complemento de `complementos/`. Resuma al cliente qué falla y arréglelo; cada arreglo lleva su nota FIX.
-5. Ejecute `empaquetar.py --revision`: señala los aprendizajes comprobados con la versión anterior. Vuelva a comprobar cada uno en el código nuevo y, según el caso, actualice su versión, corríjalo o retírelo con su motivo.
+1. Es un cambio de las reglas pedido por la persona (véase «Automejora» en `CLAUDE.md`): en tu rama, cambia `herramientas/version-anki.txt`, los datos de «Entorno» de `CLAUDE.md`, `requirements-anki.txt` y el script del apartado 1 (sin cero a la izquierda en el mes: 26.09.3 se escribe 26.9.3), y anótalo en «Cambios aprobados» de `docs/automejora.md`. Si PyPI aún no publica esa versión, díselo a la persona y espera.
+2. Instala la versión nueva: `python herramientas/preparar.py`. Recuerda a la persona que actualice el script de preparación del entorno con el texto nuevo del apartado 1.
+3. Lee las notas de esa versión en https://github.com/ankitects/anki/releases (desde la 23.12 están ahí y no en el manual) y apunta lo que afecte a los complementos.
+4. Ejecuta `python herramientas/comprobar.py --todos --sin-paquete`, que revisa todos los complementos con `empaquetar.py`. Resume a la persona qué falla y arréglalo; cada arreglo lleva su nota FIX.
+5. Ejecuta `python herramientas/empaquetar.py --revision`: señala los aprendizajes comprobados con la versión anterior. Vuelve a comprobar cada uno en el código nuevo y, según el caso, actualiza su versión, corrígelo o retíralo con su motivo.

@@ -1,9 +1,10 @@
 # Registro de la automejora
 
 Aquí queda, con detalle, cómo mejora el taller de una sesión a otra: la ficha de cada aprendizaje (su
-línea corta, la que se carga al empezar, está en docs/aprendizajes.md), los documentos de docs/ ya
-revisados, las propuestas de cambio a las reglas y los cambios que el cliente aprobó. Las reglas están
-en <automejora> de CLAUDE.md, y empaquetar.py comprueba este archivo en cada entrega y con --revision.
+línea corta, la que se lee antes de tocar el código de un complemento, está en docs/aprendizajes.md),
+los documentos de docs/ ya revisados, las propuestas de cambio a las reglas y los cambios que el
+cliente aprobó. Las reglas están en «Automejora» de CLAUDE.md y su detalle en docs/normas-del-taller.md;
+empaquetar.py comprueba este archivo en cada entrega y con --revision.
 
 ## Aprendizajes
 
@@ -488,7 +489,7 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Qué es: los textos de la interfaz salen de las traducciones de Anki (una clave tr en _aqt/forms/*_qt6.py o en aqt/), y a veces aqt/ los cambia después con setText: Ayuda > «&Acerca de...» se ve como «Acerca de Anki», y Editar muestra «Deshacer» desde el principio. El «&» solo marca la tecla de acceso. Algunos siguen en inglés con Anki en español: la pestaña «Experiments» y el grupo «Updates» de Preferencias. Comprobados: Herramientas > «Complementos» (Control+Mayúsculas+A), con «Configuración», «Habilitar sí/no», «Ver archivos», «Eliminar» e «Instalar desde archivo…»; Herramientas > «Preferencias...», «Comprobar multimedia...», «Comprobar base de datos», «Comprobar actualizaciones» y «Tarjetas vacías...»; el botón «Comenzar a estudiar». En Explorar, los menús son Editar, Visualización, Notas, Tarjetas, Ir y Ayuda: «Buscar y reemplazar...», «Buscar duplicadas...» y «Cambiar tipo de nota…» en Notas; «Establecer fecha de vencimiento...», «Olvidar…», «Reposicionar…» e «Info...» en Tarjetas; «Reprogramar» ya no existe. docs.ankiweb.net/es solo tiene una portada que dice que el manual no está traducido; el manual en español que circula es el de la época de Anki 2.0, con menús y rutas caducados.
 - Por qué es buena práctica: CLAUDE.md pide hablar de lo que el cliente ve, y un nombre traducido de memoria («Estudiar ahora» en vez de «Comenzar a estudiar») le hace buscar lo que no existe.
 - Para qué sirve: instrucciones de prueba, que-hace.md y cualquier explicación al cliente.
-- Cómo se aplica: localice la clave (Glob y Grep por archivo, APR-021), mire si aqt/ la cambia y ejecute .venv/Scripts/python -I -X utf8 -c "import anki.lang as L; L.set_lang('es_ES'); print(L.tr_legacyglobal.CLAVE())", sin el «&». Dé los atajos como los escribe el menú en español («Control+Mayúsculas+A»).
+- Cómo se aplica: localice la clave con Grep en la carpeta del Anki instalado (la dice python herramientas/preparar.py), mire si aqt/ la cambia y ejecute python -I -X utf8 -c "import anki.lang as L; L.set_lang('es_ES'); print(L.tr_legacyglobal.CLAVE())", sin el «&». Dé los atajos como los escribe el menú en español («Control+Mayúsculas+A»).
 - Fuente: _aqt/forms/main_qt6.py, _aqt/forms/browser_qt6.py, _aqt/forms/addons_qt6.py, aqt/main.py, aqt/browser/browser.py y https://docs.ankiweb.net/es/manual/intro
 - Comprobado: 2026-10-12, con Anki 26.09.3 (textos sacados de sus traducciones en esta sesión).
 - Origen: revisión del manual antiguo de Anki (2.0, en español) aportado por el cliente.
@@ -629,12 +630,21 @@ Una ficha por aprendizaje, con el mismo número que su línea en docs/aprendizaj
 - Comprobado: 2026-10-28, con Anki 26.09.3.
 - Origen: FIX-011 de Atelier 3.7.2.
 
+### APR-069 · anki.hooks no puede ser la primera importación
+- Qué es: anki/hooks.py carga anki/hooks_gen.py, que importa anki.cards y anki.notes; esa cadena llega a anki.models, que importa anki.notes y este anki.template, que pide NotetypeDict a anki.models cuando aún no ha terminado de cargarse. En un intérprete nuevo, «from anki.hooks import field_filter» falla con ImportError (importación circular); con aqt o anki.collection importados antes, funciona.
+- Por qué es buena práctica: dentro de Anki nunca falla, porque aqt ya ha cargado la biblioteca, pero la comprobación de importación de empaquetar.py y las pruebas sí la ven, y el complemento no se puede entregar.
+- Para qué sirve: todo __init__.py, módulo o prueba que use ganchos de anki.hooks (field_filter, card_did_render, wrap...).
+- Cómo se aplica: en __init__.py, importe primero aqt (from aqt import gui_hooks, mw) y después anki.hooks; en logic.py, que no usa Qt, importe anki.collection antes que anki.hooks.
+- Fuente: código instalado de Anki 26.09.3 (anki/hooks.py:22, anki/hooks_gen.py:14-17, anki/models.py:13-15, anki/template.py:43); reproducción con python -I -c "from anki.hooks import field_filter" (falla) frente a "import anki.collection; from anki.hooks import field_filter" y "from aqt import gui_hooks, mw; from anki.hooks import field_filter" (funcionan).
+- Comprobado: 2026-11-03, con Anki 26.09.3.
+- Origen: revisión de Edit field during review durante la adaptación del taller (su __init__.py importa anki.hooks antes que aqt).
+
 ## Retirados
 
 Aprendizajes que dejaron de valer, con fecha y motivo («- APR-NNN (AAAA-MM-DD): motivo»). Su número no
 se reutiliza.
 
-(Ninguno.)
+- APR-021 (2026-11-03): el taller trabaja solo en la nube y Anki se instala fuera del repositorio, donde Grep sí entra (ripgrep solo aplica los .gitignore dentro de un repositorio git; comprobado el 2026-11-03: Grep sobre la carpeta aqt de un entorno fuera del repositorio encuentra «def confirm_schema_modification» en aqt/main.py:1700). Ya no hay .venv dentro del taller. Su ficha sigue en «Aprendizajes» por si vuelve a haberlo.
 
 ## Documentos revisados
 
@@ -643,18 +653,18 @@ nuevo, empaquetar.py --revision avisa.
 
 | Documento | Huella | Revisado | Resultado |
 | --- | --- | --- | --- |
-| docs/LEEME.txt | adb01e757c21 | 2026-10-21 | Índice de la carpeta; actualizado al crear la automejora, al sustituir la guía de complementos y con PROP-010 (carpeta de referencias). |
-| docs/guia-complementos.md | 4d1e797d6d1e | 2026-10-09 | Sustituida, con el visto bueno del cliente, por el original oficial (docs-site/addons, commit a13d8a6, Anki 26.09.3) con el código intacto. Leída entera: APR-007 a APR-020. |
-| docs/guia-interfaz.md | c2382e94cd10 | 2026-10-12 | Guía del taller; base desde el principio. Cambiada con PROP-006 (cómo buscar en .venv y setWebExports con patrón cerrado). |
+| docs/LEEME.txt | 6cf868ff89af | 2026-11-03 | Índice de la carpeta; actualizado al crear la automejora, al sustituir la guía de complementos, con PROP-010 (carpeta de referencias) y al adaptar el taller a la plantilla (encargo, estado y normas del taller). |
+| docs/guia-complementos.md | d722bbdfceda | 2026-11-03 | Sustituida, con el visto bueno del cliente, por el original oficial (docs-site/addons, commit a13d8a6, Anki 26.09.3) con el código intacto. Leída entera: APR-007 a APR-020. El 2026-11-03 solo cambió su nota inicial: manda el código del Anki instalado (ya no hay .venv). |
+| docs/guia-interfaz.md | b02b8112c2dc | 2026-11-03 | Guía del taller; base desde el principio. Cambiada con PROP-006 (cómo buscar en .venv y setWebExports con patrón cerrado) y el 2026-11-03 para la nube: el código de Anki está en la carpeta que dice preparar.py. |
 | docs/paleta-nocturne.md | a26d4f4cf0b5 | 2026-10-21 | Documento del cliente, puesto al día con los colores de Nocturne 3.3.0 (PROP-011) y con los cambios de la 3.4.0 y la 3.5.0 (barra de título, «Aprendiendo» en rojo y banderas roja y verde), que el cliente pidió. Sin aprendizajes nuevos: sus datos salen del complemento y de sus pruebas. |
-| docs/preparar-entorno.md | fc4d9d999f58 | 2026-10-12 | Actualizado al crear la automejora (notas de versión y revisión de aprendizajes al cambiar Anki), con PROP-001 (sesiones en la nube) y con PROP-008 (no usar "aqt[qt6]"; cómo actualiza Anki el cliente). |
+| docs/preparar-entorno.md | d11551db36a5 | 2026-11-03 | Reescrito el 2026-11-03 para la nube: script de preparación del entorno, red de seguridad de preparar.py y cambio de versión de Anki también en requirements-anki.txt. Conserva lo de PROP-008 (no usar "aqt[qt6]"; cómo actualiza Anki el cliente). |
 
 Revisado también, sin guardarlo en el taller: el código fuente oficial de Anki que aportó el cliente
 (anki-main.zip, commit a13d8a6 de github.com/ankitects/anki, versión 26.09.3; cinco archivos cotejados
 con GitHub y el código Python cotejado con el instalado). Se leyeron entera la guía oficial de
 complementos (docs-site/addons, 21 capítulos), la arquitectura, la guía de pruebas y las notas para
 asistentes, y se revisó el código que usan los complementos. Resultado: APR-007 a APR-020. No se guarda
-en docs/ porque trae su propio CLAUDE.md (véase APR-003) y su código ya está instalado en el .venv.
+en docs/ porque trae su propio CLAUDE.md (véase APR-003) y su código ya está instalado en el entorno.
 
 Revisado también, sin guardarlo en el taller (2026-10-12): el manual de Anki en español que aportó el
 cliente (Anki_Manual.txt, 2.304 líneas), que resultó ser la traducción del manual de Anki 2.0, de antes
@@ -682,7 +692,10 @@ Lo que el cliente no quiso, con fecha y motivo, para no volver a proponerlo sin 
 
 ## Cambios aprobados
 
-Cada cambio de las reglas, con su aprobación, la copia previa y la huella de CLAUDE.md que deja.
+Cada cambio de las reglas, con su aprobación. Desde el 2026-11-03 la copia previa es el historial de git
+y cada cambio llega en un pull request que el cliente revisa y fusiona. Las entradas anteriores citan
+copias de herramientas/copias/ y huellas de CLAUDE.md que ya no se guardan: siguen en el historial de
+git, en la rama main hasta el commit 6a00d2d.
 
 - 2026-10-09 · CLAUDE.md (apartados nuevos <documentacion> y <automejora>; retoques en <carpetas>, <arranque>, <fuentes_de_verdad>, <metodo>, <memoria_de_correcciones>, <comprobaciones> y <entrega>), empaquetar.py (comprobación de la documentación y de la automejora, y opción --revision), docs/preparar-entorno.md, el ejemplo de referencia y los LEEME. Motivo: el cliente pidió un documento «qué hace» y un registro de errores por complemento, y una automejora a prueba de balas. Aprobado por el cliente: 2026-10-09. Copia previa: herramientas/copias/CLAUDE-2026-10-09.md (y empaquetar-2026-10-09.py y preparar-entorno-2026-10-09.md). Huella de CLAUDE.md: fd7bd1471d5c.
 - 2026-10-09 · PROP-001 en docs/preparar-entorno.md (apartado 4): en las sesiones en la nube, el intérprete es .venv/bin/python y, si la autoprueba falla por libEGL, se instala la pieza gráfica libegl1 con permiso del cliente. PROP-002 en CLAUDE.md (<comprobaciones>): en una sesión en la nube, cada entrega se sube a la rama de trabajo de la sesión, nunca a la principal; en el ordenador del cliente sigue «nunca git push». Motivo: sin la pieza falla la autoprueba en la nube, y lo no subido se pierde al reciclarse el ordenador temporal (https://code.claude.com/docs/en/claude-code-on-the-web#environment-expired). Aprobado por el cliente: 2026-10-09. Copia previa: herramientas/copias/CLAUDE-2026-10-09-2.md (y preparar-entorno-2026-10-09-2.md). Huella de CLAUDE.md: 8a8c8b5a6acf.
@@ -691,3 +704,4 @@ Cada cambio de las reglas, con su aprobación, la copia previa y la huella de CL
 - 2026-10-12 · PROP-006, PROP-007 y PROP-008, tras revisar el manual antiguo de Anki y las notas de versión 26.08–26.09.3 que aportó el cliente. PROP-006: CLAUDE.md (<fuentes_de_verdad> 1: Grep no entra en .venv ni indicándole la carpeta, así que se localiza el archivo con Glob y se busca en él, APR-021; <automejora>: el foro oficial, forums.ankiweb.net, entre las pistas, APR-055) y docs/guia-interfaz.md (lo mismo al principio, y setWebExports con patrón cerrado en el punto 8 del apartado 4, APR-049). PROP-007: empaquetar.py avisa de importar anki.importing, anki.exporting, aqt.importing o aqt.exporting, de nombres _Legacy*, de _() y ngettext(), y de un setWebExports que acepta rutas con «..», con su caso en la autoprueba (diez avisos esperados). PROP-008: el ejemplo de referencia pasa a 1.0.2 con FIX-002 (patrón de setWebExports cerrado, con la prueba WebExportsPatternTest, que falló antes del arreglo y pasa después; 19 pruebas) y docs/preparar-entorno.md avisa de no usar "aqt[qt6]" y explica cómo actualiza Anki el cliente. Aprobado por el cliente: 2026-10-12. Copia previa: herramientas/copias/CLAUDE-2026-10-12.md (y guia-interfaz-2026-10-12.md, empaquetar-2026-10-12.py, preparar-entorno-2026-10-12.md y ejemplo-referencia-2026-10-12/). Incidencia: la versión del manifiesto del ejemplo se cambió primero, por error, con un comando que no pasa por la cerradura; se deshizo y se rehízo con la herramienta de edición, y se le dijo al cliente. Huella de CLAUDE.md: 97b885c83fff.
 - 2026-10-21 · PROP-010: docs/referencias/ para resúmenes de libros, artículos y vídeos, con un índice (docs/referencias/indice.md, una línea por documento). CLAUDE.md (<carpetas>: la carpeta; <automejora>: las referencias no se leen enteras al llegar, solo su ficha y su línea en el índice, y al diseñar se lee solo el apartado que venga al caso) y empaquetar.py (esa carpeta deja de contar como documento de consulta y --revision comprueba que cada archivo tenga su línea en el índice). Motivo: el cliente quiere guardar referencias para complementos futuros sin gastar en leerlas enteras en cada sesión; no son fuentes oficiales y no dan aprendizajes. Aprobado por el cliente: 2026-10-21. Copia previa: herramientas/copias/CLAUDE-2026-10-21.md (y empaquetar-2026-10-21.py). Huella de CLAUDE.md: 84b6ffd2033a.
 - 2026-10-21 · PROP-011: docs/paleta-nocturne.md al día con los colores de Nocturne 3.3.0: tablas y bloque JSON generados de complementos/nocturne/palette.py, tokens propios NOCTURNE_*, nuevo apartado de identidad con los mínimos WCAG y APCA y el orden de profundidad nocturno. Aprobado por el cliente: 2026-10-21 («actualiza», tras probar las versiones 3.x). Copia previa: herramientas/copias/paleta-nocturne-2026-10-21.md. CLAUDE.md no cambia.
+- 2026-11-03 · Taller adaptado a la plantilla de Claude Code (kit-base.zip), solo para la nube y con la automejora aligerada. CLAUDE.md reescrito con el formato de la plantilla (por debajo de 150 líneas, sin rol ni etiquetas y sin importar los aprendizajes, que se leen antes de tocar código) y su detalle en docs/normas-del-taller.md (nuevo, bajo la cerradura); docs/encargo.md, docs/estado.md y LEEME.md (en lugar de LEEME.txt) nuevos; herramientas/comprobar.py (comprobación general: ruff, mypy, pytest y empaquetar.py en cada complemento cambiado; también como gancho de fin de turno), preparar.py (gancho de inicio: instala lo que falte y lanza --revision), validar_kit.py y empaquetar_kit.py nuevos; empaquetar.py: mypy como en Windows (--platform win32) y sin la configuración del taller, CLAUDE.md comprobado por apartados «##», sin importaciones ni huellas, cerradura ampliada (docs/normas-del-taller.md, comprobar.py, requirements-anki.txt, pyproject.toml, .claude/settings.json y .github/workflows) y aviso si faltan los permisos «deny» que impiden leer colecciones; comprobación en GitHub Actions con el .ankiaddon de cada complemento cambiado como artefacto «entrega»; docs/preparar-entorno.md para la nube (script de preparación del entorno) y las guías sin .venv; herramientas/copias/ retirada; APR-021 retirado. Aprobado por el cliente: 2026-11-03 («1 b (solo github) 2a», respuesta al plan de refactorización). Copia previa: el historial de git (main, commit 6a00d2d). Rama: refactor-plantilla; pull request #12.

@@ -4,7 +4,7 @@
 > docs-site/addons del repositorio github.com/ankitects/anki (commit a13d8a6, Anki 26.09.3),
 > aportada por el cliente el 2026-10-09. Se ha pasado de MDX a Markdown sin cambiar el texto
 > ni el código: los enlaces internos apuntan a docs.ankiweb.net, los avisos «Warning» son citas
-> y el vídeo de ejemplo es una nota. Para el código, manda siempre el del .venv.
+> y el vídeo de ejemplo es una nota. Para el código, manda siempre el del Anki instalado.
 > En línea: https://docs.ankiweb.net/addons/intro
 
 # Introduction

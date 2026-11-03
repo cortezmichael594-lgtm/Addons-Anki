@@ -9,6 +9,7 @@ from dataclasses import replace
 from datetime import date
 
 import anki.lang
+
 from gritmap import i18n, palettes, view
 from gritmap.config import DEFAULT_CONFIG, KeyDate
 from gritmap.data import DayActivity, HeatmapData
@@ -48,8 +49,8 @@ class WidgetTest(unittest.TestCase):
     def test_year_label_shows_the_year_total(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
         # 5 + 1240 + 30 repasos en 2026, en la unidad de la medida.
-        self.assertIn('data-n=&quot;1275&quot;', html)
-        self.assertIn("repasos", html[html.index("gritmap-yv"):html.index("gritmap-yv") + 300])
+        self.assertIn("data-n=&quot;1275&quot;", html)
+        self.assertIn("repasos", html[html.index("gritmap-yv") : html.index("gritmap-yv") + 300])
         self.assertEqual(view.year_total(sample(), 2026, "new"), 4)
         self.assertEqual(view.year_total(sample(), 2025, "reviews"), 0)
 
@@ -59,15 +60,17 @@ class WidgetTest(unittest.TestCase):
         self.assertIn('class="gritmap-period gritmap-on" data-gritmap-btn="window:365"', html)
         self.assertIn(">Todo<", html)
         self.assertIn(">1 año<", html)
-        self.assertIn("¡", html[html.index("gritmap-yv"):html.index("gritmap-periods")])
+        self.assertIn("¡", html[html.index("gritmap-yv") : html.index("gritmap-periods")])
         self.assertNotIn("window:90", html)
 
     def test_stats_in_two_groups_with_streak_first(self) -> None:
         html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
-        stats = html[html.index('class="gritmap-stats"'):]
+        stats = html[html.index('class="gritmap-stats"') :]
         self.assertEqual(stats.count('class="gritmap-group"'), 2)
-        order = [stats.index(label) for label in
-                 ("Racha actual", "Racha más larga", "Días estudiados", "Promedio diario", "Retención")]
+        order = [
+            stats.index(label)
+            for label in ("Racha actual", "Racha más larga", "Días estudiados", "Promedio diario", "Retención")
+        ]
         self.assertEqual(order, sorted(order))
         # La unidad va aparte para poder ir mas pequena que el numero.
         self.assertIn('<span class="gritmap-unit">repasos</span>', stats)
@@ -92,8 +95,10 @@ class WidgetTest(unittest.TestCase):
             self.assertTrue(attr.startswith("gritmap") or attr in ("d", "v", "t", "n", "p"), attr)
 
     def test_excluded_deck_and_no_data_keep_the_options_button(self) -> None:
-        for data, text in ((sample(deck_excluded=True), "Este mazo está excluido del mapa."),
-                           (sample(past={}, future_counts={}), "No hay datos de actividad para mostrar.")):
+        for data, text in (
+            (sample(deck_excluded=True), "Este mazo está excluido del mapa."),
+            (sample(past={}, future_counts={}), "No hay datos de actividad para mostrar."),
+        ):
             html = view.build_widget_html(data, DEFAULT_CONFIG, 0)
             self.assertIn(text, html)
             self.assertIn('data-gritmap-cmd="opts"', html)
@@ -104,12 +109,12 @@ class WidgetTest(unittest.TestCase):
         self.assertNotIn("1.240", html)  # el punto de millar lo pone el navegador
 
     def test_payload_in_script_cannot_close_it(self) -> None:
-        payload = view.payload_json('<div></script><!-- x --></div>')
+        payload = view.payload_json("<div></script><!-- x --></div>")
         page = view.container_html(DEFAULT_CONFIG, payload)
         self.assertEqual(page.count("</script>"), 1)
         self.assertNotIn("<!--", page)
-        inner = page[page.index("GritMap.render(") + len("GritMap.render("):page.rindex("); }")]
-        self.assertEqual(json.loads(inner)["html"], '<div></script><!-- x --></div>')
+        inner = page[page.index("GritMap.render(") + len("GritMap.render(") : page.rindex("); }")]
+        self.assertEqual(json.loads(inner)["html"], "<div></script><!-- x --></div>")
 
     def test_palette_has_swatches_and_no_text_colour(self) -> None:
         css = palettes.palette_css("classic_green")
