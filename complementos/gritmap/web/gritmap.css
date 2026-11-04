@@ -4,21 +4,38 @@
  * FIX-023 (2026-10-13) — En arabe, hebreo, persa y uigur las flechas de
  *                        navegacion salian invertidas y la cifra pegada a su
  *                        rotulo.
+ * FIX-024 (2026-10-21) — Al llegar con el tabulador a los botones del mapa no
+ *                        se veia el contorno de foco.
+ * FIX-027 (2026-10-26) — Los bordes de los cuadritos de la fila de arriba (hoy,
+ *                        perdonados) se cortaban un poco.
+ * FIX-029 (2026-10-26) — Al subir deprisa con el raton por el mapa, el globo se
+ *                        quedaba abierto y tapaba los dias de arriba.
  */
 
-/* GritMap - estructura del mapa de calor.
+/* GritMap - estructura de las tarjetas y del mapa de calor.
  *
- * Aqui hay medidas, tipografia, colocacion y los colores de la interfaz del
- * mapa, tomados de la paleta Nocturne (tokens de Anki) con su reserva de dia
- * y su pareja de noche. Las escalas del tema elegido llegan aparte, como
- * variables --gritmap-p* y --gritmap-f*, desde un bloque en la cabecera de la
- * pagina.
+ * Aqui hay medidas, tipografia, colocacion y los colores de la interfaz,
+ * tomados de la paleta Nocturne (tokens de Anki) con su reserva de dia y su
+ * pareja de noche. La escala del tema elegido llega aparte, como variables
+ * --gritmap-p1 a --gritmap-p4, desde un bloque en la cabecera de la pagina.
  *
  * Esta hoja se carga junto con la pagina, antes de que se dibuje nada, para
  * que el mapa no aparezca primero sin estilo y luego se recoloque.
  *
+ * Version 4.0.0 (informe de rediseno del cliente, 2026-10-21) y 4.1.0
+ * (correcciones del cliente del mismo dia):
+ *   - el mapa a todo el ancho y, debajo, las tarjetas pequenas, que suman
+ *     exactamente el mismo ancho (simetria);
+ *   - dos tamanos de letra: 20 px para el dato de cada tarjeta y 12 px para
+ *     todo lo demas; la jerarquia, con el grosor (400 y 600) y el gris;
+ *   - espacios de 4, 8, 16 y 32 px;
+ *   - cada color, una sola funcion: el tema es «estudio», el gris vacio «no
+ *     estudio» y el azul de Anki «se puede pulsar o esta elegido».
+ *
  * Sin animaciones: solo el leve hundimiento de los botones al pulsarlos
- * (100 ms), que se anula si Anki o el sistema piden reducir el movimiento.
+ * (100 ms) y la aparicion del ✓ al cumplir la meta (150 ms, escala y
+ * transparencia), que se anulan si Anki o el sistema piden reducir el
+ * movimiento.
  */
 
 /* --- FIX-008 (2026-10-08) ---
@@ -29,22 +46,22 @@
  */
 
 #gritmap-root {
-    --gritmap-empty: var(--border-subtle, #E9ECF0);
+    /* Dia sin estudio: de dia, BORDER_SUBTLE sobre la tarjeta. */
+    --gritmap-empty: var(--border-subtle, #E8EAF0);
     --gritmap-fg: var(--fg, #1B2430);
-    --gritmap-muted: var(--fg-subtle, #5C6675);
-    --gritmap-btn: var(--button-bg, #FFFFFF);
-    --gritmap-btnh: var(--button-gradient-start, #F0F2F6);
-    --gritmap-btnb: var(--border, #DCE0E6);
-    --gritmap-icon: var(--fg-subtle, #5C6675);
-    --gritmap-hover: var(--fg-subtle, #5C6675);
+    --gritmap-muted: var(--fg-subtle, #4E576A);
+    --gritmap-card: var(--canvas-elevated, #FBFCFE);
+    --gritmap-card-border: var(--border-subtle, #E8EAF0);
+    --gritmap-card-shadow: var(--shadow-subtle, #1B243012);
+    --gritmap-btn: var(--button-bg, #FBFCFE);
+    --gritmap-btnh: var(--button-gradient-start, #EDF0F5);
+    --gritmap-btnb: var(--border, #DADEE7);
+    --gritmap-btnhb: var(--button-hover-border, #C0C6D3);
     --gritmap-today: var(--fg, #1B2430);
     --gritmap-focus: var(--border-focus, #3B6FE0);
-    --gritmap-period-on: var(--border, #DCE0E6);
-    --gritmap-period-hover: var(--border-subtle, #E9ECF0);
-    --gritmap-key: var(--state-learn, #E8590C);
-    --gritmap-tipbg: var(--canvas-overlay, #FFFFFF);
+    --gritmap-tipbg: var(--canvas-overlay, #FBFCFE);
     --gritmap-tipfg: var(--fg, #1B2430);
-    --gritmap-tipb: var(--border, #DCE0E6);
+    --gritmap-tipb: var(--border, #DADEE7);
     --gritmap-shadow: var(--shadow, #1B243026);
     --gritmap-shadow-soft: var(--shadow-subtle, #1B243012);
 }
@@ -52,32 +69,56 @@
 html.night-mode #gritmap-root,
 body.night_mode #gritmap-root,
 body.nightMode #gritmap-root {
-    --gritmap-empty: var(--border-subtle, #202836);
-    --gritmap-fg: var(--fg, #E9EDF4);
-    --gritmap-muted: var(--fg-subtle, #9FABBB);
-    --gritmap-btn: var(--button-bg, #212836);
-    --gritmap-btnh: var(--button-gradient-start, #2A3342);
-    --gritmap-btnb: var(--border, #2C3545);
-    --gritmap-icon: var(--fg-subtle, #9FABBB);
-    --gritmap-hover: var(--fg-subtle, #9FABBB);
-    --gritmap-today: var(--fg, #E9EDF4);
+    /* De noche, el fondo hundido: sobre la tarjeta, el borde suave apenas se
+     * distingue (1,02:1) y el hueco se lee como «no estudio». */
+    --gritmap-empty: var(--canvas-inset, #0F131B);
+    --gritmap-fg: var(--fg, #D6DAE1);
+    --gritmap-muted: var(--fg-subtle, #B7BECC);
+    --gritmap-card: var(--canvas-elevated, #212836);
+    --gritmap-card-border: var(--border-subtle, #1F2635);
+    /* De noche, sin sombra: la tarjeta ya es mas clara que el fondo. */
+    --gritmap-card-shadow: transparent;
+    --gritmap-btn: var(--button-bg, #242C3A);
+    --gritmap-btnh: var(--button-gradient-start, #2E3747);
+    --gritmap-btnb: var(--border, #2C3444);
+    --gritmap-btnhb: var(--button-hover-border, #3D475C);
+    --gritmap-today: var(--fg, #D6DAE1);
     --gritmap-focus: var(--border-focus, #6390FF);
-    --gritmap-period-on: var(--button-gradient-start, #2A3342);
-    --gritmap-period-hover: var(--button-bg, #212836);
-    --gritmap-key: var(--state-learn, #FFA94D);
-    --gritmap-tipbg: var(--canvas-overlay, #191E2A);
-    --gritmap-tipfg: var(--fg, #E9EDF4);
-    --gritmap-tipb: var(--border, #2C3545);
+    --gritmap-tipbg: var(--canvas-overlay, #293040);
+    --gritmap-tipfg: var(--fg, #D6DAE1);
+    --gritmap-tipb: var(--border, #2C3444);
     --gritmap-shadow: var(--shadow, #05080F66);
     --gritmap-shadow-soft: var(--shadow-subtle, #05080F33);
 }
 
 #gritmap-root {
+    /* Tan ancho como el mapa (lo que piden sus cuadritos), centrado, y nunca
+     * mas que la ventana: si no cabe, el mapa se desplaza de lado. */
     position: relative;
-    margin: 10px 0 6px 0;
-    text-align: center;
+    box-sizing: border-box;
+    width: fit-content;
+    max-width: 100%;
+    margin: 16px auto 8px auto;
+    padding: 0 8px;
+    text-align: start;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--gritmap-fg);
     user-select: none;
     -webkit-user-select: none;
+}
+
+/* Con «Ajustado al ancho» (el de serie, 4.4.0), como en la 4.1.0: todo el
+ * ancho de la pagina, y el mapa y las tarjetas se estiran con ella. */
+#gritmap-root:has(.gritmap-fit) {
+    width: 100%;
+    margin: 16px 0 8px 0;
+}
+
+#gritmap-root *,
+#gritmap-root *::before,
+#gritmap-root *::after {
+    box-sizing: border-box;
 }
 
 /* --- FIX-023 (2026-10-13) ---
@@ -91,60 +132,296 @@ body.nightMode #gritmap-root {
  *        derecha, y los huecos entre textos usan margenes logicos
  *        (margin-inline-*), que siguen la direccion del idioma.
  */
-#gritmap-root .gritmap-nav,
-#gritmap-root .gritmap-grid {
+#gritmap-root .gritmap-yearnav,
+#gritmap-root .gritmap-grid,
+#gritmap-root .gritmap-foot,
+#gritmap-root .gritmap-legend {
     direction: ltr;
 }
 
-#gritmap-root .gritmap-nav {
-    text-align: center;
-    margin-bottom: 10px;
-    line-height: 0;
+/* Tarjetas: superficie un punto mas clara que el fondo de Anki, borde suave,
+ * esquinas de 10 px y 16 px de relleno; el borde agrupa lo que va junto. */
+#gritmap-root .gritmap-card {
+    background: var(--gritmap-card);
+    border: 1px solid var(--gritmap-card-border);
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 1px 3px var(--gritmap-card-shadow);
+    min-width: 0;
 }
 
-/* Los controles son botones de verdad: se pueden alcanzar con el tabulador y
- * los lee un lector de pantalla. Se anulan los estilos que Anki da a todos
- * los <button> de sus paginas. */
+
+
+#gritmap-root .gritmap-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    min-height: 28px;
+    margin-bottom: 16px;
+}
+
+#gritmap-root .gritmap-card-head.gritmap-notitle {
+    position: relative;
+    justify-content: center;
+}
+
+/* El boton de opciones, aparte, en la esquina de arriba (4.7.0): navegar y
+ * configurar son cosas distintas. Lado logico: a la derecha, o a la
+ * izquierda en los idiomas que se escriben de derecha a izquierda. */
+#gritmap-root .gritmap-btn[data-gritmap-corner] {
+    position: absolute;
+    top: 0;
+    inset-inline-end: 0;
+}
+
+#gritmap-root .gritmap-card-title {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--gritmap-fg);
+}
+
+#gritmap-root .gritmap-card-sub {
+    margin-inline-start: 8px;
+    font-weight: 400;
+    color: var(--gritmap-muted);
+}
+
+#gritmap-root .gritmap-card-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Tarjetas pequenas, debajo del mapa: columnas iguales que suman el ancho
+ * del mapa (el contenedor no empuja el ancho; lo toma). Se reordenan segun
+ * ese ancho: con menos de 760 px, dos columnas (la quinta ocupa las dos, para
+ * que la fila quede cuadrada) y, con menos de 420, una. */
+#gritmap-root .gritmap-summary {
+    width: 0;
+    min-width: 100%;
+    margin-top: 16px;
+    container-type: inline-size;
+}
+
+#gritmap-root .gritmap-cards {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 16px;
+}
+
+#gritmap-root .gritmap-n4 .gritmap-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Sin racha ni meta y sin fechas clave por venir quedan tres (4.8.0). */
+#gritmap-root .gritmap-n3 .gritmap-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@container (max-width: 940px) {
+    #gritmap-root .gritmap-cards,
+    #gritmap-root .gritmap-n4 .gritmap-cards,
+    #gritmap-root .gritmap-n3 .gritmap-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #gritmap-root .gritmap-n5 .gritmap-cards > :last-child,
+    #gritmap-root .gritmap-n3 .gritmap-cards > :last-child {
+        grid-column: 1 / -1;
+    }
+}
+
+@container (max-width: 420px) {
+    #gritmap-root .gritmap-cards,
+    #gritmap-root .gritmap-n4 .gritmap-cards,
+    #gritmap-root .gritmap-n3 .gritmap-cards {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+#gritmap-root .gritmap-mini .gritmap-card-title {
+    margin-bottom: 8px;
+}
+
+/* El dato grande de cada tarjeta: 20 px en seminegrita, cifras de ancho
+ * fijo para que no bailen. */
+/* La cifra y su unidad van por la linea base, a 4 px (4.11.0, informe
+ * aprobado por el cliente: centrada, la unidad parecia flotar). */
+#gritmap-root .gritmap-big {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    min-height: 32px;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#gritmap-root .gritmap-big .gritmap-unit {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--gritmap-muted);
+}
+
+/* La cifra y su unidad, siempre como piezas separadas, tambien el % y las
+ * cifras con globo (4.10.0, peticion del cliente: el % quedaba a otra altura
+ * que «tarjetas» o «días»); desde la 4.11.0, por la linea base y a 4 px. */
+#gritmap-root .gritmap-big .gritmap-pct,
+#gritmap-root .gritmap-big .gritmap-tipped {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+/* El anillo de la meta no tiene linea base: va centrado con su texto. */
+#gritmap-root .gritmap-big.gritmap-big-ring {
+    align-items: center;
+    gap: 8px;
+}
+
+#gritmap-root .gritmap-big .gritmap-pct-space {
+    display: none;
+}
+
+/* Con globo, el subrayado de puntos va solo bajo la cifra, no bajo la
+ * unidad. */
+#gritmap-root .gritmap-big .gritmap-tipped:has(.gritmap-n, .gritmap-pct) {
+    text-decoration: none;
+}
+
+#gritmap-root .gritmap-big .gritmap-tipped .gritmap-n,
+#gritmap-root .gritmap-big .gritmap-tipped .gritmap-pct > span:not(.gritmap-unit, .gritmap-pct-space) {
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+}
+
+#gritmap-root .gritmap-big.gritmap-muted {
+    color: var(--gritmap-muted);
+}
+
+#gritmap-root .gritmap-big.gritmap-big-small {
+    font-size: 12px;
+    font-weight: 400;
+}
+
+/* La linea gris usa hasta dos renglones; si aun no cabe, se corta con «…»
+ * y se lee entera al pasar el raton. */
+#gritmap-root .gritmap-line {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--gritmap-muted);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+
+#gritmap-root .gritmap-check {
+    display: inline-block;
+    font-weight: 600;
+    color: var(--gritmap-fg);
+}
+
+/* Meta cumplida: el ✓ aparece una vez con un leve aumento (150 ms). */
+#gritmap-root .gritmap-check.gritmap-celebrate {
+    animation: gritmap-pop 150ms ease-out;
+}
+
+@keyframes gritmap-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Anillos: solo para «X de Y», en el tono 4 del tema sobre el gris vacio. */
+#gritmap-root .gritmap-ring {
+    display: block;
+    flex: none;
+}
+
+#gritmap-root .gritmap-ring-track {
+    fill: none;
+    stroke: var(--gritmap-empty);
+}
+
+#gritmap-root .gritmap-ring-fill {
+    fill: none;
+    stroke: var(--gritmap-p4);
+}
+
+#gritmap-root .gritmap-big-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Botones: de verdad, para el tabulador y el lector de pantalla. Se anulan
+ * los estilos que Anki da a todos los <button> de sus paginas. */
 #gritmap-root .gritmap-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 27px;
-    height: 27px;
+    width: 28px;
+    height: 28px;
     padding: 0;
-    border-radius: 7px;
+    margin: 0;
+    border-radius: 8px;
     background: var(--gritmap-btn);
     border: 1px solid var(--gritmap-btnb);
-    margin: 0 3px;
     cursor: pointer;
-    color: var(--gritmap-icon);
+    color: var(--gritmap-muted);
     font: inherit;
-    vertical-align: middle;
     transition: transform 0.1s ease;
     box-shadow: 0 1px 2px var(--gritmap-shadow-soft);
 }
 
 #gritmap-root .gritmap-btn:hover {
     background: var(--gritmap-btnh);
-    border-color: var(--gritmap-btnb);
-    box-shadow: 0 2px 6px var(--gritmap-shadow);
+    border-color: var(--gritmap-btnhb);
+    color: var(--gritmap-fg);
 }
 
 #gritmap-root .gritmap-btn:active {
     transform: translateY(1px);
 }
 
-/* Solo se ve al navegar con el teclado, nunca al hacer clic con el raton. */
-#gritmap-root .gritmap-btn:focus-visible {
-    outline: 2px solid var(--gritmap-focus);
+/* --- FIX-024 (2026-10-21) ---
+ * Sintoma: al recorrer el mapa con el tabulador, los botones de encima y los
+ *          de periodo no mostraban ningun contorno: no se sabia donde estaba
+ *          el foco.
+ * Causa: Anki pone «button { outline: none !important }» en todas sus
+ *        paginas (webview.css, APR-061), y un contorno sin !important pierde.
+ * Regla: el foco visible de todo <button> inyectado lleva !important y un
+ *        selector mas especifico que el de Anki, y solo aparece con el
+ *        teclado (:focus-visible), nunca al hacer clic.
+ */
+#gritmap-root button.gritmap-btn:focus-visible {
+    outline: 2px solid var(--gritmap-focus) !important;
     outline-offset: 2px;
 }
 
-#gritmap-root .gritmap-btn[disabled],
-#gritmap-root .gritmap-btn[disabled]:hover {
-    opacity: 0.3;
+#gritmap-root .gritmap-btn[aria-disabled="true"],
+#gritmap-root .gritmap-btn[aria-disabled="true"]:hover {
+    opacity: 0.35;
     cursor: default;
     background: var(--gritmap-btn);
+    border-color: var(--gritmap-btnb);
+    color: var(--gritmap-muted);
     box-shadow: none;
 }
 
@@ -152,24 +429,135 @@ body.nightMode #gritmap-root {
     display: block;
 }
 
-/* La barra de desplazamiento, si hace falta, es la de Anki. */
+
+
+/* «‹ 2026 ›»: las flechas, pegadas al ano que cambian; a 5 px de la cifra
+ * (4.10.0, peticion del cliente: 1 px mas que antes). */
+#gritmap-root .gritmap-yearnav {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#gritmap-root .gritmap-yv {
+    min-width: 4ch;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--gritmap-fg);
+}
+
+/* El mapa a su tamano; si no cabe, se desplaza de lado con la barra de Anki. */
+/* --- FIX-027 (2026-10-26) ---
+ * Sintoma: en la fila de arriba (y en la primera y la ultima columna), el
+ *          borde de hoy y el discontinuo de los perdonados se veian cortados.
+ * Causa: esos bordes se dibujan a caballo del cuadrito y sobresalen del
+ *        dibujo, que recortaba lo que quedaba fuera; la rejilla, ademas,
+ *        recorta en vertical.
+ * Regla: lo que se dibuja alrededor de un cuadrito cabe siempre: el dibujo
+ *        no recorta y la rejilla deja un margen de 2 px por los cuatro lados.
+ */
 #gritmap-root .gritmap-grid {
-    display: inline-block;
-    max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
+    padding: 2px;
 }
 
 #gritmap-root .gritmap-grid svg {
+    overflow: visible;
+}
+
+/* Si el ano no cabe (4.8.0): el borde por donde sigue el mapa se desvanece,
+ * para que se note que hay mas; al llegar al final, el degradado se va. Es
+ * una mascara de transparencia: su color no se ve. */
+#gritmap-root .gritmap-grid.gritmap-more-right {
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+    mask-image: linear-gradient(to right, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+}
+
+#gritmap-root .gritmap-grid.gritmap-more-left {
+    -webkit-mask-image: linear-gradient(to left, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+    mask-image: linear-gradient(to left, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+}
+
+#gritmap-root .gritmap-grid.gritmap-more-left.gritmap-more-right {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+    mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent); /* colores-ok: máscara de transparencia, el color no se ve */
+}
+
+/* El dibujo se escala entero (4.5.0): ocupa el ancho del ano, que es todo el
+ * de la tarjeta («Ajustado al ancho») o el del tamano elegido. */
+/* El ano es una rejilla de dos columnas (4.7.0): las iniciales de los dias a
+ * la izquierda y, a la derecha, los meses, la fila de estrellas y el dibujo,
+ * que es quien lleva el ancho. */
+#gritmap-root .gritmap-year {
+    display: grid;
+    grid-template-columns: 16px auto;
+    column-gap: 4px;
+    width: fit-content;
+}
+
+#gritmap-root .gritmap-year.gritmap-fit {
+    grid-template-columns: 16px 1fr;
+}
+
+#gritmap-root .gritmap-year > .gritmap-months {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+#gritmap-root .gritmap-year > svg,
+#gritmap-root .gritmap-year > .gritmap-bone-grid {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+#gritmap-root .gritmap-days {
+    grid-column: 1;
+    grid-row: 2;
+    display: grid;
+    grid-template-rows: repeat(7, 1fr);
+    font-size: 12px;
+    line-height: 1;
+    color: var(--gritmap-muted);
+    text-align: end;
+}
+
+/* Cada inicial, centrada en su cuadrito (que ocupa 14 de cada 17 partes de
+ * la fila; el resto es el hueco). */
+#gritmap-root .gritmap-days span {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 82%;
+    overflow: hidden;
+}
+
+#gritmap-root .gritmap-year svg {
     display: block;
+    width: 100%;
+    height: auto;
+}
+
+#gritmap-root .gritmap-year.gritmap-fit {
+    width: 100%;
+}
+
+#gritmap-root .gritmap-months {
+    position: relative;
+    height: 16px;
+    margin-bottom: 4px;
 }
 
 #gritmap-root .gritmap-month {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    fill: var(--gritmap-muted);
+    position: absolute;
+    top: 0;
+    font-size: 12px;
+    color: var(--gritmap-muted);
+    white-space: nowrap;
 }
+
 
 #gritmap-root .gritmap-cell[data-gritmap-today] {
     stroke: var(--gritmap-today);
@@ -177,12 +565,29 @@ body.nightMode #gritmap-root {
     stroke-opacity: 0.8;
 }
 
-/* Fechas clave: borde naranja, como siempre; en los temas calidos la paleta
- * lo cambia a azul para que se distinga. */
-#gritmap-root .gritmap-cell[data-gritmap-key] {
-    stroke: var(--gritmap-key);
-    stroke-width: 2px;
-    stroke-opacity: 0.95;
+/* Dia perdonado (comodin o pausa): vacio y con un borde fino discontinuo. */
+#gritmap-root .gritmap-cell.gritmap-forgiven {
+    stroke: var(--gritmap-muted);
+    stroke-width: 1px;
+    stroke-dasharray: 2 2;
+}
+
+/* Fecha clave (4.8.0): un rombo de hito en su cuadrito. Las que vienen,
+ * lleno en el color del texto, con un filo del color de la tarjeta para que
+ * se vea sobre cualquier tono. */
+#gritmap-root .gritmap-kmark {
+    fill: var(--gritmap-fg);
+    stroke: var(--gritmap-card);
+    stroke-width: 1px;
+    pointer-events: none;
+}
+
+/* Las ya pasadas, hueco y gris: lleno frente a hueco se distingue sin color,
+ * y la proxima destaca sola. */
+#gritmap-root .gritmap-kmark.gritmap-kpast {
+    fill: none;
+    stroke: var(--gritmap-muted);
+    stroke-width: 1.6px;
 }
 
 #gritmap-root .gritmap-cell[data-gritmap-cmd] {
@@ -190,9 +595,10 @@ body.nightMode #gritmap-root {
 }
 
 #gritmap-root .gritmap-cell:hover {
-    stroke: var(--gritmap-hover);
+    stroke: var(--gritmap-muted);
     stroke-width: 1.5px;
     stroke-opacity: 1;
+    stroke-dasharray: none;
 }
 
 #gritmap-root .gritmap-cell:focus {
@@ -203,244 +609,172 @@ body.nightMode #gritmap-root {
     stroke: var(--gritmap-focus);
     stroke-width: 2px;
     stroke-opacity: 1;
+    stroke-dasharray: none;
 }
 
-/* El ano, debajo del mapa; al pasar el raton dice lo hecho ese ano. */
-#gritmap-root .gritmap-yl {
+/* Pie del mapa: la sorpresa del dia a la izquierda y la leyenda a la
+ * derecha. */
+#gritmap-root .gritmap-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
     margin-top: 8px;
-    line-height: 1.4;
 }
 
-#gritmap-root .gritmap-yv {
-    font-size: 12px;
-    font-weight: 650;
-    letter-spacing: 0.06em;
-    font-variant-numeric: tabular-nums;
+#gritmap-root .gritmap-surprise {
+    font-weight: 600;
+    color: var(--gritmap-fg);
+}
+
+#gritmap-root .gritmap-empty-hint {
     color: var(--gritmap-muted);
+}
+
+#gritmap-root .gritmap-legend {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-inline-start: auto;
+    color: var(--gritmap-muted);
+}
+
+#gritmap-root .gritmap-lg-word {
+    margin: 0 4px;
+}
+
+#gritmap-root .gritmap-lg-cell {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    background: var(--gritmap-empty);
     cursor: default;
 }
 
-#gritmap-root .gritmap-yv:focus {
+#gritmap-root .gritmap-lg-c1 { background: var(--gritmap-p1); }
+#gritmap-root .gritmap-lg-c2 { background: var(--gritmap-p2); }
+#gritmap-root .gritmap-lg-c3 { background: var(--gritmap-p3); }
+#gritmap-root .gritmap-lg-c4 { background: var(--gritmap-p4); }
+
+#gritmap-root .gritmap-lg-due {
+    background: var(--gritmap-f2);
+}
+
+#gritmap-root .gritmap-lg-key {
+    position: relative;
+}
+
+#gritmap-root .gritmap-lg-key::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    background: var(--gritmap-fg);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+#gritmap-root .gritmap-lg-forgiven {
+    border: 1px dashed var(--gritmap-muted);
+}
+
+#gritmap-root .gritmap-lg-sample {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-inline-start: 8px;
+}
+
+/* Textos con globo al pasar el raton o al llegar con el tabulador. */
+#gritmap-root .gritmap-tipped {
+    cursor: default;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+}
+
+#gritmap-root .gritmap-tipped:focus {
     outline: none;
 }
 
-#gritmap-root .gritmap-yv:focus-visible {
+#gritmap-root .gritmap-tipped:focus-visible {
     outline: 2px solid var(--gritmap-focus);
     outline-offset: 2px;
     border-radius: 3px;
 }
 
-/* Botones rapidos del periodo de las cifras, junto al ano: control
- * segmentado sin marco. El elegido lleva un fondo suave en forma de
- * pastilla y letra mas gruesa (no solo otro color); los demas son texto
- * gris que toma ese fondo al pasar el raton. */
-#gritmap-root .gritmap-periods {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    margin-inline-start: 12px;
-    vertical-align: middle;
-}
-
-#gritmap-root .gritmap-period {
-    margin: 0;
-    min-height: 24px;
-    padding: 3px 10px;
-    border: none;
-    border-radius: 6px;
-    background: transparent;
-    box-shadow: none;
-    color: var(--gritmap-muted);
-    font: inherit;
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 18px;
-    cursor: pointer;
-}
-
-#gritmap-root .gritmap-period:hover {
-    background: var(--gritmap-period-hover);
-    border: none;
-    box-shadow: none;
-    color: var(--gritmap-fg);
-}
-
-#gritmap-root .gritmap-period.gritmap-on,
-#gritmap-root .gritmap-period.gritmap-on:hover {
-    background: var(--gritmap-period-on);
-    color: var(--gritmap-fg);
-    font-weight: 650;
-    cursor: default;
-}
-
-#gritmap-root .gritmap-period:focus-visible {
-    outline: 2px solid var(--gritmap-focus);
-    outline-offset: 1px;
-}
-
-/* Cifras en dos grupos (constancia y rendimiento) separados por una raya
- * fina: lo cercano se lee como relacionado (ley de proximidad). */
-#gritmap-root .gritmap-stats {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 12px 0;
-    margin-top: 16px;
-}
-
-#gritmap-root .gritmap-group {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px 36px;
-    padding: 0 28px;
-}
-
-#gritmap-root .gritmap-group + .gritmap-group {
-    border-inline-start: 1px solid var(--gritmap-btnb);
-}
-
-#gritmap-root .gritmap-stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 0;
-}
-
-/* Jerarquia por peso y tamano, con una sola familia (la de Anki): el
- * numero manda; la unidad y el rotulo acompanan en gris. Cifras de ancho
- * fijo para que no bailen al cambiar. */
-#gritmap-root .gritmap-value {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.25em;
-    font-size: 19px;
-    font-weight: 650;
-    line-height: 1.25;
-    letter-spacing: -0.01em;
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-    color: var(--gritmap-fg);
-}
-
-#gritmap-root .gritmap-value .gritmap-unit {
-    font-size: 12.5px;
-    font-weight: 500;
-    letter-spacing: 0;
-    color: var(--gritmap-muted);
-}
-
-#gritmap-root .gritmap-value .gritmap-pct .gritmap-unit {
-    margin-inline-start: 0.05em;
-}
-
-/* Cuadrito del tono de cada cifra: el color de fondo lo pone la paleta. */
-#gritmap-root .gritmap-value::before {
-    content: "";
-    display: inline-block;
-    align-self: center;
-    width: 9px;
-    height: 9px;
-    margin-inline-end: 0.2em;
-    border-radius: 2px;
-}
-
-#gritmap-root .gritmap-value.gritmap-cm {
-    color: var(--gritmap-muted);
-    font-weight: 600;
-}
-
-#gritmap-root .gritmap-value.gritmap-cm::before {
-    content: none;
-}
-
-#gritmap-root .gritmap-label {
-    margin-top: 3px;
-    font-size: 12px;
-    font-weight: 500;
-    white-space: nowrap;
-    color: var(--gritmap-muted);
-}
-
 #gritmap-root .gritmap-msg {
-    margin: 14px 0;
-    text-align: center;
-    font-size: 13px;
     color: var(--gritmap-muted);
 }
 
-/* Marcador de posicion: reserva el alto final para que la lista de mazos no
- * de un salto cuando llegan los datos. */
-#gritmap-root .gritmap-wait {
-    text-align: center;
+#gritmap-root .gritmap-msg-hint {
+    display: block;
+    margin-top: 4px;
     font-size: 13px;
-    opacity: 0.45;
-    padding: 18px;
 }
 
-#gritmap-tip .gritmap-tip-date {
-    font-size: 11.5px;
+/* Mientras se calcula la primera vez: las tarjetas con huecos grises donde
+ * iran los datos, y la rejilla con su alto final. */
+#gritmap-root .gritmap-bone {
+    display: block;
+    width: 50%;
+    height: 12px;
+    border-radius: 4px;
+    background: var(--gritmap-empty);
+}
+
+#gritmap-root .gritmap-bone + .gritmap-bone {
+    margin-top: 8px;
+}
+
+#gritmap-root .gritmap-mini .gritmap-bone:nth-child(2) {
+    width: 70%;
+    height: 24px;
+}
+
+#gritmap-root .gritmap-bone-grid {
+    width: 100%;
+    height: auto;
+}
+
+#gritmap-tip .gritmap-tip-date,
+#gritmap-tip .gritmap-tip-hint {
     color: var(--gritmap-muted);
 }
 
+/* --- FIX-029 (2026-10-26) ---
+ * Sintoma: al mover el raton deprisa de los cuadritos de abajo hacia los de
+ *          arriba, el globo se quedaba abierto y tapaba los dias, que ya no
+ *          se podian recorrer.
+ * Causa: el globo sale encima del dia y recogia el raton para poder leerlo
+ *        con calma; al subir, el raton caia dentro del globo y no en el dia.
+ * Regla: el globo nunca recoge el raton (pointer-events: none): el raton
+ *        siempre llega al dia que tiene debajo.
+ */
 #gritmap-tip {
     position: absolute;
     display: none;
+    pointer-events: none;
     background: var(--gritmap-tipbg);
     color: var(--gritmap-tipfg);
     font-size: 13px;
     font-weight: 400;
-    line-height: 1.45;
+    line-height: 1.4;
     padding: 8px 12px;
-    border-radius: 7px;
+    border-radius: 8px;
     text-align: center;
     max-width: 260px;
-    pointer-events: none;
     z-index: 9999;
     border: 1px solid var(--gritmap-tipb);
     box-shadow: 0 6px 18px var(--gritmap-shadow);
 }
 
-/* Cifras de las estadisticas que muestran un globo al pasar el raton (o al
- * llegar a ellas con el tabulador). */
-#gritmap-root .gritmap-stat[data-gritmap-info] {
-    cursor: default;
-}
-
-#gritmap-root .gritmap-stat:focus {
-    outline: none;
-}
-
-#gritmap-root .gritmap-stat:focus-visible {
-    outline: 2px solid var(--gritmap-focus);
-    outline-offset: 2px;
-    border-radius: 4px;
-}
-
-/* Comparativa semanal: va junto al texto de Anki, fuera de #gritmap-root. */
-#gritmap-wd.gritmap-wd-up {
-    color: var(--accent-note, #2F9E44);
-}
-
-#gritmap-wd.gritmap-wd-down,
-#gritmap-wd.gritmap-wd-flat {
-    color: var(--fg-subtle, #5C6675);
-}
-
-html.night-mode #gritmap-wd.gritmap-wd-up,
-body.night_mode #gritmap-wd.gritmap-wd-up,
-body.nightMode #gritmap-wd.gritmap-wd-up {
-    color: var(--accent-note, #57D06B);
-}
-
-html.night-mode #gritmap-wd.gritmap-wd-down,
-html.night-mode #gritmap-wd.gritmap-wd-flat,
-body.night_mode #gritmap-wd.gritmap-wd-down,
-body.night_mode #gritmap-wd.gritmap-wd-flat,
-body.nightMode #gritmap-wd.gritmap-wd-down,
-body.nightMode #gritmap-wd.gritmap-wd-flat {
-    color: var(--fg-subtle, #9FABBB);
+/* 4.11.0 (informe aprobado por el cliente): la regla de FIX-029 vale para el
+ * globo de los dias del mapa, donde se recorre deprisa. Los globos de las
+ * tarjetas de debajo (comodines, record, objetivo, N/A) si se pueden recorrer
+ * con el raton (WCAG 2.2, criterio 1.4.13). */
+#gritmap-tip.gritmap-tip-hover {
+    pointer-events: auto;
 }
 
 /* Respeta el ajuste "reducir animaciones" de Anki y el del sistema. */
@@ -448,8 +782,40 @@ body.reduce-motion #gritmap-root .gritmap-btn {
     transition: none;
 }
 
+/* Con animaciones reducidas (lo normal en Anki: viene activado de serie), el
+ * ✓ aparece igualmente, con un fundido breve, sin moverse ni cambiar de
+ * tamano (4.7.0): un fundido no es movimiento. */
+body.reduce-motion #gritmap-root .gritmap-check.gritmap-celebrate {
+    animation: gritmap-fade 150ms ease-out;
+}
+
+@keyframes gritmap-fade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     #gritmap-root .gritmap-btn {
         transition: none;
     }
+
+    #gritmap-root .gritmap-check.gritmap-celebrate {
+        animation: gritmap-fade 150ms ease-out;
+    }
+}
+
+/* Zona invisible con la que el lector de pantalla anuncia el año al
+ * cambiarlo (4.8.0). Va fuera del mapa, en el cuerpo de la página. */
+.gritmap-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }

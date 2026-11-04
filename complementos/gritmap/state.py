@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 from dataclasses import dataclass, field
+from datetime import date
 
 from .data import HeatmapData
+
+if TYPE_CHECKING:
+    from .config import Config
 
 # Mapas ya dibujados que se recuerdan para volver a ensenarlos al instante.
 MAX_REMEMBERED_PAGES = 8
@@ -48,6 +53,15 @@ class ViewState:
     # pantalla, porque entonces puede haber datos nuevos.
     data: DataEntry | None = None
 
+    # Dia en que ya se celebro la meta cumplida (4.0.0): la celebracion sale
+    # una sola vez, la primera vez que se dibuja despues de cumplirla.
+    goal_celebrated: date | None = None
+
+    # Meta «Terminar lo de hoy» cumplida: el dia y cuantas tarjetas hicieron
+    # falta (4.7.0). Ese dia, la meta ya no sube aunque venzan otra vez
+    # tarjetas en aprendizaje.
+    due_goal: tuple[date, int] | None = None
+
     # Ultimo mapa enviado a cada pantalla (lista de mazos o un mazo concreto),
     # ya preparado. Al volver a esa pantalla se ensena en el acto, en lugar de
     # un hueco con «…», mientras se calculan los datos al dia.
@@ -59,6 +73,11 @@ class ViewState:
     # aqui, y no en un import directo, para que el dialogo no dependa del
     # modulo que lo abre.
     apply_config_change: Callable[[], None] | None = field(default=None, repr=False)
+
+    # Callback registrado por controller.register() (4.2.0): Opciones lo llama
+    # al mover el tema, el tamano de celda o el redondeo, para que el mapa
+    # cambie al momento sin guardar nada; con None, vuelve a lo guardado.
+    preview_config: Callable[[Config | None], None] | None = field(default=None, repr=False)
 
     def new_render_token(self) -> tuple[int, int]:
         self.render_token += 1
