@@ -65,6 +65,8 @@ def _setup() -> None:
     #    - Hoja de estilo de las ventanas: borde propio de las casillas. Va antes
     #      del paso 4, que es cuando Anki rehace la hoja y pasa por este filtro.
     gui_hooks.style_did_init.append(theming.on_style_did_init)
+    #    - Interruptor Tarjetas/Notas de Explorar en el color de acción (versión 3.8.0).
+    gui_hooks.browser_will_show.append(theming.on_browser_will_show)
     #    - Barra de título de las ventanas del color de la paleta (solo Windows 11).
     titlebar.install()
 

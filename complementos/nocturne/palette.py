@@ -169,7 +169,13 @@ PALETTE: dict[str, Token] = {
     "NOCTURNE_PRIMARY_PRESSED":      {"css": (),                                                     "light": "#284EAA",   "dark": "#2B45AA"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_PRIMARY_RING":         {"css": (),                                                     "light": "#1C3A8A",   "dark": "#A9C4FF"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_TITLEBAR":             {"css": (),                                                     "light": "#FAFBFE",   "dark": "#070C16"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "NOCTURNE_TABLE_SELECTED":       {"css": (),                                                     "light": "#92AEEB",   "dark": "#3D5696"},  # colores-ok: paleta del tema, origen de todos sus colores
 }
+# Versión 3.8.0 (informe del 2026-11-04, apartado 1.2): NOCTURNE_TABLE_SELECTED es el fondo
+# opaco de las filas seleccionadas de Explorar. Anki usa SELECTED_BG, que es transparente, y
+# Explorar lo pinta tres veces encima de la fila (estilo, celda y delegado de Anki): de noche
+# quedaba en #425EA3, con el texto a 4,46:1. Opaco, se ve igual lo pinte quien lo pinte; de día
+# es el mismo color que ya se veía y de noche el mismo tono algo más oscuro, a 5:1 o más.
 
 # Anki mantiene dos alias de gradiente que deben seguir al color de hover.
 GRADIENT_ALIASES: tuple[str, ...] = ("BUTTON_GRADIENT_START", "BUTTON_GRADIENT_END")

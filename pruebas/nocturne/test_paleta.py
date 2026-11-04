@@ -678,5 +678,60 @@ class IdentityTest(unittest.TestCase):
                 self.assertLessEqual(delta, 6.0, f"{name} ({mode}): {delta:.1f}°")
 
 
+class TableSelectionTest(unittest.TestCase):
+    """Versión 3.8.0 (informe del 2026-11-04, apartado 1.2): la fila seleccionada de
+    Explorar se leía a 4,46:1 en Nocturne de noche (y a 3,1-4,1 en Papel, Bosque y
+    Atardecer), porque el fondo transparente de Anki se pinta tres veces."""
+
+    def test_old_selection_was_below_minimum(self) -> None:
+        # Lo que se veía: SELECTED_BG tres veces sobre el fondo de la tabla (medido con Qt).
+        seen = color("CANVAS_CODE", "dark")
+        for _ in range(3):
+            seen = blend(color("SELECTED_BG", "dark"), seen)
+        self.assertLess(contrast(color("SELECTED_FG", "dark"), seen), 4.5)
+
+    def test_selected_row_reads_and_stands_out(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                selected = color("NOCTURNE_TABLE_SELECTED", mode, theme)
+                self.assertEqual(len(selected), 7, f"{theme}: debe ser opaco")
+                text = contrast(color("SELECTED_FG", mode, theme), selected)
+                self.assertGreaterEqual(text, 5.0, f"{theme} ({mode}): texto {text:.2f}")
+                for row in ("CANVAS_CODE", "CANVAS"):
+                    ratio = contrast(selected, color(row, mode, theme))
+                    self.assertGreaterEqual(ratio, 1.5, f"{theme} ({mode}) frente a {row}: {ratio:.2f}")
+
+    def test_selection_keeps_the_action_hue(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                delta = hue_distance(color("NOCTURNE_TABLE_SELECTED", mode, theme), color("BORDER_FOCUS", mode, theme))
+                self.assertLessEqual(delta, 25.0, f"{theme} ({mode}): {delta:.1f}°")
+
+
+class FieldBorderTest(unittest.TestCase):
+    """Versión 3.8.0 (informe del 2026-11-04, apartado 2.2): campos y listas desplegables
+    con el borde de las casillas, a 3:1 o más también sobre su propio fondo."""
+
+    def test_field_border_is_visible(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                border = color("NOCTURNE_CONTROL_BORDER", mode, theme)
+                for surface in ("CANVAS_CODE", "BUTTON_BG", "CANVAS", "CANVAS_ELEVATED"):
+                    ratio = contrast(border, color(surface, mode, theme))
+                    self.assertGreaterEqual(ratio, 3.0, f"{theme}: borde sobre {surface} ({mode}): {ratio:.2f}")
+
+
+class ExplorerSwitchTest(unittest.TestCase):
+    """Versión 3.8.0 (informe del 2026-11-04, apartado 2.1): el lado «Tarjetas» del
+    interruptor de Explorar, en el color de acción; su rótulo va en el color del fondo."""
+
+    def test_switch_label_reads(self) -> None:
+        for theme in THEMES:
+            pairs = (("BUTTON_PRIMARY_GRADIENT_END", "light"), ("BORDER_FOCUS", "dark"))
+            for name, mode in pairs:
+                ratio = contrast(color(name, mode, theme), color("CANVAS", mode, theme))
+                self.assertGreaterEqual(ratio, 4.5, f"{theme} ({mode}): {ratio:.2f}")
+
+
 if __name__ == "__main__":
     unittest.main()

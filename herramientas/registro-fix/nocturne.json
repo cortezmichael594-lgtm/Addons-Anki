@@ -35,6 +35,12 @@
     ],
     "FIX-011": [
       "web/panel.js"
+    ],
+    "FIX-012": [
+      "theming.py"
+    ],
+    "FIX-013": [
+      "theming.py"
     ]
   }
 }

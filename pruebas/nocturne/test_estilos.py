@@ -7,8 +7,10 @@ PYTHONPATH.
 
 from __future__ import annotations
 
+import tempfile
 import types
 import unittest
+from pathlib import Path
 
 from aqt.theme import WidgetStyle
 
@@ -147,6 +149,23 @@ class WebStyleTest(unittest.TestCase):
             css = self.css_for(theme_id)
             self.assertIn("table:has(tr.deck) { background: var(--canvas-elevated); }", css, theme_id)
 
+    def test_report_3_7_deck_list(self) -> None:
+        # Versión 3.8.0 (informe del 2026-11-04): barra superior en seminegrita, línea de
+        # «Estudiadas...» en el secundario, esquinas pequeñas en la fila resaltada y en los
+        # botones de la barra inferior, hueco bajo la cabecera y rótulos alineados. Todo
+        # limitado a sus propios elementos (regla de FIX-006).
+        for theme_id in themes.THEMES:
+            css = self.css_for(theme_id)
+            self.assertIn(".toolbar .hitem { font-weight: 600; }", css, theme_id)
+            self.assertIn("#studiedToday { color: var(--fg-subtle); }", css, theme_id)
+            self.assertIn("tr.deck > td { --border-radius-medium: var(--nocturne-control-radius); }", css, theme_id)
+            self.assertIn("center#outer > table#header button { border-radius: var(--nocturne-control-radius); }", css)
+            self.assertIn("table:has(tr.deck) tr.top-level-drag-row > td { padding-block: 0; height: 10px;", css)
+            self.assertIn("table:has(tr.deck) th { padding-inline: 12px; }", css, theme_id)
+            self.assertIn(".label-container .label-name { color: var(--fg-subtle); }", css, theme_id)
+            # La barra del repaso (botones de respuesta) no lleva esa esquina.
+            self.assertNotIn("#innertable", css, theme_id)
+
     def test_switching_changes_the_css(self) -> None:
         first = self.css_for("papel")
         second = self.css_for("nocturne")
@@ -159,13 +178,31 @@ class QtStyleTest(unittest.TestCase):
 
     def setUp(self) -> None:
         self._mw, self._tm = theming.mw, theming.theme_manager
+        # Los iconos repintados, en una carpeta temporal y no dentro del complemento.
+        self._icons, self._tmp = theming._ICON_DIR, tempfile.TemporaryDirectory()
+        theming._ICON_DIR = Path(self._tmp.name) / "iconos"
         theming.mw = types.SimpleNamespace(  # type: ignore[assignment]
             pm=types.SimpleNamespace(get_widget_style=lambda: WidgetStyle.ANKI)
         )
 
     def tearDown(self) -> None:
         theming.mw, theming.theme_manager = self._mw, self._tm  # type: ignore[assignment]
+        theming._ICON_DIR = self._icons
+        self._tmp.cleanup()
         themes.select("nocturne")
+
+    def test_icons_take_palette_colors(self) -> None:
+        # Versión 3.8.0: flechas en el texto secundario y marca blanca en la casilla marcada.
+        sheet = self.qss("lavanda", True)
+        subtle = themes.THEMES["lavanda"]["colors"]["FG_SUBTLE"]["dark"]
+        arrow = theming._ICON_DIR / f"chevron-down-{subtle[1:].lower()}.svg"
+        self.assertTrue(arrow.exists())
+        self.assertIn(f'fill="{subtle}"', arrow.read_text(encoding="utf-8"))
+        self.assertIn(f"QComboBox::down-arrow {{\n        image: url({arrow.as_posix()});", sheet)
+        self.assertTrue((theming._ICON_DIR / "check-ffffff.svg").exists())
+        # Un color que no sea hexadecimal no se usa: quedan los iconos de Anki.
+        self.assertEqual(theming._tinted_icon("chevron-down", "rgba(1, 2, 3, 0.5)"), "")
+        self.assertEqual(theming._tinted_icon("no-existe", "#123456"), "")
 
     def qss(self, theme_id: str, night: bool) -> str:
         themes.select(theme_id)
@@ -213,6 +250,37 @@ class QtStyleTest(unittest.TestCase):
             part = sheet[sheet.index("QMenu::item:selected,") :]
             self.assertIn(f"background-color: {to_css_rgba(colors['NOCTURNE_ROW_HIGHLIGHT']['dark'])};", part, theme_id)
             self.assertIn(f"color: {to_css_rgba(colors['FG']['dark'])};", part, theme_id)
+
+    def test_primary_fill_only_in_button_row(self) -> None:
+        # Versión 3.8.0 (informe del 2026-11-04, apartado 2.1): en Preferencias salía relleno
+        # «Restablecer tamaños de las ventanas». Solo el de la fila de botones del pie.
+        for theme_id in themes.THEMES:
+            sheet = self.qss(theme_id, True)
+            added = sheet[len("/* hoja de Anki */") :]
+            for index in [i for i in range(len(added)) if added.startswith("QPushButton:default", i)]:
+                self.assertTrue(added[:index].endswith("QDialogButtonBox "), theme_id)
+
+    def test_tabs_fields_table_and_checkbox(self) -> None:
+        # Versión 3.8.0: pestaña activa con tinte y raya (sin cambiar de tamaño), campos con
+        # borde visible, fila seleccionada opaca y casilla marcada rellena.
+        for theme_id, data in themes.THEMES.items():
+            for night, mode in ((False, "light"), (True, "dark")):
+                sheet = self.qss(theme_id, night)
+                colors = data["colors"]
+                tab = sheet[sheet.index("QTabBar::tab:selected,") :]
+                tab = tab[: tab.index("}")]
+                self.assertIn(f"background: {to_css_rgba(colors['NOCTURNE_ROW_HIGHLIGHT'][mode])};", tab)
+                self.assertIn(f"border-bottom: 2px solid {to_css_rgba(colors['BORDER_FOCUS'][mode])};", tab)
+                self.assertIn("padding-bottom: 3px;", tab)
+                self.assertNotIn("font-weight", tab)
+                fields = sheet[sheet.index("QLineEdit,\n    QComboBox,\n    QComboBox:!editable,") :]
+                border = to_css_rgba(colors["NOCTURNE_CONTROL_BORDER"][mode])
+                self.assertIn(f"border-color: {border};", fields[: fields.index("}")], theme_id)
+                self.assertIn("QComboBox QLineEdit {\n        border-color: transparent;", sheet)
+                selected = to_css_rgba(colors["NOCTURNE_TABLE_SELECTED"][mode])
+                self.assertIn(f"selection-background-color: {selected};", sheet, theme_id)
+                checked = sheet[sheet.index("QCheckBox::indicator:checked:!disabled {") :]
+                self.assertIn(f"background: {to_css_rgba(colors['BUTTON_PRIMARY_BG'][mode])};", checked)
 
     def test_other_widget_styles_untouched(self) -> None:
         theming.mw = types.SimpleNamespace(  # type: ignore[assignment]

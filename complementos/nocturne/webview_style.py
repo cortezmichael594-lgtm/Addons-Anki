@@ -270,6 +270,39 @@ def _surface_css() -> str:
             f"html {_SURFACE} tr.deck:is(.current, :hover) > td"
             " { background: var(--nocturne-row-highlight); }"
         ),
+        # Versión 3.8.0 (informe del 2026-11-04, apartados 1.5 y 2.1), todo limitado a la
+        # tabla de la lista de mazos (regla de FIX-006):
+        # - La fila resaltada, con la esquina de botones y campos y no con la de los
+        #   recuadros: un elemento dentro de un recuadro redondeado lleva una esquina menor
+        #   (Pixsel, M3). Se cambia la variable que usa Anki solo en esas celdas, así vale
+        #   también para los idiomas que se escriben de derecha a izquierda.
+        f"html {_SURFACE} tr.deck > td {{ --border-radius-medium: var(--nocturne-control-radius); }}",
+        # - La fila vacía bajo la cabecera, donde se suelta un mazo para sacarlo al nivel
+        #   superior, de 10 px en vez de una línea entera: separaba la cabecera de sus filas
+        #   más que una fila de otra. Sigue ahí y sigue admitiendo mazos.
+        (
+            f"html {_SURFACE} table:has(tr.deck) tr.top-level-drag-row > td"
+            " { padding-block: 0; height: 10px; font-size: 0; line-height: 0; }"
+        ),
+        # - Rótulos de las columnas con el mismo margen lateral que sus cifras (12 px a cada
+        #   lado): quedan alineados con ellas y separados entre sí 24 px, en vez de 6
+        #   (Jeliazkov, M10); y «Mazo», alineado con los nombres, que llevan delante el
+        #   hueco de 1em del «+/−» para plegar.
+        f"html {_SURFACE} table:has(tr.deck) th {{ padding-inline: 12px; }}",
+        f"html {_SURFACE} table:has(tr.deck) th:first-child {{ padding-inline-start: calc(12px + 1em); }}",
+        # Versión 3.8.0: la línea «Estudiadas N tarjetas…» en el texto secundario: es un dato
+        # de apoyo y no compite con los nombres de los mazos (Practical UI, M6).
+        f"html {_SURFACE} #studiedToday {{ color: var(--fg-subtle); }}",
+        # Versión 3.8.0: los botones de la barra inferior de la lista de mazos y de la
+        # pantalla de un mazo («Crear mazo», «Importar archivo», «Opciones»...) con la
+        # esquina de botones y campos, no media píldora (la regla de esquinas de 3.5.0).
+        (
+            f"html {_SURFACE} center#outer > table#header button"
+            " { border-radius: var(--nocturne-control-radius); }"
+        ),
+        # Versión 3.8.0: en el editor, los nombres de los campos en el texto secundario: lo
+        # que se escribe es el dato y el nombre, su rótulo (Refactoring UI, P10).
+        f"html {_SURFACE} .label-container .label-name {{ color: var(--fg-subtle); }}",
         # Barra superior (versión 3.2.0): Mazos, Añadir, Explorar... con un fondo suave
         # y redondeado al pasar el ratón, en lugar del subrayado, para que se vea qué
         # se va a pulsar (Practical UI, M5). Solo color y esquinas: no cambia el tamaño
@@ -280,6 +313,10 @@ def _surface_css() -> str:
             " border-radius: var(--border-radius);"
             " text-decoration: none; }"
         ),
+        # Versión 3.8.0 (informe del 2026-11-04, apartado 1.1): la barra superior en
+        # seminegrita y no en negrita: es navegación, y no debe pesar más que los nombres
+        # de los mazos, que es lo que se viene a mirar (Refactoring UI, P8).
+        f"html {_SURFACE} .toolbar .hitem {{ font-weight: 600; }}",
         # Botones de respuesta del repaso (versión 3.2.0): una raya fina de color al pie
         # de «Otra vez», «Difícil», «Bien» y «Fácil». El texto sigue diciendo lo mismo;
         # el color solo ayuda a reconocerlos de un vistazo (Norman, mapeo; Practical UI,

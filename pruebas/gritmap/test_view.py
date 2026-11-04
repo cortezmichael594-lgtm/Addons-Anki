@@ -189,6 +189,25 @@ class TodayCardTest(unittest.TestCase):
         block = CSS[CSS.index("#gritmap-root .gritmap-ring-track {") :]
         self.assertIn("stroke: var(--gritmap-f1);", block[: block.index("}")])
 
+    def test_due_greys_follow_the_palette(self) -> None:
+        # 4.13.0 (informe de Atelier del 2026-11-04, apartado 1.6): los grises de los días
+        # pendientes se calculan con el texto y la tarjeta de la paleta, no son fijos.
+        css = palettes.palette_css("classic_green")
+        for level, (day, night) in enumerate(zip(palettes.FUTURE_TEXT_LIGHT, palettes.FUTURE_TEXT_DARK, strict=True)):
+            self.assertIn(
+                f"--gritmap-f{level + 1}:color-mix(in srgb, var(--gritmap-fg) {day}%, var(--gritmap-card));", css
+            )
+            self.assertIn(
+                f"--gritmap-f{level + 1}:color-mix(in srgb, var(--gritmap-fg) {night}%, var(--gritmap-card));", css
+            )
+        self.assertNotRegex(css, r"--gritmap-f\d:#")
+        self.assertEqual(list(palettes.FUTURE_TEXT_LIGHT), sorted(palettes.FUTURE_TEXT_LIGHT))
+
+    def test_cards_take_the_anki_container_corner(self) -> None:
+        # 4.13.0: la esquina de los recuadros de Anki (o de la paleta de Atelier), no 10 px.
+        block = CSS[CSS.index("#gritmap-root .gritmap-card {") :]
+        self.assertIn("border-radius: var(--border-radius-medium, 12px);", block[: block.index("}")])
+
     def test_card_titles_are_muted(self) -> None:
         block = CSS[CSS.index("#gritmap-root .gritmap-mini .gritmap-card-title {") :]
         self.assertIn("color: var(--gritmap-muted);", block[: block.index("}")])

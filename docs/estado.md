@@ -11,6 +11,14 @@ Se actualiza al terminar cada sesión de un trabajo largo y se lee al retomarlo.
   código, se anotaron FIX-024 a FIX-031 en `errores.md` y se pusieron al día las pruebas de la 3.5.0
   (45 pruebas). Su `meta.json` personal no se sube: el repositorio es público.
 
+- 2026-11-04: Atelier pasa a la 3.8.0 y GritMap a la 4.13.0 con la auditoría «Atelier 3.7.2»
+  del 2026-11-04, aprobada entera (también el borde visible de los campos, que en octubre se había
+  descartado, y las dos propuestas que eran de GritMap). La versión que la persona tenía instalada
+  era idéntica a la del repositorio. FIX-012 (fila seleccionada de Explorar por debajo de 4,5 en
+  cuatro paletas) y FIX-013 (botón del cuerpo relleno en Preferencias). Lo no aplicado, con su
+  motivo, está en «Así a propósito» de docs/nocturne/errores.md; el blanco puro del editor queda en
+  «Pendientes».
+
 ## En curso
 
 - El pull request de la adaptación espera la revisión de la persona. No se fusiona sin ella.

@@ -159,6 +159,7 @@ PAPEL: dict[str, Token] = _colors(
         "NOCTURNE_PRIMARY_PRESSED": ("#154B5B", "#164F60"),  # colores-ok: paleta del tema
         "NOCTURNE_PRIMARY_RING": ("#0E3440", "#9FD6E4"),  # colores-ok: paleta del tema
         "NOCTURNE_TITLEBAR": ("#FFFCF7", "#070F12"),  # colores-ok: paleta del tema
+        "NOCTURNE_TABLE_SELECTED": ("#8CAFB5", "#335F6C"),  # colores-ok: paleta del tema
     }
 )
 
@@ -219,6 +220,7 @@ BOSQUE: dict[str, Token] = _colors(
         "NOCTURNE_PRIMARY_PRESSED": ("#0A524C", "#0A4F4A"),  # colores-ok: paleta del tema
         "NOCTURNE_PRIMARY_RING": ("#063A36", "#7FD6C9"),  # colores-ok: paleta del tema
         "NOCTURNE_TITLEBAR": ("#F8FEFA", "#08100C"),  # colores-ok: paleta del tema
+        "NOCTURNE_TABLE_SELECTED": ("#81B6B0", "#27635B"),  # colores-ok: paleta del tema
     }
 )
 
@@ -302,6 +304,7 @@ LAVANDA: dict[str, Token] = _colors(
         "NOCTURNE_PRIMARY_RING": ("#472482", "#CAAFF9"),  # colores-ok: paleta del tema
         "NOCTURNE_ROW_HIGHLIGHT": ("#EFEBF7", "#281C3C"),  # colores-ok: paleta del tema
         "NOCTURNE_TITLEBAR": ("#FBFAFE", "#0C0716"),  # colores-ok: paleta del tema
+        "NOCTURNE_TABLE_SELECTED": ("#B598E5", "#654799"),  # colores-ok: paleta del tema
         "SCROLLBAR_BG": ("#DAD5E2", "#30273F"),  # colores-ok: paleta del tema
         "SCROLLBAR_BG_ACTIVE": ("#B2AAC0", "#483D5C"),  # colores-ok: paleta del tema
         "SCROLLBAR_BG_HOVER": ("#C7C0D3", "#3F3550"),  # colores-ok: paleta del tema
@@ -357,11 +360,12 @@ ATARDECER: dict[str, Token] = _colors(
         "FLAG_7": ("#7048E8", "#9680D6"),  # colores-ok: paleta del tema
         "HIGHLIGHT_BG": ("#845727", "#8F5D27"),  # colores-ok: paleta del tema
         "HIGHLIGHT_FG": ("#FFFFFF", "#FFFFFF"),  # colores-ok: paleta del tema
-        "NOCTURNE_CONTROL_BORDER": ("#978D87", "#8C7C72"),  # colores-ok: paleta del tema
+        "NOCTURNE_CONTROL_BORDER": ("#968B85", "#8C7C72"),  # colores-ok: paleta del tema; 3.8.0: #978D87 -> #968B85, 3:1 también sobre los campos
         "NOCTURNE_PRIMARY_PRESSED": ("#48321A", "#49331C"),  # colores-ok: paleta del tema
         "NOCTURNE_PRIMARY_RING": ("#21160B", "#F4D5B4"),  # colores-ok: paleta del tema
         "NOCTURNE_ROW_HIGHLIGHT": ("#F6F1EC", "#3A2C1E"),  # colores-ok: paleta del tema
         "NOCTURNE_TITLEBAR": ("#FFFBF9", "#160D07"),  # colores-ok: paleta del tema
+        "NOCTURNE_TABLE_SELECTED": ("#E1BF9C", "#6F5438"),  # colores-ok: paleta del tema
         "SCROLLBAR_BG": ("#E2DAD5", "#3F3127"),  # colores-ok: paleta del tema
         "SCROLLBAR_BG_ACTIVE": ("#C0B3AA", "#5C493D"),  # colores-ok: paleta del tema
         "SCROLLBAR_BG_HOVER": ("#D3C8C0", "#504035"),  # colores-ok: paleta del tema

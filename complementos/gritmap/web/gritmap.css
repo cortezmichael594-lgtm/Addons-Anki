@@ -145,11 +145,13 @@ body.nightMode #gritmap-root {
 }
 
 /* Tarjetas: superficie un punto mas clara que el fondo de Anki, borde suave,
- * esquinas de 10 px y 16 px de relleno; el borde agrupa lo que va junto. */
+ * 16 px de relleno; el borde agrupa lo que va junto. Desde la 4.13.0, la esquina
+ * de los recuadros de Anki (12 px; con Atelier, la de su paleta: 12 o 16), la
+ * misma que la lista de mazos que tiene encima, en vez de 10 px. */
 #gritmap-root .gritmap-card {
     background: var(--gritmap-card);
     border: 1px solid var(--gritmap-card-border);
-    border-radius: 10px;
+    border-radius: var(--border-radius-medium, 12px);
     padding: 16px;
     box-shadow: 0 1px 3px var(--gritmap-card-shadow);
     min-width: 0;

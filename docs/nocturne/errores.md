@@ -8,7 +8,12 @@ ninguna.
 
 Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa y propuesta.
 
-(Ninguno.)
+- 2026-11-04 · versión 3.7.2 · Qué pasa: de noche, el informe midió el texto de los campos del editor
+  en blanco puro (14,8 a 1), por encima del techo de 13,5 de las paletas, que piden #D6DAE1 en
+  Nocturne. No se ha podido averiguar desde aquí de dónde sale: Atelier no pinta el interior de los
+  campos, y puede venir del estilo de las tarjetas de su tipo de nota (el de serie, «Básico», pide
+  texto negro). Propuesta: con Atelier desactivado en Herramientas > «Complementos», abrir Añadir de
+  noche y ver si el texto sigue en blanco; si sigue, no es de Atelier y no se toca.
 
 ## Corregidos
 
@@ -79,6 +84,20 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   navegador de Anki puede tardar en arrancar), se enseña igualmente. Prueba:
   «test_page_waits_for_pycmd»; y, dibujándola como la carga Anki, antes daba «pycmd is not defined» y
   ahora avisa con 646 px.
+- FIX-012 · 2026-11-04 · versión 3.8.0 · Qué pasaba: en Explorar, el texto de la fila seleccionada
+  se leía peor de lo prometido: 4,46 a 1 en Nocturne de noche, y entre 3,1 y 4,1 en Papel, Bosque y
+  Atardecer de noche (lo detectó el informe del 2026-11-04 en Nocturne; las demás, al medirlas). Por
+  qué: Anki marca la selección con un color transparente y Explorar lo pinta tres veces encima de la
+  fila, así que el color que se veía no era el que se había medido. Regla: el fondo de lo
+  seleccionado en las tablas es opaco y se mide con el texto encima tal como se ve; ahora llega a 5 a
+  1 o más en las cinco paletas. Prueba: «TableSelectionTest».
+- FIX-013 · 2026-11-04 · versión 3.8.0 · Qué pasaba: en Preferencias, «Restablecer tamaños de las
+  ventanas» salía relleno de azul y a todo el ancho, como la acción principal, y «Cerrar» en gris.
+  Por qué: el relleno seguía a cualquier botón que respondiera a Intro, y Qt da ese papel al botón
+  del cuerpo que tiene el foco cuando la ventana no marca uno en la fila de abajo. Regla: el relleno
+  de acción es solo para el botón principal de la fila de botones del pie; un botón del cuerpo nunca
+  se rellena. Prueba: «PrimaryButtonRowTest», que dibuja la ventana; falló antes del arreglo y pasa
+  después.
 ## Así a propósito
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
@@ -86,9 +105,11 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 2026.07.28 · En la paleta Nocturne, «Aprendiendo» iba en naranja, como en el aspecto original. Desde
   la 3.5.0 va en rojo, como en Papel y en Bosque: el cliente lo pidió el 2026-10-26 (informe de
   mejoras, apartado 4.2) sabiendo que se aparta del original, porque el naranja también es «Difícil».
-- 2026.07.28 · Los bordes de campos, listas y tablas son muy suaves. Es parte del aspecto original; la
-  versión 2.0.0 los reforzó y el cliente la descartó por perder atractivo (2026-10-21). Vale para las
-  tres paletas.
+- 2026.07.28 · Los bordes de listas, tablas y separadores son muy suaves. Es parte del aspecto
+  original; la versión 2.0.0 los reforzó y el cliente la descartó por perder atractivo (2026-10-21).
+  Desde la 3.8.0, los campos de texto, los campos numéricos y las listas desplegables llevan un borde
+  fino visible, el mismo de las casillas: el cliente lo aprobó el 2026-11-04 (informe, apartado 2.2)
+  sabiendo que en octubre lo había descartado.
 - 2.1.0 · De noche, las banderas son algo menos vivas que en la versión original. Es el precio de que el
   texto de las filas de Explorar se lea bien (FIX-004); el cliente aprobó el plan el 2026-10-21.
 - 2.1.0 · Con el ratón encima o con el foco, el borde de las casillas es azul y no gris oscuro, para que
@@ -102,8 +123,10 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   se confundía con la roja. Es el único cambio de tono respecto al aspecto original; lo vigilan las
   pruebas.
 - 3.1.0 · El relleno del botón principal de las ventanas sigue al botón que respondería a Intro: al
-  moverse con Tab entre botones, el relleno se mueve con el foco. Así funciona Qt y así se avisa de lo
-  que hará Intro. Decisión del taller.
+  moverse con Tab entre los botones de la fila de abajo, el relleno se mueve con el foco. Así funciona
+  Qt y así se avisa de lo que hará Intro. Decisión del taller. Desde la 3.8.0, solo en esa fila: un
+  botón del cuerpo de la ventana que responda a Intro conserva su fondo y lleva el borde azul fino
+  de Anki (FIX-013).
 - 3.1.0 · Solo se elige la paleta; no hay ajustes sueltos de esquinas, letra o separación. Lo decidió el
   cliente (2026-10-21).
 - 3.1.0 · Los botones de las ventanas tienen como mucho 9px de radio: con más, Qt los dibuja cuadrados
@@ -174,9 +197,29 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 3.7.0 · Papel y Lavanda pasan de esquinas de 7 y 14 px a 6 y 12, para formar dos familias claras
   (suaves y redondeadas). El informe proponía también, para Papel, 4 y 8 px («casi rectas»); no se ha
   aplicado porque cambia a la vista una paleta que ya se usa: queda a decisión del cliente.
-- 3.7.0 · Las pestañas de Anki no cambian (el informe proponía una raya de 2 px): Anki ya marca la
-  activa rellena del color de acción con texto blanco, que no depende solo del tono. Decisión del
-  taller.
+- 3.7.0 · Las pestañas de Anki no cambiaban (el informe proponía una raya de 2 px). Desde la 3.8.0
+  sí: la activa lleva el tinte de acción, el texto normal y una raya de 2 px, pedido por el cliente
+  el 2026-11-04 (informe, apartado 2.1). La letra no pasa a seminegrita, como pedía el informe: Qt
+  mediría la pestaña más ancha y la barra se movería al cambiar de una a otra. Decisión del taller.
 - 3.7.0 · No hay simulación de daltonismo de las series de las estadísticas: sus gráficas usan colores
   propios de Anki que Atelier no cambia, así que no hay nada que comprobar desde el complemento.
+  Decisión del taller.
+- 3.8.0 · En Explorar, una fila seleccionada con bandera o estado se ve del color de la selección, sin
+  el tinte de su bandera debajo: el fondo de la selección es opaco para que su texto se lea (FIX-012).
+  La bandera vuelve a verse al quitar la selección. Decisión del taller.
+- 3.8.0 · El interruptor «Tarjetas/Notas» de Explorar se tiñe cambiando un dato interno de Anki,
+  porque Anki no ofrece una forma de elegir su color (APR-015). Si una versión futura de Anki lo
+  cambia, el interruptor queda como lo dibuje Anki, sin fallo. Solo cambia el lado «Tarjetas»; el de
+  «Notas» sigue en verde. Decisión del taller.
+- 3.8.0 · Las flechas de las listas desplegables y de los campos numéricos y la marca de las
+  casillas se repintan copiando los iconos de Anki con los colores de la paleta, en la carpeta de
+  datos del complemento. Anki los trae ya pintados en un blanco casi puro (de noche) o casi negro (de
+  día). Los iconos de la barra lateral de Explorar y del editor no se tocan: los dibuja Anki con su
+  propio color en cada sitio. Decisión del taller.
+- 3.8.0 · La fila vacía bajo la cabecera de la lista de mazos, donde se suelta un mazo para sacarlo al
+  nivel superior, mide 10 px en lugar de una línea entera (el informe proponía 8). Se puede seguir
+  soltando ahí un mazo, con algo más de puntería; no crece al arrastrar, para que la lista no salte.
+  Decisión del taller.
+- 3.8.0 · El verde de «A repasar» y el tono 3 de Verde clásico de GritMap son casi el mismo verde. No
+  se cambia: los colores de estado de Anki son una convención conocida (informe, apartado 1.6).
   Decisión del taller.
