@@ -115,9 +115,68 @@ Las trece siguientes salieron de la revisión completa del 2026-10-12 y se corri
   siempre de izquierda a derecha, como el calendario, y los huecos entre textos siguen la dirección
   del idioma.
 
+Las ocho siguientes se hicieron en la serie 4 fuera de este taller; constan la fecha y la nota del
+código, no la versión exacta. Se anotaron aquí al traer la 4.11.2 (2026-11-04).
+
+- FIX-024 · 2026-10-21 · serie 4 · Qué pasaba: al recorrer el mapa con el tabulador, los botones de
+  encima no mostraban ningún contorno y no se sabía dónde estaba el foco. Por qué: Anki quita el
+  contorno de todos los botones de sus páginas con una regla que gana a las normales. Regla: el foco
+  de todo botón del complemento lleva una regla más fuerte que la de Anki y solo aparece al usar el
+  teclado, nunca al hacer clic.
+- FIX-025 · 2026-10-21 · serie 4 · Qué pasaba: abiertas desde Herramientas > Complementos >
+  «Configuración», las opciones podían quedar detrás de la ventana Complementos en Windows. Por qué:
+  la ventana se colgaba siempre de la principal de Anki. Regla: una ventana que se abre desde otra se
+  cuelga de la que está activa, comprobando antes que siga abierta.
+- FIX-026 · 2026-10-22 · serie 4 · Qué pasaba: con la meta «Terminar lo de hoy» ya cumplida, la
+  tarjeta «Hoy» volvía al rato a «faltan 3». Por qué: las tarjetas en aprendizaje vuelven a vencer
+  horas después y la meta se recalculaba con ellas. Regla: una meta cumplida queda cumplida el resto
+  del día; solo vuelve atrás si se deshace la respuesta que la cumplió.
+- FIX-027 · 2026-10-26 · serie 4 · Qué pasaba: en la fila de arriba y en la primera y la última
+  columna, el borde de hoy y el discontinuo de los días perdonados se veían cortados. Por qué: esos
+  bordes sobresalen del cuadrito y el dibujo recortaba lo que quedaba fuera. Regla: lo que se dibuja
+  alrededor de un cuadrito cabe siempre; el dibujo no recorta y la rejilla deja margen por los cuatro
+  lados (desde la 4.12.0, 4 px, para que quepa también el contorno de foco del día de hoy).
+- FIX-028 · 2026-10-26 · serie 4 · Qué pasaba: al entrar en «Fechas clave», la cabecera de Opciones
+  desaparecía por arriba y Aceptar y Cancelar quedaban a media ventana. Por qué: la ventana cambiaba
+  de alto en cada subpágina y la página entera podía desplazarse al llevar el foco a un campo. Regla:
+  el alto de la ventana se fija al abrirla y solo se desplaza el cuerpo del panel, nunca la página.
+- FIX-029 · 2026-10-26 · serie 4 · Qué pasaba: al subir deprisa con el ratón por el mapa, el globo
+  se quedaba abierto y tapaba los días de arriba. Por qué: el globo recogía el ratón. Regla: el globo
+  de los días nunca recoge el ratón; el ratón llega siempre al día que tiene debajo.
+- FIX-030 · 2026-10-26 · serie 4 · Qué pasaba: al marcar «Pausar la racha» (o cualquier casilla de
+  abajo), la cabecera de Opciones desaparecía por arriba. Por qué: la casilla invisible de verdad se
+  colocaba respecto a la ventana y no a su fila, y al recibir el foco el navegador desplazaba la
+  página entera. Regla: todo control invisible va colocado dentro de su fila, y si la página se
+  desplazara, vuelve a su sitio.
+- FIX-031 · 2026-10-27 · serie 4 · Qué pasaba: el ✓ de «✓ hoy» en «Racha» era gris y fino, y el de
+  «✓ Meta cumplida» en «Hoy», del color del texto y en seminegrita. Por qué: cada uno se dibujaba de
+  una manera. Regla: todo ✓ de las tarjetas se dibuja con la misma pieza y el mismo aspecto.
+
 ## Así a propósito
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
+
+Serie 4 (lo más reciente primero):
+
+- «0 de 2» en «Hoy» con una sola tarjeta por estudiar en la lista de mazos no es un fallo: con la
+  meta «Un número», el 2 es la meta elegida, no lo que vence. Comprobado el 2026-11-04 (informe 4.11,
+  apartado 4.3).
+- El texto sobre el azul de acción sigue en blanco también de noche (4,9:1; de día, 4,6:1): la
+  paleta Nocturne lo fija así. El informe 4.8 proponía texto oscuro; se revisó el 2026-11-04 y no se
+  cambia porque ya cumple y la paleta manda. El borde de los controles de Opciones da 3,2:1 o más en
+  los dos modos.
+- Los títulos de las tarjetas ya eran encabezados para el lector de pantalla; el informe 4.11 lo
+  daba por pendiente. Comprobado en el código el 2026-11-04.
+- El globo de los días del mapa no se puede recorrer con el ratón (FIX-029), aunque WCAG 2.2 lo pide
+  (criterio 1.4.13). El cliente aceptó la desviación en el informe 4.10. Los globos de las tarjetas
+  sí se pueden recorrer.
+- «Sin dato» no tiene cuadrito en la leyenda: es fondo, no información (informe 4.11, aprobado el
+  2026-11-04).
+
+Las entradas de la serie 3 que siguen describen decisiones que la serie 4 cambió en parte (vuelven la
+leyenda y las iniciales de los días, desaparecen los botones de periodo y el borde naranja de las
+fechas clave, hay cuatro tonos por tema en lugar de diez). Se conservan como historia; manda
+la descripción «Qué hace».
 
 - La retención usa la misma ventana que el promedio, y solo días completos. Lo decidió el cliente el
   2026-10-08.

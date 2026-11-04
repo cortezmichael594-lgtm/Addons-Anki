@@ -6,6 +6,11 @@ Se actualiza al terminar cada sesión de un trabajo largo y se lee al retomarlo.
 
 - 2026-11-03: el taller se adaptó a la plantilla en la rama `refactor-plantilla`, con el plan aprobado (solo en la nube; automejora aligerada; cerradura intacta). CLAUDE.md queda en 117 líneas y el detalle de las normas pasa a `docs/normas-del-taller.md`; el encargo del taller está en `docs/encargo.md`. Comprobación general con `herramientas/comprobar.py` (también al final de cada turno y en GitHub Actions), preparación de la nube con `herramientas/preparar.py` y el script de `docs/preparar-entorno.md`, y permisos con cerradura y colecciones protegidas en `.claude/settings.json`. `herramientas/copias` y las huellas de CLAUDE.md se retiran: el historial de git guarda cada versión. El código de los complementos no cambia: GritMap (37 pruebas) y Nocturne (81) pasan la comprobación.
 
+- 2026-11-04: GritMap pasa de la 3.5.0 a la 4.11.2 que traía la persona (hecha fuera del taller) y
+  a la 4.12.0 con las mejoras del informe 4.11, aprobado entero. Se rehízo `que-hace.md` a partir del
+  código, se anotaron FIX-024 a FIX-031 en `errores.md` y se pusieron al día las pruebas de la 3.5.0
+  (45 pruebas). Su `meta.json` personal no se sube: el repositorio es público.
+
 ## En curso
 
 - El pull request de la adaptación espera la revisión de la persona. No se fusiona sin ella.

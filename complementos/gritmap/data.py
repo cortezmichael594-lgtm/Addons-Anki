@@ -149,6 +149,19 @@ class HeatmapData:
     retention_days: dict[int, tuple[int, int]] = field(default_factory=dict)
     # El mapa es el de un mazo que esta entre los excluidos.
     deck_excluded: bool = False
+    # Tarjetas que aun vencen hoy en lo que cuenta el mapa (meta «Terminar lo
+    # de hoy», 4.0.0); None si no se calculo.
+    due_remaining: int | None = None
+    # Retencion deseada de FSRS (0-1): la del mazo en su pantalla y, desde la
+    # 4.8.0, en la lista de mazos si todos los que cuentan usan la misma;
+    # None sin FSRS o si son distintas.
+    fsrs_target: float | None = None
+    # Meta «Terminar lo de hoy» ya cumplida hoy: cuantas tarjetas hicieron
+    # falta (FIX-026); None si aun no se cumplio.
+    due_reached: int | None = None
+    # Dias con meta guardados en la coleccion (4.11.0): fecha ISO -> (tipo de
+    # meta, si se cumplio). Solo las ultimas semanas.
+    goal_days: dict[str, tuple[str, bool]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -165,6 +178,33 @@ class FullStats:
     longest_streak: int
     # Dias desde el ultimo repaso; None si nunca se ha estudiado.
     last_session: int | None
+    # Si hoy ya cuenta para la racha (version 3.6.0).
+    today_done: bool = False
+    # La racha mas larga sin contar la actual: sirve para saber si la actual
+    # acaba de batir el record.
+    previous_best: int = 0
+    # Comodines guardados ahora mismo (4.0.0).
+    freezes_left: int = 0
+    # Dias perdonados (dias atras -> "freeze" o "pause"), para el mapa.
+    forgiven: dict[int, str] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class StreakState:
+    """Racha con comodines y pausa (4.0.0)."""
+
+    current: int
+    longest: int
+    previous_best: int
+    today_done: bool
+    freezes_left: int
+    forgiven: dict[int, str]
+
+
+# Comodines: uno por cada 7 dias seguidos estudiados, dos guardados como
+# maximo (informe de rediseno 4.0, apartado 7.2).
+FREEZE_EVERY = 7
+MAX_FREEZES = 2
 
 
 def round_half_up(value: float) -> int:
@@ -229,6 +269,28 @@ def revlog_deck_filter(scope: DeckScope) -> str:
         ids = _id_list(scope.exclude_ids)
         parts.append(f" and cid not in (select id from cards where did in {ids} or odid in {ids})")
     return "".join(parts)
+
+
+def answered_and_still_due(col: Collection, scope: DeckScope, now_seconds: int) -> int:
+    """Tarjetas en aprendizaje que ya se respondieron hoy y vuelven a vencer
+    ahora (4.11.0).
+
+    La meta «Terminar lo de hoy» suma las respondidas hoy y las que aun
+    vencen; estas estan en los dos grupos y no deben contar dos veces. Se
+    usa la misma ventana que Anki para el aprendizaje («aprender por
+    adelantado», collapseTime), que es la que cuenta en la lista de mazos.
+    """
+    db = _db(col)
+    cutoff_seconds = int(col.sched.day_cutoff)
+    start_ms = (cutoff_seconds - 86400) * 1000
+    collapse = col.get_config("collapseTime", 1200)
+    ahead = int(collapse) if isinstance(collapse, (int, float)) else 1200
+    count = db.scalar(
+        f"select count() from cards where queue = 1 and due <= {int(now_seconds) + ahead}"
+        f"{cards_deck_filter(scope)}"
+        f" and id in (select cid from revlog where id >= {start_ms} and {_NOT_A_REVIEW})"
+    )
+    return int(count or 0)
 
 
 def anki_today(cutoff_seconds: int, utc_offset: timedelta | None = None) -> date:
@@ -456,6 +518,38 @@ def window_average(data: HeatmapData, measure: str, window: int) -> float | None
     return sum(values) / len(values) if values else None
 
 
+def daily_average(
+    data: HeatmapData, measure: str, window: int, paused: frozenset[int] = frozenset()
+) -> float | None:
+    """«Promedio diario» de la tarjeta, por dia natural del periodo (4.8.0).
+
+    Lo hecho en el periodo dividido entre sus dias, para que el titulo diga
+    la verdad: quien estudia 4 dias de cada 7 ve su media real, y la cifra
+    sube al estudiar mas dias, no solo mas cada dia. Reglas:
+
+    * Solo dias completos: el periodo termina ayer, como la retencion.
+    * Se cuenta desde el primer dia con estudio dentro del periodo: quien
+      empezo hace 10 dias no queda dividido entre 30.
+    * Los dias de pausa no cuentan en el divisor (la pausa dice «este dia no
+      cuenta»); los cubiertos por un comodin si, porque no se estudio.
+    * Sin ningun dia estudiado en el periodo, None (FIX-010: no es un 0).
+    """
+    last = _window_end(data.past, window)
+    studied = [
+        days_ago
+        for days_ago, day in data.past.items()
+        if 1 <= days_ago <= last and is_active(day, measure)
+    ]
+    if not studied:
+        return None
+    first = max(studied)
+    days = sum(1 for days_ago in range(1, first + 1) if days_ago not in paused)
+    if days == 0:
+        return None
+    total = sum(measure_value(data.past[d], measure) for d in studied)
+    return total / days
+
+
 def window_retention(data: HeatmapData, window: int) -> tuple[int, int]:
     """Repasos medibles y acertados dentro de la ventana elegida.
 
@@ -472,6 +566,23 @@ def window_retention(data: HeatmapData, window: int) -> tuple[int, int]:
     return total, passed
 
 
+def studied_fraction(data: HeatmapData, window: int, measure: str = "reviews") -> tuple[int, int]:
+    """Dias estudiados y dias de la ventana (los de studied_pct, sin dividir)."""
+    active = active_days(data, measure)
+    if not active:
+        return 0, 0
+    start, end = _study_span(active, window)
+    return sum(1 for days_ago in active if start <= days_ago <= end), end - start + 1
+
+
+def _study_span(active: set[int], window: int) -> tuple[int, int]:
+    """Primer y ultimo dia (contando hacia atras) de la ventana de estudio."""
+    start = 0 if 0 in active else 1
+    oldest = max(active)
+    end = start + window - 1 if window > 0 else oldest
+    return start, min(end, oldest)
+
+
 def studied_pct(data: HeatmapData, window: int, measure: str = "reviews") -> int:
     """Porcentaje de dias con estudio dentro de la ventana.
 
@@ -480,16 +591,8 @@ def studied_pct(data: HeatmapData, window: int, measure: str = "reviews") -> int
     tenido ocasion de estudiar. La ventana nunca empieza antes del primer
     repaso, porque los dias anteriores a usar Anki no son dias sin estudio.
     """
-    active = active_days(data, measure)
-    if not active:
-        return 0
-    start = 0 if 0 in active else 1
-    oldest = max(active)
-    end = start + window - 1 if window > 0 else oldest
-    end = min(end, oldest)
-    span = end - start + 1
-    studied = sum(1 for days_ago in active if start <= days_ago <= end)
-    return round_half_up(100 * studied / span)
+    studied, span = studied_fraction(data, window, measure)
+    return round_half_up(100 * studied / span) if span else 0
 
 
 # FIX-001 restablecida: lee su nota antes de cambiar esta funcion.
@@ -512,6 +615,19 @@ def week_diff(data: HeatmapData, measure: str) -> tuple[float, bool]:
     #        cifra no cambia a lo largo del dia. Lo pidio el cliente el
     #        2026-10-08 y sustituye a la decision del 2026-07-27.
     # ---------------------------------------------------------------
+    recent, previous, studied_before = week_totals(data, measure)
+    return recent - previous, studied_before
+
+
+def week_totals(data: HeatmapData, measure: str) -> tuple[float, float, bool]:
+    """Lo hecho en los 7 ultimos dias completos y en los 7 anteriores.
+
+    Mismos periodos que week_diff (Regla de FIX-001): terminan ayer. Devuelve
+    tambien si en los 7 anteriores se estudio. La comparativa de la 3.6.0
+    ensena el total junto a la diferencia, para que la cifra tenga su punto
+    de referencia.
+    """
+
     def total(first: int, last: int) -> float:
         return sum(
             measure_value(data.past[days_ago], measure)
@@ -519,14 +635,12 @@ def week_diff(data: HeatmapData, measure: str) -> tuple[float, bool]:
             if days_ago in data.past
         )
 
-    recent = total(1, WEEK_DAYS)
-    previous = total(WEEK_DAYS + 1, 2 * WEEK_DAYS)
     studied_before = any(
         data.past[days_ago].reviews > 0
         for days_ago in range(WEEK_DAYS + 1, 2 * WEEK_DAYS + 1)
         if days_ago in data.past
     )
-    return recent - previous, studied_before
+    return total(1, WEEK_DAYS), total(WEEK_DAYS + 1, 2 * WEEK_DAYS), studied_before
 
 
 def streaks(studied_days_ago: set[int]) -> tuple[int, int]:
@@ -546,9 +660,166 @@ def streaks(studied_days_ago: set[int]) -> tuple[int, int]:
     return current, longest
 
 
-def full_stats(data: HeatmapData, measure: str = "reviews", window: int = 30) -> FullStats:
-    studied_days = active_days(data, measure)
-    current_streak, longest_streak = streaks(studied_days)
+def streak_state(
+    studied_days_ago: set[int], use_freezes: bool, paused: frozenset[int] = frozenset()
+) -> StreakState:
+    """Racha dia a dia, del primer dia estudiado a hoy (4.0.0).
+
+    * Un dia estudiado suma uno; cada 7 dias estudiados seguidos ganan un
+      comodin (hasta 2). La cuenta de esos 7 vuelve a cero con cada dia sin
+      estudio, aunque lo cubra un comodin o la pausa, y al llegar a 7, se gane
+      o no (4.7.0): asi no se ganan comodines mientras se gastan.
+    * Un dia sin estudiar dentro de una pausa ni suma ni rompe.
+    * Un dia sin estudiar fuera de pausa gasta un comodin si hay (la racha
+      ni suma ni se rompe); si no hay, la racha vuelve a cero.
+    * Hoy sin estudiar todavia no rompe nada: queda pendiente.
+
+    Sin comodines ni pausas da lo mismo que streaks().
+    """
+    if not studied_days_ago:
+        return StreakState(0, 0, 0, False, 0, {})
+    run = 0
+    best_closed = 0
+    freezes = 0
+    # Dias estudiados seguidos desde el ultimo dia sin estudio (cubierto o no).
+    since_gap = 0
+    forgiven: dict[int, str] = {}
+
+    def add_day() -> None:
+        nonlocal run, freezes, since_gap
+        run += 1
+        since_gap += 1
+        if since_gap == FREEZE_EVERY:
+            since_gap = 0
+            if use_freezes and freezes < MAX_FREEZES:
+                freezes += 1
+
+    for days_ago in range(max(studied_days_ago), 0, -1):
+        if days_ago in studied_days_ago:
+            add_day()
+            continue
+        since_gap = 0
+        if run == 0:
+            continue
+        if days_ago in paused:
+            forgiven[days_ago] = "pause"
+        elif use_freezes and freezes > 0:
+            freezes -= 1
+            forgiven[days_ago] = "freeze"
+        else:
+            best_closed = max(best_closed, run)
+            run = 0
+    today_done = 0 in studied_days_ago
+    if today_done:
+        add_day()
+    return StreakState(run, max(best_closed, run), best_closed, today_done, freezes, forgiven)
+
+
+def paused_days(pause: tuple[date, date] | None, today: date) -> frozenset[int]:
+    """Dias de la pausa, contados hacia atras desde hoy (solo los pasados)."""
+    if pause is None:
+        return frozenset()
+    start, end = pause
+    return frozenset(
+        (today - start).days - offset
+        for offset in range((end - start).days + 1)
+        if (today - start).days - offset > 0
+    )
+
+
+def surprise(data: HeatmapData, measure: str, stats: FullStats) -> tuple[str, int] | None:
+    """Una sorpresa verdadera de hoy, como mucho una (4.0.0, informe ap. 8).
+
+    Solo cuando ocurre y con datos reales, por este orden: un ano seguido,
+    nueva racha mas larga, mejor semana del ano, cierre del ano (4.11.0), mes
+    completo y una cifra redonda del ano
+    (100, 500 y cada 1.000). Devuelve la clave y la cifra, o None.
+
+    4.7.0: «mejor semana» en lugar de «mejor dia», para premiar lo constante
+    y no un dia de atracon; y «mes completo» cuenta cualquier respuesta, con
+    los dias perdonados fuera (no se estudiaron).
+    """
+    today_day = data.past.get(0)
+    if not stats.today_done or today_day is None:
+        return None
+    # «Un año seguido» va primero (4.8.0): es la sorpresa mas rara, un dia al
+    # ano como mucho, y la que mas se recuerda.
+    if stats.current_streak > 0 and stats.current_streak % 365 == 0:
+        return "year_streak", 0
+    if stats.previous_best >= 1 and stats.current_streak == stats.previous_best + 1:
+        return "record", 0
+    today_value = measure_value(today_day, measure)
+    year = data.today.year
+    others = [
+        measure_value(day, measure)
+        for days_ago, day in data.past.items()
+        if days_ago > 0 and (data.today - timedelta(days=days_ago)).year == year and is_active(day, measure)
+    ]
+    if _best_week(data, measure):
+        return "best_week", 0
+    # Cierre del ano (4.11.0): el 31 de diciembre, para todos, no solo para
+    # quien lleva 365 dias de racha; por delante de «Mes completo».
+    if data.today.month == 12 and data.today.day == 31:
+        studied = sum(
+            1
+            for days_ago, day in data.past.items()
+            if (data.today - timedelta(days=days_ago)).year == year and is_active(day, "reviews")
+        )
+        return "year_close", studied
+    month_days = range(data.today.day)
+    if (data.today + timedelta(days=1)).month != data.today.month and all(
+        d in data.past and is_active(data.past[d], "reviews") for d in month_days
+    ):
+        return "month", 0
+    total = sum(others) + today_value
+    before = total - today_value
+    milestone = int(total // 1000) * 1000 if total >= 1000 else (500 if total >= 500 else 100)
+    if before < milestone <= total:
+        return "year_total", milestone
+    return None
+
+
+def _best_week(data: HeatmapData, measure: str) -> bool:
+    """Si los 7 ultimos dias (hoy incluido) suman mas que cualquier otra semana
+    anterior del ano (de 7 dias, sin solaparse con esta), con al menos cuatro
+    semanas con que comparar."""
+
+    def week_sum(first: int) -> float:
+        return sum(
+            measure_value(data.past[d], measure) for d in range(first, first + WEEK_DAYS) if d in data.past
+        )
+
+    current = week_sum(0)
+    year_start = (data.today - date(data.today.year, 1, 1)).days
+    others = [
+        week_sum(first)
+        for first in range(WEEK_DAYS, year_start - WEEK_DAYS + 2)
+        if any(d in data.past for d in range(first, first + WEEK_DAYS))
+    ]
+    return len(others) >= 4 * WEEK_DAYS and current > max(others)
+
+
+def previous_best(studied_days_ago: set[int], current: int) -> int:
+    """La racha mas larga sin contar la actual (cero si no hay otra)."""
+    start = 0 if 0 in studied_days_ago else 1
+    current_run = set(range(start, start + current))
+    _current, longest = streaks(studied_days_ago - current_run)
+    return longest
+
+
+def full_stats(
+    data: HeatmapData,
+    measure: str = "reviews",
+    window: int = 30,
+    use_freezes: bool = False,
+    paused: frozenset[int] = frozenset(),
+) -> FullStats:
+    # La racha y la ultima sesion cuentan cualquier respuesta, sea cual sea
+    # la medida del color (4.7.0, informe de mejora aprobado por el cliente
+    # el 2026-10-22): con «Nuevas», un dia de solo repasos tambien es un dia
+    # estudiado. La medida sigue mandando en el color, el promedio y la meta.
+    studied_days = active_days(data, "reviews")
+    streak = streak_state(studied_days, use_freezes, paused)
     # --- FIX-002 (2026-07-27) --------------------------------------
     # Sintoma: la retencion aparecia como 0%, como si se hubiera fallado todo,
     #          en cuentas recien empezadas o que solo tienen tarjetas nuevas.
@@ -569,13 +840,17 @@ def full_stats(data: HeatmapData, measure: str = "reviews", window: int = 30) ->
         else None
     )
     return FullStats(
-        average=window_average(data, measure, window),
+        average=daily_average(data, measure, window, paused),
         studied_pct=studied_pct(data, window, measure),
         retention=retention,
         retention_reviews=total_reviews,
-        current_streak=current_streak,
-        longest_streak=longest_streak,
+        current_streak=streak.current,
+        longest_streak=streak.longest,
         last_session=min(studied_days) if studied_days else None,
+        today_done=streak.today_done,
+        previous_best=streak.previous_best,
+        freezes_left=streak.freezes_left,
+        forgiven=streak.forgiven,
     )
 
 

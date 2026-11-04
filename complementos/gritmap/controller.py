@@ -15,11 +15,13 @@ instante cuando Anki la redibuja, mientras se calculan los datos al dia.
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import replace
 from datetime import date
 
 import aqt
 from anki.collection import Collection
+from anki.decks import DeckId, DeckTreeNode
 from aqt import gui_hooks, mw
 from aqt.deckbrowser import DeckBrowser, DeckBrowserContent
 from aqt.operations import QueryOp
@@ -28,8 +30,8 @@ from aqt.webview import WebContent
 
 from . import config, i18n, view
 from .config import Config, load_config
-from .data import WINDOWS, HeatmapData, days_offset, fetch_data, year_bounds
-from .decks import build_scope, day_search
+from .data import HeatmapData, answered_and_still_due, days_offset, fetch_data, year_bounds
+from .decks import DeckScope, build_scope, day_search
 from .errors import guarded, guarded_filter, log_exception
 from .options import open_options
 from .state import DataEntry, state
@@ -64,9 +66,16 @@ def _usable(entry: DataEntry | None, current_deck_only: bool, cfg: Config) -> bo
     )
 
 
-def _draw(entry: DataEntry, cfg: Config) -> None:
-    """Dibuja el ano que toca con datos ya calculados, sin leer la coleccion."""
+def _draw(entry: DataEntry, cfg: Config, remember: bool = True) -> None:
+    """Dibuja el ano que toca con datos ya calculados, sin leer la coleccion.
+
+    Con remember=False (la vista en vivo de Opciones) no se recuerda la
+    pagina ni se celebra la meta: lo dibujado aun no esta guardado.
+    """
     data = entry.data
+    # La meta «Terminar lo de hoy» ya cumplida hoy no se descumple (4.7.0).
+    if state.due_goal is not None and state.due_goal[0] == data.today:
+        data = replace(data, due_reached=state.due_goal[1])
     try:
         key_days = tuple(kd.day for kd in cfg.key_dates)
         min_year, max_year = year_bounds(data, key_days)
@@ -74,17 +83,65 @@ def _draw(entry: DataEntry, cfg: Config) -> None:
             data.today.year - max_year,
             min(state.year_offset, data.today.year - min_year),
         )
-        show_week = (not entry.current_deck_only) and cfg.show_week_diff
-        payload = view.payload_json(
-            view.build_widget_html(data, cfg, state.year_offset),
-            measure=cfg.measure,
-            week=view.week_payload(data, cfg.measure, show_week),
+        deck_only = entry.current_deck_only
+        if remember and not deck_only:
+            data = _note_goal_day(entry, data, cfg)
+        # La meta cumplida se celebra una vez: la primera vez que se dibuja
+        # despues de cruzarla (al volver a la lista de mazos tras repasar).
+        met = not deck_only and cfg.show_streak and view.goal_met(data, cfg)
+        celebrate = remember and met and state.goal_celebrated != data.today
+        inner = view.build_widget_html(data, cfg, state.year_offset, deck_only, celebrate)
+        payload = view.payload_json(inner, measure=cfg.measure)
+        # Lo recordado no lleva la celebracion: al volver a la pantalla no se
+        # repite.
+        remembered = (
+            view.payload_json(inner.replace(" gritmap-celebrate", ""), measure=cfg.measure)
+            if celebrate
+            else payload
         )
+        if met and remember:
+            state.goal_celebrated = data.today
+            progress = view.goal_progress(data, cfg)
+            if cfg.goal_mode == "due" and progress is not None and data.due_reached is None:
+                state.due_goal = (data.today, progress[1])
     except Exception as exc:
         log_exception("controller.draw", exc)
-        payload = view.error_payload()
+        payload = remembered = view.error_payload()
     view.send(payload)
-    state.remember_page((entry.current_deck_only, entry.deck_id), payload)
+    if remember:
+        state.remember_page((entry.current_deck_only, entry.deck_id), remembered)
+
+
+def _note_goal_day(entry: DataEntry, data: HeatmapData, cfg: Config) -> HeatmapData:
+    """Apunta hoy como dia con meta, cumplida o no (4.11.0), si cambio.
+
+    Solo con meta, con «Mostrar racha y meta» y fuera de la pantalla de un
+    mazo. Se guarda en segundo plano; mientras, los datos en memoria ya lo
+    llevan, para no volver a guardarlo en cada dibujado.
+    """
+    if not cfg.show_streak:
+        return data
+    progress = view.goal_progress(data, cfg)
+    if progress is None:
+        return data
+    key = data.today.isoformat()
+    mark = (cfg.goal_mode, progress[1] > 0 and progress[0] >= progress[1])
+    if data.goal_days.get(key) == mark:
+        return data
+    data = replace(data, goal_days={**data.goal_days, key: mark})
+    if state.data is entry:
+        state.data = replace(entry, data=replace(entry.data, goal_days=data.goal_days))
+    day, mode, met = data.today, mark[0], mark[1]
+
+    def op(col: Collection) -> None:
+        config.record_goal_day(col, day, mode, met)
+
+    @guarded()
+    def on_failure(exc: Exception) -> None:
+        log_exception("controller.record_goal_day", exc)
+
+    QueryOp(parent=mw, op=op, success=lambda _result: None).failure(on_failure).run_in_background()
+    return data
 
 
 def _request_data(current_deck_only: bool, cfg: Config) -> None:
@@ -99,7 +156,22 @@ def _request_data(current_deck_only: bool, cfg: Config) -> None:
     def op(col: Collection) -> tuple[HeatmapData, int]:
         deck_id = int(col.decks.get_current_id()) if current_deck_only else 0
         scope = build_scope(col, excluded, current_deck_only)
-        return fetch_data(col, scope, measure), deck_id
+        data = fetch_data(col, scope, measure)
+        data = replace(data, goal_days=config.read_goal_days(col))
+        if current_deck_only:
+            data = replace(data, fsrs_target=_fsrs_target(col, deck_id))
+        else:
+            # Cada tarjeta cuenta una vez en «Terminar lo de hoy» (4.11.0): las
+            # de aprendizaje ya respondidas hoy que vuelven a vencer estan ya
+            # entre las hechas.
+            remaining = _due_remaining(col.sched.deck_due_tree(), scope)
+            remaining -= answered_and_still_due(col, scope, int(time.time()))
+            data = replace(
+                data,
+                due_remaining=max(0, remaining),
+                fsrs_target=_shared_fsrs_target(col, scope),
+            )
+        return data, deck_id
 
     @guarded()
     def on_success(result: tuple[HeatmapData, int]) -> None:
@@ -130,6 +202,56 @@ def _request_data(current_deck_only: bool, cfg: Config) -> None:
     QueryOp(parent=mw, op=op, success=on_success).failure(on_failure).run_in_background()
 
 
+def _due_remaining(root: DeckTreeNode, scope: DeckScope) -> int:
+    """Tarjetas que aun vencen hoy fuera de los mazos excluidos (meta
+    «Terminar lo de hoy»), con los limites diarios que aplica Anki.
+
+    Un mazo sin excluidos dentro cuenta con su cifra, que ya suma la de sus
+    submazos; uno que contiene excluidos se cuenta por sus submazos.
+    """
+    excluded = set(scope.exclude_ids)
+
+    def contains_excluded(node: DeckTreeNode) -> bool:
+        return int(node.deck_id) in excluded or any(contains_excluded(c) for c in node.children)
+
+    def remaining(node: DeckTreeNode) -> int:
+        if int(node.deck_id) in excluded:
+            return 0
+        if not contains_excluded(node):
+            return int(node.review_count + node.learn_count + node.new_count)
+        return sum(remaining(child) for child in node.children)
+
+    return sum(remaining(child) for child in root.children)
+
+
+def _fsrs_target(col: Collection, deck_id: int) -> float | None:
+    """Retencion deseada del mazo si FSRS esta activado; si no, None."""
+    if not deck_id or not col.get_config("fsrs", False):
+        return None
+    target = col.decks.config_dict_for_deck_id(DeckId(deck_id)).get("desiredRetention")
+    return float(target) if isinstance(target, (int, float)) and 0 < target < 1 else None
+
+
+def _shared_fsrs_target(col: Collection, scope: DeckScope) -> float | None:
+    """Retencion deseada comun a todos los mazos que cuentan en la lista de
+    mazos (4.8.0): si todos usan la misma (lo normal, un solo grupo de
+    opciones), «· objetivo 90 %» sale tambien ahi; si son distintas, nada."""
+    if not col.get_config("fsrs", False):
+        return None
+    excluded = set(scope.exclude_ids)
+    targets: set[float] = set()
+    for entry in col.decks.all_names_and_ids(skip_empty_default=True, include_filtered=False):
+        if entry.id in excluded:
+            continue
+        target = col.decks.config_dict_for_deck_id(DeckId(entry.id)).get("desiredRetention")
+        if not isinstance(target, (int, float)) or not 0 < target < 1:
+            return None
+        targets.add(round(float(target), 4))
+        if len(targets) > 1:
+            return None
+    return targets.pop() if targets else None
+
+
 def _redraw_in_place() -> None:
     """Redibuja el mapa en el hueco que ya ocupa.
 
@@ -145,7 +267,12 @@ def _redraw_in_place() -> None:
     cfg = load_config()
     if state.data is not None and _usable(state.data, current_deck_only, cfg):
         _draw(state.data, cfg)
-    elif state.pending_token is None:
+        return
+    # Hay que leer la coleccion (cambiaron los mazos excluidos o la medida):
+    # el mapa anterior sigue a la vista y, si tarda, dice «Actualizando…»
+    # (4.12.0, informe 4.11 aprobado por el cliente).
+    view.send_busy()
+    if state.pending_token is None:
         _request_data(current_deck_only, cfg)
 
 
@@ -262,25 +389,18 @@ def _on_js_message(
         # Mensaje de una pagina que ya no es la que se ve.
         return (True, None)
 
-    if action in ("prev", "next", "today"):
-        if action == "prev":
-            state.year_offset += 1
-        elif action == "next":
-            state.year_offset -= 1
-        else:
-            state.year_offset = 0
+    if action in ("prev", "next"):
+        state.year_offset += 1 if action == "prev" else -1
         _redraw_in_place()
         return (True, None)
 
-    if action.startswith("window:"):
-        _set_window(action[len("window:"):])
-        return (True, None)
 
     if action == "opts":
         # Se aplaza para que el mensaje de la pagina termine antes de abrir
         # una ventana modal.
         mw.progress.single_shot(0, open_options)
         return (True, None)
+
 
     if action.startswith("past:"):
         _open_day_in_browser(action[len("past:"):], current_deck_only, future=False)
@@ -297,23 +417,6 @@ def _on_js_message(
 # ---------------------------------------------------------------------------
 
 
-def _set_window(raw: str) -> None:
-    """Boton rapido de periodo: guarda la eleccion y redibuja sin recalcular.
-
-    El texto llega de la pagina, asi que se comprueba antes de usarlo.
-    """
-    try:
-        days = int(raw)
-    except ValueError:
-        return
-    cfg = load_config()
-    if days not in WINDOWS or days == cfg.avg_window:
-        return
-    config.save_appearance(replace(cfg, avg_window=days))
-    state.pages.clear()
-    _redraw_in_place()
-
-
 @guarded()
 def _on_profile_did_open() -> None:
     """Punto de partida limpio para cada usuario.
@@ -326,6 +429,15 @@ def _on_profile_did_open() -> None:
     config.invalidate_cache()
     state.start_new_generation()
     config.migrate_to_collection()
+
+
+@guarded()
+def _on_day_did_change() -> None:
+    """Al pasar al dia siguiente (a la hora que marca Anki), el mapa se
+    calcula de nuevo: «hoy» cambia de cuadrito y la racha queda pendiente en
+    el acto, sin esperar a que Anki redibuje la pantalla (4.7.0)."""
+    state.data = None
+    _redraw_in_place()
 
 
 @guarded()
@@ -353,6 +465,31 @@ def _apply_config_change() -> None:
 
 
 @guarded()
+def _preview_config(cfg: Config | None) -> None:
+    """Vista en vivo de Opciones: el mapa con la apariencia que se esta
+    eligiendo, sin guardarla; con None, de vuelta a lo guardado.
+
+    Solo cambia el aspecto (tema, tamano de celda, redondeo...), asi que usa
+    los datos ya calculados; si no los hay para esta pantalla, no hace nada.
+    """
+    saved = load_config()
+    # La medida y los mazos excluidos piden leer la coleccion: se ven al
+    # aceptar. Lo demas se ve ya, con los datos que hay.
+    shown = replace(
+        cfg if cfg is not None else saved,
+        measure=saved.measure,
+        excluded_decks=saved.excluded_decks,
+    )
+    current_deck_only = _current_deck_only()
+    if mw.col is None or current_deck_only is None or state.data is None:
+        return
+    if not _usable(state.data, current_deck_only, shown):
+        return
+    view.update_palette(shown)
+    _draw(state.data, shown, remember=cfg is None)
+
+
+@guarded()
 def _on_map_presence(has_map: object) -> None:
     if has_map is not True:
         return
@@ -366,6 +503,7 @@ def _on_map_presence(has_map: object) -> None:
 
 def register() -> None:
     state.apply_config_change = _apply_config_change
+    state.preview_config = _preview_config
     mw.addonManager.setWebExports(__name__, WEB_PATTERN)
     gui_hooks.webview_will_set_content.append(_on_webview_will_set_content)
     gui_hooks.deck_browser_will_render_content.append(_on_deck_browser_render)
@@ -373,6 +511,7 @@ def register() -> None:
     gui_hooks.webview_did_receive_js_message.append(_on_js_message)
     gui_hooks.profile_did_open.append(_on_profile_did_open)
     gui_hooks.profile_will_close.append(_on_profile_will_close)
+    gui_hooks.day_did_change.append(_on_day_did_change)
     # Con su propia ventana de opciones, Anki nunca abre su editor de JSON
     # para este complemento.
     mw.addonManager.setConfigAction(__name__, open_options)

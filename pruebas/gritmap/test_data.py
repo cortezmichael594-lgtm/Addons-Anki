@@ -74,8 +74,10 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(data.streaks({0, 1, 5, 6, 7, 8}), (2, 4))
 
     def test_stats_follow_the_measure(self) -> None:
-        """Con «Nuevas», un dia cuenta como estudiado solo si empezo alguna nueva
-        (peticion del cliente, 2026-10-13)."""
+        """Con «Nuevas», el promedio y los dias estudiados cuentan solo las
+        nuevas; la racha cuenta cualquier respuesta (4.7.0, informe aprobado
+        por el cliente el 2026-10-22) y el promedio se cuenta desde el primer
+        dia con estudio del periodo."""
         sample = HeatmapData(
             past={
                 1: DayActivity(reviews=50, cards=40, new=5),
@@ -86,9 +88,9 @@ class StatsTest(unittest.TestCase):
             today=date(2026, 10, 13),
         )
         new = data.full_stats(sample, "new", 30)
-        self.assertEqual(new.current_streak, 1)
-        self.assertEqual(new.longest_streak, 1)
-        self.assertEqual(new.average, 4)
+        self.assertEqual(new.current_streak, 3)
+        self.assertEqual(new.longest_streak, 3)
+        self.assertAlmostEqual(new.average or 0, 8 / 3)
         self.assertEqual(new.studied_pct, 67)
         reviews = data.full_stats(sample, "reviews", 30)
         self.assertEqual(reviews.current_streak, 3)

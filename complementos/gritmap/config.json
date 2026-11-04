@@ -1,8 +1,12 @@
 {
     "theme": "classic_green",
-    "measure": "reviews",
-    "cell_size": 25,
-    "border_radius": 1,
+    "measure": "cards",
+    "map_size": 24,
+    "map_radius": 3,
     "avg_window": 30,
-    "show_week_diff": true
+    "goal_mode": "none",
+    "goal": 50,
+    "freezes": true,
+    "show_streak": true,
+    "study_plan": ""
 }
