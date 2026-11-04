@@ -6251,3 +6251,24 @@ _STRINGS_4_11: dict[str, tuple[str, ...]] = {
 }
 for _code, _texts in _STRINGS_4_11.items():
     STRINGS[_code].update(zip(_KEYS_4_11, _texts))
+
+
+# Texto de la version 4.12.0: aviso al pie del mapa si el recalculo (al cambiar
+# los mazos excluidos o la medida) tarda mas de un segundo.
+_UPDATING_4_12: dict[str, str] = {
+    "en": "Updating…", "es": "Actualizando…", "de": "Wird aktualisiert…", "fr": "Mise à jour…",
+    "it": "Aggiornamento…", "pt": "A atualizar…", "nl": "Bijwerken…", "ru": "Обновление…",
+    "pl": "Aktualizowanie…", "tr": "Güncelleniyor…", "ja": "更新中…", "ko": "업데이트 중…",
+    "zh_CN": "正在更新…", "zh_TW": "正在更新…", "ar": "جارٍ التحديث…", "el": "Ενημέρωση…",
+    "sv": "Uppdaterar…", "da": "Opdaterer…", "nb": "Oppdaterer…", "fi": "Päivitetään…",
+    "cs": "Aktualizace…", "sk": "Aktualizuje sa…", "hu": "Frissítés…", "ro": "Se actualizează…",
+    "uk": "Оновлення…", "vi": "Đang cập nhật…", "th": "กำลังอัปเดต…", "ms": "Mengemas kini…",
+    "tl": "Nag-a-update…", "he": "מתעדכן…", "hr": "Ažuriranje…", "sr": "Ажурирање…",
+    "sl": "Posodabljanje…", "bg": "Обновяване…", "ca": "S'està actualitzant…", "eu": "Eguneratzen…",
+    "gl": "Actualizando…", "et": "Uuendamine…", "fa": "در حال به‌روزرسانی…", "mn": "Шинэчилж байна…",
+    "be": "Абнаўленне…", "eo": "Ĝisdatigante…", "af": "Word bygewerk…", "ga": "Á nuashonrú…",
+    "la": "Renovatur…", "oc": "Actualizacion…", "uz": "Yangilanmoqda…", "hy": "Թարմացվում է…",
+    "ug": "يېڭىلىنىۋاتىدۇ…", "or": "ଅଦ୍ୟତନ ହେଉଛି…", "jbo": "ca'o cnino gasnu…",
+}
+for _code, _text in _UPDATING_4_12.items():
+    STRINGS[_code]["updating"] = _text

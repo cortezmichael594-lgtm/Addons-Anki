@@ -61,7 +61,12 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         hideTimer: null,
         /* Dia cuyo globo se recoloca tras desplazar el mapa con el teclado. */
         retipCell: null,
+        /* Espera de «Actualizando…» (4.12.0). */
+        busyTimer: null,
     };
+    /* Lo que tarda el recalculo antes de decir «Actualizando…»: por debajo de
+     * un segundo no se nota y el aviso solo seria un parpadeo. */
+    var BUSY_DELAY_MS = 1000;
     var LIVE_ID = "gritmap-live";
 
     function root() {
@@ -578,6 +583,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             var current = root();
             if (current) {
                 updateEdgeFade(current);
+                updateScale(current);
             }
         });
     }
@@ -619,11 +625,57 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         grid.scrollLeft = shown < new Date().getFullYear() ? grid.scrollWidth : 0;
     }
 
+    /* Escala del dibujo (4.12.0): cuantas unidades del dibujo mide un pixel
+     * de pantalla. Con ella, el contorno de foco del dia de hoy mide 2 px y se
+     * separa 2 px sea cual sea el tamano del mapa. */
+    function updateScale(container) {
+        var svg = container.querySelector(".gritmap-year svg");
+        if (!svg || !svg.viewBox || !svg.viewBox.baseVal) {
+            return;
+        }
+        var shown = svg.getBoundingClientRect().width;
+        if (shown > 0) {
+            svg.style.setProperty("--gritmap-k", String(svg.viewBox.baseVal.width / shown));
+        }
+    }
+
+    function cancelBusy() {
+        if (state.busyTimer) {
+            clearTimeout(state.busyTimer);
+            state.busyTimer = null;
+        }
+    }
+
+    /* El mapa se esta recalculando (4.12.0): si tarda mas de un segundo, al
+     * pie, en el sitio de la sorpresa, «Actualizando…» en gris, sin animacion,
+     * y el lector de pantalla lo anuncia sin interrumpir. El mapa nuevo lo
+     * quita al llegar. */
+    function busy(text) {
+        cancelBusy();
+        state.busyTimer = setTimeout(function () {
+            state.busyTimer = null;
+            var container = root();
+            var spot = container ? container.querySelector(".gritmap-foot-left") : null;
+            if (!spot) {
+                return;
+            }
+            var note = document.createElement("span");
+            note.className = "gritmap-busy";
+            note.textContent = text;
+            spot.replaceChildren(note);
+            /* Lo que se ve ya no es el mapa recordado: el siguiente se pinta
+             * aunque traiga los mismos datos, para quitar el aviso. */
+            state.lastHtml = null;
+            announce(text);
+        }, BUSY_DELAY_MS);
+    }
+
     function render(payload) {
         var container = root();
         if (!container) {
             return;
         }
+        cancelBusy();
         state.prefix = payload.prefix || state.prefix;
         state.locale = payload.locale || undefined;
         state.texts = payload.texts || {};
@@ -677,6 +729,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             scrollToToday(container);
         }
         updateEdgeFade(container);
+        updateScale(container);
         if (oldYear && newYear && newYear !== oldYear) {
             announce(newYear);
         }
@@ -697,5 +750,5 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         }
     }
 
-    return { render: render };
+    return { render: render, busy: busy };
 })();

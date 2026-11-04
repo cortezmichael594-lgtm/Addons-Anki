@@ -64,6 +64,11 @@
     --gritmap-tipb: var(--border, #DADEE7);
     --gritmap-shadow: var(--shadow, #1B243026);
     --gritmap-shadow-soft: var(--shadow-subtle, #1B243012);
+    /* «Sin dato» (4.12.0): antes del primer repaso y futuros sin pendientes.
+     * Mitad gris vacio, mitad tarjeta, de dia y de noche (de noche, #181E28):
+     * retrocede sin competir con «no estudio». Se calcula en cada modo
+     * porque mezcla las variables de ese modo. */
+    --gritmap-nodata: color-mix(in srgb, var(--gritmap-empty) 50%, var(--gritmap-card));
 }
 
 html.night-mode #gritmap-root,
@@ -246,6 +251,9 @@ body.nightMode #gritmap-root {
 
 #gritmap-root .gritmap-mini .gritmap-card-title {
     margin-bottom: 8px;
+    /* En texto suave (4.12.0): el dato es lo unico en el color del texto y
+     * la vista va primero a las cifras. Tamano y seminegrita, igual. */
+    color: var(--gritmap-muted);
 }
 
 /* El dato grande de cada tarjeta: 20 px en seminegrita, cifras de ancho
@@ -286,6 +294,14 @@ body.nightMode #gritmap-root {
 #gritmap-root .gritmap-big.gritmap-big-ring {
     align-items: center;
     gap: 8px;
+}
+
+/* «0 de 2» (4.12.0): la cifra a 20 px y «de 2» como las unidades, por la
+ * linea base y a 4 px. */
+#gritmap-root .gritmap-big .gritmap-big-text {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
 }
 
 #gritmap-root .gritmap-big .gritmap-pct-space {
@@ -349,7 +365,10 @@ body.nightMode #gritmap-root {
     }
 }
 
-/* Anillos: solo para «X de Y», en el tono 4 del tema sobre el gris vacio. */
+/* Anillos: solo para «X de Y», en el tono 4 del tema. La parte que falta,
+ * en el gris de pendientes (4.12.0): mas clara que la tarjeta, se lee como
+ * indicador y no como una casilla hueca para marcar; y dice lo cierto, lo
+ * que aun queda por hacer hoy. */
 #gritmap-root .gritmap-ring {
     display: block;
     flex: none;
@@ -357,7 +376,7 @@ body.nightMode #gritmap-root {
 
 #gritmap-root .gritmap-ring-track {
     fill: none;
-    stroke: var(--gritmap-empty);
+    stroke: var(--gritmap-f1);
 }
 
 #gritmap-root .gritmap-ring-fill {
@@ -429,6 +448,27 @@ body.nightMode #gritmap-root {
     display: block;
 }
 
+/* Zona de pulsacion de 32 px (4.12.0) sin cambiar lo que se ve: una capa
+ * invisible que sobresale 2 px. En las flechas del ano crece hacia fuera
+ * (4 px), no hacia la cifra, que esta a 5 px. */
+#gritmap-root .gritmap-btn {
+    position: relative;
+}
+
+#gritmap-root .gritmap-btn::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+}
+
+#gritmap-root .gritmap-btn[data-gritmap-btn="prev"]::before {
+    inset: -2px 0 -2px -4px;
+}
+
+#gritmap-root .gritmap-btn[data-gritmap-btn="next"]::before {
+    inset: -2px -4px -2px 0;
+}
+
 
 
 /* «‹ 2026 ›»: las flechas, pegadas al ano que cambian; a 5 px de la cifra
@@ -461,7 +501,11 @@ body.nightMode #gritmap-root {
 #gritmap-root .gritmap-grid {
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 2px;
+    /* 4.12.0: el contorno de foco del dia de hoy sobresale 4 px, asi que el
+     * margen de FIX-027 crece de 2 a 4 px y se compensa hacia fuera: el mapa
+     * no se mueve y todo lo que se dibuja alrededor sigue cabiendo. */
+    padding: 4px;
+    margin: -2px;
 }
 
 #gritmap-root .gritmap-grid svg {
@@ -612,6 +656,18 @@ body.nightMode #gritmap-root {
     stroke-dasharray: none;
 }
 
+/* Hoy con el foco (4.12.0): su borde se queda y el contorno azul va por
+ * fuera, separado 2 px; asi se ven los dos. --gritmap-k pasa pixeles de
+ * pantalla a unidades del dibujo (la pone gritmap.js; 0,58 es el mapa de
+ * 24 px de serie). */
+#gritmap-root .gritmap-cell[data-gritmap-today]:focus-visible {
+    stroke: var(--gritmap-today);
+    stroke-width: 1.5px;
+    stroke-opacity: 0.8;
+    outline: calc(2px * var(--gritmap-k, 0.58)) solid var(--gritmap-focus);
+    outline-offset: calc(2px * var(--gritmap-k, 0.58));
+}
+
 /* Pie del mapa: la sorpresa del dia a la izquierda y la leyenda a la
  * derecha. */
 #gritmap-root .gritmap-foot {
@@ -628,7 +684,8 @@ body.nightMode #gritmap-root {
     color: var(--gritmap-fg);
 }
 
-#gritmap-root .gritmap-empty-hint {
+#gritmap-root .gritmap-empty-hint,
+#gritmap-root .gritmap-busy {
     color: var(--gritmap-muted);
 }
 

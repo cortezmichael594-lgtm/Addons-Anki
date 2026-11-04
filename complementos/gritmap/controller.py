@@ -267,7 +267,12 @@ def _redraw_in_place() -> None:
     cfg = load_config()
     if state.data is not None and _usable(state.data, current_deck_only, cfg):
         _draw(state.data, cfg)
-    elif state.pending_token is None:
+        return
+    # Hay que leer la coleccion (cambiaron los mazos excluidos o la medida):
+    # el mapa anterior sigue a la vista y, si tarda, dice «Actualizando…»
+    # (4.12.0, informe 4.11 aprobado por el cliente).
+    view.send_busy()
+    if state.pending_token is None:
         _request_data(current_deck_only, cfg)
 
 

@@ -289,8 +289,8 @@ def _mini(title: str, big: str, line: str, big_class: str = "") -> str:
 
 
 def ring_svg(fraction: float, size: int) -> str:
-    """Anillo de progreso: el nivel 4 del tema sobre el gris vacio. Solo se usa
-    para «X de Y» (cada forma, un solo significado)."""
+    """Anillo de progreso: el nivel 4 del tema sobre el gris de pendientes
+    (4.12.0). Solo se usa para «X de Y» (cada forma, un solo significado)."""
     stroke = 4 if size <= 32 else 6
     radius = (size - stroke) / 2
     length = 2 * math.pi * radius
@@ -364,11 +364,7 @@ def _today_card(data: HeatmapData, cfg: Config, deck_only: bool, celebrate: bool
     if progress is None:
         return _mini(t("card_today"), count_html(done, cfg.measure), week)
     value, goal = progress
-    big = ring_svg(value / goal if goal else 1.0, 32) + (
-        '<span class="gritmap-big-text">'
-        + fill_html("goal_of", done=num_html(value), goal=num_html(goal))
-        + "</span>"
-    )
+    big = ring_svg(value / goal if goal else 1.0, 32) + goal_of_html(value, goal)
     if value >= goal:
         # Al cumplirla, la primera vez que se dibuja: el ✓ aparece con un leve
         # aumento de 150 ms (animacion pedida por el cliente, dentro de la
@@ -384,6 +380,21 @@ def _today_card(data: HeatmapData, cfg: Config, deck_only: bool, celebrate: bool
         unit = count_html(left, cfg.measure) if cfg.goal_mode == "number" else count_html(left, "cards")
         line = _with_tip(fill_html("goal_left", count=unit), _goal_record_tip(data, cfg, False))
     return _mini(t("card_today"), big, line, "gritmap-big-ring")
+
+
+def goal_of_html(done: int, goal: int) -> str:
+    """«0 de 2» con la regla de las demas cifras (4.12.0): lo hecho, que es lo
+    que cambia al estudiar, a 20 px; el resto («de 2»), pequeno y en gris como
+    una unidad. Vale para cualquier orden de palabras del idioma."""
+    template = html.escape(t("goal_of"), quote=False)
+    before, _sep, after = template.partition("{done}")
+    goal_text = num_html(goal)
+
+    def unit(part: str) -> str:
+        part = part.strip().replace("{goal}", goal_text)
+        return f'<span class="gritmap-unit">{part}</span>' if part else ""
+
+    return f'<span class="gritmap-big-text">{unit(before)}{num_html(done)}{unit(after)}</span>'
 
 
 def _check_html(text: str, celebrate: bool = False) -> str:
@@ -636,6 +647,12 @@ def past_cell(
     return level_index(value, thresholds) + 1, value, "rev_" + plural_category(lang(), value)
 
 
+def first_study_ago(data: HeatmapData) -> int:
+    """Dias hacia atras del primer dia con repasos (0 si nunca se estudio:
+    entonces todo lo anterior a hoy es «sin dato»)."""
+    return max(data.past) if data.past else 0
+
+
 def _future_template(count: int) -> str:
     if count == 0:
         return "fnone"
@@ -675,6 +692,7 @@ def _build_cell(
     forgiven: dict[int, str],
     key_labels: dict[date, str],
     focusable: bool,
+    first_ago: int = 0,
 ) -> str:
     week, row = _cell_position(day)
     cell = _CELL
@@ -682,19 +700,27 @@ def _build_cell(
     days_ago = (data.today - day).days
     past_thresholds, future_thresholds = thresholds
     extra = ""
+    # «Sin dato» (4.12.0, informe 4.11 aprobado por el cliente): los dias
+    # anteriores al primer repaso y los futuros sin pendientes no son «no
+    # estudio»; van en un tono propio, mas apagado que el gris vacio, para que
+    # el gris de la leyenda («Menos») signifique solo eso.
+    no_data = False
     if days_ago < 0:
         # Pendiente: en cuatro grises segun las tarjetas que vencen, como antes
         # de la 4.0.0 (peticion del cliente, 2026-10-21).
         shown = data.future_counts.get(-days_ago, 0)
         future_level = level_index(shown, future_thresholds) + 1 if shown else 0
-        fill = f"var(--gritmap-f{future_level})" if future_level else "var(--gritmap-empty)"
+        no_data = not future_level
+        fill = f"var(--gritmap-f{future_level})" if future_level else "var(--gritmap-nodata)"
         template = _future_template(shown)
         clickable = shown > 0
         kind = "future"
     else:
         activity = data.past.get(days_ago)
         level, shown, template = past_cell(activity, cfg.measure, past_thresholds)
-        fill = f"var(--gritmap-p{level})" if level else "var(--gritmap-empty)"
+        no_data = days_ago > first_ago
+        empty = "var(--gritmap-nodata)" if no_data else "var(--gritmap-empty)"
+        fill = f"var(--gritmap-p{level})" if level else empty
         # Explorar se abre igual sea cual sea la medida: basta con que haya
         # repasos ese dia.
         clickable = activity is not None and activity.reviews > 0
@@ -720,7 +746,7 @@ def _build_cell(
     if days_ago == 0:
         attrs += ' data-gritmap-today="1"'
     reason = forgiven.get(days_ago)
-    css = "gritmap-cell"
+    css = "gritmap-cell gritmap-nodata" if no_data else "gritmap-cell"
     if reason:
         # Un dia perdonado queda vacio, porque no se estudio, con un borde
         # fino discontinuo.
@@ -808,9 +834,12 @@ def build_year(
 
     cells: list[str] = []
     day = date(year, 1, 1)
+    first_ago = first_study_ago(data)
     while day.year == year:
         cells.append(
-            _build_cell(day, data, cfg, thresholds, forgiven, key_labels, focusable=day == focus_day)
+            _build_cell(
+                day, data, cfg, thresholds, forgiven, key_labels, focusable=day == focus_day, first_ago=first_ago
+            )
         )
         day += timedelta(days=1)
     # Rejilla de dos columnas (4.7.0): las iniciales de los dias a la
@@ -1167,6 +1196,19 @@ def send(payload: str) -> None:
     que es seguro pedirla en cuanto los datos estan listos.
     """
     mw.web.eval("if (typeof GritMap !== 'undefined') { GritMap.render(" + payload + "); }")
+
+
+def send_busy() -> None:
+    """Avisa a la pagina de que se esta recalculando el mapa (4.12.0).
+
+    La pagina solo ensena «Actualizando…» si el calculo pasa de un segundo, y
+    lo quita en cuanto llega el mapa nuevo: lo rapido no se nota.
+    """
+    mw.web.eval("if (typeof GritMap !== 'undefined' && GritMap.busy) { GritMap.busy(" + busy_json() + "); }")
+
+
+def busy_json() -> str:
+    return json.dumps(t("updating"))
 
 
 def update_palette(cfg: Config) -> None:
