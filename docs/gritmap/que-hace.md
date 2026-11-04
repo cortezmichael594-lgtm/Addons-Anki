@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 4.12.0 · 2026-11-04
+Versión 4.13.0 · 2026-11-04
 
 Un mapa de calor de su estudio, parecido al de las contribuciones de GitHub: un cuadrito por cada
 día del año, más intenso cuanto más estudió, y en gris los días que vienen, según las tarjetas que
@@ -9,7 +9,9 @@ vencen. Debajo hay cuatro o cinco tarjetas pequeñas: «Hoy», «Racha», «Prom
 cambia tarjetas, notas ni repasos. Guarda sus opciones y, cada día con meta, si la cumplió.
 
 Esta descripción se rehízo a partir del código de la 4.11.2 al traerla al taller, con los cambios de
-la 4.12.0 (informe 4.11, aprobado el 2026-11-04).
+la 4.12.0 (informe 4.11, aprobado el 2026-11-04) y de la 4.13.0 (dos propuestas del informe de
+Atelier 3.7, aprobado el mismo día, para que los dos complementos combinen: la esquina de las
+tarjetas y los grises de los días que vienen).
 
 ## 1. Dónde aparece
 
@@ -40,7 +42,13 @@ la 4.12.0 (informe 4.11, aprobado el 2026-11-04).
     aún más apagado, a medio camino entre el gris vacío y el fondo de la tarjeta (4.12.0). Si nunca
     ha estudiado, todos los días anteriores a hoy son «sin dato».
   - Días futuros con tarjetas que vencen: tres grises, según la carga (hasta la mitad de lo normal,
-    hasta vez y media y más), siempre más suaves que el primer tono del tema.
+    hasta vez y media y más). Desde la 4.13.0 no son grises fijos: salen de mezclar el color del
+    texto con el de la tarjeta (de día, un 16, 21 y 26 % de texto; de noche, un 10, 15 y 19 %), así
+    que toman el matiz de la paleta de Anki o de Atelier (cálidos con Atardecer, verdosos con Bosque,
+    lilas con Lavanda). Con Nocturne son prácticamente los de antes. Son más suaves que el primer
+    tono del tema en todas las combinaciones con las paletas de Atelier salvo una: con Atardecer de
+    noche y el tema Rosa suave, el gris de más carga es tan marcado como el primer rosa (1,66 frente a
+    1,59 a 1 sobre la tarjeta); se distinguen por el color.
 - Hoy lleva un borde del color del texto.
 - Días perdonados (por un comodín o por la pausa de la racha): vacíos y con un borde fino
   discontinuo.
@@ -85,6 +93,10 @@ foco espera allí. El día con el foco lleva un contorno azul; en el día de hoy
 2 px, para que se vea también su borde (4.12.0). El foco nunca queda bajo el borde que se desvanece.
 
 ## 5. Las tarjetas de debajo
+
+El mapa y las tarjetas llevan la esquina de los recuadros de Anki: 12 px, o la de la paleta de
+Atelier si está instalado (12 px en Nocturne, Papel y Lavanda; 16 px en Bosque y Atardecer), la misma
+que la lista de mazos que tienen encima. Hasta la 4.12.0 eran 10 px.
 
 Cuatro o cinco tarjetas del mismo ancho, que suman el ancho del mapa: de dos en dos en ventanas
 estrechas y de una en una en muy estrechas. Cada una tiene su título en gris suave, el dato grande

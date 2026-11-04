@@ -58,8 +58,15 @@ PAST_DARK: dict[str, tuple[str, ...]] = {
     "lagoon_turquoise": ("#085955", "#048681", "#08B6AF", "#67E2DA"),  # colores-ok: tema recuperado por el cliente (2026-10-26)
 }
 
-FUTURE_LIGHT: tuple[str, ...] = ("#D8DEE8", "#CDD3DD", "#C2C8D2")  # colores-ok: tres grises suaves aprobados (2026-10-26)
-FUTURE_DARK: tuple[str, ...] = ("#343A44", "#3C424C", "#434953")  # colores-ok: tres grises suaves aprobados (2026-10-26)
+# Tres grises de los dias pendientes (aprobados el 2026-10-26). Desde la 4.13.0 no son
+# colores fijos: se calculan con los de la paleta de Anki (o de Atelier), mezclando el
+# color del texto con el de la tarjeta, para que tomen el matiz de cada paleta (en
+# Atardecer, Bosque o Lavanda, un gris azulado fijo quedaba como una mancha fria;
+# informe de Atelier del 2026-11-04, apartado 1.6). Las proporciones son las que daban
+# los grises aprobados con Nocturne: de dia, #D8DEE8, #CDD3DD y #C2C8D2 (16, 21 y 26 %
+# del texto); de noche, #343A44, #3C424C y #434953 (10, 15 y 19 %).
+FUTURE_TEXT_LIGHT: tuple[int, ...] = (16, 21, 26)
+FUTURE_TEXT_DARK: tuple[int, ...] = (10, 15, 19)
 
 THEME_NAMES: tuple[str, ...] = tuple(PAST_LIGHT)
 # Temas retirados en la 4.0.0 y el tema al que pasa quien los tenia. Rosa
@@ -98,9 +105,12 @@ def level_index(count: float, thresholds: list[float]) -> int:
 def _vars_block(theme: str, dark: bool) -> str:
     scales = PAST_DARK if dark else PAST_LIGHT
     past = scales.get(theme, scales["classic_green"])
-    future = FUTURE_DARK if dark else FUTURE_LIGHT
+    future = FUTURE_TEXT_DARK if dark else FUTURE_TEXT_LIGHT
     parts = [f"--gritmap-p{i + 1}:{color};" for i, color in enumerate(past)]
-    parts += [f"--gritmap-f{i + 1}:{color};" for i, color in enumerate(future)]
+    parts += [
+        f"--gritmap-f{i + 1}:color-mix(in srgb, var(--gritmap-fg) {share}%, var(--gritmap-card));"
+        for i, share in enumerate(future)
+    ]
     return "".join(parts)
 
 

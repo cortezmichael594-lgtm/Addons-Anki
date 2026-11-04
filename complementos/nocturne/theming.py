@@ -16,10 +16,14 @@ controles en las preferencias— vuelve a leer los nuestros sin que hagamos nada
 
 # Historial de correcciones de este archivo:
 # FIX-003 (2026-10-21): casillas sin marcar casi invisibles.
+# FIX-012 (2026-11-04): texto de la fila seleccionada de Explorar por debajo de 4,5:1.
+# FIX-013 (2026-11-04): «Restablecer tamaños de las ventanas» relleno como botón principal.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
+from pathlib import Path
 
 import aqt.colors
 import aqt.props
@@ -36,6 +40,17 @@ PROPS = {
     "BORDER_RADIUS_MEDIUM": "radius_medium",
     "BORDER_RADIUS_LARGE": "radius_large",
 }
+
+# Versión 3.8.0: iconos de Anki repintados con los colores de la paleta (ver _icons_css).
+_ICON_DIR = Path(__file__).parent / "user_files" / "iconos"
+
+# Versión 3.8.0 (informe del 2026-11-04, apartado 2.1): color del lado «Tarjetas» del
+# interruptor Tarjetas/Notas de Explorar. Anki lo pinta con ACCENT_CARD, un azul claro
+# distinto del de acción (el mismo de «Nuevas»): dos azules para lo que se pulsa. Se usa el
+# de acción: de día, el de botón con el ratón encima, y de noche el tono de trazo, para que
+# su rótulo (en el color del fondo) se lea a 4,5:1 o más (lo miden las pruebas). El lado
+# «Notas» sigue en verde. Lo rellena write_theme_colors; on_browser_will_show lo conecta.
+SWITCH_CARDS: dict[str, str] = {"light": "", "dark": ""}
 
 
 def write_theme_colors() -> None:
@@ -61,6 +76,10 @@ def write_theme_colors() -> None:
             continue
         token["light"] = hover["light"]
         token["dark"] = hover["dark"]
+
+    # Versión 3.8.0: el lado «Tarjetas» del interruptor de Explorar, en el color de acción.
+    SWITCH_CARDS["light"] = to_css_rgba(palette["BUTTON_PRIMARY_GRADIENT_END"]["light"])
+    SWITCH_CARDS["dark"] = to_css_rgba(palette["BORDER_FOCUS"]["dark"])
 
     look = themes.look()
     for name, key in PROPS.items():
@@ -156,6 +175,9 @@ def on_style_did_init(style: str) -> str:
         + _buttons_css(pick)
         + _tooltip_css(pick)
         + _selection_css(pick)
+        + _fields_css(pick)
+        + _tabs_css(pick)
+        + _icons_css(pick)
     )
 
 
@@ -172,7 +194,21 @@ def _buttons_css(pick: Callable[[str], str]) -> str:
     botón «por defecto» es el que se pulsa con Intro, así que el relleno sigue a esa
     tecla. Como en la regla de FIX-003, borde más margen se mantienen: 1px sin
     foco y 2px (margen 0, que pone Anki) con el ratón encima o con el foco.
+
+    Versión 3.8.0 (informe del 2026-11-04, apartado 2.1): solo se rellena el botón por
+    defecto de la fila de botones del pie (QDialogButtonBox: Aceptar, Añadir, Guardar).
+    Qt da ese papel a cualquier botón con el foco, y en Preferencias se lo daba a
+    «Restablecer tamaños de las ventanas», que salía como la acción principal. Un botón
+    del cuerpo conserva el aspecto de Anki: fondo normal y, si responde a Intro, el borde
+    azul fino de Anki.
     """
+    # --- FIX-013 (2026-11-04) ---
+    # Síntoma: en Preferencias, «Restablecer tamaños de las ventanas» salía relleno del color de
+    #          acción, como si fuera la acción principal, y «Cerrar» en gris.
+    # Causa: el relleno seguía a cualquier botón «por defecto», y Qt da ese papel al botón del
+    #        cuerpo que tiene el foco cuando la ventana no marca uno en el pie.
+    # Regla: el relleno de acción es solo para el botón por defecto de la fila de botones del pie
+    #        (QDialogButtonBox); un botón del cuerpo nunca se rellena.
     radius = themes.look()["button_radius"]
     side = getattr(theme_manager, "right", lambda: "right")()
     return f"""
@@ -198,21 +234,21 @@ def _buttons_css(pick: Callable[[str], str]) -> str:
     QMenu::indicator:non-exclusive {{
         border-radius: 4px;
     }}
-    QPushButton:default {{
+    QDialogButtonBox QPushButton:default {{
         background: {pick("BUTTON_PRIMARY_BG")};
         color: {pick("HIGHLIGHT_FG")};
         border: 1px solid {pick("BUTTON_PRIMARY_BG")};
     }}
-    QPushButton:default:hover,
-    QPushButton:default:focus {{
+    QDialogButtonBox QPushButton:default:hover,
+    QDialogButtonBox QPushButton:default:focus {{
         background: {pick("BUTTON_PRIMARY_GRADIENT_END")};
         border: 2px solid {pick("NOCTURNE_PRIMARY_RING")};
     }}
-    QPushButton:default:pressed {{
+    QDialogButtonBox QPushButton:default:pressed {{
         background: {pick("NOCTURNE_PRIMARY_PRESSED")};
         border: 2px solid {pick("NOCTURNE_PRIMARY_RING")};
     }}
-    QPushButton:default:disabled {{
+    QDialogButtonBox QPushButton:default:disabled {{
         background: {pick("BUTTON_BG")};
         color: {pick("FG_DISABLED")};
         border: 1px solid {pick("BORDER_SUBTLE")};
@@ -244,6 +280,13 @@ def _selection_css(pick: Callable[[str], str]) -> str:
     para el botón principal (Practical UI, P17). Y las cabeceras de las columnas de
     Explorar en el texto secundario, como las de la lista de mazos (Refactoring UI, P8).
     Solo color y grosor de letra: nada cambia de tamaño ni de sitio."""
+    # --- FIX-012 (2026-11-04) ---
+    # Síntoma: en Explorar, el texto de la fila seleccionada se leía a 4,46:1 en Nocturne de noche
+    #          (y a 3,1-4,1 en Papel, Bosque y Atardecer), por debajo del 4,5 prometido.
+    # Causa: Anki marca la selección con SELECTED_BG, que es transparente, y Explorar lo pinta
+    #        tres veces encima de la fila; nadie había medido el color que resulta.
+    # Regla: el fondo de lo seleccionado en las tablas es opaco (NOCTURNE_TABLE_SELECTED) y se
+    #        mide con el texto encima tal como se ve (lo comprueba TableSelectionTest).
     return f"""
     QMenu::item:selected,
     QComboBox::item:selected {{
@@ -253,7 +296,142 @@ def _selection_css(pick: Callable[[str], str]) -> str:
     QHeaderView::section {{
         color: {pick("FG_SUBTLE")};
     }}
+    QTableView {{
+        selection-background-color: {pick("NOCTURNE_TABLE_SELECTED")};
+        selection-color: {pick("SELECTED_FG")};
+    }}
+    QCheckBox::indicator:checked:!disabled {{
+        background: {pick("BUTTON_PRIMARY_BG")};
+        border-color: {pick("BUTTON_PRIMARY_BG")};
+    }}
 """
+
+
+def _fields_css(pick: Callable[[str], str]) -> str:
+    """Versión 3.8.0 (informe del 2026-11-04, apartado 2.2): campos de texto, campos
+    numéricos y listas desplegables con un borde visible, el mismo de las casillas
+    (NOCTURNE_CONTROL_BORDER, a 3:1 o más sobre cualquier fondo; WCAG 1.4.11). Antes se
+    distinguían del fondo a 1,04, 1,05 o 1,19:1 y el filtro de Explorar casi no se veía
+    como campo. Solo cambia el color, no el grosor: nada se mueve. Con el foco, Anki ya
+    pone el color de acción (sus reglas :focus ganan a esta). Las listas, las tablas y
+    los separadores siguen suaves, como eligió el cliente en octubre.
+
+    El campo de texto de dentro de una lista desplegable editable (el buscador de
+    Explorar) no lleva borde propio: ya lo tiene la lista que lo rodea.
+    """
+    border = pick("NOCTURNE_CONTROL_BORDER")
+    return f"""
+    QLineEdit,
+    QComboBox,
+    QComboBox:!editable,
+    QSpinBox,
+    QDateTimeEdit,
+    QTextEdit,
+    QPlainTextEdit {{
+        border-color: {border};
+    }}
+    QComboBox QLineEdit {{
+        border-color: transparent;
+    }}
+    QComboBox:!editable:focus {{
+        border-color: {pick("BORDER_FOCUS")};
+    }}
+"""
+
+
+def _tabs_css(pick: Callable[[str], str]) -> str:
+    """Versión 3.8.0 (informe del 2026-11-04, apartado 2.1): la pestaña activa, con el
+    tinte de acción, el texto normal y una raya de 2 px en el tono de trazo, en vez de
+    rellena de azul con texto blanco: era otra superficie azul que competía con el botón
+    principal, y así se marca como lo demás seleccionado (menús, listas y lista de mazos).
+
+    La raya ocupa el borde inferior: pasa de 1 a 2 px y el relleno de abajo baja 1 px, de
+    modo que la pestaña mide lo mismo y nada salta (APR-059). La letra no pasa a
+    seminegrita: Qt mediría la pestaña más ancha y la barra se movería al cambiar de una a
+    otra.
+    """
+    return f"""
+    QTabBar::tab:selected,
+    QTabBar::tab:selected:hover {{
+        color: {pick("FG")};
+        background: {pick("NOCTURNE_ROW_HIGHLIGHT")};
+        border-bottom: 2px solid {pick("BORDER_FOCUS")};
+        padding-bottom: 3px;
+    }}
+    QTabBar::tab:selected:disabled,
+    QTabBar::tab:selected:hover:disabled {{
+        color: {pick("FG_DISABLED")};
+        background: {pick("BUTTON_DISABLED")};
+    }}
+"""
+
+
+def _icons_css(pick: Callable[[str], str]) -> str:
+    """Versión 3.8.0 (informe del 2026-11-04, apartado 1.4): las flechas de las listas
+    desplegables, de los campos numéricos y de orden de las columnas, en el texto
+    secundario, y la marca de las casillas marcadas, en blanco sobre el color de acción.
+
+    Anki trae estos iconos ya pintados en un blanco casi puro (de noche) o casi negro (de
+    día), así que no siguen la paleta; se repintan copiando su dibujo con otro color en
+    user_files. Si algo falla, quedan los de Anki.
+    """
+    subtle, on_action = pick("FG_SUBTLE"), pick("HIGHLIGHT_FG")
+    icons = {
+        "QComboBox::down-arrow": _tinted_icon("chevron-down", subtle),
+        "QSpinBox::up-arrow, QDateTimeEdit::up-arrow": _tinted_icon("chevron-up", subtle),
+        "QSpinBox::down-arrow, QDateTimeEdit::down-arrow": _tinted_icon("chevron-down", subtle),
+        "QHeaderView::up-arrow": _tinted_icon("menu-up", subtle),
+        "QHeaderView::down-arrow": _tinted_icon("menu-down", subtle),
+        "QCheckBox::indicator:checked:!disabled": _tinted_icon("check", on_action),
+    }
+    return "".join(
+        f"""
+    {selector} {{
+        image: url({path});
+    }}"""
+        for selector, path in icons.items()
+        if path
+    )
+
+
+def _tinted_icon(name: str, color: str) -> str:
+    """Copia el icono «name» de Anki con el color dado y devuelve su ruta para la hoja de
+    estilo, o "" si no se pudo. El color solo puede ser hexadecimal (#RRGGBB): con otro
+    formato no se toca nada. Cada archivo lleva el color en el nombre, así que no se
+    reescribe si ya existe."""
+    if not re.fullmatch(r"#[0-9A-Fa-f]{6}", color):
+        return ""
+    try:
+        from aqt.utils import aqt_data_folder
+
+        source = Path(aqt_data_folder()) / "qt" / "icons" / f"{name}-dark.svg"
+        target = _ICON_DIR / f"{name}-{color[1:].lower()}.svg"
+        if not target.exists():
+            svg = source.read_text(encoding="utf-8")
+            tinted, count = re.subn(r'fill="#[0-9A-Fa-f]{3,8}"', f'fill="{color}"', svg, count=1)
+            if count != 1:
+                return ""
+            _ICON_DIR.mkdir(parents=True, exist_ok=True)
+            target.write_text(tinted, encoding="utf-8")
+    except Exception:
+        note_failure(f"no se pudo preparar el icono «{name}»")
+        return ""
+    # Como hace Anki en theme_manager.themed_icon: barras normales y, por un fallo de Qt,
+    # comillas y letras acentuadas de la ruta escapadas con «\».
+    path = target.as_posix().replace("\\\\?\\", "")
+    return re.sub(r"(['¡-ÿ])", r"\\\1", path)
+
+
+@guard
+def on_browser_will_show(browser: object) -> None:
+    """Conecta el interruptor de Explorar a SWITCH_CARDS. Anki no ofrece forma de elegir su
+    color, así que se cambia su atributo interno; si en otra versión de Anki no existe, el
+    interruptor queda como lo dibuje Anki (está en «Así a propósito», APR-015)."""
+    switch = getattr(browser, "_switch", None)
+    if switch is None or not hasattr(switch, "_left_color"):
+        return
+    switch._left_color = SWITCH_CARDS
+    switch.update()
 
 
 @guard

@@ -1,6 +1,6 @@
 # Qué hace «Atelier»
 
-Versión 3.7.2 · 2026-10-28
+Versión 3.8.0 · 2026-11-04
 
 Temas de color para Anki, en modo día y en modo noche. Trae cinco paletas (Nocturne, Papel, Bosque,
 Lavanda y Atardecer), y Nocturne está elegida de serie. Hasta la 3.5.0 el complemento se llamaba
@@ -12,6 +12,12 @@ elige en la configuración del complemento, se ve al momento mientras se elige y
 «Aceptar», sin reiniciar. En Windows 11, también la barra de título de las ventanas toma los colores de
 la paleta. Si su sistema pide más contraste, Atelier se aparta y deja los colores del sistema. No toca
 su colección, sus tarjetas ni sus plantillas.
+
+Desde la 3.8.0 aplica también la auditoría del 2026-11-04 (informe 3.7), aprobada entera por el
+cliente: la fila seleccionada de Explorar y el botón relleno de Preferencias, corregidos (en errores,
+FIX-012 y FIX-013), y retoques de botones, pestañas, casillas, campos, iconos, lista de mazos, editor
+y panel, que se describen en su apartado. Dos de sus propuestas eran de GritMap y van en su versión
+4.13.0. Lo que el informe proponía y no se hace, con su motivo, está en «Así a propósito» de errores.
 
 Desde la 3.5.0 aplica el informe de mejoras del 2026-10-26, salvo lo que trata del día de gracia y de
 la meta diaria, que el cliente descartó (no aplica a un tema de colores).
@@ -52,7 +58,10 @@ cliente del 2026-10-28): es una página dentro de la ventana, como las opciones 
   complementos, que no responde mientras está abierto (como con cualquier diálogo de Anki). Mide
   560 px de ancho y el alto justo para su contenido (unos 650 px con la interfaz al 100 %), como
   mucho 720 px o el alto de la pantalla menos 80 px; si no cabe, el cuerpo se desplaza y la cabecera
-  y el pie quedan fijos. No se enseña hasta que está dibujado, para que no parpadee.
+  y el pie quedan fijos. No se enseña hasta que está dibujado, para que no parpadee. Desde la 3.8.0,
+  mientras tanto el puntero del ratón es el de espera (la primera vez en una sesión puede tardar hasta
+  3 segundos) y vuelve a ser el normal en cuanto se ve el panel, o si se cierra o falla. La ventana de
+  complementos no atiende otro clic mientras tanto.
 - Cabecera «Paleta» (14 px, seminegrita). Debajo, en el texto secundario: «Elija una paleta: se ve
   ya en Anki y se guarda al aceptar.».
 - Encima de la lista, una sola vez, los rótulos «Día» y «Noche»: el del modo en que está Anki, en el
@@ -78,7 +87,9 @@ cliente del 2026-10-28): es una página dentro de la ventana, como las opciones 
 - «Aceptar» (o Ctrl+Intro) conserva y guarda la paleta, sin más avisos: el cambio ya se ha visto.
   «Cancelar», Esc o la X vuelven a la paleta que había al abrir el panel. En Windows, «Aceptar» va
   primero, como en sus ventanas; en macOS y Linux, a la derecha. «Aceptar» es el único botón relleno.
-- Debajo de la lista: «Cada paleta tiene versión de día y de noche. Anki está ahora en modo noche; el
+- Debajo de la lista (texto de la 3.8.0, que nombra el ajuste como Anki): «Cada paleta tiene versión
+  de día y de noche. Anki está ahora en modo noche; se cambia en Preferencias de Anki, en «Tema».» (o
+  «modo día»). Antes decía: «Cada paleta tiene versión de día y de noche. Anki está ahora en modo noche; el
   modo se cambia en Preferencias de Anki.» (o «modo día»).
 - No hay «Restaurar los valores predeterminados»: Nocturne ya dice «predeterminada» en su fila y un
   clic la elige.
@@ -186,6 +197,12 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   secundario y algo menos gruesas. Pantalla de un mazo: las etiquetas «Nuevas:», «Aprendiendo:» y «A
   repasar:» van en el texto secundario. Así destacan las cifras, que es lo que se viene a mirar. Solo en
   esas dos tablas.
+- Lista de mazos (desde la 3.8.0): los rótulos de las columnas tienen el mismo margen que sus
+  cifras, así que quedan alineados con ellas y separados entre sí 24 px (antes, 6: «Nuevas Aprender
+  Programadas» se leía como una sola frase), y «Mazo» empieza donde empiezan los nombres. La fila
+  vacía bajo la cabecera, donde se suelta un mazo para sacarlo al nivel superior, mide 10 px en lugar
+  de una línea entera: sigue admitiendo mazos, con algo más de puntería. La línea «Estudiadas N
+  tarjetas en…» va en el texto secundario: es un dato de apoyo.
 - Al pasar el ratón por las páginas de Anki, los cambios de color tardan 100 milisegundos en vez de
   180, y se perciben instantáneos. El fundido de las tarjetas no cambia. Si tiene marcada «Reducir
   movimiento» en las preferencias de Anki, los cambios son inmediatos (desde la 3.4.0), y también si la
@@ -198,9 +215,12 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   la 3.5.0, en su tono de trazo (el del foco), que de noche es más claro y se ve bien sobre fondo
   oscuro.
 - Dos tonos de acción: el de los rellenos (botones principales, con texto blanco encima) y otro para
-  los trazos (contornos de foco, anillo del botón principal, bordes de casillas con el ratón o el foco
-  y enlaces). De día casi coinciden; de noche el de trazo es más claro, y se ve a 3 a 1 o más sobre
-  cualquier fondo (a 4,3 o más sobre el de la ventana).
+  los trazos (contornos de foco, anillo del botón principal, raya de la pestaña activa y bordes de
+  casillas con el ratón o el foco). De día casi coinciden; de noche el de trazo es más claro, y se ve
+  a 3 a 1 o más sobre cualquier fondo (a 4,3 o más sobre el de la ventana). Los enlaces tienen su
+  propio color, que es texto y se lee a 5 a 1 o más sobre el fondo y los recuadros en las cinco
+  paletas (en Nocturne de día, 5,1). Hasta la 3.7.2 esta descripción decía que los enlaces usaban el
+  tono de trazo; no era así.
 - Repaso (desde la 3.7.0): «Editar» y «Más», a los lados de la barra inferior, sin fondo ni borde
   (el borde queda transparente, así que no cambian de tamaño) y con un fondo suave al pasar el ratón,
   como la barra superior: así, los botones de respuesta son lo único con forma de botón.
@@ -209,6 +229,23 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   Explorar, en vez del relleno azul con texto blanco de Anki: una sola forma de marcar lo
   seleccionado. Las cabeceras de las columnas de Explorar van en el texto secundario, como las de la
   lista de mazos.
+- Pestañas de las ventanas (por ejemplo, las de Preferencias; desde la 3.8.0): la activa lleva el
+  tinte de acción, el texto normal y una raya de 2 px abajo en el tono de trazo, en lugar de ir
+  rellena de azul con texto blanco. Mide lo mismo que las demás: nada se mueve al cambiar de pestaña.
+  La letra no cambia de grosor.
+- Campos de texto, campos numéricos y listas desplegables de las ventanas (desde la 3.8.0): con un
+  borde fino visible, el mismo de las casillas, en lugar del borde casi invisible de antes (el filtro
+  de la barra lateral de Explorar, por ejemplo, se veía solo por su texto de ejemplo). Con el foco, el
+  borde toma el color de acción, como antes. Listas, tablas y separadores siguen con bordes suaves.
+- Flechas de las listas desplegables, de los campos numéricos y de orden de las columnas (desde la
+  3.8.0): en el texto secundario, en vez del blanco casi puro (de noche) o casi negro (de día) con que
+  las trae Anki. Los iconos de la barra lateral de Explorar y los del editor quedan como los dibuja
+  Anki.
+- Interruptor «Tarjetas/Notas» de Explorar (desde la 3.8.0): el lado «Tarjetas» va en el color de
+  acción de la paleta (de noche, el tono de trazo) y no en el azul claro de «Nuevas»; su rótulo se lee
+  a 4,5 a 1 o más. El lado «Notas» sigue en verde.
+- Editor (Añadir, Editar y Explorar; desde la 3.8.0): los nombres de los campos van en el texto
+  secundario; lo que se escribe, en el color del texto.
 - Repaso: los intervalos que salen encima de los botones de respuesta («10 min», «4 d») van en el texto
   secundario y con cifras de igual ancho (desde la 3.5.0). «Comenzar a estudiar» ya va relleno del
   color de acción con texto blanco: lo hace Anki con el azul de la paleta. Las cifras en cero de la
@@ -219,25 +256,38 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   sitio y nada se mueve. El subrayado de los enlaces va algo separado de las letras (desde la 3.4.0).
 - Barra superior (Mazos, Añadir, Explorar, Estadísticas, Sincronizar): al pasar el ratón, la opción
   toma un fondo suave con las esquinas de la paleta, en lugar del subrayado de Anki. No cambia de
-  tamaño ni de sitio.
+  tamaño ni de sitio. Desde la 3.8.0 va en seminegrita y no en negrita: es navegación, y ya no pesa
+  más que los nombres de los mazos.
 - Botones de respuesta del repaso: una raya fina de color al pie de «Otra vez» (rojo), «Difícil»
   (naranja), «Bien» (verde) y «Fácil» (azul), también con el ratón encima. El texto no cambia; el color
   solo ayuda a reconocerlos de un vistazo.
-- Botón principal de las ventanas (el que se pulsa con Intro, por ejemplo «Aceptar» o «Añadir»)
-  relleno del color de acción, con texto blanco. Al pasar el ratón o llegar con el teclado se oscurece
-  y lleva un anillo; al pulsarlo, se oscurece más. Si está desactivado, se ve como un botón normal
-  apagado. Al moverse con Tab entre botones, el relleno sigue al botón que respondería a Intro.
+- Botón principal de las ventanas (el que se pulsa con Intro en la fila de botones de abajo, por
+  ejemplo «Aceptar» o «Añadir») relleno del color de acción, con texto blanco. Al pasar el ratón o
+  llegar con el teclado se oscurece y lleva un anillo; al pulsarlo, se oscurece más. Si está
+  desactivado, se ve como un botón normal apagado. Al moverse con Tab entre los botones de esa fila,
+  el relleno sigue al botón que respondería a Intro. Desde la 3.8.0, un botón del cuerpo de la ventana
+  nunca se rellena, aunque responda a Intro (por ejemplo, «Restablecer tamaños de las ventanas» en
+  Preferencias): conserva su fondo y lleva el borde azul fino de Anki. Una ventana sin botón principal
+  en esa fila, como Preferencias, no tiene ningún botón relleno.
 - Esquinas según la paleta, con una regla para todas (desde la 3.5.0): botones y campos (de texto,
   listas desplegables, listas) llevan la misma esquina, y los recuadros de las páginas, el doble.
   Desde la 3.7.0, dos familias separadas un 33 %: suaves (6 y 12px: Nocturne, Papel y Lavanda) y
   redondeadas (8 y 16px: Bosque y Atardecer). Las casillas, 4px, para que no parezcan botones
-  de opción (estos siguen redondos).
+  de opción (estos siguen redondos). Desde la 3.8.0 llevan también la esquina de botones (6 u 8 px)
+  los botones de la barra inferior de la lista de mazos y de la pantalla de un mazo («Descargar mazos
+  compartidos», «Crear mazo», «Importar archivo», «Opciones»...), que eran medias píldoras de 16 o
+  20 px, y la fila resaltada de la lista de mazos (mazo actual o con el ratón encima), que llevaba la
+  de los recuadros. Los botones de respuesta del repaso no cambian.
 - Casillas y botones de opción con un borde visible sin marcar; con el ratón encima o con el foco, el
-  borde toma el color de acción.
+  borde toma el color de acción. Desde la 3.8.0, una casilla marcada va rellena del color de acción,
+  con la marca en blanco, para que se distinga de un vistazo de una vacía.
 - En la lista de mazos, la fila del mazo actual y la que tiene el ratón encima se resaltan con un tinte
   del color de acción. Solo las filas de mazos: la tabla de la pantalla de estudio (Nuevas,
-  Aprendiendo, A repasar) no se resalta. En Explorar, las filas seleccionadas llevan un tinte más
-  visible que en Anki. El texto que se selecciona en las páginas toma ese mismo tinte.
+  Aprendiendo, A repasar) no se resalta. En Explorar, las filas seleccionadas llevan un fondo opaco
+  del tono de acción (desde la 3.8.0; antes, un tinte transparente que dejaba el texto por debajo de
+  4,5 a 1, FIX-012), sobre el que el texto se lee a 5 a 1 o más; una fila seleccionada con bandera se
+  ve del color de la selección, y la bandera vuelve a verse al quitarla. El texto que se selecciona en
+  las páginas toma el tinte de acción.
 - Banderas: conservan el color de su nombre (la roja es roja) y, además, la roja y la verde se
   distinguen por su claridad, para quien confunde el rojo y el verde. Desde la 3.5.0 se comprueba con
   una simulación de daltonismo (deuteranopía y protanopía) en las cinco paletas, de día y de noche: para
@@ -283,6 +333,10 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   no aparece en ninguna ventana. Es la misma para todos los perfiles. No viaja con la sincronización.
 - Si esa configuración falta, es antigua o tiene un valor que no existe (por ejemplo, «grafito» o
   «alto_contraste» de la 3.1.0), usa Nocturne sin avisar.
+- Desde la 3.8.0, las copias de las flechas y de la marca de las casillas con los colores de la
+  paleta: unos archivos de dibujo muy pequeños en la carpeta de datos del complemento, que Anki
+  conserva al actualizarlo. Se crea uno por cada color que se usa y no se vuelve a escribir si ya
+  existe. Si no se pueden crear, quedan los iconos de Anki y el fallo va al registro.
 
 ## 8. Si algo falla
 
@@ -316,7 +370,11 @@ paletas, de día y de noche.
   importante, para que lo desactivado se vea desactivado.
 - Las casillas sin marcar llegan a 3 frente al fondo; las banderas, a 3 como icono; las rayas de los
   botones de respuesta, a 3 sobre el botón.
-- En Explorar, el texto de las filas con bandera o estado, y el de las filas seleccionadas, llega a 4,5.
+- En Explorar, el texto de las filas con bandera o estado llega a 4,5, y el de las filas seleccionadas,
+  a 5 (desde la 3.8.0; antes se quedaba en 4,46 en Nocturne de noche y entre 3,1 y 4,1 en Papel,
+  Bosque y Atardecer de noche, FIX-012).
+- Los bordes de campos, listas desplegables y casillas sin marcar llegan a 3 sobre el fondo, los
+  recuadros, los botones y el fondo de los campos (desde la 3.8.0).
 - La bandera roja y la verde se diferencian en claridad al menos 1,4 veces, también vistas como las ve
   quien tiene deuteranopía o protanopía (simulación de Machado, 2009; desde la 3.5.0).
 - Los trazos de acción (foco, anillo, enlaces) llegan a 3 sobre cualquier fondo (desde la 3.5.0).

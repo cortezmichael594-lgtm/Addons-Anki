@@ -24,7 +24,7 @@ import json
 from typing import Any
 
 from aqt import gui_hooks, mw
-from aqt.qt import QCloseEvent, QDialog, Qt, QTimer, QVBoxLayout, QWidget
+from aqt.qt import QApplication, QCloseEvent, QDialog, Qt, QTimer, QVBoxLayout, QWidget
 from aqt.theme import theme_manager
 from aqt.utils import disable_help_button, openFolder
 from aqt.webview import AnkiWebView
@@ -132,6 +132,7 @@ class PanelDialog(QDialog):
         self._ready = False
         self._loaded = False
         self._closing = False
+        self._waiting = False
         self._on_timeout = on_timeout
         self._timer = QTimer(self)
         self._timer.setSingleShot(True)
@@ -160,12 +161,22 @@ class PanelDialog(QDialog):
             '<div id="nocturne-panel"></div>'
             f"<script>NocturnePanel.init({_script_safe(json.dumps(data, ensure_ascii=False))});</script>"
         )
-        self._web.stdHtml(
-            body,
-            css=[f"/_addons/{package}/web/panel.css"],
-            js=[f"/_addons/{package}/web/panel.js"],
-            context=self,
-        )
+        # Versión 3.8.0 (informe del 2026-11-04, apartado 3.2): cursor de espera desde el
+        # clic en «Configuración» hasta que se ve el panel. La primera vez en una sesión
+        # puede tardar hasta 3 s, y sin una señal se vuelve a pulsar.
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        self._waiting = True
+        try:
+            self._web.stdHtml(
+                body,
+                css=[f"/_addons/{package}/web/panel.css"],
+                js=[f"/_addons/{package}/web/panel.js"],
+                context=self,
+            )
+        except Exception:
+            # Si falla aquí se abre la ventana sencilla: el cursor no se queda en espera.
+            self._stop_waiting()
+            raise
         gui_hooks.theme_did_change.append(self._on_theme_change)
         if mw is not None:
             mw.progress.single_shot(READY_TIMEOUT_MS, self._check_ready, False)
@@ -182,12 +193,22 @@ class PanelDialog(QDialog):
             return
         if self._loaded:
             self._ready = True
-            self._web.show()
-            self._web.setFocus()
+            self._reveal()
             return
         note_failure("el panel no se dibujó en %s ms", READY_TIMEOUT_MS)
         self._close_quietly()
         self._on_timeout()
+
+    def _reveal(self) -> None:
+        self._web.show()
+        self._web.setFocus()
+        self._stop_waiting()
+
+    def _stop_waiting(self) -> None:
+        # El cursor de espera se quita una sola vez, al enseñar el panel o al cerrarlo.
+        if self._waiting:
+            self._waiting = False
+            QApplication.restoreOverrideCursor()
 
     def _close_quietly(self) -> None:
         self._closing = True
@@ -209,8 +230,7 @@ class PanelDialog(QDialog):
         if action == "ready":
             self._ready = True
             self._fit_height(arg)
-            self._web.show()
-            self._web.setFocus()
+            self._reveal()
         elif action == "pick":  # clic: al momento
             self._chosen = themes.valid_id(arg)
             self._timer.stop()
@@ -283,5 +303,6 @@ class PanelDialog(QDialog):
     def done(self, result: int) -> None:
         # Se quita aquí, nunca desde dentro del propio gancho.
         gui_hooks.theme_did_change.remove(self._on_theme_change)
+        self._stop_waiting()
         self._web.cleanup()
         super().done(result)

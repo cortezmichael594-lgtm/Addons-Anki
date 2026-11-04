@@ -7,13 +7,29 @@ PYTHONPATH.
 
 from __future__ import annotations
 
+import tempfile
 import types
 import unittest
+from pathlib import Path
 
 import anki.lang
-from aqt.qt import QApplication, QComboBox, QDialog, QLabel, QMainWindow, QMenu, QPushButton, Qt, QWidget
+from aqt.qt import (
+    QApplication,
+    QColor,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QLabel,
+    QMainWindow,
+    QMenu,
+    QPushButton,
+    Qt,
+    QVBoxLayout,
+    QWidget,
+)
+from aqt.theme import WidgetStyle
 
-from nocturne import contrast, dialogs, errors, panel, strings, themes, titlebar
+from nocturne import contrast, dialogs, errors, panel, strings, themes, theming, titlebar
 
 _app = QApplication.instance() or QApplication([])
 anki.lang.set_lang("es")  # el título de la ventana sale de las traducciones de Anki
@@ -234,10 +250,73 @@ class PanelTest(unittest.TestCase):
         self.assertEqual(calls, ["window.pycmd("], calls)
         self.assertIn('typeof window.pycmd !== "function"', js)
 
+    def test_wait_cursor_is_released_once(self) -> None:
+        # Versión 3.8.0 (informe del 2026-11-04, apartado 3.2): cursor de espera hasta que
+        # se ve el panel; se quita una sola vez aunque se cierre después.
+        dialog = panel.PanelDialog.__new__(panel.PanelDialog)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        dialog._waiting = True
+        dialog._stop_waiting()
+        dialog._stop_waiting()
+        self.assertIsNone(QApplication.overrideCursor())
+
+    def test_mode_note_names_the_anki_setting(self) -> None:
+        # Versión 3.8.0 (informe, apartado 4.3): en Preferencias de Anki el ajuste se llama «Tema».
+        for note in (strings.MODE_NOTE_DAY, strings.MODE_NOTE_NIGHT):
+            self.assertIn("en Preferencias de Anki, en «Tema».", note)
+
     def test_bridge_orders(self) -> None:
         # Las órdenes de la página, sin ventana: elegir, vista previa y aceptar.
         dialog = panel.PanelDialog.__new__(panel.PanelDialog)
         self.assertTrue(callable(dialog.handle))
+
+
+class PrimaryButtonRowTest(unittest.TestCase):
+    """Versión 3.8.0 (informe del 2026-11-04, apartado 2.1): en Preferencias, Qt daba el
+    papel de botón por defecto a «Restablecer tamaños de las ventanas» (el primero con el
+    foco) y salía relleno del color de acción. Dibujado de verdad: el botón del cuerpo
+    conserva su fondo y solo se rellena el de la fila de botones del pie."""
+
+    def setUp(self) -> None:
+        self._mw, self._tm = theming.mw, theming.theme_manager
+        theming.mw = types.SimpleNamespace(  # type: ignore[assignment]
+            pm=types.SimpleNamespace(get_widget_style=lambda: WidgetStyle.ANKI)
+        )
+        theming.theme_manager = types.SimpleNamespace(night_mode=True)  # type: ignore[assignment]
+        # Los iconos repintados, en una carpeta temporal y no dentro del complemento.
+        self._icons, self._tmp = theming._ICON_DIR, tempfile.TemporaryDirectory()
+        theming._ICON_DIR = Path(self._tmp.name) / "iconos"
+
+    def tearDown(self) -> None:
+        theming.mw, theming.theme_manager = self._mw, self._tm  # type: ignore[assignment]
+        theming._ICON_DIR = self._icons
+        self._tmp.cleanup()
+
+    def test_body_button_is_not_filled(self) -> None:
+        neutral = "#808080"  # colores-ok: fondo neutro de prueba
+        dialog = QDialog()
+        layout = QVBoxLayout(dialog)
+        body = QPushButton("Restablecer tamaños de las ventanas")
+        box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
+        layout.addWidget(body)
+        layout.addWidget(box)
+        dialog.setStyleSheet(
+            f"QPushButton {{ background: {neutral}; padding: 8px 24px; }}" + theming.on_style_did_init("")
+        )
+        ok = box.button(QDialogButtonBox.StandardButton.Ok)
+        assert ok is not None
+        for button in (body, ok):
+            button.setDefault(True)
+            dialog.show()
+            QApplication.processEvents()
+            # Un punto del fondo, junto al borde izquierdo y lejos del texto.
+            painted = QColor(button.grab().toImage().pixel(6, button.height() // 2)).name()
+            if button is body:
+                self.assertEqual(painted, neutral)
+            else:
+                self.assertNotEqual(painted, neutral)
+            button.setDefault(False)
+        dialog.close()
 
 
 class DescriptionTest(unittest.TestCase):

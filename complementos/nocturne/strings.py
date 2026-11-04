@@ -20,19 +20,20 @@ HIGH_CONTRAST = (
 )
 FAILURES = "Alguna parte de Anki no se pudo pintar y conserva su aspecto normal."
 
-# Panel a medida (versión 3.7.0, informe del 2026-10-28).
+# Panel a medida (versión 3.7.0, informe del 2026-10-28). Versión 3.8.0: la nota del modo
+# nombra el ajuste como lo llama Anki en Preferencias, «Tema» (informe del 2026-11-04, 4.3).
 PANEL_TITLE = "Paleta"
 PANEL_INTRO = "Elija una paleta: se ve ya en Anki y se guarda al aceptar."
 DAY = "Día"
 NIGHT = "Noche"
 DEFAULT_WORD = "predeterminada"
 MODE_NOTE_DAY = (
-    "Cada paleta tiene versión de día y de noche. Anki está ahora en modo día; el modo "
-    "se cambia en Preferencias de Anki."
+    "Cada paleta tiene versión de día y de noche. Anki está ahora en modo día; se cambia "
+    "en Preferencias de Anki, en «Tema»."
 )
 MODE_NOTE_NIGHT = (
-    "Cada paleta tiene versión de día y de noche. Anki está ahora en modo noche; el modo "
-    "se cambia en Preferencias de Anki."
+    "Cada paleta tiene versión de día y de noche. Anki está ahora en modo noche; se cambia "
+    "en Preferencias de Anki, en «Tema»."
 )
 HIGH_CONTRAST_BANNER = (
     "Su sistema pide más contraste: Atelier deja sus colores. La paleta que elija se "

@@ -200,9 +200,15 @@ la descripción «Qué hace».
   pidió el cliente el 2026-10-13.
 - La retención no tiene globo explicativo. Lo retiró el cliente el 2026-10-09.
 - Las ventanas de excluir mazos y de fechas clave no llevan textos de ayuda. Lo decidió el cliente.
-- Las siete escalas de los temas y la escala gris de los días futuros son colores propios, fuera de
-  la paleta Nocturne, que no tiene escalas de diez tonos. Lo aprobó el cliente el 2026-10-08; el
-  2026-10-13 aprobó rehacerlas a partir de los tonos de Nocturne, con escalones iguales.
+- Las siete escalas de los temas son colores propios, fuera de la paleta Nocturne, que no tiene
+  escalas de diez tonos. Lo aprobó el cliente el 2026-10-08; el 2026-10-13 aprobó rehacerlas a partir
+  de los tonos de Nocturne, con escalones iguales. Los tres grises de los días futuros también eran
+  propios hasta la 4.12.0; desde la 4.13.0 salen de la paleta de Anki o de Atelier (aprobado el
+  2026-11-04, informe de Atelier 3.7, apartado 1.6).
+- 4.13.0 · Con Atelier en Atardecer de noche y el tema Rosa suave, el gris de los días con más carga
+  es tan marcado como el primer tono rosa (1,66 frente a 1,59 a 1 sobre la tarjeta). No se cambian
+  las proporciones, que con Nocturne dan los grises aprobados: se distinguen por el color. Decisión
+  del taller.
 - Los mazos excluidos y las fechas clave se guardan sin paso de deshacer, porque son ajustes y no
   estudio, como hace Anki con sus búsquedas guardadas. Criterio del complemento original.
 - Las cifras del mapa se leen directamente de la base de datos, solo para leer, porque Anki no ofrece
