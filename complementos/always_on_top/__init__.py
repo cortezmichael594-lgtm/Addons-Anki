@@ -8,17 +8,23 @@ from __future__ import annotations
 
 from aqt import gui_hooks, mw
 
-from .dialogs import open_config_dialog
-from .logic import AlwaysOnTopManager
 
-_manager = AlwaysOnTopManager()
+def _register() -> None:
+    from .dialogs import open_config_dialog
+    from .logic import AlwaysOnTopManager
+
+    manager = AlwaysOnTopManager()
+
+    def _open_config() -> None:
+        open_config_dialog(manager)
+
+    gui_hooks.add_cards_did_init.append(manager.on_add_cards_init)
+    mw.addonManager.setConfigAction(__name__, _open_config)
+    mw.addonManager.setConfigUpdatedAction(__name__, manager.on_config_updated)
+    manager.start()
 
 
-def _open_config() -> None:
-    open_config_dialog(_manager)
-
-
-gui_hooks.add_cards_did_init.append(_manager.on_add_cards_init)
-mw.addonManager.setConfigAction(__name__, _open_config)
-mw.addonManager.setConfigUpdatedAction(__name__, _manager.on_config_updated)
-_manager.start()
+# Fuera de Anki (pruebas y empaquetar.py) no hay ventana principal: no se
+# registra nada.
+if mw is not None:
+    _register()
