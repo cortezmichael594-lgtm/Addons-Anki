@@ -180,7 +180,7 @@ es el nombre con el que las páginas de Anki la usan.
 |---|---|---|
 | Atelier (paquete «nocturne») | 3.8.0 | Temas de color completos para todo Anki: cinco paletas de día y de noche |
 | GritMap | 4.15.1 | Mapa de calor del estudio del año, con racha, meta diaria y fechas clave |
-| CoreProgress | 1.1.0 | Barra de progreso del repaso, con hitos, racha de aciertos y récord |
+| CoreProgress | 1.2.0 | Barra de progreso del repaso, con hitos, racha de aciertos y récord |
 | ProFeedback | 2.1.0 | Sonidos al acertar, insignias en la tarjeta, botones de colores y confeti al terminar |
 | Hider | 4.1.0 | Repaso sin distracciones: oculta barras y puntero, y entra directo al repaso |
 | Edit field during review | 1.1.0 | Corregir un campo con Ctrl+clic sobre la tarjeta, durante el repaso |

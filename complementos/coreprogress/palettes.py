@@ -24,10 +24,6 @@ ACCENT_LIGHT: dict[str, tuple[str, ...]] = {
         "#c7eae6", "#a9e5de", "#84e1d6", "#5de0d0", "#34dfcc",  # colores-ok: escala propia del tema (decisión del autor)
         "#1bd5bf", "#14b8a5", "#119a8a", "#107c70", "#105e55",  # colores-ok: escala propia del tema (decisión del autor)
     ),
-    "fire_red": (
-        "#eac7c9", "#e4a9ab", "#e08588", "#de5e62", "#de363b",  # colores-ok: escala propia del tema (decisión del autor)
-        "#d31d23", "#b6161b", "#991216", "#7b1115", "#5d1113",  # colores-ok: escala propia del tema (decisión del autor)
-    ),
     "rose_pink": (
         "#eac8d5", "#e4aac0", "#df86a8", "#dd608f", "#db3876",  # colores-ok: escala propia del tema (decisión del autor)
         "#d11f62", "#b41853", "#971445", "#791339", "#5c122e",  # colores-ok: escala propia del tema (decisión del autor)
@@ -55,10 +51,6 @@ ACCENT_DARK: dict[str, tuple[str, ...]] = {
         "#1d5a53", "#207168", "#22897d", "#23a495", "#24c1af",  # colores-ok: escala propia del tema (decisión del autor)
         "#29dbc6", "#42e0ce", "#60e3d4", "#82e5da", "#a4e8e0",  # colores-ok: escala propia del tema (decisión del autor)
     ),
-    "fire_red": (
-        "#5a1e20", "#702124", "#882326", "#a22428", "#c0262b",  # colores-ok: escala propia del tema (decisión del autor)
-        "#d92b30", "#df4449", "#e26266", "#e48386", "#e7a4a6",  # colores-ok: escala propia del tema (decisión del autor)
-    ),
     "rose_pink": (
         "#591f35", "#6f223f", "#862449", "#a12654", "#be2860",  # colores-ok: escala propia del tema (decisión del autor)
         "#d72d6d", "#dd467f", "#e06493", "#e385a8", "#e6a5be",  # colores-ok: escala propia del tema (decisión del autor)
@@ -84,6 +76,11 @@ GOLD_DARK: tuple[str, ...] = (
 )
 
 THEME_KEYS: tuple[str, ...] = tuple(ACCENT_LIGHT)
+# 1.2.0 (informe del 2026-11-09): Rojo fuego se retira, como en GritMap: en Anki
+# el rojo significa «Otra vez», aprendiendo y error, y una barra de avance roja
+# decia «error» mientras decia «progreso». Quien lo tenia pasa a Naranja
+# atardecer y lo ve avisado en la ventana de opciones.
+RETIRED_THEMES: dict[str, str] = {"fire_red": "sunset_orange"}
 DEFAULT_THEME: str = "classic_green"
 
 # Indices into a ramp used for the four-stop fill gradient.
@@ -190,8 +187,11 @@ def fill_bundle(theme: str, gold_active: bool) -> StyleBundle:
     )
 
 
-def swatch(theme: str) -> str:
-    # HISTORIAL: con el índice 6 (tono profundo) el cuadrito morado del
-    # desplegable "desaparecía" sobre el diálogo oscuro; los iconos de color
-    # de Qt necesitan tonos vivos de la zona media de la rampa.
-    return _scale(theme, dark=False)[4]
+def swatch(theme: str, dark: bool = False) -> str:
+    """Muestra del tema en la ventana de opciones, en el tono del modo activo
+    (1.2.0: se elige lo que se va a ver). El tono central del relleno.
+
+    HISTORIAL: con el índice 6 (tono profundo) el cuadrito morado
+    "desaparecía" sobre el diálogo oscuro: se usa la zona media de la rampa.
+    """
+    return _scale(theme, dark=dark)[5 if dark else 4]

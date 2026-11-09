@@ -30,10 +30,11 @@ from typing import Any
 
 from aqt import mw
 from aqt.qt import QDialogButtonBox
+from aqt.theme import theme_manager
 
 from .errors import report
 from .i18n import record_value_label, t
-from .palettes import DEFAULT_THEME, THEME_KEYS, swatch
+from .palettes import DEFAULT_THEME, RETIRED_THEMES, THEME_KEYS, swatch
 from .panel import PanelDialog, button_text, parent_window
 from .settings import (
     BAR_HEIGHT_MAX,
@@ -42,7 +43,6 @@ from .settings import (
     PUSH_MAX,
     PUSH_MIN,
     Config,
-    load_best_streak,
     load_config,
     reset_best_streak,
     save_config,
@@ -82,12 +82,22 @@ def _without_px(text: str) -> str:
 
 
 def _record_parts(record: int) -> dict[str, str]:
-    # HISTORIAL: el estado "sin record" lleva guion CORTO "-" (neutro en
-    # cualquier idioma), y el valor con record lleva "!" al final ("7
-    # seguidas!"), en negrita (cada idioma trae su forma en
-    # i18n.opt_record_value).
-    value = "-" if record <= 0 else record_value_label(record)
-    return {"before": f"{t('opt_record')}: ", "strong": value}
+    """«Récord: 7 aciertos seguidos», con la cifra en negrita, o «Sin récord
+    todavía».
+
+    1.2.0 (informe del 2026-11-09, aprobado por el cliente sabiendo que antes
+    pidió «Tu récord actual: 7 seguidas!» y el guion): forma impersonal, el
+    plural de cada idioma y sin el «!» suelto.
+    """
+    if record <= 0:
+        return {"before": t("record_none")}
+    return {"before": f"{t('opt_record')}: ", "strong": record_value_label(record)}
+
+
+def sorted_themes() -> list[str]:
+    """Los temas por orden alfabético de su nombre en el idioma de Anki, como en
+    GritMap (1.2.0)."""
+    return sorted(THEME_KEYS, key=lambda key: t(f"theme_{key}").casefold())
 
 
 def _visual_values(cfg: Config) -> dict[str, Any]:
@@ -102,6 +112,7 @@ def _visual_values(cfg: Config) -> dict[str, Any]:
 
 def page(cfg: Config, record: int, title: str = "CoreProgress") -> dict[str, Any]:
     """Descripcion del panel: el record, el aspecto de la barra y los mazos."""
+    dark = bool(theme_manager.night_mode)
     values = {**_visual_values(cfg), _EXCLUDE_KEY: list(cfg.excluded_decks), _RESET_KEY: False}
     defaults = {**_visual_values(DEFAULT_CONFIG), _EXCLUDE_KEY: [], _RESET_KEY: False}
     # --- FIX-003 (2026-11-09) ---
@@ -124,14 +135,15 @@ def page(cfg: Config, record: int, title: str = "CoreProgress") -> dict[str, Any
                     "disabled": record <= 0,
                     "confirm": {
                         "title": t("opt_record_reset_confirm"),
-                        "yes": button_text(QDialogButtonBox.StandardButton.Yes) or "Yes",
-                        "no": button_text(QDialogButtonBox.StandardButton.No) or "No",
+                        # 1.2.0: botones con verbo, no «Sí» y «No».
+                        "yes": t("opt_record_reset"),
+                        "no": button_text(QDialogButtonBox.StandardButton.Cancel) or "Cancel",
                     },
                 },
             }
         ]
     }
-    look_card = {
+    look_card: dict[str, Any] = {
         "restore": True,
         "items": [
             {
@@ -139,7 +151,8 @@ def page(cfg: Config, record: int, title: str = "CoreProgress") -> dict[str, Any
                 "key": "theme",
                 "label": t("opt_theme"),
                 "options": [
-                    {"value": key, "label": t(f"theme_{key}"), "swatch": swatch(key)} for key in THEME_KEYS
+                    {"value": key, "label": t(f"theme_{key}"), "swatch": swatch(key, dark)}
+                    for key in sorted_themes()
                 ],
             },
             {
@@ -163,11 +176,18 @@ def page(cfg: Config, record: int, title: str = "CoreProgress") -> dict[str, Any
             {"type": "check", "key": "checkpoints_enabled", "label": t("opt_checkpoints")},
         ],
     }
-    # HISTORIAL: la ventana de excluir mazos tuvo una frase explicativa ("Los
-    # mazos marcados no cuentan para el record"). El cliente la retiro: la
-    # lista ya se titula "Excluir mazos (record)" y se explica sola.
-    # Regla: en esa lista no se anaden textos de ayuda, en ningun idioma.
-    decks_card = {"items": [{"type": "row", "key": _EXCLUDE_KEY, "label": t("opt_exclude")}]}
+    # HISTORIAL: la lista de excluir mazos tuvo una frase explicativa que el
+    # cliente retiro. En la 1.2.0 (informe del 2026-11-09) aprobo una linea
+    # breve que dice para que sirve, sabiendo que antes la habia retirado.
+    decks_card = {
+        "items": [
+            {"type": "row", "key": _EXCLUDE_KEY, "label": t("opt_exclude"), "note": t("opt_exclude_note")}
+        ]
+    }
+    if cfg.retired_theme in RETIRED_THEMES:
+        old = t(f"theme_{cfg.retired_theme}")
+        new = t(f"theme_{RETIRED_THEMES[cfg.retired_theme]}")
+        look_card["items"].insert(0, {"type": "notice", "text": t("theme_retired").format(old=old, new=new)})
     return {
         "title": title,
         "values": values,
@@ -256,7 +276,9 @@ def open_options() -> None:
             _dialog.activateWindow()
             return
         package = mw.addonManager.addon_from_module(__name__)
-        content = page(load_config(), load_best_streak(), _addon_title())
+        from .controller import current_best
+
+        content = page(load_config(), current_best(), _addon_title())
         dialog = PanelDialog(parent_window(), package, content, _handle, _log_panel, "coreprogressPanel")
         _dialog = dialog
         dialog.open()

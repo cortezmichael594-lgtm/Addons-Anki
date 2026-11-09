@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import unittest
+import unittest.mock
 from pathlib import Path
 
 from aqt.qt import QApplication
@@ -52,7 +53,9 @@ class PanelPageTests(unittest.TestCase):
 
     def test_theme_chips_have_swatches(self) -> None:
         chips = next(item for item in _items(options.page(DEFAULT_CONFIG, 0)) if item["key"] == "theme")
-        self.assertEqual([option["value"] for option in chips["options"]], list(THEME_KEYS))
+        self.assertEqual([option["value"] for option in chips["options"]], options.sorted_themes())
+        self.assertEqual(sorted(options.sorted_themes()), sorted(THEME_KEYS))
+        self.assertNotIn("fire_red", THEME_KEYS)
         self.assertTrue(all(option["swatch"].startswith("#") for option in chips["options"]))
 
     def test_labels_without_px(self) -> None:
@@ -69,7 +72,8 @@ class PanelPageTests(unittest.TestCase):
         self.assertFalse(stat["action"]["disabled"])
         self.assertTrue(stat["action"]["confirm"]["yes"])
         self.assertTrue(stat["action"]["confirm"]["no"])
-        self.assertEqual(stat["done"]["strong"], "-")
+        self.assertNotIn("strong", stat["done"])
+        self.assertNotIn("-", stat["done"]["before"])
 
 
 class ConfigFromPageTests(unittest.TestCase):
@@ -101,6 +105,91 @@ class PanelFilesTests(unittest.TestCase):
             self.assertNotIn("__P__", text)
             self.assertNotIn("__J__", text)
         self.assertIn("var CoreprogressPanel", (ADDON / "web/panel.js").read_text(encoding="utf-8"))
+
+
+class Version12Tests(unittest.TestCase):
+    """Informe del 2026-11-09 (1.2.0)."""
+
+    def test_hard_keeps_the_streak(self) -> None:
+        from coreprogress.state import SessionState
+
+        state = SessionState()
+        for _ in range(3):
+            state.register_answer(1, True)
+        self.assertEqual(state.correct_streak, 3)
+        state.register_answer(1, False)
+        self.assertEqual(state.correct_streak, 0)
+
+    def test_milestones(self) -> None:
+        from coreprogress.effects import is_celebration_milestone
+
+        shown = [n for n in range(1, 61) if is_celebration_milestone(n)]
+        self.assertEqual(shown, [5, 10, 20, 30, 40, 50, 60])
+
+    def test_bar_never_goes_back_except_on_undo(self) -> None:
+        from coreprogress.state import SessionState
+
+        state = SessionState()
+        state.base_done, state.initial_total = 10, 10
+        self.assertEqual(state.real_progress(10), 50.0)  # al volver: donde lo dejó
+        self.assertEqual(state.update_shown(state.real_progress(4)), 80.0)
+        self.assertEqual(state.update_shown(state.real_progress(7)), 80.0)  # vencen tarjetas: quieta
+        self.assertEqual(state.update_shown(state.real_progress(0)), 100.0)
+        state.undo_pending = True
+        self.assertEqual(state.update_shown(state.real_progress(1)), 95.0)  # deshacer sí retrocede
+
+    def test_auto_space_keeps_the_card_free(self) -> None:
+        from coreprogress.settings import auto_space
+
+        self.assertEqual(auto_space(16, celebrate=False), 34)
+        self.assertEqual(auto_space(16), 58)
+        self.assertGreater(auto_space(12, celebrate=False), 12 + 10)
+
+    def test_plural_forms(self) -> None:
+        from coreprogress import i18n
+
+        for code, one, five in (
+            ("es", "1 acierto seguido", "5 aciertos seguidos"),
+            ("ru", "1 верный ответ подряд", "5 верных ответов подряд"),
+        ):
+            with unittest.mock.patch.object(i18n, "current_lang", lambda code=code: code):
+                self.assertEqual(i18n.record_value_label(1), one)
+                self.assertEqual(i18n.streak_label(5), five)
+                self.assertEqual(i18n.streak_label(2), "")
+
+    def test_every_language_has_the_new_texts(self) -> None:
+        from coreprogress import i18n
+
+        keys = (
+            "opt_record",
+            "record_none",
+            "record",
+            "opt_record_reset",
+            "opt_record_reset_confirm",
+            "opt_effects",
+            "opt_push",
+            "opt_exclude",
+            "opt_exclude_note",
+            "theme_retired",
+            "progress_of",
+            "summary_best",
+            "summary_record",
+            "in_a_row_other",
+            "cards_other",
+        )
+        self.assertEqual(len(i18n.TRANSLATIONS), 60)
+        for code, table in i18n.TRANSLATIONS.items():
+            for key in keys:
+                self.assertIn(key, table, f"{code}: {key}")
+            self.assertIn("{old}", table["theme_retired"])
+            self.assertNotIn("streak", table)
+
+    def test_retired_theme_notice(self) -> None:
+        from dataclasses import replace
+
+        cfg = replace(DEFAULT_CONFIG, theme="sunset_orange", retired_theme="fire_red")
+        look = options.page(cfg, 0)["cards"][1]
+        self.assertEqual(look["items"][0]["type"], "notice")
 
 
 if __name__ == "__main__":

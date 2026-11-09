@@ -42,6 +42,14 @@ Se actualiza al terminar cada sesión de un trabajo largo y se lee al retomarlo.
   de fuera del taller (importación fuera de Anki, notas FIX incompletas, colores sin marcar, tipos).
   Pruebas nuevas en pruebas/<paquete>/. Va en el pull request #16.
 
+- 2026-11-09: CoreProgress 1.2.0 con el informe de interfaz, aprendizaje y hábito (aprobado entero,
+  también en lo que cambiaba decisiones anteriores): «Difícil» mantiene la racha; el 100 % es lo de
+  hoy en el mazo y la barra no retrocede salvo al deshacer; espacio automático para barra y aviso
+  (FIX-004); sin destello; avisos a las 5, 10, 20, 30… de 1,5 s; casilla única de celebraciones;
+  seis temas como GritMap (Rojo fuego retirado, con aviso); números de los hitos con contraste;
+  barra como barra de progreso para el lector de pantalla; textos impersonales con plurales en 60
+  idiomas (i18n_texts.py); barra llena y resumen en «¡Enhorabuena!». 15 pruebas.
+
 ## En curso
 
 - El pull request de la adaptación espera la revisión de la persona. No se fusiona sin ella.

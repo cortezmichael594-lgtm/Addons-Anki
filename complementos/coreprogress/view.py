@@ -56,11 +56,6 @@ _STATIC_CSS = r"""/* colores-ok: brillo y chispas blancos de la barra (decisión
 #qa{padding-top:var(--cprog-push,0px);}
 #_mark,#_flag{top:var(--cprog-mark-top,30px) !important;}
 img#star{top:var(--cprog-mark-top,30px) !important;}
-.cprog-sheen{position:absolute;top:-25%;height:150%;width:22%;left:-30%;
- background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.5) 50%,rgba(255,255,255,0) 100%);
- transform:skewX(-18deg);opacity:0;animation:cprogSheen 9s ease-in-out infinite;}
-@keyframes cprogSheen{0%{left:-30%;opacity:0;}6%{opacity:.22;}22%{opacity:.22;}
- 32%{left:130%;opacity:0;}100%{left:130%;opacity:0;}}
 @keyframes cprogGlow{0%{filter:brightness(1);}35%{filter:brightness(1.10);}100%{filter:brightness(1);}}
 @keyframes cprogPop{0%{transform:scale(1);}45%{transform:scale(1.07);}100%{transform:scale(1);}}
 @keyframes cprogSpark{0%{transform:translate(-50%,-50%) scale(.2) rotate(0deg);opacity:1;}
@@ -68,8 +63,11 @@ img#star{top:var(--cprog-mark-top,30px) !important;}
 .cprog-spark{position:absolute;top:50%;width:12px;height:12px;pointer-events:none;color:#fff;
  font-size:12px;line-height:12px;text-align:center;text-shadow:0 0 4px rgba(255,255,255,.9);
  animation:cprogSpark .7s ease-out forwards;}
-@media (prefers-reduced-motion: reduce){.cprog-sheen{animation:none;left:24%;opacity:.12;}}
 """
+# 1.2.0 (informe del 2026-11-09): se retira el destello que cruzaba el relleno
+# cada 9 segundos sin parar. Era movimiento en la periferia de la vista mientras
+# se intenta recordar, sin informar de nada (la barra no habia cambiado), y la
+# casilla de efectos no lo apagaba. El avance del relleno ya informa.
 # HISTORIAL: cprogGlow usaba brightness(1.45)+drop-shadow animado: caro por
 # frame (tirones) y llamativo; ahora brightness suave. cprogPop llego a 1.28
 # con rebote; debe ser un adorno que no distraiga: 1.07 sin rebote.
@@ -277,6 +275,7 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
   C.build=function(args){
     try{
       C._args=args; C._minLeft=(args.minLeft||2.8); C._prevP=null; C._last=null;
+      C._effects=(args.effects!==false); C._labelMs=args.labelMs||1500;
       if(typeof args.dark==='boolean'){ C._forceDark=args.dark; }
       // Si hay un aviso de racha/record visible, sobrevive a la reconstruccion
       // (p. ej. cambio de color en mitad del repaso): solo cambia de color y su
@@ -294,6 +293,11 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
       var prev=document.getElementById(C.WRAP); if(prev) prev.remove();
 
       var wrap=document.createElement('div'); wrap.id=C.WRAP;
+      // 1.2.0: la barra se anuncia como barra de progreso, con el valor en
+      // palabras («30 de 50 tarjetas»), para quien use lector de pantalla. Sin
+      // anuncios automaticos: no interrumpe la lectura de la tarjeta.
+      wrap.setAttribute('role','progressbar');
+      wrap.setAttribute('aria-valuemin','0'); wrap.setAttribute('aria-valuemax','100');
       wrap.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;padding:10px 18px;pointer-events:none;'
         +'opacity:0;transition:opacity .28s ease;';
 
@@ -327,7 +331,6 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
       gloss.style.cssText='position:absolute;inset:0;border-radius:inherit;pointer-events:none;'
         +'background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,0) 55%);';
       fill.appendChild(gloss);
-      var sheen=document.createElement('div'); sheen.className='cprog-sheen'; fill.appendChild(sheen);
       track.appendChild(fill);
 
       if(args.showCheckpoints && args.checkpoints){
@@ -350,7 +353,9 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
             +'font-size:'+args.cpFont+'px;font-weight:700;'
             +'font-family:'+C.FONT+';'
             +'transition:color .35s ease,box-shadow .35s ease,background-color .3s ease;';
-          inner.textContent=String(Math.round(cp.num));
+          // 1.2.0: con la barra por debajo de 14 px los numeros no se leerian:
+          // solo queda la marca.
+          inner.textContent=args.cpNumbers===false?'':String(Math.round(cp.num));
           el.appendChild(inner);
           track.appendChild(el);
         }
@@ -374,7 +379,7 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
       }catch(e){ }
 
       C.paintTrack();
-      C.apply(args.progress, args.bundle);
+      C.apply(args.progress, args.bundle, args.aria);
       if(keepText){
         C.showLabel(keepText, args.bundle);
         if(keepShownAt){ C._labelShownAt=keepShownAt; }
@@ -414,10 +419,15 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
     }, 470);
   };
 
-  C.apply=function(p, bundle){
+  C.apply=function(p, bundle, aria){
     try{
       if(typeof p!=='number'){ p=parseFloat(p)||0; }
       var f=document.getElementById(C.FILL); if(!f) return;
+      var w=document.getElementById(C.WRAP);
+      if(w){
+        w.setAttribute('aria-valuenow', String(Math.round(p)));
+        if(aria){ w.setAttribute('aria-valuetext', aria); C._aria=aria; }
+      }
       var m=C._m(bundle);
       f.style.width=p+'%'; C._setFillBg(f, m.gradient); f.style.boxShadow=m.shadow;
       var lbl=document.getElementById(C.LABEL);
@@ -426,7 +436,7 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
         if(lbl.style.opacity!=='0'){ lbl.style.color=m.solid; if(m.glow){ lbl.style.textShadow=m.glow; } }
       }
       C._applyCheckpoints(p, bundle);
-      C._last={p:p, b:bundle}; C._prevP=p;
+      C._last={p:p, b:bundle, a:(aria||C._aria||'')}; C._prevP=p;
     }catch(e){ C._err(e); }
   };
 
@@ -458,9 +468,13 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
         }
         inner.style.backgroundColor='transparent';
         inner.style.boxShadow=m.shadow;
-        inner.style.color='#fff';
-        inner.style.textShadow='0 1px 2px rgba(0,0,0,.45)';
-        if(prev<pos-0.001){
+        // 1.2.0: el numero va en blanco o en oscuro segun lo que se lea mejor
+        // sobre el tono del relleno justo detras (el blanco no llegaba a 4,5 a 1
+        // en los tonos claros: verde, turquesa, naranja y dorado).
+        var ink=C._inkFor(m.gradient, pos);
+        inner.style.color=ink;
+        inner.style.textShadow=(ink==='#fff')?'0 1px 2px rgba(0,0,0,.45)':'none';
+        if(prev<pos-0.001 && C._effects){
           inner.style.animation='none'; void inner.offsetWidth;
           inner.style.animation='cprogPop .4s cubic-bezier(.33,1,.68,1)';
           C._sparkleAt(el);
@@ -479,6 +493,37 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
     }
   };
 
+  C._hex=function(h){
+    var m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h||'');
+    return m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:null;
+  };
+  C._relLum=function(c){
+    var f=function(v){ v/=255; return v<=0.04045?v/12.92:Math.pow((v+0.055)/1.055,2.4); };
+    return 0.2126*f(c[0])+0.7152*f(c[1])+0.0722*f(c[2]);
+  };
+  // Color del degradado en una posicion (0-100), con las paradas que escribe
+  // palettes._gradient: «#aaa 0%,#bbb 30%,...».
+  C._colorAt=function(gradient, pos){
+    try{
+      var re=/(#[0-9a-f]{6})\s+([0-9.]+)%/ig, stops=[], m;
+      while((m=re.exec(gradient))){ stops.push({c:C._hex(m[1]), p:parseFloat(m[2])}); }
+      if(!stops.length) return null;
+      for(var i=1;i<stops.length;i++){
+        if(pos<=stops[i].p){
+          var a=stops[i-1], b=stops[i], k=(pos-a.p)/Math.max(0.001,b.p-a.p);
+          return [0,1,2].map(function(j){ return a.c[j]+(b.c[j]-a.c[j])*k; });
+        }
+      }
+      return stops[stops.length-1].c;
+    }catch(e){ return null; }
+  };
+  C._inkFor=function(gradient, pos){
+    var c=C._colorAt(gradient, pos); if(!c) return '#fff';
+    var l=C._relLum(c);
+    var white=1.05/(l+0.05);
+    var dark=(l+0.05)/(C._relLum([27,36,48])+0.05);
+    return dark>white?'#1B2430':'#fff';
+  };
   C._spawnSparks=function(leftPercent, count, spread){
     if(C.reduceMotion()) return;
     var tr=document.getElementById(C.TRACK); if(!tr) return;
@@ -517,7 +562,10 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
       var m=C._m(bundle);
       lbl.textContent=text; lbl.style.color=m.solid; lbl.style.textShadow=m.glow||'none';
       lbl.style.opacity='1'; C._labelShownAt=Date.now();
+      // 1.2.0: el aviso dura lo justo (1,5 s) y se apaga solo, pase lo que pase
+      // con la tarjeta; uno nuevo sustituye al anterior.
       if(C._hideTimer){ clearTimeout(C._hideTimer); C._hideTimer=null; }
+      C._hideTimer=setTimeout(function(){ var l=document.getElementById(C.LABEL); if(l) l.style.opacity='0'; C._hideTimer=null; }, C._labelMs||1500);
     }catch(e){ C._err(e); }
   };
   C.hideLabel=function(minMs){
@@ -532,7 +580,7 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
   };
 
   C.reapply=function(){
-    try{ C.paintTrack(); if(C._last){ C.apply(C._last.p, C._last.b); } }catch(e){ C._err(e); }
+    try{ C.paintTrack(); if(C._last){ C.apply(C._last.p, C._last.b, C._last.a); } }catch(e){ C._err(e); }
   };
   C._setupObserver=function(){
     if(!C._resz){
@@ -597,8 +645,12 @@ def build_enter_js(
     marks: list[dict[str, float]],
     dark: bool,
     effects: bool = True,
+    label_ms: int = 1500,
+    aria: str = "",
 ) -> str:
-    cp_font = max(9, min(13, round(bar_height * 0.62)))
+    # 1.2.0: numeros de los hitos de 11 px como minimo; por debajo de 14 px de
+    # barra no caben legibles y solo queda la marca.
+    cp_font = max(11, min(13, round(bar_height * 0.62)))
     args = {
         "barHeight": bar_height,
         "radius": bar_height,
@@ -607,6 +659,9 @@ def build_enter_js(
         "cpFont": cp_font,
         "minLeft": STREAK_LABEL_MIN_LEFT_PERCENT,
         "push": push_down,
+        "cpNumbers": bar_height >= 14,
+        "labelMs": label_ms,
+        "aria": aria,
         "showCheckpoints": bool(show_checkpoints),
         "checkpoints": marks,
         "progress": round(progress, 3),
@@ -646,10 +701,42 @@ def build_set_dark_js(dark: bool) -> str:
     )
 
 
-def build_apply_js(bundle: StyleBundle, progress: float) -> str:
+def build_apply_js(bundle: StyleBundle, progress: float, aria: str = "") -> str:
     return (
         "window._cprog&&window._cprog.apply&&window._cprog.apply("
-        + _num(progress) + "," + bundle.to_json() + ");"
+        + _num(progress) + "," + bundle.to_json() + "," + json.dumps(aria) + ");"
+    )
+
+
+def build_summary_js(bundle: StyleBundle, line: str, aria: str, dark: bool) -> str:
+    """La barra llena y quieta, con una linea debajo, en la pantalla de
+    «Enhorabuena» de Anki (1.2.0, informe del 2026-11-09).
+
+    Va arriba de la pagina, en su sitio (no flota), asi que no tapa nada. Sin
+    animacion: el confeti de ProFeedback ya celebra; aqui solo va el dato.
+    """
+    mode = bundle.dark if dark else bundle.light
+    data = {
+        "gradient": mode.gradient,
+        "line": line,
+        "aria": aria,
+    }
+    return (
+        "(function(d){try{"
+        "var old=document.getElementById('_cprogSummary'); if(old) old.remove();"
+        "var box=document.createElement('div'); box.id='_cprogSummary';"
+        "box.style.cssText='max-width:640px;margin:16px auto 0;padding:0 18px;box-sizing:border-box;';"
+        "var bar=document.createElement('div');"
+        "bar.setAttribute('role','progressbar'); bar.setAttribute('aria-valuemin','0');"
+        "bar.setAttribute('aria-valuemax','100'); bar.setAttribute('aria-valuenow','100');"
+        "bar.setAttribute('aria-valuetext', d.aria);"
+        "bar.style.cssText='height:16px;border-radius:16px;background:'+d.gradient+';';"
+        "var p=document.createElement('p'); p.textContent=d.line;"
+        "p.style.cssText='margin:8px 0 0;text-align:center;font-size:13px;"
+        "color:var(--fg-subtle,#4E576A);font-variant-numeric:tabular-nums;';"
+        "box.appendChild(bar); box.appendChild(p);"
+        "(document.body||document.documentElement).prepend(box);"
+        "}catch(e){}})(" + json.dumps(data) + ");"
     )
 
 

@@ -10,6 +10,9 @@
     ],
     "FIX-003": [
       "options.py"
+    ],
+    "FIX-004": [
+      "settings.py"
     ]
   }
 }

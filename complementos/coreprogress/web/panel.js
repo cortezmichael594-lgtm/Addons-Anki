@@ -680,7 +680,13 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
             openPage(item, button);
         });
         var slot = errorSlot();
-        var node = el("div", { class: "option" }, [slot, button]);
+        var parts = [slot, button];
+        if (item.note) {
+            var noteId = newId("note");
+            button.setAttribute("aria-describedby", noteId);
+            parts.push(el("p", { class: "rule", id: noteId, text: item.note }));
+        }
+        var node = el("div", { class: "option" }, parts);
         S.ctl[item.key] = {
             item: item,
             node: node,
