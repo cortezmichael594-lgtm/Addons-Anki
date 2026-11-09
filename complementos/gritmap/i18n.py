@@ -6304,3 +6304,64 @@ _GOAL_LEFT_FORMS: dict[str, dict[str, str]] = {
 for _code, _forms in _GOAL_LEFT_FORMS.items():
     for _category, _text in _forms.items():
         STRINGS[_code][f"goal_left_{_category}"] = _text
+
+
+# Textos de la version 4.15.0 (informe del cliente del 2026-11-09): los dias
+# sin estudio que salva un comodin o la pausa estan «cubiertos», no
+# «perdonados» (sin juicio moral), y dos textos pasan a forma impersonal.
+_KEYS_4_15: tuple[str, ...] = ("legend_forgiven", "tt_forgiven_freeze", "opt_freezes", "surprise_best_week", "empty_hint")
+_STRINGS_4_15: dict[str, tuple[str, ...]] = {
+    "en": ("Covered", "Covered by a freeze", "Cover single missed days with freezes", "Best week of the year", "Each day of study will be colored in here."),
+    "es": ("Cubierto", "Cubierto con un comodín", "Cubrir días sueltos con comodines", "Mejor semana del año", "Cada día de estudio se pintará aquí."),
+    "de": ("Abgedeckt", "Mit einem Joker abgedeckt", "Einzelne verpasste Tage mit Jokern abdecken", "Beste Woche des Jahres", "Jeder Lerntag wird hier eingefärbt."),
+    "fr": ("Couvert", "Couvert par un joker", "Couvrir les jours manqués isolés avec des jokers", "Meilleure semaine de l'année", "Chaque jour d'étude se colorera ici."),
+    "it": ("Coperto", "Coperto da un jolly", "Coprire i giorni mancati isolati con i jolly", "Settimana migliore dell'anno", "Ogni giorno di studio si colorerà qui."),
+    "pt": ("Coberto", "Coberto por um curinga", "Cobrir dias isolados com curingas", "Melhor semana do ano", "Cada dia de estudo será colorido aqui."),
+    "nl": ("Gedekt", "Gedekt door een joker", "Losse gemiste dagen dekken met jokers", "Beste week van het jaar", "Elke studiedag wordt hier ingekleurd."),
+    "ru": ("Покрыто", "Покрыто пропуском", "Покрывать отдельные пропуски пропусками", "Лучшая неделя года", "Каждый день занятий окрасится здесь."),
+    "pl": ("Pokryte", "Pokryte jokerem", "Pokrywaj pojedyncze opuszczone dni jokerami", "Najlepszy tydzień w roku", "Każdy dzień nauki zostanie tu pokolorowany."),
+    "tr": ("Kapatıldı", "Bir jokerle kapatıldı", "Tek tük kaçırılan günleri jokerle kapat", "Yılın en iyi haftası", "Çalışılan her gün burada renklenecek."),
+    "ja": ("カバー済み", "お休み券でカバー", "1日だけの休みをお休み券でカバー", "今年いちばんの週", "学習した日はここに色が付きます。"),
+    "ko": ("보호됨", "쉼표로 보호됨", "하루씩 빠진 날을 쉼표로 보호", "올해 최고의 주", "공부한 날은 여기에 색이 칠해집니다."),
+    "zh_CN": ("已保护", "已用免签卡保护", "用免签卡保护偶尔缺席的日子", "今年最好的一周", "每个学习日都会在这里上色。"),
+    "zh_TW": ("已保護", "已用免簽卡保護", "用免簽卡保護偶爾缺席的日子", "今年最好的一週", "每個學習日都會在這裡上色。"),
+    "ar": ("مغطى", "مغطى بإعفاء", "تغطية الأيام الفائتة المنفردة بالإعفاءات", "أفضل أسبوع هذا العام", "سيُلوَّن هنا كل يوم دراسة."),
+    "el": ("Καλύφθηκε", "Καλύφθηκε με μπαλαντέρ", "Κάλυψη μεμονωμένων χαμένων ημερών με μπαλαντέρ", "Καλύτερη εβδομάδα της χρονιάς", "Κάθε μέρα μελέτης θα χρωματίζεται εδώ."),
+    "sv": ("Täckt", "Täckt av en joker", "Täck enstaka missade dagar med jokrar", "Årets bästa vecka", "Varje studiedag färgas här."),
+    "da": ("Dækket", "Dækket af en joker", "Dæk enkelte glemte dage med jokere", "Årets bedste uge", "Hver studiedag farves her."),
+    "nb": ("Dekket", "Dekket av en joker", "Dekk enkeltstående glemte dager med jokere", "Årets beste uke", "Hver studiedag fargelegges her."),
+    "fi": ("Katettu", "Katettu jokerilla", "Kata yksittäiset väliin jääneet päivät jokereilla", "Vuoden paras viikko", "Jokainen opiskelupäivä väritetään tähän."),
+    "cs": ("Pokryto", "Pokryto žolíkem", "Pokrývat ojedinělé vynechané dny žolíky", "Nejlepší týden roku", "Každý den studia se zde vybarví."),
+    "sk": ("Pokryté", "Pokryté žolíkom", "Pokrývať ojedinelé vynechané dni žolíkmi", "Najlepší týždeň roka", "Každý deň štúdia sa tu vyfarbí."),
+    "hu": ("Fedezve", "Jokerrel fedezve", "Egyes kihagyott napok fedezése jokerrel", "Az év legjobb hete", "Minden tanulási nap itt színeződik ki."),
+    "ro": ("Acoperit", "Acoperit de un joker", "Acoperă zilele ratate izolate cu jokeri", "Cea mai bună săptămână a anului", "Fiecare zi de studiu se va colora aici."),
+    "uk": ("Покрито", "Покрито пропуском", "Покривати окремі пропущені дні пропусками", "Найкращий тиждень року", "Кожен день навчання розфарбується тут."),
+    "vi": ("Đã che", "Được thẻ miễn che", "Che những ngày lỡ lẻ bằng thẻ miễn", "Tuần tốt nhất trong năm", "Mỗi ngày học sẽ được tô màu ở đây."),
+    "th": ("ครอบคลุมแล้ว", "ครอบคลุมด้วยบัตร", "ครอบคลุมวันที่พลาดเป็นครั้งคราวด้วยบัตรยกเว้น", "สัปดาห์ที่ดีที่สุดของปี", "ทุกวันที่เรียนจะถูกระบายสีที่นี่"),
+    "ms": ("Dilindungi", "Dilindungi kad pengecualian", "Lindungi hari terlepas sekali-sekala dengan kad pengecualian", "Minggu terbaik tahun ini", "Setiap hari belajar akan diwarnakan di sini."),
+    "tl": ("Sakop", "Sakop ng pasaporte", "Sakupin ang paminsan-minsang lumiban na araw gamit ang pasaporte", "Pinakamagandang linggo ngayong taon", "Makukulayan dito ang bawat araw ng pag-aaral."),
+    "he": ("מכוסה", "כוסה בפטור", "לכסות ימים בודדים שהוחמצו בעזרת פטורים", "השבוע הטוב ביותר השנה", "כל יום לימוד ייצבע כאן."),
+    "hr": ("Pokriveno", "Pokriveno džokerom", "Pokrij pojedinačne propuštene dane džokerima", "Najbolji tjedan u godini", "Svaki dan učenja ovdje će se obojiti."),
+    "sr": ("Покривено", "Покривено џокером", "Покриј појединачне пропуштене дане џокерима", "Најбоља недеља у години", "Сваки дан учења овде ће се обојити."),
+    "sl": ("Pokrito", "Pokrito z džokerjem", "Pokrij posamezne zamujene dni z džokerji", "Najboljši teden v letu", "Vsak dan učenja se bo tukaj obarval."),
+    "bg": ("Покрито", "Покрито с жокер", "Покривай отделни пропуснати дни с жокери", "Най-добрата седмица за годината", "Всеки ден с учене ще се оцвети тук."),
+    "ca": ("Cobert", "Cobert amb un comodí", "Cobrir dies solts amb comodins", "Millor setmana de l'any", "Cada dia d'estudi es pintarà aquí."),
+    "eu": ("Estalia", "Komodin batekin estalia", "Estali egun solteak komodinekin", "Urteko asterik onena", "Ikasketa-egun bakoitza hemen margotuko da."),
+    "gl": ("Cuberto", "Cuberto cun comodín", "Cubrir días soltos con comodíns", "Mellor semana do ano", "Cada día de estudo pintarase aquí."),
+    "et": ("Kaetud", "Kaetud jokkeriga", "Kata üksikud vahelejäänud päevad jokkeritega", "Aasta parim nädal", "Iga õppepäev värvitakse siia."),
+    "fa": ("پوشش داده شد", "با معافیت پوشش داده شد", "پوشش روزهای جاافتادهٔ تک با معافیت", "بهترین هفتهٔ سال", "هر روز مطالعه اینجا رنگ می‌گیرد."),
+    "mn": ("Нөхсөн", "Чөлөөгөөр нөхсөн", "Ганц нэг алгассан өдрийг чөлөөгөөр нөхөх", "Жилийн хамгийн сайн долоо хоног", "Суралцсан өдөр бүр энд будагдана."),
+    "be": ("Пакрыта", "Пакрыта пропускам", "Пакрываць асобныя прапушчаныя дні пропускамі", "Найлепшы тыдзень года", "Кожны дзень заняткаў пафарбуецца тут."),
+    "eo": ("Kovrita", "Kovrita de ĵokero", "Kovri unuopajn maltrafitajn tagojn per ĵokeroj", "Plej bona semajno de la jaro", "Ĉiu tago de studo koloriĝos ĉi tie."),
+    "af": ("Gedek", "Gedek deur 'n joker", "Dek enkele gemiste dae met jokers", "Beste week van die jaar", "Elke studiedag word hier ingekleur."),
+    "ga": ("Clúdaithe", "Clúdaithe le cárta saoire", "Clúdaigh laethanta caillte aonair le cártaí saoire", "An tseachtain is fearr i mbliana", "Dathófar anseo gach lá staidéir."),
+    "la": ("Tectus", "Venia tectus", "Dies singulos omissos venia tegere", "Optima hebdomas anni", "Quisque dies studii hic colorabitur."),
+    "oc": ("Cobèrt", "Cobèrt per un jòcker", "Cobrir los jorns mancats isolats amb de jòckers", "Melhora setmana de l'annada", "Cada jorn d'estudi se colorarà aquí."),
+    "uz": ("Qoplandi", "Imtiyoz bilan qoplandi", "Ayrim o'tkazib yuborilgan kunlarni imtiyoz bilan qoplash", "Yilning eng yaxshi haftasi", "Har bir o'qish kuni shu yerda bo'yaladi."),
+    "jbo": ("se fanta", "se fanta lo fraxu", "fanta lo pa roi se cliva djedi lo fraxu", "lo nanca'o be lo xagmau", "ro lo tadni djedi cu se skari ti"),
+    "hy": ("Ծածկված", "Ծածկված ազատումով", "Ծածկել առանձին բաց թողած օրերը ազատումներով", "Տարվա լավագույն շաբաթը", "Ուսման յուրաքանչյուր օր կներկվի այստեղ։"),
+    "ug": ("قاپلاندى", "كەچۈرۈم بىلەن قاپلاندى", "يەككە قالدۇرۇلغان كۈنلەرنى كەچۈرۈم بىلەن قاپلاش", "يىلنىڭ ئەڭ ياخشى ھەپتىسى", "ئۆگىنىش كۈنلىرىنىڭ ھەر بىرى بۇ يەردە بويىلىدۇ."),
+    "or": ("ଆବୃତ", "ଛାଡ଼ ଦ୍ୱାରା ଆବୃତ", "ଛାଡ଼ ଦ୍ୱାରା ଏକାକୀ ଛାଡ଼ିଥିବା ଦିନ ଆବୃତ କରନ୍ତୁ", "ବର୍ଷର ସର୍ବୋତ୍ତମ ସପ୍ତାହ", "ପ୍ରତ୍ୟେକ ଅଧ୍ୟୟନ ଦିନ ଏଠାରେ ରଙ୍ଗ ହେବ।"),
+}
+for _code, _texts in _STRINGS_4_15.items():
+    STRINGS[_code].update(zip(_KEYS_4_15, _texts))

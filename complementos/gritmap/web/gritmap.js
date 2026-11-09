@@ -294,9 +294,13 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
     function tooltipText(cell) {
         var count = parseInt(cell.getAttribute("data-v"), 10) || 0;
         var template = state.texts[cell.getAttribute("data-t") || "none"];
-        /* La fecha, en gris y mas pequena; lo hecho, debajo y destacado. */
-        var text = '<span class="gritmap-tip-date">' + formatDate(cell.getAttribute("data-d"))
-            + "</span><br>" + fill(template, { count: formatNumber(count) });
+        /* La fecha, en gris y mas pequena; lo hecho, debajo y destacado.
+         * Los dias sin dato (antes del primer repaso, 4.15.0) solo dicen la
+         * fecha. */
+        var text = '<span class="gritmap-tip-date">' + formatDate(cell.getAttribute("data-d")) + "</span>";
+        if (template) {
+            text += "<br>" + fill(template, { count: formatNumber(count) });
+        }
         /* Sin «Pulse para ver estas tarjetas» (4.10.0, peticion del cliente):
          * la mano del puntero ya dice que se puede pulsar, y el lector de
          * pantalla lo anuncia como boton. */
@@ -584,7 +588,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             if (current) {
                 updateEdgeFade(current);
                 updateScale(current);
-                updateLineTips(current);
             }
         });
     }
@@ -637,21 +640,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         var shown = svg.getBoundingClientRect().width;
         if (shown > 0) {
             svg.style.setProperty("--gritmap-k", String(svg.viewBox.baseVal.width / shown));
-        }
-    }
-
-    /* La linea gris de una tarjeta lleva el globo del sistema con el texto
-     * entero solo si esta cortada con «…» (4.14.0, peticion del cliente):
-     * si cabe, no hay nada que leer al pasar el raton. */
-    function updateLineTips(container) {
-        var lines = container.querySelectorAll(".gritmap-line[data-gritmap-full]");
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i];
-            if (line.scrollHeight > line.clientHeight + 1 || line.scrollWidth > line.clientWidth + 1) {
-                line.setAttribute("title", line.getAttribute("data-gritmap-full"));
-            } else {
-                line.removeAttribute("title");
-            }
         }
     }
 
@@ -746,7 +734,6 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         }
         updateEdgeFade(container);
         updateScale(container);
-        updateLineTips(container);
         if (oldYear && newYear && newYear !== oldYear) {
             announce(newYear);
         }

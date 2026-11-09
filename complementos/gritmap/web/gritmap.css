@@ -230,6 +230,16 @@ body.nightMode #gritmap-root {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+/* Desde la 4.15.0 una tarjeta sin dato no se muestra: pueden quedar dos
+ * («Hoy» y «Racha», el primer dia) o una («Hoy», sin racha ni meta). */
+#gritmap-root .gritmap-n2 .gritmap-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#gritmap-root .gritmap-n1 .gritmap-cards {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 @container (max-width: 940px) {
     #gritmap-root .gritmap-cards,
     #gritmap-root .gritmap-n4 .gritmap-cards,
@@ -246,7 +256,8 @@ body.nightMode #gritmap-root {
 @container (max-width: 420px) {
     #gritmap-root .gritmap-cards,
     #gritmap-root .gritmap-n4 .gritmap-cards,
-    #gritmap-root .gritmap-n3 .gritmap-cards {
+    #gritmap-root .gritmap-n3 .gritmap-cards,
+    #gritmap-root .gritmap-n2 .gritmap-cards {
         grid-template-columns: minmax(0, 1fr);
     }
 }
@@ -321,14 +332,20 @@ body.nightMode #gritmap-root {
 
 /* La linea gris usa hasta dos renglones; si aun no cabe, se corta con «…»
  * y se lee entera al pasar el raton. */
+/* Accesibilidad de la linea gris (4.15.0, peticion del cliente):
+ *   - se ve siempre entera, en los renglones que necesite, sin cortarse con
+ *     «…» (WCAG 1.4.10 y 1.4.12: no se pierde texto al ampliar la letra o el
+ *     espaciado, y se lee igual con teclado, raton o pantalla tactil);
+ *   - interlineado de 1,5 y palabras largas que parten en lugar de salirse;
+ *   - 13 px en texto suave: 7,9:1 de noche, por encima de 4,5:1 (1.4.3);
+ *   - las tarjetas de una fila igualan su alto (rejilla), asi que una linea
+ *     mas larga no descoloca las demas. */
 #gritmap-root .gritmap-line {
     margin-top: 4px;
     font-size: 13px;
+    line-height: 1.5;
     color: var(--gritmap-muted);
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    overflow-wrap: anywhere;
 }
 
 
@@ -837,6 +854,17 @@ body.reduce-motion #gritmap-root .gritmap-check.gritmap-celebrate {
     #gritmap-root .gritmap-check.gritmap-celebrate {
         animation: gritmap-fade 150ms ease-out;
     }
+}
+
+/* Texto solo para el lector de pantalla (4.15.0): la coma que sustituye al
+ * «·» de las lineas grises y «hoy hecho» en lugar de «✓ hoy». */
+#gritmap-root .gritmap-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 
 /* Zona invisible con la que el lector de pantalla anuncia el año al

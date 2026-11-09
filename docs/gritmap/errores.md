@@ -53,7 +53,8 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
 - FIX-010 · 2026-10-08 · versión 3.1.1 o anterior · Qué pasaba: el promedio diario decía «0 repasos»
   cuando la ventana no tenía ningún día completo estudiado. Por qué: «sin días» se trataba como cero.
   Regla: sin días que promediar se escribe «N/A», y el globo explica por qué (desde la 4.14.0, a
-  petición del cliente, lo explica la línea gris de la tarjeta, no un globo).
+  petición del cliente, lo explica la línea gris de la tarjeta, no un globo; desde la 4.15.0, también
+  a petición suya, sin dato la tarjeta no se muestra: nunca sale un cero falso).
 
 Las trece siguientes salieron de la revisión completa del 2026-10-12 y se corrigieron en la versión
 3.2.0.
@@ -158,6 +159,14 @@ código, no la versión exacta. Se anotaron aquí al traer la 4.11.2 (2026-11-04
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
 
 Serie 4 (lo más reciente primero):
+
+- Versión 4.15.0 (informe «textos, hábito y abandono» del cliente, 2026-11-09): «Promedio diario» y
+  «Retención» no se muestran sin dato, en lugar de «N/A» con su motivo, para no recibir con un panel
+  de ceros el primer día ni al volver tras mucho tiempo. Con la racha a cero, la línea es «hoy
+  pendiente · [plan]» y no «Última sesión: hace N días». «Perdonado» pasa a «cubierto». Las líneas
+  grises de las tarjetas y el pie del mapa empiezan siempre en minúscula, salvo la mayúscula que
+  exige la ortografía (sustantivos alemanes), y no se cortan con «…» (accesibilidad). Lo pidió el
+  cliente el 2026-11-09.
 
 - Las tarjetas no tienen globos (historial de la meta, récord, comodines, objetivo de retención y
   motivo de «N/A»): se descubrían poco, tapaban la cifra y repetían lo que está en Opciones o en

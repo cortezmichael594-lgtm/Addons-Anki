@@ -81,7 +81,7 @@ class WidgetTest(unittest.TestCase):
     def test_excluded_deck_and_empty_map_keep_the_options_button(self) -> None:
         for data, text in (
             (sample(deck_excluded=True), "Este mazo está excluido del mapa."),
-            (sample(past={}, future_counts={}), "Cada día que estudie se pintará aquí."),
+            (sample(past={}, future_counts={}), "cada día de estudio se pintará aquí."),
         ):
             html = view.build_widget_html(data, DEFAULT_CONFIG, 0)
             self.assertIn(text, html)
@@ -260,22 +260,99 @@ class NoCardTipsTest(unittest.TestCase):
         two = self.summary(sample(past={}), goal_mode="number", goal=2)
         self.assertIn("faltan <span", two)
 
-    def test_not_available_says_why_in_the_grey_line(self) -> None:
+    def test_cards_without_data_are_not_shown(self) -> None:
+        # 4.15.0: primer dia; sin promedio ni retencion, solo «Hoy» y «Racha».
         summary = self.summary(sample(past={0: DayActivity(5, 5, 0)}, retention_days={}))
-        self.assertIn("Menos de <span", summary)
-        self.assertIn("Sin días completos estudiados en los últimos", summary)
+        self.assertIn("gritmap-n2", summary)
+        self.assertNotIn("Promedio diario", summary)
+        self.assertNotIn("Retención", summary)
+        self.assertNotIn("N/A", summary)
+        only_today = self.summary(sample(past={0: DayActivity(5, 5, 0)}, retention_days={}), show_streak=False)
+        self.assertIn("gritmap-n1", only_today)
 
     def test_retention_has_no_fsrs_target(self) -> None:
         summary = self.summary(sample())
         self.assertNotIn("Objetivo", summary)
 
-    def test_grey_line_keeps_its_full_text_for_when_it_is_cut(self) -> None:
+    def test_grey_line_is_never_cut(self) -> None:
+        # 4.15.0, accesibilidad: la linea se ve entera, sin «…» ni globo.
         summary = self.summary(sample())
-        self.assertIn('class="gritmap-line" data-gritmap-full="', summary)
+        self.assertNotIn("data-gritmap-full", summary)
+        block = CSS[CSS.index("#gritmap-root .gritmap-line {") :]
+        block = block[: block.index("}")]
+        self.assertNotIn("line-clamp", block)
+        self.assertNotIn("overflow: hidden", block)
 
     def test_goal_left_has_a_general_form_in_every_language(self) -> None:
         for code, texts in i18n.STRINGS.items():
             self.assertIn("{count}", texts.get("goal_left_other", ""), code)
+
+
+class HabitTextsTest(unittest.TestCase):
+    """4.15.0: textos, habito y abandono (informe del cliente del 2026-11-09)."""
+
+    def setUp(self) -> None:
+        anki.lang.current_lang = "es"
+        i18n.reset()
+
+    def summary(self, data: HeatmapData, **changes: object) -> str:
+        html = view.build_widget_html(data, replace(DEFAULT_CONFIG, **changes), 0)
+        return html[html.index('class="gritmap-summary') :]
+
+    def test_broken_streak_looks_ahead_with_the_plan(self) -> None:
+        # Estudio hace 4 dias; hoy, nada: racha a cero.
+        data = sample(past={4: DayActivity(10, 10, 0), 5: DayActivity(10, 10, 0)}, retention_days={})
+        summary = self.summary(data, study_plan="al levantarme")
+        self.assertNotIn("Última sesión", summary)
+        self.assertNotIn("hace", summary)
+        self.assertIn("hoy pendiente" + view.SEP + "al levantarme", summary)
+
+    def test_first_day_streak_shows_the_plan_too(self) -> None:
+        summary = self.summary(sample(past={}, future_counts={1: 3}), study_plan="al levantarme")
+        self.assertIn("hoy pendiente" + view.SEP + "al levantarme", summary)
+
+    def test_today_without_week_has_no_zero_line(self) -> None:
+        summary = self.summary(sample(past={}, future_counts={1: 3}))
+        self.assertNotIn("en 7 días", summary)
+
+    def test_grey_lines_and_map_foot_start_in_lowercase(self) -> None:
+        data = sample(past={0: DayActivity(5, 5, 0), 1: DayActivity(5, 5, 0)})
+        summary = self.summary(data, goal_mode="number", goal=2)
+        self.assertIn("✓</span> meta cumplida", summary)
+        html = view.build_widget_html(data, DEFAULT_CONFIG, 0)
+        self.assertIn(">menos<", html)
+        self.assertIn(">más<", html)
+        self.assertIn(">pendientes</span>", html)
+
+    def test_lowercase_respects_german_nouns_and_turkish_i(self) -> None:
+        anki.lang.current_lang = "de"
+        i18n.reset()
+        self.assertEqual(view.lt("goal_done"), "Ziel erreicht")
+        self.assertEqual(view.lt("legend_less"), "weniger")
+        anki.lang.current_lang = "tr"
+        i18n.reset()
+        i18n.STRINGS["tr"]["gritmap_test"] = "Ilık"
+        try:
+            self.assertEqual(view.lt("gritmap_test"), "ılık")
+        finally:
+            del i18n.STRINGS["tr"]["gritmap_test"]
+
+    def test_screen_reader_hears_commas_and_done(self) -> None:
+        data = sample(past={0: DayActivity(5, 5, 0), 1: DayActivity(5, 5, 0)})
+        summary = self.summary(data)
+        self.assertIn('<span class="gritmap-sr">hoy hecho</span>', summary)
+        self.assertNotIn("✓ hoy</span> · ", summary)
+
+    def test_days_before_first_review_tip_only_the_date(self) -> None:
+        html = view.build_widget_html(sample(), DEFAULT_CONFIG, 0)
+        self.assertIn('data-t="nodata"', cell(html, "2026-09-02"))
+        self.assertEqual(view._texts("cards")["nodata"], "")
+
+    def test_covered_replaces_forgiven(self) -> None:
+        self.assertEqual(i18n.STRINGS["es"]["legend_forgiven"], "Cubierto")
+        self.assertEqual(i18n.STRINGS["es"]["tt_forgiven_freeze"], "Cubierto con un comodín")
+        self.assertEqual(i18n.STRINGS["es"]["opt_freezes"], "Cubrir días sueltos con comodines")
+        self.assertEqual(i18n.STRINGS["es"]["surprise_best_week"], "Mejor semana del año")
 
 
 class WebExportsPatternTest(unittest.TestCase):
