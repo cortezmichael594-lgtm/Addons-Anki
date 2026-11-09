@@ -294,9 +294,13 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
     function tooltipText(cell) {
         var count = parseInt(cell.getAttribute("data-v"), 10) || 0;
         var template = state.texts[cell.getAttribute("data-t") || "none"];
-        /* La fecha, en gris y mas pequena; lo hecho, debajo y destacado. */
-        var text = '<span class="gritmap-tip-date">' + formatDate(cell.getAttribute("data-d"))
-            + "</span><br>" + fill(template, { count: formatNumber(count) });
+        /* La fecha, en gris y mas pequena; lo hecho, debajo y destacado.
+         * Los dias sin dato (antes del primer repaso, 4.15.0) solo dicen la
+         * fecha. */
+        var text = '<span class="gritmap-tip-date">' + formatDate(cell.getAttribute("data-d")) + "</span>";
+        if (template) {
+            text += "<br>" + fill(template, { count: formatNumber(count) });
+        }
         /* Sin «Pulse para ver estas tarjetas» (4.10.0, peticion del cliente):
          * la mano del puntero ya dice que se puede pulsar, y el lector de
          * pantalla lo anuncia como boton. */
@@ -315,11 +319,11 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             return;
         }
         var info = cell.getAttribute("data-gritmap-info");
-        /* Los globos de las tarjetas se pueden recorrer con el raton; el de
-         * los dias, no (FIX-029). 4.11.0, informe aprobado por el cliente. */
+        /* Los globos con texto hecho (desde la 4.14.0, los de la leyenda) se
+         * pueden recorrer con el raton; el de los dias, no (FIX-029). */
         bubble.classList.toggle("gritmap-tip-hover", !!info);
         if (info) {
-            /* Globo de una cifra de las estadisticas: el texto viene hecho. */
+            /* Globo de un cuadrito de la leyenda: el texto viene hecho. */
             bubble.innerHTML = info;
         } else {
             /* La cabecera de una fecha clave viene ya escapada desde Python

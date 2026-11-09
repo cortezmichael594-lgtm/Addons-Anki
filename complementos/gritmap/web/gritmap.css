@@ -230,6 +230,16 @@ body.nightMode #gritmap-root {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+/* Desde la 4.15.0 una tarjeta sin dato no se muestra: pueden quedar dos
+ * («Hoy» y «Racha», el primer dia) o una («Hoy», sin racha ni meta). */
+#gritmap-root .gritmap-n2 .gritmap-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#gritmap-root .gritmap-n1 .gritmap-cards {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 @container (max-width: 940px) {
     #gritmap-root .gritmap-cards,
     #gritmap-root .gritmap-n4 .gritmap-cards,
@@ -246,7 +256,8 @@ body.nightMode #gritmap-root {
 @container (max-width: 420px) {
     #gritmap-root .gritmap-cards,
     #gritmap-root .gritmap-n4 .gritmap-cards,
-    #gritmap-root .gritmap-n3 .gritmap-cards {
+    #gritmap-root .gritmap-n3 .gritmap-cards,
+    #gritmap-root .gritmap-n2 .gritmap-cards {
         grid-template-columns: minmax(0, 1fr);
     }
 }
@@ -282,11 +293,11 @@ body.nightMode #gritmap-root {
     color: var(--gritmap-muted);
 }
 
-/* La cifra y su unidad, siempre como piezas separadas, tambien el % y las
- * cifras con globo (4.10.0, peticion del cliente: el % quedaba a otra altura
- * que «tarjetas» o «días»); desde la 4.11.0, por la linea base y a 4 px. */
-#gritmap-root .gritmap-big .gritmap-pct,
-#gritmap-root .gritmap-big .gritmap-tipped {
+/* La cifra y su unidad, siempre como piezas separadas, tambien el % (4.10.0,
+ * peticion del cliente: el % quedaba a otra altura que «tarjetas» o
+ * «días»); desde la 4.11.0, por la linea base y a 4 px. Desde la 4.14.0 las
+ * tarjetas no tienen globos ni subrayados de puntos (peticion del cliente). */
+#gritmap-root .gritmap-big .gritmap-pct {
     display: inline-flex;
     align-items: baseline;
     gap: 4px;
@@ -310,18 +321,6 @@ body.nightMode #gritmap-root {
     display: none;
 }
 
-/* Con globo, el subrayado de puntos va solo bajo la cifra, no bajo la
- * unidad. */
-#gritmap-root .gritmap-big .gritmap-tipped:has(.gritmap-n, .gritmap-pct) {
-    text-decoration: none;
-}
-
-#gritmap-root .gritmap-big .gritmap-tipped .gritmap-n,
-#gritmap-root .gritmap-big .gritmap-tipped .gritmap-pct > span:not(.gritmap-unit, .gritmap-pct-space) {
-    text-decoration: underline dotted;
-    text-underline-offset: 2px;
-}
-
 #gritmap-root .gritmap-big.gritmap-muted {
     color: var(--gritmap-muted);
 }
@@ -333,14 +332,20 @@ body.nightMode #gritmap-root {
 
 /* La linea gris usa hasta dos renglones; si aun no cabe, se corta con «…»
  * y se lee entera al pasar el raton. */
+/* Accesibilidad de la linea gris (4.15.0, peticion del cliente):
+ *   - se ve siempre entera, en los renglones que necesite, sin cortarse con
+ *     «…» (WCAG 1.4.10 y 1.4.12: no se pierde texto al ampliar la letra o el
+ *     espaciado, y se lee igual con teclado, raton o pantalla tactil);
+ *   - interlineado de 1,5 y palabras largas que parten en lugar de salirse;
+ *   - 13 px en texto suave: 7,9:1 de noche, por encima de 4,5:1 (1.4.3);
+ *   - las tarjetas de una fila igualan su alto (rejilla), asi que una linea
+ *     mas larga no descoloca las demas. */
 #gritmap-root .gritmap-line {
     margin-top: 4px;
     font-size: 13px;
+    line-height: 1.5;
     color: var(--gritmap-muted);
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    overflow-wrap: anywhere;
 }
 
 
@@ -745,23 +750,6 @@ body.nightMode #gritmap-root {
     margin-inline-start: 8px;
 }
 
-/* Textos con globo al pasar el raton o al llegar con el tabulador. */
-#gritmap-root .gritmap-tipped {
-    cursor: default;
-    text-decoration: underline dotted;
-    text-underline-offset: 2px;
-}
-
-#gritmap-root .gritmap-tipped:focus {
-    outline: none;
-}
-
-#gritmap-root .gritmap-tipped:focus-visible {
-    outline: 2px solid var(--gritmap-focus);
-    outline-offset: 2px;
-    border-radius: 3px;
-}
-
 #gritmap-root .gritmap-msg {
     color: var(--gritmap-muted);
 }
@@ -829,9 +817,9 @@ body.nightMode #gritmap-root {
 }
 
 /* 4.11.0 (informe aprobado por el cliente): la regla de FIX-029 vale para el
- * globo de los dias del mapa, donde se recorre deprisa. Los globos de las
- * tarjetas de debajo (comodines, record, objetivo, N/A) si se pueden recorrer
- * con el raton (WCAG 2.2, criterio 1.4.13). */
+ * globo de los dias del mapa, donde se recorre deprisa. Los demas globos (desde
+ * la 4.14.0, solo los de los cuadritos de la leyenda: las tarjetas ya no
+ * tienen) si se pueden recorrer con el raton (WCAG 2.2, criterio 1.4.13). */
 #gritmap-tip.gritmap-tip-hover {
     pointer-events: auto;
 }
@@ -866,6 +854,17 @@ body.reduce-motion #gritmap-root .gritmap-check.gritmap-celebrate {
     #gritmap-root .gritmap-check.gritmap-celebrate {
         animation: gritmap-fade 150ms ease-out;
     }
+}
+
+/* Texto solo para el lector de pantalla (4.15.0): la coma que sustituye al
+ * «·» de las lineas grises y «hoy hecho» en lugar de «✓ hoy». */
+#gritmap-root .gritmap-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 
 /* Zona invisible con la que el lector de pantalla anuncia el año al
