@@ -19,7 +19,7 @@ primero la pieza que Anki ya tiene:
 | Acción durante el repaso | Menú contextual: `reviewer_will_show_context_menu(reviewer, menu)`. Botones de respuesta: `reviewer_will_init_answer_buttons`. |
 | Acceso principal | Barra superior: `top_toolbar_did_init_links(links, toolbar)` con `links.append(toolbar.create_link(cmd, label, func, tip, id))`. Solo si la persona lo pide: la barra es pequeña. |
 | Botón en el editor | `editor_did_init_buttons(buttons, editor)` y `editor.addButton(...)`. En 26.09 conviven `Editor` y `NewEditor`: lea el código real y pruebe ambos tipos. |
-| Opciones del complemento | `QDialog` con controles estándar (`QCheckBox`, `QSpinBox`, `QComboBox`, `QLineEdit`, `QFormLayout`) y `QDialogButtonBox` con Aceptar y Cancelar, registrado con `setConfigAction`. Esa función devuelve `None`: si devolviera `False`, Anki abriría su editor de JSON. |
+| Opciones del complemento | El panel modelo de GritMap, descrito pieza a pieza en `docs/fichas-diseno/09-patron-configuracion.md`: un `QDialog` con una `AnkiWebView` dentro (como `complementos/gritmap/options.py`), con controles web reales (`<button>`, `<input>`, `<dialog>`) dibujados a medida, registrado con `setConfigAction`. Esa función devuelve `None`: si devolviera `False`, Anki abriría su editor de JSON. Una pieza que el modelo no tiene (deslizador, lista desplegable, grabador de atajos) se diseña con su mismo lenguaje y se avisa en el plan. |
 | Aviso breve que no estorba | `tooltip(texto)`. |
 | Aviso que exige atención | `showInfo`, `showWarning`. |
 | Pedir un texto o confirmar | `getText`, `askUser(..., defaultno=True)` (en operaciones masivas, para que un Intro de más no confirme). |
@@ -32,7 +32,9 @@ En una página web (propia o inyectada), también nativo: `<button>`, `<input>`,
 `<details>` y `<dialog>` en lugar de `<div>` con clic. Traen teclado, foco y accesibilidad.
 
 Un control dibujado a mano, o un menú o botón con aspecto propio, solo si la persona lo
-pide de forma expresa; en ese caso, avíselo en el plan.
+pide de forma expresa; en ese caso, avíselo en el plan. Excepción permanente: la ventana
+de opciones de cada complemento sigue el panel modelo de GritMap (lo pidió la persona el
+2026-11-09, PROP-012).
 
 ## 2. La paleta Nocturne en la práctica
 

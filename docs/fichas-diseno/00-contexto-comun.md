@@ -187,6 +187,10 @@ es el nombre con el que las páginas de Anki la usan.
 | Always on Top | 1.2 | Mantener la ventana Añadir por encima de otros programas con un atajo |
 | Restart | 2.0.0 | Reiniciar Anki con un atajo (Ctrl+R) |
 
+La ventana de configuración de todos los complementos debe seguir el modelo del panel de GritMap,
+descrito pieza a pieza en `09-patron-configuracion.md` (decisión de la persona, 9 de noviembre de
+2026).
+
 Los complementos que pintan colores propios son Atelier, GritMap, CoreProgress, ProFeedback y Edit
 field during review. Hider, Always on Top y Restart solo usan ventanas y avisos estándar de Anki,
 que toman los colores de Atelier.
