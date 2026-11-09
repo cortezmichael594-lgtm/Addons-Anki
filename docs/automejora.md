@@ -653,11 +653,20 @@ nuevo, empaquetar.py --revision avisa.
 
 | Documento | Huella | Revisado | Resultado |
 | --- | --- | --- | --- |
-| docs/LEEME.txt | 6cf868ff89af | 2026-11-03 | Índice de la carpeta; actualizado al crear la automejora, al sustituir la guía de complementos, con PROP-010 (carpeta de referencias) y al adaptar el taller a la plantilla (encargo, estado y normas del taller). |
+| docs/LEEME.txt | d2c7d8f1c821 | 2026-11-09 | Índice de la carpeta; actualizado al crear la automejora, al sustituir la guía de complementos, con PROP-010 (carpeta de referencias) y al adaptar el taller a la plantilla (encargo, estado y normas del taller). El 2026-11-09, línea de la carpeta fichas-diseno. |
 | docs/guia-complementos.md | d722bbdfceda | 2026-11-03 | Sustituida, con el visto bueno del cliente, por el original oficial (docs-site/addons, commit a13d8a6, Anki 26.09.3) con el código intacto. Leída entera: APR-007 a APR-020. El 2026-11-03 solo cambió su nota inicial: manda el código del Anki instalado (ya no hay .venv). |
 | docs/guia-interfaz.md | b02b8112c2dc | 2026-11-03 | Guía del taller; base desde el principio. Cambiada con PROP-006 (cómo buscar en .venv y setWebExports con patrón cerrado) y el 2026-11-03 para la nube: el código de Anki está en la carpeta que dice preparar.py. |
 | docs/paleta-nocturne.md | a26d4f4cf0b5 | 2026-10-21 | Documento del cliente, puesto al día con los colores de Nocturne 3.3.0 (PROP-011) y con los cambios de la 3.4.0 y la 3.5.0 (barra de título, «Aprendiendo» en rojo y banderas roja y verde), que el cliente pidió. Sin aprendizajes nuevos: sus datos salen del complemento y de sus pruebas. |
 | docs/preparar-entorno.md | d11551db36a5 | 2026-11-03 | Reescrito el 2026-11-03 para la nube: script de preparación del entorno, red de seguridad de preparar.py y cambio de versión de Anki también en requirements-anki.txt. Conserva lo de PROP-008 (no usar "aqt[qt6]"; cómo actualiza Anki el cliente). |
+| docs/fichas-diseno/00-contexto-comun.md | c286e030eb12 | 2026-11-09 | Ficha de diseño redactada en el taller a partir de que-hace.md, errores.md y el código; no es fuente oficial y no da aprendizajes. |
+| docs/fichas-diseno/01-atelier.md | 925f0c4fe38d | 2026-11-09 | Ficha de diseño redactada en el taller a partir de que-hace.md, errores.md y el código; no es fuente oficial y no da aprendizajes. |
+| docs/fichas-diseno/02-gritmap.md | f43415f00851 | 2026-11-09 | Ficha de diseño redactada en el taller a partir de que-hace.md, errores.md y el código; no es fuente oficial y no da aprendizajes. |
+| docs/fichas-diseno/03-coreprogress.md | 8f3b0330baaf | 2026-11-09 | Ficha de diseño redactada en el taller a partir de que-hace.md, errores.md y el código; no es fuente oficial y no da aprendizajes. |
+| docs/fichas-diseno/04-profeedback.md | efc468eee419 | 2026-11-09 | Ficha de diseño redactada en el taller a partir de que-hace.md, errores.md y el código; no es fuente oficial y no da aprendizajes. |
+| docs/fichas-diseno/05-hider.md | 0830bf9b4455 | 2026-11-09 | Ficha de diseño redactada en el taller a partir de que-hace.md, errores.md y el código; no es fuente oficial y no da aprendizajes. |
+| docs/fichas-diseno/06-edit-field-during-review.md | 734fd49f2492 | 2026-11-09 | Ficha de diseño redactada en el taller a partir de que-hace.md, errores.md y el código; no es fuente oficial y no da aprendizajes. |
+| docs/fichas-diseno/07-always-on-top.md | 6167741ab909 | 2026-11-09 | Ficha de diseño redactada en el taller a partir de que-hace.md, errores.md y el código; no es fuente oficial y no da aprendizajes. |
+| docs/fichas-diseno/08-restart.md | 65c9b7f9bdc7 | 2026-11-09 | Ficha de diseño redactada en el taller a partir de que-hace.md, errores.md y el código; no es fuente oficial y no da aprendizajes. |
 
 Revisado también, sin guardarlo en el taller: el código fuente oficial de Anki que aportó el cliente
 (anki-main.zip, commit a13d8a6 de github.com/ankitects/anki, versión 26.09.3; cinco archivos cotejados
