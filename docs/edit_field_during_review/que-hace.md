@@ -1,6 +1,6 @@
 # Qué hace «Edit field during review»
 
-Versión 1.0.0 · 2026-10-21
+Versión 1.1.0 · 2026-11-09
 
 Le deja corregir el texto de una nota directamente sobre la tarjeta, mientras repasa o en la vista
 previa de Explorar, sin abrir la ventana de edición. Se mantiene pulsada la tecla Ctrl y se hace clic
@@ -24,7 +24,8 @@ Solo cambia el campo que usted edita, y cada cambio se puede deshacer desde Edit
 
 1. Mantenga pulsada Ctrl (⌘ en Mac) y haga clic sobre el texto del campo. Si desactiva la opción del
    apartado 5, basta un clic normal.
-2. El campo queda rodeado por un recuadro azul de 2 píxeles, con las esquinas algo redondeadas y un
+2. El campo queda rodeado por un recuadro de 2 píxeles del color de foco de la paleta (azul con
+   Nocturne; desde la 1.1.0 sigue también a las demás paletas de Atelier), con las esquinas algo redondeadas y un
    pequeño margen interior (el texto puede moverse unos píxeles mientras edita). El cursor se coloca
    donde hizo clic o, si no es posible, al final del campo.
 3. Lo que verá dentro del recuadro:
@@ -95,14 +96,21 @@ Solo cambia el campo que usted edita, y cada cambio se puede deshacer desde Edit
 ## 5. Ventana de opciones
 
 - Título: «Edit field during review» (el nombre del complemento, en inglés).
-- Casilla «Exigir Ctrl + clic para empezar a editar (⌘ en Mac)»: marcada por defecto. Desmarcada,
-  basta un clic normal sobre un campo para empezar a editar; entonces es más fácil entrar a editar
-  sin querer al seleccionar texto, y por eso viene marcada.
-- Botones Aceptar y Cancelar, en el idioma de Anki. Aceptar guarda sin mostrar ningún aviso;
-  Cancelar cierra sin guardar.
+- Desde la 1.1.0 sigue el modelo de ventana de opciones del taller, el panel de GritMap (regla
+  PROP-012, petición del 2026-11-09): un panel de 560 px de ancho y el alto justo para su contenido,
+  hecho de recuadros sobre el fondo de Anki, con los colores de la paleta (también con Atelier) y
+  Aceptar y Cancelar abajo (en Windows, Aceptar primero). No se enseña hasta estar dibujado, recuerda
+  su tamaño y su posición, y si ya está abierto se trae al frente. Esc cancela y Ctrl+Intro acepta.
+  Nada se guarda hasta pulsar Aceptar. Aceptar, Cancelar y Restaurar llevan el texto de Qt en el
+  idioma de Anki. Con el teclado: el tabulador recorre los controles, cada uno con su contorno de foco
+  azul; el lector de pantalla anuncia el nombre de cada control.
+- Un solo recuadro, con «Restaurar los valores predeterminados» arriba a la derecha (tras usarlo,
+  «Deshacer» al lado), y la casilla «Exigir Ctrl + clic para empezar a editar (⌘ en Mac)»: marcada
+  por defecto. Desmarcada, basta un clic normal sobre un campo para empezar a editar; entonces es más
+  fácil entrar a editar sin querer al seleccionar texto, y por eso viene marcada.
+- Aceptar guarda sin mostrar ningún aviso; Cancelar cierra sin guardar.
 - El cambio se aplica desde la siguiente cara o tarjeta que se muestre, no en la que ya está en
   pantalla.
-- La ventana no recuerda su tamaño ni su posición.
 
 ## 6. Mensajes
 
