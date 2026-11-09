@@ -815,7 +815,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         var showProposal = c.goal_mode === "number" && proposal.average !== null && proposal.average !== undefined;
         S.nodes.goalProposal.hidden = !showProposal;
         if (showProposal) {
-            S.nodes.goalProposal.textContent = fill(S.t.goal_proposal_line2, { n: proposal.value, m: proposal.average });
+            S.nodes.goalProposal.textContent = fill(S.t.goal_proposal_line2, { n: proposal.value });
         }
         var history = (S.p.goal_history || {})[c.goal_mode] || {};
         S.nodes.goalHistory.hidden = !history.text;

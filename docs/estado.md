@@ -29,6 +29,9 @@ Se actualiza al terminar cada sesión de un trabajo largo y se lee al retomarlo.
   oído como pausa, «✓ hoy» oído como «hoy hecho»). 62 pruebas. Va en el mismo pull request que la
   4.14.0.
 
+- 2026-11-09: GritMap 4.15.1: «Propuesta: 5 (el 80 % de su promedio diario).», sin la cifra final,
+  en 51 idiomas (petición del cliente).
+
 ## En curso
 
 - El pull request de la adaptación espera la revisión de la persona. No se fusiona sin ella.

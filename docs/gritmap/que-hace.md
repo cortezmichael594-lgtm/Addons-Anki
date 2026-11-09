@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 4.15.0 · 2026-11-09
+Versión 4.15.1 · 2026-11-09
 
 Un mapa de calor de su estudio, parecido al de las contribuciones de GitHub: un cuadrito por cada
 día del año, más intenso cuanto más estudió, y en gris los días que vienen, según las tarjetas que
@@ -199,7 +199,7 @@ deshace. Arriba a la derecha, «Restaurar apariencia» (con «Deshacer» al lado
   cuentan mientras esté desmarcada; se conservan.».
 - Meta diaria: «Sin meta» (de serie), «Un número» o «Terminar lo de hoy».
   - «Un número»: de 1 a 9.999 tarjetas al día; al elegirla se propone el 80 % de su promedio diario
-    («Propuesta: 5 (el 80 % de su promedio diario, 7).»; sin historial, 30). Debajo: «Si es menor que
+    («Propuesta: 5 (el 80 % de su promedio diario).», sin la cifra del promedio desde la 4.15.1; sin historial, 30). Debajo: «Si es menor que
     lo que vence, el resto queda para mañana.».
   - «Terminar lo de hoy»: «Las tarjetas que vencen hoy, con los límites diarios de Anki.».
   - Con al menos 7 días con datos de esa meta, «Cumplida 12 de los últimos 14 días.»; con «Terminar

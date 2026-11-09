@@ -6365,3 +6365,62 @@ _STRINGS_4_15: dict[str, tuple[str, ...]] = {
 }
 for _code, _texts in _STRINGS_4_15.items():
     STRINGS[_code].update(zip(_KEYS_4_15, _texts))
+
+
+# «Propuesta: 5 (el 80 % de su promedio diario).» sin la cifra del promedio al
+# final (4.15.1, peticion del cliente del 2026-11-09).
+_PROPOSAL_4_15_1: dict[str, str] = {
+    'en': 'Suggested: {n} (80 % of your daily average).',
+    'es': 'Propuesta: {n} (el 80 % de su promedio diario).',
+    'de': 'Vorschlag: {n} (80 % Ihres Tagesdurchschnitts).',
+    'fr': 'Proposition : {n} (80 % de votre moyenne quotidienne).',
+    'it': "Proposta: {n} (l'80 % della tua media giornaliera).",
+    'pt': 'Proposta: {n} (80 % da sua média diária).',
+    'nl': 'Voorstel: {n} (80 % van je daggemiddelde).',
+    'ru': 'Предложение: {n} (80 % от вашего среднего за день).',
+    'pl': 'Propozycja: {n} (80 % Twojej średniej dziennej).',
+    'tr': "Öneri: {n} (günlük ortalamanızın % 80'i).",
+    'ja': '提案: {n}（1日平均の 80 %）。',
+    'ko': '제안: {n} (하루 평균의 80 %).',
+    'zh_CN': '建议：{n}（每日平均的 80 %）。',
+    'zh_TW': '建議：{n}（每日平均的 80 %）。',
+    'ar': 'المقترح: {n} (\u200f80 % من متوسطك اليومي).',
+    'el': 'Πρόταση: {n} (80 % του ημερήσιου μέσου όρου σας).',
+    'sv': 'Förslag: {n} (80 % av ditt dagliga snitt).',
+    'da': 'Forslag: {n} (80 % af dit daglige gennemsnit).',
+    'nb': 'Forslag: {n} (80 % av ditt daglige snitt).',
+    'fi': 'Ehdotus: {n} (80 % päivittäisestä keskiarvostasi).',
+    'cs': 'Návrh: {n} (80 % vašeho denního průměru).',
+    'sk': 'Návrh: {n} (80 % vášho denného priemeru).',
+    'hu': 'Javaslat: {n} (napi átlagának 80 %-a).',
+    'ro': 'Propunere: {n} (80 % din media zilnică).',
+    'uk': 'Пропозиція: {n} (80 % вашого середнього за день).',
+    'vi': 'Đề xuất: {n} (80 % mức trung bình mỗi ngày).',
+    'th': 'ข้อเสนอ: {n} (80 % ของค่าเฉลี่ยต่อวัน)',
+    'ms': 'Cadangan: {n} (80 % purata harian anda).',
+    'tl': 'Mungkahi: {n} (80 % ng iyong araw-araw na average).',
+    'he': 'הצעה: {n} (\u200f80 % מהממוצע היומי).',
+    'hr': 'Prijedlog: {n} (80 % vašeg dnevnog prosjeka).',
+    'sr': 'Предлог: {n} (80 % вашег дневног просека).',
+    'sl': 'Predlog: {n} (80 % vašega dnevnega povprečja).',
+    'bg': 'Предложение: {n} (80 % от дневната ви средна стойност).',
+    'ca': 'Proposta: {n} (el 80 % de la seva mitjana diària).',
+    'eu': 'Proposamena: {n} (zure eguneko batez bestekoaren % 80).',
+    'gl': 'Proposta: {n} (o 80 % da súa media diaria).',
+    'et': 'Ettepanek: {n} (80 % teie päevasest keskmisest).',
+    'fa': 'پیشنهاد: {n} (\u200f80 % میانگین روزانهٔ شما).',
+    'mn': 'Санал: {n} (өдрийн дунджийн 80 %).',
+    'be': 'Прапанова: {n} (80 % вашага сярэдняга за дзень).',
+    'eo': 'Propono: {n} (80 % de via taga mezumo).',
+    'af': 'Voorstel: {n} (80 % van u daaglikse gemiddeld).',
+    'ga': 'Moladh: {n} (80 % de do mheán laethúil).',
+    'la': 'Propositio: {n} (80 % mediae cotidianae tuae).',
+    'oc': 'Proposicion : {n} (80 % de vòstra mejana quotidiana).',
+    'uz': "Taklif: {n} (kunlik o'rtachangizning 80 %).",
+    'jbo': "stidi: {n} (80 % lo do djedi mijyda'u)",
+    'hy': 'Առաջարկ՝ {n} (ձեր օրական միջինի 80 %-ը)։',
+    'ug': 'تەۋسىيە: {n} (كۈندىلىك ئوتتۇرىچىڭىزنىڭ % 80 ى).',
+    'or': 'ପ୍ରସ୍ତାବ: {n} (ଆପଣଙ୍କ ଦୈନିକ ହାରାହାରିର 80 %)।',
+}
+for _code, _text in _PROPOSAL_4_15_1.items():
+    STRINGS[_code]["goal_proposal_line2"] = _text

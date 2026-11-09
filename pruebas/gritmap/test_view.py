@@ -355,6 +355,15 @@ class HabitTextsTest(unittest.TestCase):
         self.assertEqual(i18n.STRINGS["es"]["surprise_best_week"], "Mejor semana del año")
 
 
+class ProposalTextTest(unittest.TestCase):
+    def test_proposal_has_no_average_figure(self) -> None:
+        # 4.15.1, peticion del cliente: «Propuesta: 5 (el 80 % de su promedio diario).»
+        self.assertEqual(i18n.STRINGS["es"]["goal_proposal_line2"], "Propuesta: {n} (el 80 % de su promedio diario).")
+        for code, texts in i18n.STRINGS.items():
+            self.assertNotIn("{m}", texts["goal_proposal_line2"], code)
+            self.assertIn("{n}", texts["goal_proposal_line2"], code)
+
+
 class WebExportsPatternTest(unittest.TestCase):
     """Regresion de FIX-015: el patron dejaba leer archivos de otros complementos."""
 
