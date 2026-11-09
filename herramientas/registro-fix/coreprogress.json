@@ -1,0 +1,15 @@
+{
+  "complemento": "coreprogress",
+  "fix": {
+    "FIX-001": [
+      "view.py"
+    ],
+    "FIX-002": [
+      "controller.py",
+      "settings.py"
+    ],
+    "FIX-003": [
+      "options.py"
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 # Qué hace «CoreProgress»
 
-Versión 1.0.0 · 2026-10-21
+Versión 1.1.0 · 2026-11-09
 
 Barra de progreso en la parte de arriba de la pantalla de repaso: se va llenando a medida que despacha
 las tarjetas que tenía pendientes hoy en el mazo que está estudiando, con marcas numeradas por el
@@ -121,37 +121,46 @@ Aspecto:
 
 ## 6. Ventana de opciones
 
-Título «CoreProgress». Mientras está abierta no se puede usar el resto de Anki. No recuerda su tamaño
-ni su posición.
+Título «CoreProgress». Desde la 1.1.0 sigue el modelo de ventana de opciones del taller, el panel de GritMap (regla
+PROP-012, petición del 2026-11-09): un panel de 560 px de ancho y el alto justo para su contenido,
+hecho de recuadros sobre el fondo de Anki, con los colores de la paleta (también con Atelier) y
+Aceptar y Cancelar abajo (en Windows, Aceptar primero). No se enseña hasta estar dibujado, recuerda
+su tamaño y su posición, y si ya está abierto se trae al frente. Esc cancela y Ctrl+Intro acepta.
+Nada se guarda hasta pulsar Aceptar. Aceptar, Cancelar, Restaurar, Sí y No llevan el texto de Qt en
+el idioma de Anki. Con el teclado: el tabulador recorre los controles, cada uno con su contorno de
+foco azul; el lector de pantalla anuncia el nombre de cada control.
 
-Arriba, el récord, con la cifra en negrita: «Tu récord actual: -» si no hay ninguno, o «Tu récord actual: 7
-seguidas!» (con un récord de 1, «1 seguidas!»). Durante un repaso puede no incluir todavía la racha en
-curso, que se guarda al salir. A su derecha, el botón «Restablecer», que pregunta en una ventana
-titulada «Anki»: «¿Poner tu récord a cero?», con «Sí» marcado de antemano. Si acepta, el récord
-queda a cero en ese momento, aunque después pulse Cancelar, y no se puede deshacer. Si lo hace
-mientras repasa, ese repaso solo cuenta para el récord desde la racha que lleve en ese momento.
+Tres recuadros:
 
-| Opción | Valores | Por defecto |
-|---|---|---|
-| Tema de color | Verde clásico, Azul océano, Turquesa laguna, Rojo fuego, Rosa suave, Púrpura real, Naranja atardecer (cada uno con un cuadrito de muestra, siempre en su tono de día) | Verde clásico |
-| Altura de la barra (px) | De 12 a 22 píxeles; también cambia el tamaño de los hitos y de sus números | 16 |
-| Espacio superior (px) | De 0 a 300 píxeles que se dejan libres encima de la tarjeta; las flechas van de 4 en 4 | 0 |
-| Excluir mazos (récord) | Botón «Seleccionar mazos» | Ninguno |
-| Efectos de racha y récord (aura/oro/texto) | Casilla: avisos de racha y de récord, barra dorada, avivado y chispas de los avisos | Marcada |
-| Mostrar hitos en la barra | Casilla | Marcada |
+1. El récord: «Tu récord actual: -» si no hay ninguno, o «Tu récord actual: 7 seguidas!» (con un
+   récord de 1, «1 seguidas!»), con la cifra en negrita. Durante un repaso puede no incluir todavía
+   la racha en curso, que se guarda al salir. A la derecha, el enlace «Restablecer» (apagado si no hay
+   récord), que pregunta en una ventanita dentro del panel «¿Poner tu récord a cero?», con «Sí» y
+   «No» y el foco en «No». Si responde «Sí», la línea pasa a «Tu récord actual: -», pero el récord no
+   se borra hasta pulsar Aceptar; con Cancelar queda como estaba (hasta la 1.0.0 se borraba en el
+   acto y la pregunta traía «Sí» marcado; FIX-003). Si lo hace mientras repasa, ese repaso solo cuenta
+   para el récord desde la racha que lleve en ese momento.
+2. El aspecto de la barra, con «Restaurar los valores predeterminados» arriba a la derecha (tras
+   usarlo, «Deshacer» al lado), que repone el tema, la altura, el espacio y las dos casillas sin
+   guardar nada y sin tocar el récord ni los mazos excluidos:
 
-- Botones Guardar, Cancelar y el estándar para restaurar los valores predeterminados, con los textos
-  de Qt en el idioma de Anki.
-- Restaurar los valores predeterminados repone en la ventana el tema, la altura, el espacio y las dos
-  casillas; no guarda nada hasta pulsar Guardar y no toca el récord ni los mazos excluidos.
-- Guardar: si está repasando, la barra se vuelve a dibujar al momento con los valores nuevos. Un aviso
-  que estuviera a la vista se conserva si la casilla de efectos sigue marcada y desaparece al momento
-  si la desmarca.
-- Seleccionar mazos abre la ventana «Excluir mazos (récord)»: la lista de todos sus mazos, con su
-  nombre completo (los submazos, con «::»), incluidos los filtrados y el mazo predeterminado, cada uno
-  con su casilla, y los botones Aceptar y Cancelar. No tiene buscador ni textos de ayuda. Lo marcado se
-  guarda al pulsar Guardar en la ventana de opciones. Los mazos que ya no existen dejan de guardarse
-  al aceptar esta ventana.
+| Opción | Control | Valores | Por defecto |
+|---|---|---|---|
+| Tema de color | Fichas en dos columnas, cada una con su cuadrito de muestra (siempre en su tono de día) y una ✓ en la elegida | Verde clásico, Azul océano, Turquesa laguna, Rojo fuego, Rosa suave, Púrpura real, Naranja atardecer | Verde clásico |
+| Altura de la barra | Campo con «−» y «+» y «px» al lado | De 12 a 22 píxeles; también cambia el tamaño de los hitos y de sus números | 16 |
+| Espacio superior | Campo con «−» y «+» (de 4 en 4) y «px» al lado | De 0 a 300 píxeles que se dejan libres encima de la tarjeta | 0 |
+| Efectos de racha y récord (aura/oro/texto) | Casilla | Avisos de racha y de récord, barra dorada, avivado y chispas de los avisos | Marcada |
+| Mostrar hitos en la barra | Casilla | — | Marcada |
+
+3. «Excluir mazos (récord)»: una fila con los nombres de los mazos excluidos (o «-»), que abre su
+   lista dentro de la misma ventana, con «‹ CoreProgress» para volver: un buscador y todos sus mazos
+   con su nombre completo (los submazos, con «::»), incluidos los filtrados y el predeterminado, cada
+   uno con su casilla. Sin textos de ayuda. Lo marcado se guarda al pulsar Aceptar; los mazos que ya
+   no existen dejan de guardarse.
+
+- Aceptar: si está repasando, la barra se vuelve a dibujar al momento con los valores nuevos. Un
+  aviso que estuviera a la vista se conserva si la casilla de efectos sigue marcada y desaparece al
+  momento si la desmarca.
 
 ## 7. Qué guarda y dónde
 

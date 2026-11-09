@@ -13,74 +13,74 @@ from dataclasses import dataclass
 
 ACCENT_LIGHT: dict[str, tuple[str, ...]] = {
     "classic_green": (
-        "#c9e9cf", "#ace2b6", "#89dc99", "#64d97a", "#3dd65a",
-        "#25cb44", "#1daf38", "#18932f", "#167628", "#145a21",
+        "#c9e9cf", "#ace2b6", "#89dc99", "#64d97a", "#3dd65a",  # colores-ok: escala propia del tema (decisión del autor)
+        "#25cb44", "#1daf38", "#18932f", "#167628", "#145a21",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "ocean_blue": (
-        "#c8d2ea", "#aabce4", "#85a2e0", "#5f87dd", "#376bdd",
-        "#1e56d2", "#1649b6", "#133d98", "#12337a", "#11295d",
+        "#c8d2ea", "#aabce4", "#85a2e0", "#5f87dd", "#376bdd",  # colores-ok: escala propia del tema (decisión del autor)
+        "#1e56d2", "#1649b6", "#133d98", "#12337a", "#11295d",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "lagoon_turquoise": (
-        "#c7eae6", "#a9e5de", "#84e1d6", "#5de0d0", "#34dfcc",
-        "#1bd5bf", "#14b8a5", "#119a8a", "#107c70", "#105e55",
+        "#c7eae6", "#a9e5de", "#84e1d6", "#5de0d0", "#34dfcc",  # colores-ok: escala propia del tema (decisión del autor)
+        "#1bd5bf", "#14b8a5", "#119a8a", "#107c70", "#105e55",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "fire_red": (
-        "#eac7c9", "#e4a9ab", "#e08588", "#de5e62", "#de363b",
-        "#d31d23", "#b6161b", "#991216", "#7b1115", "#5d1113",
+        "#eac7c9", "#e4a9ab", "#e08588", "#de5e62", "#de363b",  # colores-ok: escala propia del tema (decisión del autor)
+        "#d31d23", "#b6161b", "#991216", "#7b1115", "#5d1113",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "rose_pink": (
-        "#eac8d5", "#e4aac0", "#df86a8", "#dd608f", "#db3876",
-        "#d11f62", "#b41853", "#971445", "#791339", "#5c122e",
+        "#eac8d5", "#e4aac0", "#df86a8", "#dd608f", "#db3876",  # colores-ok: escala propia del tema (decisión del autor)
+        "#d11f62", "#b41853", "#971445", "#791339", "#5c122e",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "royal_purple": (
-        "#d0c8e9", "#b8aae3", "#9c86df", "#7e60dc", "#7450b8",
-        "#4b20d0", "#3e18b4", "#341496", "#2c1379", "#24125c",
+        "#d0c8e9", "#b8aae3", "#9c86df", "#7e60dc", "#7450b8",  # colores-ok: escala propia del tema (decisión del autor)
+        "#4b20d0", "#3e18b4", "#341496", "#2c1379", "#24125c",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "sunset_orange": (
-        "#ead6c7", "#e5c2a9", "#e1aa84", "#e0935d", "#df7b34",
-        "#d5681b", "#b85814", "#9a4911", "#7c3d10", "#5e3010",
+        "#ead6c7", "#e5c2a9", "#e1aa84", "#e0935d", "#df7b34",  # colores-ok: escala propia del tema (decisión del autor)
+        "#d5681b", "#b85814", "#9a4911", "#7c3d10", "#5e3010",  # colores-ok: escala propia del tema (decisión del autor)
     ),
 }
 
 ACCENT_DARK: dict[str, tuple[str, ...]] = {
     "classic_green": (
-        "#21572b", "#256d32", "#288339", "#2a9d40", "#2db947",
-        "#33d151", "#4bd865", "#68dc7e", "#88e098", "#a7e4b3",
+        "#21572b", "#256d32", "#288339", "#2a9d40", "#2db947",  # colores-ok: escala propia del tema (decisión del autor)
+        "#33d151", "#4bd865", "#68dc7e", "#88e098", "#a7e4b3",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "ocean_blue": (
-        "#1e3159", "#223a70", "#244387", "#254ca2", "#2757bf",
-        "#2c62d8", "#4575de", "#638ae1", "#84a2e4", "#a5b9e7",
+        "#1e3159", "#223a70", "#244387", "#254ca2", "#2757bf",  # colores-ok: escala propia del tema (decisión del autor)
+        "#2c62d8", "#4575de", "#638ae1", "#84a2e4", "#a5b9e7",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "lagoon_turquoise": (
-        "#1d5a53", "#207168", "#22897d", "#23a495", "#24c1af",
-        "#29dbc6", "#42e0ce", "#60e3d4", "#82e5da", "#a4e8e0",
+        "#1d5a53", "#207168", "#22897d", "#23a495", "#24c1af",  # colores-ok: escala propia del tema (decisión del autor)
+        "#29dbc6", "#42e0ce", "#60e3d4", "#82e5da", "#a4e8e0",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "fire_red": (
-        "#5a1e20", "#702124", "#882326", "#a22428", "#c0262b",
-        "#d92b30", "#df4449", "#e26266", "#e48386", "#e7a4a6",
+        "#5a1e20", "#702124", "#882326", "#a22428", "#c0262b",  # colores-ok: escala propia del tema (decisión del autor)
+        "#d92b30", "#df4449", "#e26266", "#e48386", "#e7a4a6",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "rose_pink": (
-        "#591f35", "#6f223f", "#862449", "#a12654", "#be2860",
-        "#d72d6d", "#dd467f", "#e06493", "#e385a8", "#e6a5be",
+        "#591f35", "#6f223f", "#862449", "#a12654", "#be2860",  # colores-ok: escala propia del tema (decisión del autor)
+        "#d72d6d", "#dd467f", "#e06493", "#e385a8", "#e6a5be",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "royal_purple": (
-        "#2d1f59", "#35236f", "#3d2586", "#4427a0", "#4d28bd",
-        "#572ed6", "#6b46dc", "#8264e0", "#9c85e3", "#b5a5e6",
+        "#2d1f59", "#35236f", "#3d2586", "#4427a0", "#4d28bd",  # colores-ok: escala propia del tema (decisión del autor)
+        "#572ed6", "#6b46dc", "#8264e0", "#9c85e3", "#b5a5e6",  # colores-ok: escala propia del tema (decisión del autor)
     ),
     "sunset_orange": (
-        "#5a371d", "#714220", "#894c22", "#a45823", "#c16524",
-        "#db7329", "#e18442", "#e39660", "#e5ab82", "#e8c0a4",
+        "#5a371d", "#714220", "#894c22", "#a45823", "#c16524",  # colores-ok: escala propia del tema (decisión del autor)
+        "#db7329", "#e18442", "#e39660", "#e5ab82", "#e8c0a4",  # colores-ok: escala propia del tema (decisión del autor)
     ),
 }
 
 GOLD_LIGHT: tuple[str, ...] = (
-    "#ebe1c6", "#e6d5a7", "#e3c882", "#e3bd59", "#e4b230",
-    "#daa416", "#bc8d10", "#9e760d", "#7f5f0e", "#60490e",
+    "#ebe1c6", "#e6d5a7", "#e3c882", "#e3bd59", "#e4b230",  # colores-ok: escala propia del tema (decisión del autor)
+    "#daa416", "#bc8d10", "#9e760d", "#7f5f0e", "#60490e",  # colores-ok: escala propia del tema (decisión del autor)
 )
 
 GOLD_DARK: tuple[str, ...] = (
-    "#5c4a1c", "#735c1e", "#8b6e20", "#a78220", "#c59820",
-    "#dfac25", "#e4b73e", "#e7c15d", "#e8cb80", "#e9d6a2",
+    "#5c4a1c", "#735c1e", "#8b6e20", "#a78220", "#c59820",  # colores-ok: escala propia del tema (decisión del autor)
+    "#dfac25", "#e4b73e", "#e7c15d", "#e8cb80", "#e9d6a2",  # colores-ok: escala propia del tema (decisión del autor)
 )
 
 THEME_KEYS: tuple[str, ...] = tuple(ACCENT_LIGHT)

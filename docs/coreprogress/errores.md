@@ -30,12 +30,6 @@ Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa
   barra sigue fija y tapa lo que pasa por debajo. Por qué: la barra flota sobre la página y el hueco
   para ella depende solo de esa opción. Propuesta: que la tarjeta deje sitio a la barra y a su aviso
   por sí sola, y que «Espacio superior» sea un extra. Hay que confirmarlo a la vista dentro de Anki.
-- 2026-10-21 · versión 1.0.0 · Qué pasa: al pulsar «Restablecer», la pregunta «¿Poner tu récord a
-  cero?» trae «Sí» marcado de antemano, así que un Intro de más borra el récord; no se puede deshacer,
-  y pulsar Cancelar después en la ventana de opciones no lo devuelve. Por qué: la regla del taller
-  pide que lo que borra sin vuelta atrás traiga «No» marcado de antemano; aquí no se hizo así, y el
-  borrado se aplica antes de Guardar. Propuesta: «No» marcado de antemano y borrar el récord solo al
-  pulsar Guardar.
 - 2026-10-21 · versión 1.0.0 · Qué pasa: todos los colores de la barra son propios, fuera de la paleta
   Nocturne: las siete escalas de los temas y la dorada (160 colores), y el blanco puro del número de
   los hitos alcanzados y de las chispas, más las sombras y los grises del canal provisional. El
@@ -81,6 +75,11 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   solo al salir del repaso. Regla: lo que pertenece a un perfil se guarda en su colección, comprobando
   antes que esté abierta, y se guarda también al cerrar el perfil, antes de que Anki cierre la
   colección.
+- FIX-003 · 2026-11-09 · versión 1.1.0 · Qué pasaba: al pulsar «Restablecer», la pregunta «¿Poner tu
+  récord a cero?» traía «Sí» marcado de antemano, así que un Intro de más borraba el récord, y el
+  borrado se aplicaba en el acto aunque después pulsara Cancelar. Por qué: se usaba la pregunta de
+  Anki sin «No» por defecto y se borraba antes de guardar. Regla: lo que borra sin vuelta atrás
+  pregunta con el foco en «No» y solo se aplica al pulsar Aceptar; Cancelar lo deja como estaba.
 
 ## Así a propósito
 

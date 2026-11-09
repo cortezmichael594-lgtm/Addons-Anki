@@ -52,7 +52,7 @@ from .errors import report
 from .palettes import StyleBundle
 
 # --- static stylesheet (raw string: no escaping surprises) -------------------
-_STATIC_CSS = r"""
+_STATIC_CSS = r"""/* colores-ok: brillo y chispas blancos de la barra (decisión del autor) */
 #qa{padding-top:var(--cprog-push,0px);}
 #_mark,#_flag{top:var(--cprog-mark-top,30px) !important;}
 img#star{top:var(--cprog-mark-top,30px) !important;}
@@ -75,7 +75,7 @@ img#star{top:var(--cprog-mark-top,30px) !important;}
 # con rebote; debe ser un adorno que no distraiga: 1.07 sin rebote.
 
 # --- the namespace: build / update / heal / celebrate ------------------------
-_BOOTSTRAP_JS = r"""
+_BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra (decisión del autor)
 (function(){
   if(!window._cprog){ window._cprog={}; }
   var C=window._cprog;
