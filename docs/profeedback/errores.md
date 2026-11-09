@@ -9,13 +9,6 @@ ninguna. Las tres primeras se hicieron antes de que el complemento llegara a est
 
 Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa y propuesta.
 
-- 2026-10-21 · versión 2.0.0 · Qué pasa: la nota de la ventana de opciones dice «Para añadir sonidos
-  propios, copie archivos .mp3 en la carpeta «user_files/sonidos» del complemento.», pero el
-  complemento solo busca dentro de cinco subcarpetas de esa carpeta, una por tipo («correcto»,
-  «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo»), que además no vienen
-  creadas. Un .mp3 copiado tal como dice la nota no aparece en ningún desplegable y no suena nunca.
-  Propuesta: que la nota diga qué subcarpeta corresponde a cada sonido y que el complemento cree
-  esas carpetas vacías la primera vez.
 - 2026-10-21 · versión 2.0.0 · Qué pasa: si deshace una respuesta (Editar > Deshacer) sin salir del
   repaso, el complemento la sigue contando para la celebración del mazo. Una «Otra vez» deshecha y
   respondida después con «Bien» impide la celebración perfecta aunque todas las respuestas que
@@ -58,6 +51,12 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   llevaba su propia cuenta del día en sus opciones, comunes a todos los perfiles, en lugar de
   preguntar al historial de Anki. Regla: lo que ya está en el historial de la colección se lee de
   ahí, que respeta el cambio de día de Anki, es de cada perfil y viaja con la sincronización.
+- FIX-004 · 2026-11-09 · versión 2.1.0 · Qué pasaba: la nota de la ventana de opciones decía que los
+  sonidos propios se copiaban en «user_files/sonidos», pero el complemento solo los busca en una
+  subcarpeta por tipo de sonido, que además no venían creadas; un .mp3 copiado como decía la nota no
+  aparecía en ningún desplegable. Por qué: la nota no nombraba las subcarpetas. Regla: las
+  subcarpetas («correcto», «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo»)
+  se crean vacías al abrir los ajustes, y la nota dice que cada sonido va en la suya.
 
 ## Así a propósito
 
