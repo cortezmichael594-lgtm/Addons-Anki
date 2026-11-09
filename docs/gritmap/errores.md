@@ -52,7 +52,8 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   detectores están puestos.
 - FIX-010 · 2026-10-08 · versión 3.1.1 o anterior · Qué pasaba: el promedio diario decía «0 repasos»
   cuando la ventana no tenía ningún día completo estudiado. Por qué: «sin días» se trataba como cero.
-  Regla: sin días que promediar se escribe «N/A», y el globo explica por qué.
+  Regla: sin días que promediar se escribe «N/A», y el globo explica por qué (desde la 4.14.0, a
+  petición del cliente, lo explica la línea gris de la tarjeta, no un globo).
 
 Las trece siguientes salieron de la revisión completa del 2026-10-12 y se corrigieron en la versión
 3.2.0.
@@ -158,6 +159,15 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 
 Serie 4 (lo más reciente primero):
 
+- Las tarjetas no tienen globos (historial de la meta, récord, comodines, objetivo de retención y
+  motivo de «N/A»): se descubrían poco, tapaban la cifra y repetían lo que está en Opciones o en
+  Anki. Lo decidió el cliente el 2026-11-09 (versión 4.14.0). El historial de la meta sigue en
+  Opciones; el récord se dice como distancia («a 3 días del récord») y solo cuando está cerca; el
+  motivo de «N/A» va en la línea gris. Con la racha a cero o lejos del récord, no se ve cuál es el
+  récord: ahí no motiva. Si un día se echa de menos el objetivo de retención, la vuelta prevista es
+  «últimos 30 días · objetivo 90 %» en la línea gris, sin globo. El único globo de las tarjetas es
+  el del sistema cuando una línea gris está cortada con «…».
+
 - «0 de 2» en «Hoy» con una sola tarjeta por estudiar en la lista de mazos no es un fallo: con la
   meta «Un número», el 2 es la meta elegida, no lo que vence. Comprobado el 2026-11-04 (informe 4.11,
   apartado 4.3).
@@ -168,8 +178,8 @@ Serie 4 (lo más reciente primero):
 - Los títulos de las tarjetas ya eran encabezados para el lector de pantalla; el informe 4.11 lo
   daba por pendiente. Comprobado en el código el 2026-11-04.
 - El globo de los días del mapa no se puede recorrer con el ratón (FIX-029), aunque WCAG 2.2 lo pide
-  (criterio 1.4.13). El cliente aceptó la desviación en el informe 4.10. Los globos de las tarjetas
-  sí se pueden recorrer.
+  (criterio 1.4.13). El cliente aceptó la desviación en el informe 4.10. Los de los cuadritos de la
+  leyenda sí se pueden recorrer.
 - «Sin dato» no tiene cuadrito en la leyenda: es fondo, no información (informe 4.11, aprobado el
   2026-11-04).
 

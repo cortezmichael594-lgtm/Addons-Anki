@@ -6272,3 +6272,35 @@ _UPDATING_4_12: dict[str, str] = {
 }
 for _code, _text in _UPDATING_4_12.items():
     STRINGS[_code]["updating"] = _text
+
+
+# «faltan {count}» con la forma de plural de la frase entera (4.14.0): en
+# muchos idiomas el verbo concuerda con la cifra («falta 1 tarjeta», «faltan 2
+# tarjetas»). Cada idioma toma su texto de siempre como forma general y aqui
+# se anaden las formas que cambian. La medida es siempre «tarjetas» (4.10.0),
+# asi que el genero es el de esa palabra en cada idioma.
+for _code, _texts_of in STRINGS.items():
+    _texts_of["goal_left_other"] = _texts_of["goal_left"]
+
+_GOAL_LEFT_FORMS: dict[str, dict[str, str]] = {
+    "es": {"one": "falta {count}"},
+    "gl": {"one": "falta {count}"},
+    "pt": {"one": "falta {count}"},
+    "it": {"one": "manca {count}"},
+    "ca": {"one": "en falta {count}"},
+    "oc": {"one": "ne demòra {count}"},
+    "la": {"one": "restat {count}"},
+    "el": {"one": "απομένει {count}"},
+    "bg": {"one": "остава {count}"},
+    "ro": {"one": "mai este {count}"},
+    "ru": {"one": "осталась {count}", "few": "остались {count}"},
+    "uk": {"one": "лишилася {count}", "few": "лишилися {count}"},
+    "be": {"one": "засталася {count}", "few": "засталіся {count}"},
+    "pl": {"one": "została {count}", "few": "zostały {count}"},
+    "cs": {"one": "zbývá {count}", "few": "zbývají {count}"},
+    "sk": {"one": "zostáva {count}", "few": "zostávajú {count}"},
+    "he": {"one": "נותר {count}"},
+}
+for _code, _forms in _GOAL_LEFT_FORMS.items():
+    for _category, _text in _forms.items():
+        STRINGS[_code][f"goal_left_{_category}"] = _text

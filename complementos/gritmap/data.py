@@ -152,10 +152,6 @@ class HeatmapData:
     # Tarjetas que aun vencen hoy en lo que cuenta el mapa (meta «Terminar lo
     # de hoy», 4.0.0); None si no se calculo.
     due_remaining: int | None = None
-    # Retencion deseada de FSRS (0-1): la del mazo en su pantalla y, desde la
-    # 4.8.0, en la lista de mazos si todos los que cuentan usan la misma;
-    # None sin FSRS o si son distintas.
-    fsrs_target: float | None = None
     # Meta «Terminar lo de hoy» ya cumplida hoy: cuantas tarjetas hicieron
     # falta (FIX-026); None si aun no se cumplio.
     due_reached: int | None = None

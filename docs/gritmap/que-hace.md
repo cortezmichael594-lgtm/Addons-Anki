@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 4.13.0 · 2026-11-04
+Versión 4.14.0 · 2026-11-09
 
 Un mapa de calor de su estudio, parecido al de las contribuciones de GitHub: un cuadrito por cada
 día del año, más intenso cuanto más estudió, y en gris los días que vienen, según las tarjetas que
@@ -101,36 +101,36 @@ que la lista de mazos que tienen encima. Hasta la 4.12.0 eran 10 px.
 Cuatro o cinco tarjetas del mismo ancho, que suman el ancho del mapa: de dos en dos en ventanas
 estrechas y de una en una en muy estrechas. Cada una tiene su título en gris suave, el dato grande
 (la cifra a 20 px y la unidad pequeña, en gris) y una línea gris que, si no cabe en dos renglones, se
-corta con «…» y se lee entera al pasar el ratón. Lo que lleva subrayado de puntos tiene un globo,
-también con el tabulador, y ese globo sí se puede recorrer con el ratón. Las tarjetas no se pulsan.
+corta con «…»; solo entonces se lee entera al pasar el ratón. Desde la 4.14.0 las tarjetas no tienen
+globos ni subrayados de puntos, y el tabulador no se para en ellas. Las tarjetas no se pulsan.
 
 - «Hoy»: las tarjetas de hoy.
   - Sin meta (o con «Mostrar racha y meta» desmarcada): la cifra y, debajo, «85 tarjetas en 7 días»
     (los 7 últimos días completos).
   - Con meta: un anillo que se llena en el tono más intenso del tema (lo que falta, en el gris de
     pendientes, desde la 4.12.0) y «0 de 2», con «de 2» pequeño y en gris (4.12.0). Debajo, «faltan
-    2 tarjetas». Al cumplirla, «✓ Meta cumplida · 3 días esta semana» («✓ Al día» con «Terminar lo
+    2 tarjetas» («falta 1 tarjeta» en singular; la frase concuerda con la cifra en cada idioma). Al cumplirla, «✓ Meta cumplida · 3 días esta semana» («✓ Al día» con «Terminar lo
     de hoy»). La primera vez que se dibuja cumplida, el ✓ aparece con un leve aumento de 150 ms (un
-    fundido si Anki pide reducir las animaciones). Desde que hay dos días con datos, el globo de esa
-    línea dice «Cumplida 6 de los últimos 8 días.» (14 días como mucho; no cuentan la pausa ni los
-    días sin datos).
+    fundido si Anki pide reducir las animaciones). El historial de la meta está en Opciones.
   - Con «Terminar lo de hoy», la meta son las tarjetas respondidas hoy más las que aún vencen, con
     los límites diarios de Anki y sin los mazos excluidos; una vez cumplida, queda cumplida el resto
     del día. Si hoy no vence nada ni ha estudiado, «Hoy» se ve como sin meta.
   - En la pantalla de un mazo, «Hoy en este mazo», sin meta (la meta es de toda la colección).
 - «Racha» (solo con «Mostrar racha y meta»): los días seguidos con algún repaso. Debajo, por orden:
   «✓ hoy» o «hoy pendiente» (con su plan detrás si lo escribió: «hoy pendiente · al levantarme de la
-  cama»), «en pausa hasta el 5 nov.», los comodines que le quedan («1 comodín», con su regla en el
-  globo) y, a menos de 7 días de su récord, «a 3 días del récord». Si la racha actual no es la más
-  larga, el globo de la cifra dice «Récord: 12 días». Tras romperla, el primer día dice «Día 1». Sin
-  racha, «0 días» y «Última sesión: hace 4 días».
+  cama»), «en pausa hasta el 5 nov.», «a 3 días del récord» («a 1 día del récord») y los comodines
+  que le quedan («1 comodín»; su regla está en Opciones). El récord solo sale si la racha más larga
+  es mayor que la actual, de 7 días o más, y faltan 7 días o menos; cuando se supera, la línea de
+  sorpresa del mapa dice «Nueva racha más larga». Si la línea no cabe, lo primero que se pierde son
+  los comodines. Tras romperla, el primer día dice «Día 1». Sin racha, «0 días» y «Última sesión:
+  hace 4 días».
 - «Promedio diario»: tarjetas por día en el periodo de las cifras, contado desde el primer día con
   estudio de ese periodo; sin los días de pausa. Debajo, «últimos 30 días», «último año» o «todo el
-  historial». Sin ningún día completo estudiado, «N/A» en gris, con el motivo en el globo («Sin días
-  completos estudiados en los últimos 30 días»).
+  historial». Sin ningún día completo estudiado, «N/A» en gris y, debajo, en lugar del periodo, el
+  motivo: «Sin días completos estudiados en los últimos 30 días».
 - «Retención»: el porcentaje de repasos acertados en el mismo periodo, con el mismo texto debajo. Con
-  menos de 20 respuestas que medir, «N/A» con su motivo. Con FSRS y la misma retención deseada en
-  todo lo que cuenta, el globo del porcentaje dice «Objetivo: 90 %».
+  menos de 20 respuestas que medir, «N/A» en gris y, debajo, «Menos de 20 respuestas en los últimos
+  30 días». No dice el objetivo de FSRS (4.14.0): está en las opciones del mazo de Anki.
 - «Próxima fecha» (solo si hay alguna fecha clave de hoy en adelante): «faltan 23 días» o «es hoy» y,
   debajo, su nombre (varios, separados por «·»).
 

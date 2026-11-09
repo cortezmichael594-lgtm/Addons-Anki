@@ -315,11 +315,11 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             return;
         }
         var info = cell.getAttribute("data-gritmap-info");
-        /* Los globos de las tarjetas se pueden recorrer con el raton; el de
-         * los dias, no (FIX-029). 4.11.0, informe aprobado por el cliente. */
+        /* Los globos con texto hecho (desde la 4.14.0, los de la leyenda) se
+         * pueden recorrer con el raton; el de los dias, no (FIX-029). */
         bubble.classList.toggle("gritmap-tip-hover", !!info);
         if (info) {
-            /* Globo de una cifra de las estadisticas: el texto viene hecho. */
+            /* Globo de un cuadrito de la leyenda: el texto viene hecho. */
             bubble.innerHTML = info;
         } else {
             /* La cabecera de una fecha clave viene ya escapada desde Python
@@ -584,6 +584,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
             if (current) {
                 updateEdgeFade(current);
                 updateScale(current);
+                updateLineTips(current);
             }
         });
     }
@@ -636,6 +637,21 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         var shown = svg.getBoundingClientRect().width;
         if (shown > 0) {
             svg.style.setProperty("--gritmap-k", String(svg.viewBox.baseVal.width / shown));
+        }
+    }
+
+    /* La linea gris de una tarjeta lleva el globo del sistema con el texto
+     * entero solo si esta cortada con «…» (4.14.0, peticion del cliente):
+     * si cabe, no hay nada que leer al pasar el raton. */
+    function updateLineTips(container) {
+        var lines = container.querySelectorAll(".gritmap-line[data-gritmap-full]");
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            if (line.scrollHeight > line.clientHeight + 1 || line.scrollWidth > line.clientWidth + 1) {
+                line.setAttribute("title", line.getAttribute("data-gritmap-full"));
+            } else {
+                line.removeAttribute("title");
+            }
         }
     }
 
@@ -730,6 +746,7 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         }
         updateEdgeFade(container);
         updateScale(container);
+        updateLineTips(container);
         if (oldYear && newYear && newYear !== oldYear) {
             announce(newYear);
         }

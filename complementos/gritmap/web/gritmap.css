@@ -282,11 +282,11 @@ body.nightMode #gritmap-root {
     color: var(--gritmap-muted);
 }
 
-/* La cifra y su unidad, siempre como piezas separadas, tambien el % y las
- * cifras con globo (4.10.0, peticion del cliente: el % quedaba a otra altura
- * que «tarjetas» o «días»); desde la 4.11.0, por la linea base y a 4 px. */
-#gritmap-root .gritmap-big .gritmap-pct,
-#gritmap-root .gritmap-big .gritmap-tipped {
+/* La cifra y su unidad, siempre como piezas separadas, tambien el % (4.10.0,
+ * peticion del cliente: el % quedaba a otra altura que «tarjetas» o
+ * «días»); desde la 4.11.0, por la linea base y a 4 px. Desde la 4.14.0 las
+ * tarjetas no tienen globos ni subrayados de puntos (peticion del cliente). */
+#gritmap-root .gritmap-big .gritmap-pct {
     display: inline-flex;
     align-items: baseline;
     gap: 4px;
@@ -308,18 +308,6 @@ body.nightMode #gritmap-root {
 
 #gritmap-root .gritmap-big .gritmap-pct-space {
     display: none;
-}
-
-/* Con globo, el subrayado de puntos va solo bajo la cifra, no bajo la
- * unidad. */
-#gritmap-root .gritmap-big .gritmap-tipped:has(.gritmap-n, .gritmap-pct) {
-    text-decoration: none;
-}
-
-#gritmap-root .gritmap-big .gritmap-tipped .gritmap-n,
-#gritmap-root .gritmap-big .gritmap-tipped .gritmap-pct > span:not(.gritmap-unit, .gritmap-pct-space) {
-    text-decoration: underline dotted;
-    text-underline-offset: 2px;
 }
 
 #gritmap-root .gritmap-big.gritmap-muted {
@@ -745,23 +733,6 @@ body.nightMode #gritmap-root {
     margin-inline-start: 8px;
 }
 
-/* Textos con globo al pasar el raton o al llegar con el tabulador. */
-#gritmap-root .gritmap-tipped {
-    cursor: default;
-    text-decoration: underline dotted;
-    text-underline-offset: 2px;
-}
-
-#gritmap-root .gritmap-tipped:focus {
-    outline: none;
-}
-
-#gritmap-root .gritmap-tipped:focus-visible {
-    outline: 2px solid var(--gritmap-focus);
-    outline-offset: 2px;
-    border-radius: 3px;
-}
-
 #gritmap-root .gritmap-msg {
     color: var(--gritmap-muted);
 }
@@ -829,9 +800,9 @@ body.nightMode #gritmap-root {
 }
 
 /* 4.11.0 (informe aprobado por el cliente): la regla de FIX-029 vale para el
- * globo de los dias del mapa, donde se recorre deprisa. Los globos de las
- * tarjetas de debajo (comodines, record, objetivo, N/A) si se pueden recorrer
- * con el raton (WCAG 2.2, criterio 1.4.13). */
+ * globo de los dias del mapa, donde se recorre deprisa. Los demas globos (desde
+ * la 4.14.0, solo los de los cuadritos de la leyenda: las tarjetas ya no
+ * tienen) si se pueden recorrer con el raton (WCAG 2.2, criterio 1.4.13). */
 #gritmap-tip.gritmap-tip-hover {
     pointer-events: auto;
 }

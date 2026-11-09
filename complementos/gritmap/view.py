@@ -197,11 +197,6 @@ def _not_available_html() -> str:
     return html.escape(anki_text("statistics_true_retention_not_applicable", "not_available"))
 
 
-def _info_attrs(info_html: str) -> str:
-    """Globo al pasar el raton o al llegar con el tabulador."""
-    return f' data-gritmap-tip="1" data-gritmap-info="{html.escape(info_html, quote=True)}" tabindex="0"'
-
-
 def _period_text(window: int) -> str:
     if window == 365:
         return html.escape(t("period_year"))
@@ -276,10 +271,12 @@ def _plain(html_text: str) -> str:
 def _mini(title: str, big: str, line: str, big_class: str = "") -> str:
     """Tarjeta pequena de la fila de resumen: titulo, dato grande y linea gris.
 
-    Si la linea no cabe se corta con «…»; al pasar el raton se lee entera.
+    Si la linea no cabe se corta con «…»; al pasar el raton se lee entera,
+    pero solo entonces (4.14.0): gritmap.js pone el globo del sistema cuando
+    la linea esta cortada, y lo quita si cabe.
     """
     cls = f"gritmap-big {big_class}".strip()
-    tip = f' title="{html.escape(_plain(line), quote=True)}"' if line else ""
+    tip = f' data-gritmap-full="{html.escape(_plain(line), quote=True)}"' if line else ""
     return (
         '<section class="gritmap-card gritmap-mini">'
         f'<h3 class="gritmap-card-title">{html.escape(title)}</h3>'
@@ -373,12 +370,16 @@ def _today_card(data: HeatmapData, cfg: Config, deck_only: bool, celebrate: bool
         done_text = t("goal_up_to_date" if cfg.goal_mode == "due" else "goal_done")
         # La cuenta de la semana sale desde el primer dia (4.11.2, peticion
         # del cliente), y el historial va en el globo de «✓ Meta cumplida».
-        line = _with_tip(_check_html(done_text, celebrate), _goal_record_tip(data, cfg, True))
+        # Sin globo con el historial (4.14.0, peticion del cliente): sigue en
+        # Opciones, donde se decide cambiar la meta.
+        line = _check_html(done_text, celebrate)
         line += " · " + fill_html("goal_week", days=_days_html(goal_week_count(data)))
     else:
         left = goal - value
         unit = count_html(left, cfg.measure) if cfg.goal_mode == "number" else count_html(left, "cards")
-        line = _with_tip(fill_html("goal_left", count=unit), _goal_record_tip(data, cfg, False))
+        # «falta 1 tarjeta», «faltan 2 tarjetas»: la frase entera concuerda
+        # con la cifra (4.14.0).
+        line = fill_html(plural_key("goal_left", left), count=unit)
     return _mini(t("card_today"), big, line, "gritmap-big-ring")
 
 
@@ -427,19 +428,6 @@ def goal_record(
     return sum(marks), len(marks)
 
 
-def _goal_record_tip(data: HeatmapData, cfg: Config, today_met: bool) -> str:
-    """Globo de la linea de la meta en «Hoy» (4.11.2, peticion del cliente):
-    «Cumplida 6 de los últimos 8 días.», desde que hay dos dias con datos."""
-    met, total = goal_record(data, cfg.goal_mode, cfg.pause, today_met)
-    if total < 2:
-        return ""
-    return fill_html("goal_history", met=num_html(met), days=_days_html(total))
-
-
-def _with_tip(content: str, tip: str) -> str:
-    return f'<span class="gritmap-tipped"{_info_attrs(tip)}>{content}</span>' if tip else content
-
-
 def goal_week_count(data: HeatmapData) -> int:
     """Dias con la meta cumplida de lunes a hoy, hoy incluido (4.11.0).
 
@@ -478,16 +466,6 @@ def _pause_html(cfg: Config, today: date) -> str:
     return fill_html("paused_until", date=_date_html(cfg.pause[1]))
 
 
-def _with_record(big: str, stats: FullStats, current: int) -> str:
-    """La cifra de la racha con el record en su globo (4.10.0, peticion del
-    cliente: el record ya no va en la linea gris). Si la racha actual es la
-    mas larga, sin globo."""
-    if stats.longest_streak <= current:
-        return big
-    record = fill_html("record_was", days=_days_html(stats.longest_streak))
-    return f'<span class="gritmap-tipped"{_info_attrs(record[:1].upper() + record[1:])}>{big}</span>'
-
-
 def _streak_card(stats: FullStats, cfg: Config, today: date) -> str:
     """¿Llevo constancia? Informa sin presionar: nada de avisos de perdida.
 
@@ -502,12 +480,10 @@ def _streak_card(stats: FullStats, cfg: Config, today: date) -> str:
     if current == 0:
         days = stats.last_session
         ago = fill_html(plural_key("ago", days), count=num_html(days))
-        big = _with_record(_days_html(0), stats, 0)
-        return _mini(t("card_streak"), big, html.escape(_label("last_session")) + " " + ago)
+        return _mini(t("card_streak"), _days_html(0), html.escape(_label("last_session")) + " " + ago)
     gap = stats.longest_streak - current
     # Vuelta tras romperla: un comienzo, no un fracaso (Hopkins, C1).
     big = html.escape(t("day_one")) if current == 1 and stats.previous_best >= 2 else _days_html(current)
-    big = _with_record(big, stats, current)
     # --- FIX-031 (2026-10-27) ---------------------------------------
     # Sintoma: el ✓ de «✓ hoy» en «Racha» era gris y fino, y el de «✓ Meta
     #          cumplida» en «Hoy», del color del texto y en seminegrita.
@@ -525,17 +501,20 @@ def _streak_card(stats: FullStats, cfg: Config, today: date) -> str:
         parts[0] += " · " + html.escape(cfg.study_plan)
     if pause:
         parts.append(pause)
-    if cfg.freezes and stats.freezes_left > 0:
-        freezes = fill_html(plural_key("freeze", stats.freezes_left), count=num_html(stats.freezes_left))
-        parts.append(f'<span class="gritmap-tipped"{_info_attrs(html.escape(t("freeze_tip")))}>{freezes}</span>')
     # «Un año seguido» ya no va aqui, donde se cortaba el primero: es la
     # primera linea de sorpresa del mapa (4.8.0).
+    # El record, delante de los comodines (4.14.0, peticion del cliente):
+    # sale pocos dias y es lo que mas anima; los comodines estan siempre y,
+    # si la linea no cabe, se pierden ellos primero. Sin globos: la regla de
+    # los comodines esta en Opciones y el record se dice como distancia.
     if 0 < gap <= _RECORD_GAP_MAX and stats.longest_streak >= _RECORD_NEAR_MIN:
         parts.append(fill_html("record_near", days=_days_html(gap)))
+    if cfg.freezes and stats.freezes_left > 0:
+        parts.append(fill_html(plural_key("freeze", stats.freezes_left), count=num_html(stats.freezes_left)))
     return _mini(t("card_streak"), big, " · ".join(parts))
 
 
-def _retention_card(stats: FullStats, window: int, fsrs_target: float | None) -> str:
+def _retention_card(stats: FullStats, window: int) -> str:
     """¿Estoy aprendiendo de verdad? La retencion mide aprendizaje, no uso."""
     # --- FIX-002 (2026-07-27) --------------------------------------
     # Sintoma: la retencion aparecia como 0%, como si se hubiera fallado todo,
@@ -546,31 +525,27 @@ def _retention_card(stats: FullStats, window: int, fsrs_target: float | None) ->
     #        tomando el texto del propio Anki para que este en todos los
     #        idiomas. Un porcentaje solo se escribe si se ha calculado.
     # ---------------------------------------------------------------
-    line = _period_text(window)
     if stats.retention is None:
-        # El N/A explica su motivo al pasar el raton, como el del promedio.
+        # El N/A dice su motivo en la linea gris, en lugar del periodo, como
+        # el del promedio (4.14.0, peticion del cliente: sin globos).
         if window > 0:
             reason = fill_html("ret_na_days", min=num_html(RETENTION_MIN_REVIEWS), count=num_html(window))
         else:
             reason = fill_html("ret_na_all", min=num_html(RETENTION_MIN_REVIEWS))
-        big = f'<span class="gritmap-tipped"{_info_attrs(reason)}>{_not_available_html()}</span>'
-        return _mini(_label("retention"), big, line, "gritmap-muted")
-    big = pct_html(stats.retention)
-    if fsrs_target is not None:
-        # El objetivo va en el globo del porcentaje, no en la linea gris
-        # (4.10.0, peticion del cliente).
-        # «Objetivo: 90 %» (4.11.0, correccion del cliente).
-        target = fill_html("fsrs_target_tip", pct=pct_html(round_half_up(fsrs_target * 100)))
-        big = f'<span class="gritmap-tipped"{_info_attrs(target)}>{big}</span>'
-    return _mini(_label("retention"), big, line)
+        return _mini(_label("retention"), _not_available_html(), reason, "gritmap-muted")
+    # Sin el objetivo de FSRS (4.14.0, peticion del cliente): ya esta en las
+    # opciones del mazo de Anki.
+    return _mini(_label("retention"), pct_html(stats.retention), _period_text(window))
 
 
 def _average_card(stats: FullStats, measure: str, window: int) -> str:
     """Lo hecho por dia estudiado en el periodo de las cifras (4.1.0)."""
-    big = _average_html(stats.average, measure, window)
-    muted = "gritmap-muted" if "gritmap-tipped" in big else ""
+    big, reason = _average_html(stats.average, measure, window)
+    if reason:
+        # «N/A» en gris y, debajo, por que (4.14.0).
+        return _mini(_label("daily_avg"), big, reason, "gritmap-muted")
     # Sin «por dia estudiado» (4.7.1, peticion del cliente): solo el periodo.
-    return _mini(_label("daily_avg"), big, _period_text(window), muted)
+    return _mini(_label("daily_avg"), big, _period_text(window))
 
 
 def _next_card(key_dates: tuple[KeyDate, ...], today: date) -> str:
@@ -592,7 +567,7 @@ def build_summary(
     if cfg.show_streak:
         cards.append(_streak_card(stats, cfg, data.today))
     cards.append(_average_card(stats, cfg.measure, cfg.avg_window))
-    cards.append(_retention_card(stats, cfg.avg_window, data.fsrs_target))
+    cards.append(_retention_card(stats, cfg.avg_window))
     # «Próxima fecha», solo si hay alguna de hoy en adelante (4.8.0): quien
     # no usa fechas clave no ve una tarjeta vacia para siempre.
     if any(kd.day >= data.today for kd in cfg.key_dates):
@@ -991,20 +966,25 @@ def build_activity(
 # ---------------------------------------------------------------------------
 
 
-def _average_html(average: float | None, measure: str, window: int) -> str:
+def _average_html(average: float | None, measure: str, window: int) -> tuple[str, str]:
+    """(dato, motivo): el motivo solo cuando el dato es «N/A»; va en la linea
+    gris en lugar del periodo (4.14.0, peticion del cliente: sin globos en
+    las tarjetas)."""
     # --- FIX-010 (2026-10-08) --------------------------------------
     # Sintoma: «Promedio diario: 0 repasos» cuando la ventana no tenia ningun
     #          dia completo estudiado, un dato falso.
     # Causa: el promedio sin dias se trataba como 0 y se escribia como cifra.
     # Regla: sin dias que promediar se escribe «N/A» en gris, con el mismo
     #        estilo que la retencion, y solo entonces el globo explica por que.
+    #        (Desde la 4.14.0, a peticion del cliente, lo explica la linea
+    #        gris de la tarjeta, no un globo.)
     # ---------------------------------------------------------------
     if average is None:
         if window > 0:
             reason = fill_html("avg_na_days", count=num_html(window))
         else:
             reason = html.escape(t("avg_na_all"))
-        return f'<span class="gritmap-tipped"{_info_attrs(reason)}>{_not_available_html()}</span>'
+        return _not_available_html(), reason
     rounded = round_half_up(average)
     if measure == "new" and rounded == 0:
         # Decision del cliente (2026-10-09): con «Nuevas», un promedio que se
@@ -1017,8 +997,8 @@ def _average_html(average: float | None, measure: str, window: int) -> str:
             reason = fill_html("avg_na_new_days", count=num_html(window))
         else:
             reason = html.escape(t("avg_na_new_all"))
-        return f'<span class="gritmap-tipped"{_info_attrs(reason)}>{_not_available_html()}</span>'
-    return count_html(rounded, measure)
+        return _not_available_html(), reason
+    return count_html(rounded, measure), ""
 
 
 # Pagina completa y estados

@@ -19,6 +19,11 @@ Se actualiza al terminar cada sesión de un trabajo largo y se lee al retomarlo.
   motivo, está en «Así a propósito» de docs/nocturne/errores.md; el blanco puro del editor queda en
   «Pendientes».
 
+- 2026-11-09: GritMap 4.14.0 quita los globos de las tarjetas (informe breve del cliente del
+  mismo día, aprobado entero): récord delante de los comodines, motivo de «N/A» en la línea gris, sin
+  objetivo de FSRS, «falta 1 tarjeta» con la frase en plural en cada idioma y el globo del sistema
+  solo con la línea cortada. 54 pruebas.
+
 ## En curso
 
 - El pull request de la adaptación espera la revisión de la persona. No se fusiona sin ella.

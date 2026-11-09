@@ -217,6 +217,67 @@ class TodayCardTest(unittest.TestCase):
             self.assertTrue(texts.get("updating", "").endswith("…"), code)
 
 
+class NoCardTipsTest(unittest.TestCase):
+    """4.14.0: las tarjetas no tienen globos ni subrayados de puntos."""
+
+    def setUp(self) -> None:
+        anki.lang.current_lang = "es"
+        i18n.reset()
+
+    def streak_sample(self) -> HeatmapData:
+        # Racha de 18 dias (hasta ayer) y record de 21, hace mas de un mes.
+        past = {d: DayActivity(10, 10, 0) for d in range(1, 19)}
+        past.update({d: DayActivity(10, 10, 0) for d in range(30, 51)})
+        return HeatmapData(past=past, future_counts={}, today=TODAY, retention_days={})
+
+    def summary(self, data: HeatmapData, **changes: object) -> str:
+        cfg = replace(DEFAULT_CONFIG, **changes)
+        html = view.build_widget_html(data, cfg, 0)
+        return html[html.index('class="gritmap-summary') :]
+
+    def test_cards_have_no_tips_and_no_tab_stops(self) -> None:
+        summary = self.summary(self.streak_sample(), goal_mode="number", goal=2, freezes=True)
+        self.assertNotIn("data-gritmap-info", summary)
+        self.assertNotIn("data-gritmap-tip", summary)
+        self.assertNotIn("tabindex", summary)
+        self.assertNotIn("gritmap-tipped", summary)
+        self.assertNotIn(" title=", summary)
+
+    def test_record_goes_before_freezes(self) -> None:
+        summary = self.summary(self.streak_sample(), freezes=True)
+        streak = summary[summary.index(">Racha<") :]
+        line = streak[
+            streak.index('class="gritmap-line"') : streak.index("</div>", streak.index('class="gritmap-line"'))
+        ]
+        self.assertIn("del récord", line)
+        self.assertIn("comod", line)
+        self.assertLess(line.index("del récord"), line.index("comod"))
+
+    def test_goal_left_agrees_with_the_number(self) -> None:
+        one = self.summary(sample(past={0: DayActivity(1, 1, 0)}), goal_mode="number", goal=2)
+        self.assertIn("falta <span", one)
+        self.assertNotIn("faltan <span", one)
+        two = self.summary(sample(past={}), goal_mode="number", goal=2)
+        self.assertIn("faltan <span", two)
+
+    def test_not_available_says_why_in_the_grey_line(self) -> None:
+        summary = self.summary(sample(past={0: DayActivity(5, 5, 0)}, retention_days={}))
+        self.assertIn("Menos de <span", summary)
+        self.assertIn("Sin días completos estudiados en los últimos", summary)
+
+    def test_retention_has_no_fsrs_target(self) -> None:
+        summary = self.summary(sample())
+        self.assertNotIn("Objetivo", summary)
+
+    def test_grey_line_keeps_its_full_text_for_when_it_is_cut(self) -> None:
+        summary = self.summary(sample())
+        self.assertIn('class="gritmap-line" data-gritmap-full="', summary)
+
+    def test_goal_left_has_a_general_form_in_every_language(self) -> None:
+        for code, texts in i18n.STRINGS.items():
+            self.assertIn("{count}", texts.get("goal_left_other", ""), code)
+
+
 class WebExportsPatternTest(unittest.TestCase):
     """Regresion de FIX-015: el patron dejaba leer archivos de otros complementos."""
 
