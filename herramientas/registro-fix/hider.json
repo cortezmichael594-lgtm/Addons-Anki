@@ -1,0 +1,17 @@
+{
+  "complemento": "hider",
+  "fix": {
+    "FIX-001": [
+      "logic.py"
+    ],
+    "FIX-002": [
+      "logic.py"
+    ],
+    "FIX-003": [
+      "logic.py"
+    ],
+    "FIX-004": [
+      "logic.py"
+    ]
+  }
+}
