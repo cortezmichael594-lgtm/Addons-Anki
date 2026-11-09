@@ -1,6 +1,6 @@
 # Ficha de diseño: ProFeedback
 
-Versión 2.0.0 (21 de octubre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 2.1.0 (9 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
@@ -105,30 +105,20 @@ otro camino (lista de mazos, «Terminar» en el aviso de tiempo), no se celebra.
 
 ## 8. Ventana de opciones
 
-Ventana nativa (toma los colores de Atelier), título «ProFeedback», sin botón de ayuda. Recuerda tamaño
-y posición. Ancho mínimo 520 px. De arriba abajo:
+Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recuadros, Aceptar y Cancelar abajo, nada se guarda hasta Aceptar). El detalle completo de cada opción, con sus textos, está en el documento «qué hace» del complemento; aquí, lo que importa para el diseño.
 
-| Grupo / opción | Control | De serie |
-|---|---|---|
-| Volumen | Deslizador 0–100 con la cifra al lado («100 %»); la mitad suena a la mitad (escala perceptiva). Vale para todos los sonidos | 100 % |
-| Sonidos al responder: «Reproducir sonido al acertar (Bien/Fácil)» | Casilla | Marcada |
-| Sonido | Desplegable «Aleatorio» o uno de los sonidos, con botón «Probar» | Aleatorio |
-| Sonidos al finalizar: «Reproducir sonido al terminar de repasar» | Casilla | Marcada |
-| «Al terminar un mazo» | Desplegable + «Probar» (duolingo, khan, winners) | Aleatorio |
-| «Al terminar todos los mazos» | Desplegable + «Probar» (duolingo, mario bros) | Aleatorio |
-| «Al terminar un mazo (perfecto)» | Desplegable + «Probar» (winning1, winning2) | Aleatorio |
-| «Al terminar todos los mazos (perfecto)» | Desplegable + «Probar» (mario-bros, sound-celebration) | Aleatorio |
-| Aspecto: «Confeti» | Casilla | Marcada |
-| Aspecto: «Botones de respuesta 3D de colores» | Casilla | Marcada |
-| Aspecto: «Insignias en la tarjeta (Nueva/Difícil/Error anterior)» | Casilla | Marcada |
-
-- Al pie: «Para añadir sonidos propios, copie archivos .mp3 en la carpeta «user_files/sonidos» del
-  complemento.» y Aceptar y Cancelar.
-- Desplegable y «Probar» apagados si su casilla está desmarcada o no hay sonidos de ese tipo; entonces,
-  «No se encontraron archivos .mp3 en «sonidos/correcto».» (o «sonidos/finalizado»).
-- «Probar» suena con el volumen del deslizador, sin guardar. Cancelar devuelve el volumen guardado.
-- Aceptar guarda; los botones cambian al volver a entrar al repaso; las insignias, desde la tarjeta
-  siguiente.
+- Título «ProFeedback». Cuatro recuadros, sin «Restaurar»:
+  1. Volumen: deslizador de 0 a 100 (carril hundido de 6 px, tramo lleno del color de acción hasta el
+     valor, tirador redondo de 18 px con el borde de los controles) y la cifra «100 %» al lado, en
+     seminegrita.
+  2. «Sonidos al responder»: casilla y, colgando de ella, la lista desplegable «Sonido» («Aleatorio»
+     primero) con el botón secundario «Probar» al lado.
+  3. «Sonidos al finalizar»: casilla y cuatro listas con su «Probar» (mazo, todos, mazo perfecto,
+     todos perfecto).
+  4. «Aspecto»: tres casillas (confeti, botones 3D, insignias) y la nota gris sobre sonidos propios,
+     que nombra las cinco subcarpetas.
+- Lo que cuelga de una casilla desmarcada se ve atenuado al 45 %; una lista sin sonidos de su tipo,
+  también. «Probar» suena con el volumen del deslizador sin guardar; Cancelar devuelve el volumen.
 
 ## 9. Sonidos y letra propios
 
@@ -169,7 +159,6 @@ tamaño y posición de la ventana, en el perfil. Nada en la colección.
 
 ## 13. Fallos conocidos pendientes
 
-- La nota de sonidos propios no dice las subcarpetas: un .mp3 copiado como dice no aparece.
 - Deshacer una respuesta sin salir del repaso no se descuenta en la celebración del mazo.
 - Activar las insignias a mitad de repaso las muestra sin su aspecto hasta volver a entrar.
 - Elegir la insignia lee el historial de la tarjeta mientras Anki espera (pequeño; no medido).

@@ -180,17 +180,17 @@ es el nombre con el que las páginas de Anki la usan.
 |---|---|---|
 | Atelier (paquete «nocturne») | 3.8.0 | Temas de color completos para todo Anki: cinco paletas de día y de noche |
 | GritMap | 4.15.1 | Mapa de calor del estudio del año, con racha, meta diaria y fechas clave |
-| CoreProgress | 1.0.0 | Barra de progreso del repaso, con hitos, racha de aciertos y récord |
-| ProFeedback | 2.0.0 | Sonidos al acertar, insignias en la tarjeta, botones de colores y confeti al terminar |
-| Hider | 4.0.3 | Repaso sin distracciones: oculta barras y puntero, y entra directo al repaso |
-| Edit field during review | 1.0.0 | Corregir un campo con Ctrl+clic sobre la tarjeta, durante el repaso |
-| Always on Top | 1.2 | Mantener la ventana Añadir por encima de otros programas con un atajo |
-| Restart | 2.0.0 | Reiniciar Anki con un atajo (Ctrl+R) |
+| CoreProgress | 1.1.0 | Barra de progreso del repaso, con hitos, racha de aciertos y récord |
+| ProFeedback | 2.1.0 | Sonidos al acertar, insignias en la tarjeta, botones de colores y confeti al terminar |
+| Hider | 4.1.0 | Repaso sin distracciones: oculta barras y puntero, y entra directo al repaso |
+| Edit field during review | 1.1.0 | Corregir un campo con Ctrl+clic sobre la tarjeta, durante el repaso |
+| Always on Top | 1.3 | Mantener la ventana Añadir por encima de otros programas con un atajo |
+| Restart | 2.1.0 | Reiniciar Anki con un atajo (Ctrl+R) |
 
 La ventana de configuración de todos los complementos debe seguir el modelo del panel de GritMap,
 descrito pieza a pieza en `09-patron-configuracion.md` (decisión de la persona, 9 de noviembre de
 2026).
 
 Los complementos que pintan colores propios son Atelier, GritMap, CoreProgress, ProFeedback y Edit
-field during review. Hider, Always on Top y Restart solo usan ventanas y avisos estándar de Anki,
-que toman los colores de Atelier.
+field during review. Hider, Always on Top y Restart no pintan nada propio fuera de su ventana de opciones (el panel
+modelo) y de los avisos breves de Anki.

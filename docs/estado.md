@@ -32,6 +32,16 @@ Se actualiza al terminar cada sesión de un trabajo largo y se lee al retomarlo.
 - 2026-11-09: GritMap 4.15.1: «Propuesta: 5 (el 80 % de su promedio diario).», sin la cifra final,
   en 51 idiomas (petición del cliente).
 
+- 2026-11-09: las ventanas de opciones de CoreProgress 1.1.0, ProFeedback 2.1.0, Hider 4.1.0,
+  Restart 2.1.0, Always on Top 1.3 y Edit field during review 1.1.0 siguen el panel modelo de GritMap
+  (PROP-012), con una pieza común copiada en cada complemento (panel.py y web/panel.css y panel.js,
+  con el prefijo del paquete) y cuatro piezas nuevas en el modelo (deslizador, lista desplegable,
+  grabador de atajos y línea de dato). De paso: FIX-003 de CoreProgress (Restablecer), FIX-002 de
+  Always on Top (seis atajos del editor), FIX-004 y FIX-005 de Edit field (archivos compartidos y
+  colores) y FIX-004 de ProFeedback (subcarpetas de sonidos); y los fallos de comprobación que traían
+  de fuera del taller (importación fuera de Anki, notas FIX incompletas, colores sin marcar, tipos).
+  Pruebas nuevas en pruebas/<paquete>/. Va en el pull request #16.
+
 ## En curso
 
 - El pull request de la adaptación espera la revisión de la persona. No se fusiona sin ella.

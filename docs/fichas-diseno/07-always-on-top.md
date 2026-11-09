@@ -1,6 +1,6 @@
 # Ficha de diseño: Always on Top
 
-Versión 1.2 (21 de octubre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 1.3 (9 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
@@ -15,7 +15,7 @@ colección; solo guarda el atajo.
 ## 3. Aspecto propio
 
 No pinta nada: sin colores, iconos ni letra propios. Su interfaz son un aviso breve de Anki y una
-ventana de opciones nativa (colores de Atelier).
+ventana de opciones con el modelo del panel de GritMap (colores de la paleta).
 
 ## 4. Dónde actúa
 
@@ -48,26 +48,22 @@ ventana de opciones nativa (colores de Atelier).
 
 ## 7. Ventana de opciones
 
-- Título «Always on Top», sin botón de ayuda, modal, sobre la ventana que estuviera delante. Ancho
-  mínimo 420 px. No recuerda tamaño ni posición.
-- Una línea: «Atajo:» y un campo grabador de atajos con el actual, escrito con los nombres de teclas del
-  idioma (en español, «Control+Mayúsculas+O»). Con el cursor puesto al abrir y una pequeña cruz para
-  vaciarlo; vacío muestra en gris «Presione el atajo de teclado».
-- Graba la siguiente combinación que se pulse, sea cual sea: con el cursor en el campo, Intro y Esc se
-  graban («Retorno», «Escape») en vez de aceptar o cerrar, y luego se rechazan.
-- Botones estándar: «Restaurar los valores predeterminados» (pone Ctrl+Mayús+O, aviso de Anki «Se
-  restauró la configuración predeterminada», sin guardar), «Aceptar» y «Cancelar».
-- Aceptar: vacío, guarda Ctrl+Mayús+O (no se puede dejar sin atajo). Si no sirve, ventana «Always on
-  Top»: «No se puede usar «Control+Q». Elige una combinación que incluya Ctrl o Alt y que Anki no use
-  ya.», y la de opciones sigue abierta con el cursor en el campo. Si sirve, guarda y funciona al
-  momento, sin aviso.
+Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recuadros, Aceptar y Cancelar abajo, nada se guarda hasta Aceptar). El detalle completo de cada opción, con sus textos, está en el documento «qué hace» del complemento; aquí, lo que importa para el diseño.
+
+- Título «Always on Top». Un recuadro con «Restaurar los valores predeterminados» (y «Deshacer») y
+  el campo grabador «Atajo» con el foco al abrir: muestra la combinación con los nombres de teclas
+  del idioma («Control+Mayúsculas+O»), en seminegrita; vacío, «Presione el atajo de teclado» en gris.
+  A su lado, una cruz para vaciarlo. Graba la combinación que se pulse; Tab, Mayús+Tab y Esc siguen
+  haciendo lo suyo; Retroceso o Supr solos lo vacían.
+- Si la combinación no sirve, el aviso sale en rojo encima del campo (con icono) y el campo lleva
+  borde rojo; la ventana no se cierra.
 
 ## 8. Accesibilidad
 
 - Todo con el teclado: el atajo y la ventana (campo con el foco al abrir; botones con Tab).
 - Punto débil: el estado no se ve en ningún sitio salvo el aviso de 1,5 s; no hay indicador permanente
   (por ejemplo, en el título de Añadir).
-- Punto débil: Intro y Esc no funcionan como esperaría la persona dentro del campo del atajo.
+- Dentro del campo del atajo, Tab y Esc hacen lo de siempre (desde la 1.3); Intro sí se graba como parte de una combinación.
 - El aviso breve desaparece solo y puede no anunciarse al lector de pantalla.
 - Trato mezclado: «Presione» (usted) y «Elige» (tú).
 
@@ -90,8 +86,6 @@ función y sesión.
 
 ## 12. Fallos conocidos pendientes
 
-- Acepta seis atajos que el editor de Añadir de Anki 26.09.3 ya usa (Ctrl+. y Ctrl+, para listas,
-  Ctrl+Mayús+. y Ctrl+Mayús+, para sangría, Ctrl+= y Ctrl+Mayús+= para superíndice y subíndice).
 - Con las dos ventanas Añadir abiertas, solo cambia la última.
 
 ## 13. Decisiones tomadas a propósito

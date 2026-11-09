@@ -1,6 +1,6 @@
 # Ficha de diseño: Restart
 
-Versión 2.0.0 (21 de octubre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 2.1.0 (9 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
@@ -14,7 +14,7 @@ Para aplicar cambios de complementos o recuperar Anki sin cerrar y abrir a mano.
 ## 3. Aspecto propio
 
 No pinta nada: sin colores, iconos ni letra propios. Su interfaz son avisos breves de Anki, ventanas de
-aviso nativas y una ventana de opciones nativa (colores de Atelier).
+aviso nativas y una ventana de opciones con el modelo del panel de GritMap (colores de la paleta).
 
 ## 4. Dónde actúa
 
@@ -50,25 +50,17 @@ reinicio se anula en unos segundos (como mucho 5).
 
 ## 7. Ventana de opciones
 
-- Título «Restart», sin botón de ayuda, sobre la ventana de complementos. Ancho mínimo 420 px.
-- Casilla «Activar atajo para reiniciar Anki» (marcada). Desmarcada, el campo queda en gris y el atajo
-  deja de funcionar al aceptar.
-- Campo «Atajo:» grabador de combinaciones (Ctrl+R), con botón pequeño para vaciarlo; vacío al aceptar
-  conserva el guardado.
-- Botones Aceptar, Cancelar y Restaurar valores predeterminados (Qt). Restaurar marca la casilla y pone
-  Ctrl+R, sin guardar.
-- No se admiten: tecla suelta o solo con Mayús; combinaciones que Anki ya usa (Ctrl+Z, Ctrl+Q, Ctrl+P,
-  Ctrl+E, Ctrl+Mayús+A…), también de otros complementos; las de cerrar ventana (Ctrl+W, ⌘W, Ctrl+F4);
-  las del repaso con modificador (Ctrl+1 a Ctrl+7, Ctrl+Alt+N/E/I, Ctrl+Mayús+D, Ctrl+Supr,
-  Ctrl+Retroceso). Si no se admite: ventana «Restart» con «No se puede usar «Ctrl+W». Elige una
-  combinación que incluya Ctrl o Alt y que Anki no use ya.», y las opciones siguen abiertas.
-- Si se admite: guarda, cierra y funciona al momento, sin aviso.
-- Al abrir Anki, si el atajo guardado ya no sirve: aviso de 6 s «No se puede usar «…». Elige una
-  combinación que incluya Ctrl o Alt y que Anki no use ya.».
+Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recuadros, Aceptar y Cancelar abajo, nada se guarda hasta Aceptar). El detalle completo de cada opción, con sus textos, está en el documento «qué hace» del complemento; aquí, lo que importa para el diseño.
+
+- Título «Restart». Un recuadro con «Restaurar los valores predeterminados» (y «Deshacer»), la
+  casilla «Activar atajo para reiniciar Anki» y, colgando de ella, el campo grabador «Atajo» (Ctrl+R),
+  igual que el de Always on Top, atenuado si la casilla está desmarcada. Vacío al aceptar, conserva
+  el atajo guardado.
+- Si la combinación no sirve, el aviso sale en rojo encima del campo y la ventana no se cierra.
 
 ## 8. Accesibilidad
 
-- Funciona solo con el teclado; la ventana de opciones es nativa y accesible con Tab.
+- Funciona solo con el teclado; la ventana de opciones sigue el modelo del panel de GritMap, accesible con Tab.
 - No pide confirmación antes de reiniciar: un Ctrl+R accidental reinicia (sin pérdida de datos, porque
   es un cierre normal). Ctrl+R es un atajo frecuente en otros programas (recargar).
 - Los avisos breves desaparecen solos y pueden no anunciarse al lector de pantalla.

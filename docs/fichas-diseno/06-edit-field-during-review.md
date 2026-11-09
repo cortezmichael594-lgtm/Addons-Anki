@@ -1,6 +1,6 @@
 # Ficha de diseño: Edit field during review
 
-Versión 1.0.0 (21 de octubre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 1.1.0 (9 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
@@ -47,13 +47,12 @@ edición ni perder el hilo del repaso. Cada cambio se puede deshacer con Editar 
 
 | Uso | Día | Noche |
 |---|---|---|
-| Contorno del recuadro de edición | #1971C2 | #4A9EFF |
+| Contorno del recuadro de edición | BORDER_FOCUS, #3B6FE0 con Nocturne | BORDER_FOCUS, #6390FF con Nocturne |
 
-Observación para el rediseño: estos dos azules son fijos y no salen de la paleta Nocturne ni de
-Atelier (el azul de foco de la paleta es BORDER_FOCUS, #3B6FE0 de día y #6390FF de noche). Con Atelier
-en Bosque, Lavanda, Atardecer o Papel, el recuadro sigue azul aunque el color de acción sea otro. Se
-marcan como importantes para que ninguna plantilla de tarjeta los oculte. El resto lo dibuja la
-plantilla de la tarjeta.
+Desde la 1.1.0 el contorno usa el color de foco de la paleta, así que con Atelier sigue al color de
+acción de cada paleta (hasta la 1.0.0 eran dos azules fijos, #1971C2 y #4A9EFF). Se marca como
+importante para que ninguna plantilla de tarjeta lo oculte. El resto lo dibuja la plantilla de la
+tarjeta.
 
 ## 6. Qué se puede editar y qué no
 
@@ -75,9 +74,11 @@ plantilla de la tarjeta.
 
 ## 8. Ventana de opciones
 
-Ventana nativa (colores de Atelier), título «Edit field during review» (en inglés en todos los idiomas).
-Una casilla: «Exigir Ctrl + clic para empezar a editar (⌘ en Mac)», marcada de serie. Aceptar (sin
-aviso) y Cancelar. Se aplica desde la siguiente cara o tarjeta. No recuerda tamaño ni posición.
+Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recuadros, Aceptar y Cancelar abajo, nada se guarda hasta Aceptar). El detalle completo de cada opción, con sus textos, está en el documento «qué hace» del complemento; aquí, lo que importa para el diseño.
+
+- Título «Edit field during review» (en inglés en todos los idiomas). Un recuadro con «Restaurar los
+  valores predeterminados» (y «Deshacer») y la casilla «Exigir Ctrl + clic para empezar a editar (⌘
+  en Mac)», marcada de serie. Es el panel más pequeño: alto justo para su contenido.
 
 ## 9. Mensajes (avisos breves de Anki, 3 s)
 
@@ -117,8 +118,6 @@ sincroniza). Sin historial propio ni archivos.
 ## 14. Fallos conocidos pendientes
 
 - Dos campos con el mismo contenido en bloques distintos: edita siempre el primero.
-- Una tarjeta preparada a propósito podría hacer que el repaso cargue archivos de estilo o código de
-  otros complementos (regla de compartición demasiado abierta).
 - Tras editar un campo con fórmula, se ve el código hasta cambiar de cara.
 - En plantillas de huecos con otro campo en el mismo bloque, ese otro campo no se puede editar y
   desaparece mientras se edita el de huecos.

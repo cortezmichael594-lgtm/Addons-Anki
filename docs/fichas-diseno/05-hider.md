@@ -1,6 +1,6 @@
 # Ficha de diseño: Hider
 
-Versión 4.0.3 (21 de octubre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 4.1.0 (9 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
@@ -16,7 +16,7 @@ Para un repaso a pantalla limpia, con el teclado, sin elementos que distraigan n
 ## 3. Aspecto propio
 
 No pinta nada propio: no tiene colores, iconos ni letra propios. Su efecto es quitar cosas. Su única
-interfaz es una ventana de opciones nativa (que toma los colores de Atelier) y avisos breves de Anki
+interfaz es una ventana de opciones con el modelo del panel de GritMap (colores de la paleta) y avisos breves de Anki
 (recuadro amarillo con letra negra, propio de Anki).
 
 ## 4. Dónde actúa
@@ -79,36 +79,23 @@ mazos. S: pantalla del mazo.
 
 ## 10. Ventana de opciones
 
-Título «Configurar 'Hider'» (el de Anki para cualquier complemento). Sin botón de ayuda. Modal. No
-recuerda tamaño ni posición. Ancho mínimo 420 px. Cada opción tiene un globo de ayuda al pasar el ratón.
+Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recuadros, Aceptar y Cancelar abajo, nada se guarda hasta Aceptar). El detalle completo de cada opción, con sus textos, está en el documento «qué hace» del complemento; aquí, lo que importa para el diseño.
 
-Grupo «Durante el repaso, ocultar:»
-
-| Opción | Globo | De serie |
-|---|---|---|
-| «La barra de menú (Archivo, Editar, Herramientas...)» | «Vuelve a aparecer en cuanto sales del repaso.» | Marcada |
-| «La barra superior (Mazos, Añadir, Explorar, Estadísticas)» | «Vuelve a aparecer en cuanto sales del repaso.» | Marcada |
-| «La barra inferior de la ventana» | «Vuelve a aparecer en cuanto sales del repaso.» | Marcada |
-| «La barra de desplazamiento de la tarjeta» | «Solo visual: puedes seguir bajando con la rueda del ratón. El cambio se nota en la tarjeta siguiente.» (en realidad se nota en el acto) | Marcada |
-| «Los botones «Difícil» y «Fácil»» | «Deja solo «Otra vez» y «Bien». Sus atajos de teclado también quedan bloqueados, para que no respondas sin querer con un botón que no ves.» | Marcada |
-| «El puntero del ratón cuando lleva quieto:» + número «3 s» (1 a 60), apagado si la casilla está desmarcada | «Reaparece en cuanto mueves el ratón.» | Marcada, 3 s |
-
-Grupo «Comportamiento»
-
-| Opción | Globo | De serie |
-|---|---|---|
-| «Empezar el repaso automáticamente al abrir un mazo» | «Solo si hay tarjetas pendientes. Si eres tú quien sale del repaso, Hider no te vuelve a meter dentro.» | Marcada |
-
-Botones Aceptar, Cancelar y Restaurar valores predeterminados (textos de Qt). Restaurar marca todo y
-pone 3 s, con el aviso de Anki «Se restauró la configuración predeterminada», sin guardar. Aceptar
-guarda, aplica en el acto y avisa 2 s: «Configuración de Hider guardada.». Si no se puede guardar,
-ventana «Hider»: «No se ha podido guardar la configuración de Hider.».
+- Título «Configurar 'Hider'» (el de Anki para cualquier complemento).
+- Recuadro «Durante el repaso, ocultar», con la nota gris «Vuelve a aparecer en cuanto sales del
+  repaso.» bajo el título y «Restaurar los valores predeterminados» (y «Deshacer») a la derecha: seis
+  casillas. Las explicaciones, que antes eran globos al pasar el ratón, son ahora notas grises a la
+  vista bajo su casilla. Los segundos del puntero (1 a 60, con «−» y «+» y «s» al lado) cuelgan de su
+  casilla y se atenúan si está desmarcada.
+- Recuadro «Comportamiento», con su «Restaurar»: la casilla del salto automático y su nota.
+- Al aceptar, aviso breve de Anki «Configuración de Hider guardada.»; si no se puede guardar, el aviso
+  sale en rojo encima de la primera casilla y la ventana sigue abierta.
 
 ## 11. Accesibilidad
 
 - Pensado para el teclado: con la barra inferior oculta, todo el repaso se hace con los atajos de Anki.
 - El bloqueo de 2 y 4 evita respuestas sin querer con un botón invisible, y lo explica con un aviso.
-- Los globos de ayuda explican cada opción.
+- Las notas grises bajo cada casilla explican cada opción, a la vista.
 - Riesgos para quien no conoce los atajos: sin barra inferior no hay forma visible de responder; el
   puntero oculto puede desorientar. Ningún aviso al entrar explica cómo repasar sin barra.
 - Los avisos breves de Anki desaparecen solos (2–4 s) y no se anuncian necesariamente al lector de

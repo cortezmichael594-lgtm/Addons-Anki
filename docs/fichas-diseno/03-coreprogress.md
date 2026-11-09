@@ -1,6 +1,6 @@
 # Ficha de diseño: CoreProgress
 
-Versión 1.0.0 (21 de octubre de 2026). Léase junto con `00-contexto-comun.md`. Es un complemento que
+Versión 1.1.0 (9 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. Es un complemento que
 la persona trajo hecho fuera del taller: algunos colores y textos no siguen la paleta Nocturne ni el
 trato de usted (se indica en cada caso).
 
@@ -128,35 +128,25 @@ Rojo fuego, que GritMap retiró.
 
 ## 9. Ventana de opciones
 
-Ventana nativa de Anki (toma los colores de Atelier), título «CoreProgress» (sin traducir, a petición
-del usuario). Modal. No recuerda tamaño ni posición. Ancho mínimo de unos 400 px.
+Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recuadros, Aceptar y Cancelar abajo, nada se guarda hasta Aceptar). El detalle completo de cada opción, con sus textos, está en el documento «qué hace» del complemento; aquí, lo que importa para el diseño.
 
-- Arriba, el récord con la cifra en negrita: «Tu récord actual: -» o «Tu récord actual: 7 seguidas!»
-  (sin signo de apertura, a petición del usuario). A la derecha, «Restablecer», que pregunta en una
-  ventana «Anki»: «¿Poner tu récord a cero?», con «Sí» marcado de antemano.
-
-| Opción | Control | Valores | De serie |
-|---|---|---|---|
-| Tema de color | Lista desplegable, cada tema con un cuadrito de muestra (siempre en su tono de día) | Verde clásico, Azul océano, Turquesa laguna, Rojo fuego, Rosa suave, Púrpura real, Naranja atardecer | Verde clásico |
-| Altura de la barra (px) | Campo numérico | 12 a 22; también escala hitos y números | 16 |
-| Espacio superior (px) | Campo numérico, flechas de 4 en 4 | 0 a 300 px libres encima de la tarjeta | 0 |
-| Excluir mazos (récord) | Botón «Seleccionar mazos» | — | Ninguno |
-| Efectos de racha y récord (aura/oro/texto) | Casilla | Avisos, dorado, avivado, chispas de avisos | Marcada |
-| Mostrar hitos en la barra | Casilla | — | Marcada |
-
-- Botones estándar Guardar, Cancelar y Restaurar valores predeterminados (textos de Qt). Restaurar
-  repone tema, altura, espacio y casillas sin guardar; no toca récord ni mazos excluidos.
-- Guardar: si está repasando, la barra se redibuja al momento.
-- «Seleccionar mazos» abre «Excluir mazos (récord)»: lista de todos los mazos con nombre completo
-  (submazos con «::»), incluidos filtrados y el predeterminado, cada uno con casilla; Aceptar y Cancelar.
-  Sin buscador ni textos de ayuda (retirados a petición del usuario). Lista de al menos 180 px de alto.
+- Título «CoreProgress». Tres recuadros:
+  1. Línea de dato con acción: «Tu récord actual: **7 seguidas!**» y el enlace «Restablecer» a la
+     derecha (apagado sin récord). Pregunta en un diálogo dentro del panel «¿Poner tu récord a
+     cero?» con «Sí» y «No» y el foco en «No»; el borrado solo se aplica al pulsar Aceptar.
+  2. Aspecto de la barra, con «Restaurar los valores predeterminados» (y «Deshacer»): fichas de tema
+     en dos columnas con muestra de 16 px (siempre el tono de día) y ✓; «Altura de la barra» y
+     «Espacio superior» con «−» y «+» y «px» al lado; dos casillas (efectos y hitos).
+  3. Fila de resumen «Excluir mazos (récord)» con los nombres excluidos (o «-»), que abre una
+     subpágina con buscador y la lista de mazos con casillas, sin textos de ayuda.
+- Los textos de Aceptar, Cancelar, Restaurar, Sí y No son los de Qt en el idioma de Anki.
 
 ## 10. Accesibilidad
 
 - La barra no recibe foco ni clics (los atraviesan): no interfiere con el teclado del repaso.
 - Movimiento reducido respetado en parte (apartado 8).
 - Lo que no tiene: la barra, los hitos y los avisos no se anuncian al lector de pantalla; los avisos se
-  apoyan en el color (dorado) y en el texto en mayúsculas; la ventana de opciones es nativa y accesible
+  apoyan en el color (dorado) y en el texto en mayúsculas; la ventana de opciones sigue el modelo del panel de GritMap, con su teclado y su lector de pantalla
   como cualquier ventana de Anki; los colores del relleno no se han medido contra la norma de
   contraste. Son puntos de mejora posibles.
 
@@ -180,8 +170,6 @@ arrancar Anki.
   bajar el récord.
 - «1 seguidas!» en singular (plural fijo).
 - Con «Espacio superior» en 0, la barra y el aviso tapan la parte alta de la tarjeta.
-- «Restablecer» trae «Sí» marcado de antemano y borra el récord sin vuelta atrás, aunque después se
-  pulse Cancelar.
 
 ## 14. Decisiones tomadas a propósito
 

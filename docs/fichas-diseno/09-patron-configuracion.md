@@ -185,6 +185,30 @@ Fechas:
   32 px, días de la semana en 11 px gris. Hoy con borde del color del texto; el elegido relleno de
   acción con texto blanco; días de otro mes en gris; días no válidos al 45 %.
 
+Piezas añadidas el 9 de noviembre de 2026 (las pidieron ProFeedback, Restart, Always on Top y
+CoreProgress; mismo lenguaje que las demás):
+
+- Deslizador (para un valor continuo, como el volumen): carril hundido de 6 px con esquinas de 3 px y
+  borde fino, lleno del color de acción hasta el valor; tirador redondo de 18 px con fondo de capa
+  elevada y el borde de los controles (fondo de pasar el ratón al pasarlo). A la derecha, la cifra con
+  su unidad («100 %») en seminegrita. Las flechas lo mueven de uno en uno; el lector de pantalla oye
+  la cifra con su unidad.
+- Lista desplegable (para elegir uno entre muchos o entre una lista que crece, como los sonidos): un
+  selector real de 32 px, borde de control, esquinas de 8 px, fondo de capa elevada, flecha hacia abajo
+  en gris a la derecha; la primera opción es la neutra («Aleatorio»). Puede llevar al lado un botón
+  secundario de acción («Probar»). Sin opciones útiles, la lista y su botón se atenúan.
+- Campo grabador de atajos: campo de 32 px con la combinación en seminegrita, escrita con los nombres
+  de teclas del sistema y del idioma («Control+Mayúsculas+O»); vacío, el texto de ayuda en gris. Al
+  lado, un botón de icono con una cruz para vaciarlo. Graba la combinación que se pulse con el foco en
+  él; el tabulador, Mayús+Tab y Esc siguen haciendo lo suyo, y Retroceso o Supr solos lo vacían. Si la
+  combinación no sirve, el aviso de error va encima del campo y el campo lleva borde rojo.
+- Línea de dato con acción (para un dato que se puede reiniciar, como un récord): el texto con el dato
+  en negrita a la izquierda y un enlace de acción a la derecha («Restablecer»), apagado si no hay nada
+  que hacer. Si la acción borra algo sin vuelta atrás, pregunta con el diálogo de abajo con el foco en
+  «No», y el cambio solo se aplica al pulsar Aceptar.
+- Recuadro sin título: para un grupo único o para un dato suelto; si tiene «Restaurar», el enlace va
+  solo, arriba a la derecha.
+
 Mensajes:
 
 - Aviso dentro del panel (por ejemplo, un tema retirado): franja hundida, esquinas de 8 px, relleno de 8
@@ -233,26 +257,27 @@ Mensajes:
 - Nunca se corta un texto con «…» en un botón o un segmento: pasa a otra línea o a lista vertical.
 - Idiomas de derecha a izquierda: el panel se refleja; el calendario conserva su orden.
 
-## 9. Qué piezas usarían los demás complementos
+## 9. Dónde se usa
 
-| Complemento | Opción actual | Pieza del modelo |
+Desde el 9 de noviembre de 2026, todos los complementos del taller abren sus opciones con este panel:
+GritMap (el original), Atelier (su panel de paletas copia las mismas medidas), CoreProgress 1.1.0,
+ProFeedback 2.1.0, Hider 4.1.0, Restart 2.1.0, Always on Top 1.3 y Edit field during review 1.1.0.
+
+| Complemento | Opción | Pieza |
 |---|---|---|
+| CoreProgress | Récord actual y «Restablecer» | Línea de dato con acción, en un recuadro sin título |
 | CoreProgress | Tema de color (7) | Fichas con muestra |
-| CoreProgress | Altura de la barra, Espacio superior | Campo con «−» y «+» y su regla |
+| CoreProgress | Altura de la barra, Espacio superior | Campo con «−» y «+» y «px» al lado |
 | CoreProgress | Efectos de racha y récord, Mostrar hitos | Casillas |
-| CoreProgress | Excluir mazos (récord) | Fila de resumen con subpágina (buscador y árbol, como GritMap) |
-| CoreProgress | Récord actual y «Restablecer» | Por diseñar: una línea de dato con enlace de acción y pregunta de confirmación con el foco en «No» |
-| ProFeedback | Volumen 0–100 | Por diseñar: deslizador (el modelo no tiene) o campo con «−» y «+» |
+| CoreProgress | Excluir mazos (récord) | Fila de resumen con subpágina (buscador y lista con casillas) |
+| ProFeedback | Volumen 0–100 | Deslizador |
+| ProFeedback | Sonidos (Aleatorio o uno) con «Probar» | Lista desplegable con botón secundario, colgando de su casilla |
 | ProFeedback | Casillas de sonidos y de aspecto | Casillas, con lo dependiente agrupado y atenuado |
-| ProFeedback | Elegir sonido (Aleatorio o uno) con «Probar» | Por diseñar: lista desplegable (el modelo no tiene) o fichas, más un botón secundario «Probar» |
-| Hider | Seis casillas de «Durante el repaso, ocultar» y una de comportamiento | Dos recuadros con casillas; los globos actuales pasan a notas grises debajo |
+| Hider | Seis casillas de «Durante el repaso, ocultar» y una de comportamiento | Dos recuadros con casillas; los antiguos globos son notas grises debajo |
 | Hider | Segundos del puntero (1–60) | Campo con «−» y «+», dependiente de su casilla |
-| Restart | Activar atajo | Casilla |
-| Restart | Atajo | Por diseñar: campo grabador de atajos (el modelo no tiene) |
-| Always on Top | Atajo | Por diseñar: el mismo campo grabador de atajos |
-| Edit field during review | Exigir Ctrl + clic | Una casilla en un recuadro; panel muy pequeño |
+| Restart | Activar atajo y Atajo | Casilla con el campo grabador colgando de ella |
+| Always on Top | Atajo | Campo grabador de atajos |
+| Edit field during review | Exigir Ctrl + clic | Una casilla en un recuadro |
 
-Piezas que faltan por diseñar con el mismo lenguaje: deslizador, lista desplegable, campo grabador de
-atajos y línea de dato con acción. En ventanas con una o dos opciones (Edit field, Always on Top,
-Restart), conviene decidir si el panel completo de 560 px compensa o basta con un recuadro más
-estrecho y el mismo pie.
+Los paneles con una o dos opciones usan el mismo ancho de 560 px y el alto justo para su contenido
+(decisión de la persona, 9 de noviembre de 2026).
