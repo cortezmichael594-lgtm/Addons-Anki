@@ -1,0 +1,837 @@
+/* Panel de opciones con el modelo de GritMap
+ * (docs/fichas-diseno/09-patron-configuracion.md).
+ *
+ * El mismo material que el panel de GritMap: fondo de Anki, recuadros de capa
+ * elevada con borde suave y esquinas de 10 px, la letra de Anki y la escala de
+ * espacios 4, 8, 16, 24 y 32. Un solo azul (el de accion de Anki) para lo que
+ * se pulsa, lo elegido y el foco. Todo sale de la paleta Nocturne; el borde de
+ * los controles es NOCTURNE_CONTROL_BORDER (3:1 o mas), que no tiene variable
+ * CSS. Sin animaciones, salvo el hundimiento de 1 px al pulsar.
+ *
+ * Todo lleva el prefijo «always_on_top-» (nombre del paquete).
+ */
+
+#always_on_top-app {
+    --always_on_top-canvas: var(--canvas, #F7F8FA);
+    --always_on_top-card: var(--canvas-elevated, #FBFCFE);
+    --always_on_top-overlay: var(--canvas-overlay, #FBFCFE);
+    --always_on_top-inset: var(--canvas-inset, #EEF0F4);
+    --always_on_top-fg: var(--fg, #1B2430);
+    --always_on_top-muted: var(--fg-subtle, #4E576A);
+    --always_on_top-card-border: var(--border-subtle, #E8EAF0);
+    --always_on_top-line: var(--border, #DADEE7);
+    --always_on_top-control: #878C97; /* colores-ok: NOCTURNE_CONTROL_BORDER (día), sin variable CSS en Anki */
+    --always_on_top-accent: var(--button-primary-bg, #3B6FE0);
+    --always_on_top-on-accent: var(--highlight-fg, #FFFFFF);
+    --always_on_top-focus: var(--border-focus, #3B6FE0);
+    --always_on_top-selected: var(--nocturne-row-highlight, #EAEEF8);
+    --always_on_top-hover: var(--button-gradient-start, #EDF0F5);
+    --always_on_top-danger: var(--accent-danger, #CA2D2D);
+    --always_on_top-shadow: var(--shadow-subtle, #1B243012);
+    --always_on_top-shadow-float: var(--shadow, #1B243026);
+}
+
+html.night-mode #always_on_top-app {
+    --always_on_top-canvas: var(--canvas, #12161F);
+    --always_on_top-card: var(--canvas-elevated, #212836);
+    --always_on_top-overlay: var(--canvas-overlay, #293040);
+    --always_on_top-inset: var(--canvas-inset, #0F131B);
+    --always_on_top-fg: var(--fg, #D6DAE1);
+    --always_on_top-muted: var(--fg-subtle, #B7BECC);
+    --always_on_top-card-border: var(--border-subtle, #1F2635);
+    --always_on_top-line: var(--border, #2C3444);
+    --always_on_top-control: #727B8C; /* colores-ok: NOCTURNE_CONTROL_BORDER (noche), sin variable CSS en Anki */
+    --always_on_top-accent: var(--button-primary-bg, #4066E6);
+    --always_on_top-on-accent: var(--highlight-fg, #FFFFFF);
+    --always_on_top-focus: var(--border-focus, #6390FF);
+    --always_on_top-selected: var(--nocturne-row-highlight, #19233F);
+    --always_on_top-hover: var(--button-gradient-start, #2E3747);
+    --always_on_top-danger: var(--accent-danger, #F37777);
+    /* De noche no hay sombras: la profundidad la dan los fondos. */
+    --always_on_top-shadow: transparent;
+    --always_on_top-shadow-float: transparent;
+}
+
+/* La pagina entera nunca se desplaza: solo el cuerpo del panel (regla de
+ * FIX-028 de GritMap). overflow: clip y no hidden: hidden aun deja desplazar
+ * con el foco. */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: clip;
+    background: var(--canvas, #F7F8FA);
+}
+
+html.night-mode body {
+    background: var(--canvas, #12161F);
+}
+
+#always_on_top-app,
+#always_on_top-app * {
+    box-sizing: border-box;
+}
+
+#always_on_top-app {
+    height: 100%;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--always_on_top-fg);
+    background: var(--always_on_top-canvas);
+    font-variant-numeric: tabular-nums;
+    /* Ningun texto se selecciona, salvo lo que se escribe en los campos. */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#always_on_top-app input[type="search"] {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+#always_on_top-app [hidden] {
+    display: none !important;
+}
+
+/* Cabecera y pie fijos; el cuerpo se desplaza si no cabe. */
+#always_on_top-app .always_on_top-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#always_on_top-app .always_on_top-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 24px;
+}
+
+#always_on_top-app .always_on_top-head h1 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+}
+
+#always_on_top-app .always_on_top-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    /* 4 px arriba: el contorno de foco del primer control no se corta. */
+    padding: 4px 12px 12px 12px;
+    scroll-padding: 16px 0;
+}
+
+#always_on_top-app .always_on_top-scrolled .always_on_top-head {
+    border-bottom: 1px solid var(--always_on_top-line);
+}
+
+#always_on_top-app .always_on_top-foot {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    min-height: 52px;
+    align-items: center;
+    padding: 0 24px;
+}
+
+#always_on_top-app .always_on_top-overflow .always_on_top-foot {
+    border-top: 1px solid var(--always_on_top-line);
+}
+
+/* En Windows, Aceptar va primero, como en sus ventanas; en macOS y Linux, a
+ * la derecha. */
+body.isWin #always_on_top-app .always_on_top-foot .always_on_top-primary {
+    order: -1;
+}
+
+/* Recuadros */
+#always_on_top-app .always_on_top-card {
+    background: var(--always_on_top-card);
+    border: 1px solid var(--always_on_top-card-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px var(--always_on_top-shadow);
+}
+
+#always_on_top-app .always_on_top-card + .always_on_top-card {
+    margin-top: 12px;
+}
+
+#always_on_top-app .always_on_top-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-height: 28px;
+}
+
+#always_on_top-app .always_on_top-card-head h2 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#always_on_top-app .always_on_top-card-actions {
+    display: flex;
+    gap: 4px;
+    margin-inline-start: auto;
+}
+
+#always_on_top-app .always_on_top-card-note {
+    margin: 4px 0 0 0;
+    color: var(--always_on_top-muted);
+}
+
+/* La primera opcion de un recuadro sin titulo no deja hueco arriba. */
+#always_on_top-app .always_on_top-card > .always_on_top-option:first-child {
+    margin-top: 0;
+}
+
+#always_on_top-app .always_on_top-option {
+    margin-top: 16px;
+}
+
+#always_on_top-app .always_on_top-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+#always_on_top-app .always_on_top-rule {
+    margin: 8px 0 0 0;
+    color: var(--always_on_top-muted);
+}
+
+/* Ayuda bajo una casilla: alineada con su texto (18 px de cuadro y 8 de hueco). */
+#always_on_top-app .always_on_top-check + .always_on_top-rule {
+    margin: 0 0 0 26px;
+}
+
+/* Aviso: franja hundida con icono de informacion, nunca en rojo. */
+#always_on_top-app .always_on_top-notice {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--always_on_top-inset);
+}
+
+#always_on_top-app .always_on_top-notice svg {
+    flex: none;
+    margin-top: 2px;
+    color: var(--always_on_top-muted);
+}
+
+/* Botones */
+#always_on_top-app button {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+    cursor: pointer;
+}
+
+#always_on_top-app .always_on_top-btn {
+    min-height: 32px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid var(--always_on_top-control);
+    background: var(--always_on_top-card);
+    color: var(--always_on_top-fg);
+    white-space: nowrap;
+}
+
+#always_on_top-app .always_on_top-btn:hover:not(:disabled) {
+    background: var(--always_on_top-hover);
+}
+
+#always_on_top-app .always_on_top-btn:active:not(:disabled),
+#always_on_top-app .always_on_top-step button:active:not(:disabled),
+#always_on_top-app .always_on_top-row:active,
+#always_on_top-app .always_on_top-link:active {
+    transform: translateY(1px);
+}
+
+#always_on_top-app .always_on_top-primary {
+    border-color: var(--always_on_top-accent);
+    background: var(--always_on_top-accent);
+    color: var(--always_on_top-on-accent);
+    font-weight: 600;
+}
+
+#always_on_top-app .always_on_top-primary:hover:not(:disabled) {
+    background: var(--always_on_top-accent);
+    filter: brightness(1.06);
+}
+
+/* Boton terciario: texto azul sin fondo («Restaurar», «Deshacer»). */
+#always_on_top-app .always_on_top-link {
+    min-height: 28px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--always_on_top-accent);
+    font-weight: 600;
+}
+
+#always_on_top-app .always_on_top-link:hover {
+    background: var(--always_on_top-hover);
+}
+
+#always_on_top-app .always_on_top-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--always_on_top-muted);
+}
+
+#always_on_top-app .always_on_top-icon-btn:hover:not(:disabled) {
+    background: var(--always_on_top-hover);
+    color: var(--always_on_top-fg);
+}
+
+#always_on_top-app .always_on_top-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 28px;
+    padding: 0 8px 0 4px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--always_on_top-accent);
+    font-weight: 600;
+}
+
+#always_on_top-app .always_on_top-back:hover {
+    background: var(--always_on_top-hover);
+}
+
+/* Foco del teclado: contorno azul de 2 px separado 2 px. Anki quita el
+ * contorno de todos sus botones; por eso !important. */
+#always_on_top-app button:focus-visible,
+#always_on_top-app input:focus-visible,
+#always_on_top-app select:focus-visible,
+#always_on_top-app .always_on_top-chip:has(input:focus-visible),
+#always_on_top-app .always_on_top-check:has(input:focus-visible) .always_on_top-box {
+    outline: 2px solid var(--always_on_top-focus) !important;
+    outline-offset: 2px;
+}
+
+/* Fichas: botones de opcion de verdad, con su teclado. */
+#always_on_top-app .always_on_top-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#always_on_top-app .always_on_top-chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--always_on_top-control);
+    border-radius: 8px;
+    background: var(--always_on_top-card);
+    cursor: pointer;
+}
+
+#always_on_top-app .always_on_top-chip:hover {
+    background: var(--always_on_top-hover);
+}
+
+#always_on_top-app .always_on_top-chip:has(input:checked) {
+    border: 2px solid var(--always_on_top-accent);
+    padding: 0 11px;
+    background: var(--always_on_top-selected);
+}
+
+#always_on_top-app .always_on_top-chip input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
+
+#always_on_top-app .always_on_top-swatch {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+#always_on_top-app .always_on_top-chip-name {
+    flex: 1;
+    min-width: 0;
+}
+
+#always_on_top-app .always_on_top-tick {
+    flex: none;
+    visibility: hidden;
+    color: var(--always_on_top-accent);
+}
+
+#always_on_top-app .always_on_top-chip:has(input:checked) .always_on_top-tick {
+    visibility: visible;
+}
+
+/* Campo numerico con − y + */
+#always_on_top-app .always_on_top-step-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#always_on_top-app .always_on_top-step {
+    display: inline-flex;
+    align-items: stretch;
+    height: 32px;
+    border: 1px solid var(--always_on_top-control);
+    border-radius: 8px;
+    background: var(--always_on_top-card);
+    overflow: hidden;
+}
+
+#always_on_top-app .always_on_top-step button {
+    width: 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 16px;
+}
+
+#always_on_top-app .always_on_top-step button:hover:not(:disabled) {
+    background: var(--always_on_top-hover);
+}
+
+#always_on_top-app .always_on_top-step button:focus-visible {
+    outline-offset: -2px;
+}
+
+#always_on_top-app .always_on_top-step button:disabled {
+    opacity: 0.35;
+}
+
+#always_on_top-app .always_on_top-step input {
+    width: calc(4ch + 16px);
+    padding: 0 8px;
+    border: 0;
+    border-inline: 1px solid var(--always_on_top-line);
+    background: none;
+    color: var(--always_on_top-fg);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+#always_on_top-app .always_on_top-step input:focus-visible {
+    outline-offset: 0;
+}
+
+#always_on_top-app .always_on_top-unit {
+    color: var(--always_on_top-muted);
+}
+
+/* Deslizador: carril hundido, tramo lleno del color de accion y tirador de
+ * capa elevada con el borde de los controles. */
+#always_on_top-app .always_on_top-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#always_on_top-app .always_on_top-slider {
+    --always_on_top-fill: 50%;
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    margin: 0;
+    background: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#always_on_top-app .always_on_top-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(
+        to right,
+        var(--always_on_top-accent) 0,
+        var(--always_on_top-accent) var(--always_on_top-fill),
+        var(--always_on_top-inset) var(--always_on_top-fill),
+        var(--always_on_top-inset) 100%
+    );
+    box-shadow: inset 0 0 0 1px var(--always_on_top-line);
+}
+
+#always_on_top-app .always_on_top-slider::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    margin-top: -6px;
+    border: 1px solid var(--always_on_top-control);
+    border-radius: 50%;
+    background: var(--always_on_top-card);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#always_on_top-app .always_on_top-slider:hover::-webkit-slider-thumb {
+    background: var(--always_on_top-hover);
+}
+
+#always_on_top-app .always_on_top-slider:focus-visible {
+    outline-offset: 4px;
+}
+
+#always_on_top-app .always_on_top-slider-value {
+    flex: none;
+    min-width: 5ch;
+    text-align: end;
+    font-weight: 600;
+}
+
+/* Lista desplegable: un <select> de verdad con el aspecto de los campos. */
+#always_on_top-app .always_on_top-select-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#always_on_top-app .always_on_top-select-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+#always_on_top-app .always_on_top-select {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 32px 0 12px;
+    border: 1px solid var(--always_on_top-control);
+    border-radius: 8px;
+    background: var(--always_on_top-card);
+    color: var(--always_on_top-fg);
+    font: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#always_on_top-app .always_on_top-select:hover:not(:disabled) {
+    background: var(--always_on_top-hover);
+}
+
+#always_on_top-app .always_on_top-select option {
+    background: var(--always_on_top-overlay);
+    color: var(--always_on_top-fg);
+}
+
+#always_on_top-app .always_on_top-select-wrap svg {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    margin-top: -6px;
+    color: var(--always_on_top-muted);
+    pointer-events: none;
+}
+
+/* Campo grabador de atajos */
+#always_on_top-app .always_on_top-key-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#always_on_top-app .always_on_top-key {
+    flex: 1;
+    min-width: 0;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--always_on_top-control);
+    border-radius: 8px;
+    background: var(--always_on_top-card);
+    color: var(--always_on_top-fg);
+    font: inherit;
+    font-weight: 600;
+    caret-color: transparent;
+    cursor: pointer;
+}
+
+#always_on_top-app .always_on_top-key::placeholder {
+    color: var(--always_on_top-muted);
+    font-weight: 400;
+}
+
+#always_on_top-app .always_on_top-key:focus-visible {
+    border-color: var(--always_on_top-accent);
+}
+
+/* Casillas: un <input type="checkbox"> de verdad, dibujado a medida. El
+ * control invisible va dentro de su fila (regla de FIX-030 de GritMap). */
+#always_on_top-app .always_on_top-check {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 28px;
+    padding: 4px 0;
+    cursor: pointer;
+}
+
+#always_on_top-app .always_on_top-check input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+
+#always_on_top-app .always_on_top-box {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-top: 0;
+    border: 1px solid var(--always_on_top-control);
+    border-radius: 4px;
+    background: var(--always_on_top-card);
+    color: transparent;
+}
+
+#always_on_top-app .always_on_top-check input:checked + .always_on_top-box {
+    border-color: var(--always_on_top-accent);
+    background: var(--always_on_top-accent);
+    color: var(--always_on_top-on-accent);
+}
+
+#always_on_top-app .always_on_top-check-text {
+    font-weight: 600;
+}
+
+/* Lo que depende de una casilla, agrupado por una linea a la izquierda. */
+#always_on_top-app .always_on_top-group {
+    margin-top: 8px;
+    padding-inline-start: 16px;
+    border-inline-start: 2px solid var(--always_on_top-line);
+}
+
+#always_on_top-app .always_on_top-group > .always_on_top-option:first-child {
+    margin-top: 8px;
+}
+
+/* Apagado: atenuado. */
+#always_on_top-app .always_on_top-off {
+    opacity: 0.45;
+}
+
+#always_on_top-app .always_on_top-off * {
+    cursor: default !important;
+}
+
+#always_on_top-app :disabled {
+    cursor: default;
+}
+
+/* Linea de dato con accion («Su récord actual: 7 seguidas!  Restablecer»). */
+#always_on_top-app .always_on_top-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#always_on_top-app .always_on_top-stat-text strong {
+    font-weight: 700;
+}
+
+/* Fila de resumen: toda la fila es un boton que abre su subpagina. */
+#always_on_top-app .always_on_top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 6px 16px;
+    border: 1px solid var(--always_on_top-control);
+    border-radius: 8px;
+    background: var(--always_on_top-card);
+    text-align: start;
+}
+
+#always_on_top-app .always_on_top-row:hover {
+    background: var(--always_on_top-hover);
+}
+
+#always_on_top-app .always_on_top-row-text {
+    flex: 1;
+    min-width: 0;
+}
+
+#always_on_top-app .always_on_top-row-title {
+    display: block;
+    font-weight: 600;
+}
+
+#always_on_top-app .always_on_top-row-summary {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    color: var(--always_on_top-muted);
+}
+
+#always_on_top-app .always_on_top-chevron {
+    flex: none;
+    color: var(--always_on_top-muted);
+}
+
+/* Hueco gris mientras llega un dato que tarda. */
+#always_on_top-app .always_on_top-bone {
+    display: inline-block;
+    width: 160px;
+    height: 12px;
+    border-radius: 6px;
+    background: var(--always_on_top-inset);
+    vertical-align: middle;
+}
+
+/* Subpagina con buscador y lista de casillas */
+#always_on_top-app .always_on_top-search {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--always_on_top-control);
+    border-radius: 8px;
+    background: var(--always_on_top-card);
+    color: var(--always_on_top-fg);
+    font: inherit;
+}
+
+#always_on_top-app .always_on_top-list {
+    list-style: none;
+    margin: 12px 0 0 0;
+    padding: 0;
+}
+
+#always_on_top-app .always_on_top-list li {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+}
+
+#always_on_top-app .always_on_top-list .always_on_top-check {
+    flex: 1;
+    min-width: 0;
+}
+
+#always_on_top-app .always_on_top-list .always_on_top-check-text {
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+/* Error: encima del campo, con icono, y el campo con borde rojo. */
+#always_on_top-app .always_on_top-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    color: var(--always_on_top-danger);
+}
+
+#always_on_top-app .always_on_top-invalid,
+#always_on_top-app .always_on_top-invalid:focus-visible {
+    border-color: var(--always_on_top-danger) !important;
+}
+
+/* Pregunta antes de perder algo: un <dialog> de verdad. */
+#always_on_top-app dialog {
+    max-width: 400px;
+    padding: 24px;
+    border: 1px solid var(--always_on_top-card-border);
+    border-radius: 10px;
+    background: var(--always_on_top-overlay);
+    color: var(--always_on_top-fg);
+    box-shadow: 0 8px 24px var(--always_on_top-shadow-float);
+}
+
+#always_on_top-app dialog::backdrop {
+    background: var(--shadow, #1B243026);
+}
+
+#always_on_top-app dialog h2 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#always_on_top-app dialog p {
+    margin: 0;
+    color: var(--always_on_top-muted);
+}
+
+#always_on_top-app .always_on_top-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+body.isWin #always_on_top-app .always_on_top-dialog-actions .always_on_top-primary {
+    order: -1;
+}
+
+/* Zona invisible para los avisos hablados del lector de pantalla. */
+#always_on_top-app .always_on_top-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Colores forzados (alto contraste de Windows): todo control tiene borde
+ * real; lo elegido se marca con borde y ✓; el foco, con el resaltado del
+ * sistema. Solo las muestras de color conservan su color. */
+@media (forced-colors: active) {
+    #always_on_top-app .always_on_top-chip:has(input:checked) {
+        border-color: Highlight;
+    }
+
+    #always_on_top-app .always_on_top-swatch {
+        forced-color-adjust: none;
+    }
+
+    #always_on_top-app button:focus-visible,
+    #always_on_top-app input:focus-visible,
+    #always_on_top-app select:focus-visible {
+        outline-color: Highlight !important;
+    }
+
+    #always_on_top-app .always_on_top-slider::-webkit-slider-runnable-track {
+        background: CanvasText;
+    }
+}

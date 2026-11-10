@@ -1,0 +1,19 @@
+{
+  "complemento": "profeedback",
+  "fix": {
+    "FIX-001": [
+      "dialogs.py"
+    ],
+    "FIX-002": [
+      "celebration.py",
+      "logic.py"
+    ],
+    "FIX-003": [
+      "celebration.py",
+      "logic.py"
+    ],
+    "FIX-004": [
+      "paths.py"
+    ]
+  }
+}

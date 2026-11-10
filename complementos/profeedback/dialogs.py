@@ -1,8 +1,14 @@
 """Ventana de ajustes de ProFeedback.
 
-Se construye solo con controles estándar de Qt (casillas, desplegables, deslizador, botones
-Aceptar y Cancelar). Así toma sola el aspecto y los colores del tema activo, también los de
-Nocturne, y no hay que fijar ningún color a mano.
+Versión 2.1.0 (petición del cliente, 2026-11-09): la ventana sigue el panel
+modelo de GritMap (docs/fichas-diseno/09-patron-configuracion.md, regla del
+taller desde PROP-012). Los mismos ajustes, en cuatro recuadros: el volumen con
+un deslizador; el sonido al acertar; los sonidos al terminar, cada uno con su
+lista desplegable y su botón «Probar», colgando de su casilla; y el aspecto.
+Aceptar y Cancelar llevan el texto de Qt, ya traducido por Anki.
+
+Aquí solo se describe el panel y se lee lo elegido; abrirlo y atender sus
+botones está en actions.py.
 """
 
 # Historial de correcciones de este archivo:
@@ -10,34 +16,15 @@ Nocturne, y no hay que fijar ningún color a mano.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
-
-from aqt import mw
-from aqt.qt import (
-    QCheckBox,
-    QComboBox,
-    QDialog,
-    QDialogButtonBox,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QSlider,
-    Qt,
-    QVBoxLayout,
-    QWidget,
-    qconnect,
-)
-from aqt.utils import disable_help_button, restoreGeom, saveGeom
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from . import strings
 from .config import VOLUME_MAX, VOLUME_MIN, AddonConfig
 from .paths import SoundKind
 
 WINDOW_TITLE = "ProFeedback"
-_GEOMETRY_KEY = "profeedback_settings"
-_INITIAL_WIDTH = 560
+GEOMETRY_KEY = "profeedback_settings"
 
 # Filas de «al terminar de repasar»: tipo de sonido y texto de su etiqueta.
 _FINISH_ROWS: tuple[tuple[SoundKind, strings.UIKey], ...] = (
@@ -47,42 +34,34 @@ _FINISH_ROWS: tuple[tuple[SoundKind, strings.UIKey], ...] = (
     ("all_perfect", "label_all_perfect"),
 )
 
-TestCallback = Callable[[SoundKind, str, int], None]
+# Clave de la página para cada ajuste de sonido elegido.
+SOUND_FIELDS: dict[SoundKind, str] = {
+    "correct": "answerSound",
+    "deck_finish": "deckFinishSound",
+    "all_finish": "allDoneSound",
+    "deck_perfect": "deckPerfectSound",
+    "all_perfect": "allPerfectSound",
+}
+
+_CHECKS: tuple[str, ...] = (
+    "answerSoundEnabled",
+    "sessionSoundsEnabled",
+    "confettiEnabled",
+    "styledButtonsEnabled",
+    "flagsEnabled",
+)
 
 
-def _can_remember_geometry() -> bool:
-    # Fuera de Anki (pruebas) no hay perfil abierto; dentro de Anki siempre lo hay.
-    return mw is not None and mw.pm.profile is not None
+def _label(key: strings.UIKey) -> str:
+    """Etiqueta sin los dos puntos finales: en el panel va encima del control."""
+    return strings.ui(key).rstrip().rstrip(":：").rstrip()
 
 
-class SettingsDialog(QDialog):
-    """Todo se cambia con casillas, desplegables y un deslizador; nada de editar JSON."""
-
-    def __init__(
-        self,
-        parent: QWidget | None,
-        config: AddonConfig,
-        sounds: Mapping[SoundKind, Sequence[str]],
-        on_test: TestCallback,
-    ) -> None:
-        super().__init__(parent)
-        disable_help_button(self)
-        self._sounds = sounds
-        self._on_test = on_test
-        self._combos: dict[SoundKind, QComboBox] = {}
-        self._test_buttons: dict[SoundKind, QPushButton] = {}
-        self._build_ui()
-        self._load_values(config)
-        self._sync_enabled()
-        self._set_initial_size()
-        if _can_remember_geometry():
-            restoreGeom(self, _GEOMETRY_KEY)
-
-    # ── construcción ─────────────────────────────────────────────────────────
-    def _sound_row(self, kind: SoundKind) -> QHBoxLayout:
-        """Desplegable de un tipo de sonido con su botón «Probar»."""
-        row = QHBoxLayout()
-        combo = QComboBox(self)
+def _values(config: AddonConfig, sounds: Mapping[SoundKind, Sequence[str]]) -> dict[str, Any]:
+    values: dict[str, Any] = {name: getattr(config, name) for name in _CHECKS}
+    values["soundVolume"] = config.soundVolume
+    for kind, field in SOUND_FIELDS.items():
+        chosen = getattr(config, field)
         # --- FIX-001 (2026-10-13) ---
         # Síntoma: al guardar los ajustes, «sonido al azar» (valor vacío) se convertía en el
         #   primer sonido de la lista y ya no volvía a ser al azar.
@@ -90,170 +69,118 @@ class SettingsDialog(QDialog):
         #   vacío mostraba el primer archivo, y ese era el que se guardaba.
         # Regla: todo desplegable de sonido lleva como primera entrada «Aleatorio» (valor
         #   vacío), y un valor guardado que ya no existe se muestra como esa entrada.
-        combo.addItem(strings.ui("sound_random"), "")
-        for name in self._sounds.get(kind, ()):
-            combo.addItem(name, name)
-        row.addWidget(combo, stretch=1)
-        button = QPushButton(strings.ui("test"), self)
-        qconnect(button.clicked, lambda _checked=False, k=kind: self._test(k))
-        row.addWidget(button)
-        self._combos[kind] = combo
-        self._test_buttons[kind] = button
-        return row
+        values[field] = chosen if chosen in sounds.get(kind, ()) else ""
+    return values
 
-    def _build_ui(self) -> None:
-        self.setWindowTitle(WINDOW_TITLE)
-        self.setMinimumWidth(520)
-        root = QVBoxLayout(self)
 
-        # Volumen de todos los sonidos.
-        volume_row = QHBoxLayout()
-        self.volume = QSlider(Qt.Orientation.Horizontal, self)
-        self.volume.setRange(VOLUME_MIN, VOLUME_MAX)
-        self.volume.setPageStep(10)
-        self.volume_value = QLabel(self)
-        self.volume_value.setMinimumWidth(48)
-        self.volume_value.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        qconnect(self.volume.valueChanged, self._show_volume)
-        volume_row.addWidget(self.volume, stretch=1)
-        volume_row.addWidget(self.volume_value)
-        volume_form = QFormLayout()
-        volume_form.addRow(strings.ui("label_volume"), volume_row)
-        root.addLayout(volume_form)
+def _sound_select(kind: SoundKind, label: str, sounds: Mapping[SoundKind, Sequence[str]]) -> dict[str, Any]:
+    names = list(sounds.get(kind, ()))
+    return {
+        "type": "select",
+        "key": SOUND_FIELDS[kind],
+        "label": label,
+        "options": [{"value": "", "label": strings.ui("sound_random")}]
+        + [{"value": name, "label": name} for name in names],
+        "unavailable": not names,
+        "test": {"label": strings.ui("test"), "action": kind},
+    }
 
-        # Sonido al responder bien.
-        answer_group = QGroupBox(strings.ui("group_answer_sounds"), self)
-        answer_layout = QVBoxLayout(answer_group)
-        self.answer_enabled = QCheckBox(strings.ui("enable_answer_sound"), self)
-        qconnect(self.answer_enabled.toggled, self._sync_enabled)
-        answer_layout.addWidget(self.answer_enabled)
-        if not self._sounds.get("correct"):
-            answer_layout.addWidget(self._note(strings.ui("no_answer_sounds")))
-        answer_form = QFormLayout()
-        answer_form.addRow(strings.ui("label_sound"), self._sound_row("correct"))
-        answer_layout.addLayout(answer_form)
-        root.addWidget(answer_group)
 
-        # Sonidos al terminar de repasar.
-        finish_group = QGroupBox(strings.ui("group_finish_sounds"), self)
-        finish_layout = QVBoxLayout(finish_group)
-        self.finish_enabled = QCheckBox(strings.ui("enable_finish_sound"), self)
-        qconnect(self.finish_enabled.toggled, self._sync_enabled)
-        finish_layout.addWidget(self.finish_enabled)
-        if not any(self._sounds.get(kind) for kind, _ in _FINISH_ROWS):
-            finish_layout.addWidget(self._note(strings.ui("no_finish_sounds")))
-        finish_form = QFormLayout()
-        for kind, label_key in _FINISH_ROWS:
-            finish_form.addRow(strings.ui(label_key), self._sound_row(kind))
-        finish_layout.addLayout(finish_form)
-        root.addWidget(finish_group)
+def page(config: AddonConfig, sounds: Mapping[SoundKind, Sequence[str]]) -> dict[str, Any]:
+    """Descripción del panel."""
+    answer_children: list[dict[str, Any]] = []
+    if not sounds.get("correct"):
+        answer_children.append({"type": "note", "text": strings.ui("no_answer_sounds")})
+    answer_children.append(_sound_select("correct", _label("label_sound"), sounds))
+    finish_children: list[dict[str, Any]] = []
+    if not any(sounds.get(kind) for kind, _ in _FINISH_ROWS):
+        finish_children.append({"type": "note", "text": strings.ui("no_finish_sounds")})
+    finish_children += [_sound_select(kind, _label(key), sounds) for kind, key in _FINISH_ROWS]
+    cards = [
+        {
+            "items": [
+                {
+                    "type": "slider",
+                    "key": "soundVolume",
+                    "label": _label("label_volume"),
+                    "min": VOLUME_MIN,
+                    "max": VOLUME_MAX,
+                    "step": 1,
+                    "suffix": " %",
+                }
+            ]
+        },
+        {
+            "title": strings.ui("group_answer_sounds"),
+            "items": [
+                {
+                    "type": "check",
+                    "key": "answerSoundEnabled",
+                    "label": strings.ui("enable_answer_sound"),
+                    "children": answer_children,
+                }
+            ],
+        },
+        {
+            "title": strings.ui("group_finish_sounds"),
+            "items": [
+                {
+                    "type": "check",
+                    "key": "sessionSoundsEnabled",
+                    "label": strings.ui("enable_finish_sound"),
+                    "children": finish_children,
+                }
+            ],
+        },
+        {
+            "title": strings.ui("group_appearance"),
+            "items": [
+                {"type": "check", "key": "confettiEnabled", "label": strings.ui("confetti_option")},
+                {"type": "check", "key": "styledButtonsEnabled", "label": strings.ui("styled_buttons")},
+                {"type": "check", "key": "flagsEnabled", "label": strings.ui("flags_option")},
+                {"type": "note", "text": strings.ui("hint_own_sounds")},
+            ],
+        },
+    ]
+    defaults = _values(AddonConfig(), sounds)
+    return {
+        "title": WINDOW_TITLE,
+        "values": _values(config, sounds),
+        "defaults": defaults,
+        "cards": cards,
+        "focus": "soundVolume",
+    }
 
-        # Aspecto.
-        appearance_group = QGroupBox(strings.ui("group_appearance"), self)
-        appearance_layout = QVBoxLayout(appearance_group)
-        self.confetti = QCheckBox(strings.ui("confetti_option"), self)
-        self.styled_buttons = QCheckBox(strings.ui("styled_buttons"), self)
-        self.flags = QCheckBox(strings.ui("flags_option"), self)
-        for box in (self.confetti, self.styled_buttons, self.flags):
-            appearance_layout.addWidget(box)
-        root.addWidget(appearance_group)
 
-        root.addWidget(self._note(strings.ui("hint_own_sounds")))
+def _volume(value: object, fallback: int) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        return fallback
+    return max(VOLUME_MIN, min(VOLUME_MAX, value))
 
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
-            self,
-        )
-        qconnect(buttons.accepted, self.accept)
-        qconnect(buttons.rejected, self.reject)
-        root.addWidget(buttons)
 
-    def _set_initial_size(self) -> None:
-        """Ancho cómodo y alto justo, aunque las notas largas se partan en varias líneas.
+def config_from_page(values: Any, saved: AddonConfig, sounds: Mapping[SoundKind, Sequence[str]]) -> AddonConfig:
+    """Los ajustes elegidos en la página, con cada valor comprobado: un sonido
+    que no está en su lista pasa a «Aleatorio» (regla de FIX-001)."""
+    raw = values if isinstance(values, dict) else {}
+    data: dict[str, Any] = {}
+    for name in _CHECKS:
+        value = raw.get(name)
+        data[name] = value if isinstance(value, bool) else getattr(saved, name)
+    for kind, field in SOUND_FIELDS.items():
+        value = raw.get(field)
+        data[field] = value if isinstance(value, str) and value in sounds.get(kind, ()) else ""
+    data["soundVolume"] = _volume(raw.get("soundVolume"), saved.soundVolume)
+    return AddonConfig(**data)
 
-        Sin esto, la ventana abriría tan ancha como la nota más larga en una sola línea.
-        """
-        width = _INITIAL_WIDTH
-        layout = self.layout()
-        if layout is not None and layout.hasHeightForWidth():
-            height = layout.totalHeightForWidth(width)
-        else:
-            height = self.sizeHint().height()
-        self.resize(width, max(height, self.minimumSizeHint().height()))
 
-    def _note(self, text: str) -> QLabel:
-        label = QLabel(text, self)
-        label.setWordWrap(True)
-        # Texto secundario, con el matiz que el tema le da a «deshabilitado»: sin colores
-        # propios, solo el estado nativo del control.
-        label.setEnabled(False)
-        return label
-
-    # ── valores ──────────────────────────────────────────────────────────────
-    @staticmethod
-    def _select(combo: QComboBox, value: str) -> None:
-        """Elige el valor guardado; si ya no existe, queda «Aleatorio» (la primera entrada)."""
-        index = combo.findData(value)
-        combo.setCurrentIndex(index if index >= 0 else 0)
-
-    @staticmethod
-    def _current(combo: QComboBox) -> str:
-        value = combo.currentData()
-        return value if isinstance(value, str) else ""
-
-    def _load_values(self, config: AddonConfig) -> None:
-        self.answer_enabled.setChecked(config.answerSoundEnabled)
-        self.finish_enabled.setChecked(config.sessionSoundsEnabled)
-        self.confetti.setChecked(config.confettiEnabled)
-        self.styled_buttons.setChecked(config.styledButtonsEnabled)
-        self.flags.setChecked(config.flagsEnabled)
-        self.volume.setValue(config.soundVolume)
-        self._show_volume(config.soundVolume)
-        chosen: dict[SoundKind, str] = {
-            "correct": config.answerSound,
-            "deck_finish": config.deckFinishSound,
-            "all_finish": config.allDoneSound,
-            "deck_perfect": config.deckPerfectSound,
-            "all_perfect": config.allPerfectSound,
-        }
-        for kind, combo in self._combos.items():
-            self._select(combo, chosen[kind])
-
-    def _show_volume(self, value: int) -> None:
-        self.volume_value.setText(f"{value} %")
-
-    def _sync_enabled(self) -> None:
-        """Un desplegable sin sonidos que ofrecer, o con su opción apagada, se ve apagado."""
-        for kind, combo in self._combos.items():
-            group_on = (
-                self.answer_enabled.isChecked()
-                if kind == "correct"
-                else self.finish_enabled.isChecked()
-            )
-            enabled = group_on and bool(self._sounds.get(kind))
-            combo.setEnabled(enabled)
-            self._test_buttons[kind].setEnabled(enabled)
-
-    def _test(self, kind: SoundKind) -> None:
-        self._on_test(kind, self._current(self._combos[kind]), self.volume.value())
-
-    def values(self) -> AddonConfig:
-        """Los ajustes tal como están ahora en la ventana."""
-        return AddonConfig(
-            answerSoundEnabled=self.answer_enabled.isChecked(),
-            sessionSoundsEnabled=self.finish_enabled.isChecked(),
-            confettiEnabled=self.confetti.isChecked(),
-            styledButtonsEnabled=self.styled_buttons.isChecked(),
-            flagsEnabled=self.flags.isChecked(),
-            answerSound=self._current(self._combos["correct"]),
-            deckFinishSound=self._current(self._combos["deck_finish"]),
-            allDoneSound=self._current(self._combos["all_finish"]),
-            deckPerfectSound=self._current(self._combos["deck_perfect"]),
-            allPerfectSound=self._current(self._combos["all_perfect"]),
-            soundVolume=self.volume.value(),
-        )
-
-    def done(self, a0: int) -> None:
-        if _can_remember_geometry():
-            saveGeom(self, _GEOMETRY_KEY)
-        super().done(a0)
+def test_request(arg: Any, sounds: Mapping[SoundKind, Sequence[str]]) -> tuple[SoundKind, str, int] | None:
+    """Qué hay que tocar al pulsar «Probar»: tipo, sonido elegido y volumen."""
+    if not isinstance(arg, dict):
+        return None
+    kind = arg.get("name")
+    values = arg.get("values")
+    if kind not in SOUND_FIELDS or not isinstance(values, dict):
+        return None
+    name = values.get(SOUND_FIELDS[kind])
+    chosen = name if isinstance(name, str) and name in sounds.get(kind, ()) else ""
+    return kind, chosen, _volume(values.get("soundVolume"), VOLUME_MAX)

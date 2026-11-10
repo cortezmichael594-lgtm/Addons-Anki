@@ -1,6 +1,6 @@
 # Qué hace «Always on Top»
 
-Versión 1.2 · 2026-10-21
+Versión 1.3 · 2026-11-09
 
 Mantiene la ventana Añadir de Anki por encima de todas las demás ventanas del ordenador, también de
 las de otros programas, para que pueda copiar de un documento o de una página web sin que Añadir
@@ -42,7 +42,8 @@ repasos. Lo único que guarda es el atajo.
 - Por defecto, Ctrl+Mayús+O. Anki 26.09.3 no usa esa combinación.
 - Solo admite una combinación que lleve Ctrl o Alt y que Anki no use ya. Para saber cuáles usa Anki,
   el complemento tiene una lista fija, sacada del código de Anki 25.09 (menús, repaso, Explorar,
-  plantillas, editor y las de cortar, copiar, pegar y guardar), y además mira los atajos que tienen
+  plantillas, editor y las de cortar, copiar, pegar y guardar) y completada en la 1.3 con los seis
+  atajos del editor de Anki 26.09.3 que faltaban (listas, sangría, superíndice y subíndice), y además mira los atajos que tienen
   en ese momento los menús de la ventana principal, incluidos los que añadan otros complementos.
 - Es una sola combinación: no admite secuencias de dos pulsaciones seguidas.
 - Al abrir Anki, si el atajo guardado no sirve (está vacío, no se entiende, no lleva Ctrl ni Alt o
@@ -51,39 +52,47 @@ repasos. Lo único que guarda es el atajo.
 
 ## 4. Ventana de opciones
 
-- Título «Always on Top», sin botón de ayuda. Aparece sobre la ventana que estuviera delante
-  (normalmente, la lista de complementos) y, mientras está abierta, el resto de Anki espera.
-- Una sola línea: «Atajo:» y una casilla con el atajo actual, escrito con los nombres de teclas del
-  idioma de Anki (en español, «Control+Mayúsculas+O»). La casilla tiene el cursor puesto al abrir y
-  una pequeña cruz para vaciarla; vacía, muestra en gris «Presione el atajo de teclado».
-- Para cambiar el atajo, pulse la combinación nueva con el cursor en la casilla: la casilla graba la
-  siguiente combinación que pulse, sea cual sea. Por eso, con el cursor en la casilla, Intro y Esc no
-  aceptan ni cierran la ventana: se graban como atajo («Retorno», «Escape») y después se rechazan al
-  aceptar, por no llevar Ctrl ni Alt. Para aceptar o cancelar, use los botones.
-- Tres botones estándar, con los textos de Qt en el idioma de Anki: «Restaurar los valores
-  predeterminados», «Aceptar» y «Cancelar».
-- «Restaurar los valores predeterminados» pone Ctrl+Mayús+O en la casilla y muestra el aviso breve de
-  Anki «Se restauró la configuración predeterminada», pero no guarda nada hasta que pulse «Aceptar».
+Título «Always on Top».
+Desde la 1.3 sigue el modelo de ventana de opciones del taller, el panel de GritMap (regla
+PROP-012, petición del 2026-11-09): un panel de 560 px de ancho y el alto justo para su contenido,
+hecho de recuadros sobre el fondo de Anki, con los colores de la paleta (también con Atelier) y
+Aceptar y Cancelar abajo (en Windows, Aceptar primero). No se enseña hasta estar dibujado, recuerda
+su tamaño y su posición, y si ya está abierto se trae al frente. Esc cancela y Ctrl+Intro acepta.
+Nada se guarda hasta pulsar Aceptar. Aceptar, Cancelar y Restaurar llevan el texto de Qt en el
+idioma de Anki. Con el teclado: el tabulador recorre los controles, cada uno con su contorno de foco
+azul; el lector de pantalla anuncia el nombre de cada control.
+
+Un solo recuadro, con «Restaurar los valores predeterminados» arriba a la derecha (tras usarlo,
+«Deshacer» al lado), y dentro el campo «Atajo» (sin los dos puntos de antes) con el atajo actual y el
+foco puesto al abrir. Vacío, muestra en gris «Presione el atajo de teclado».
+
+- El campo del atajo graba la combinación que se pulse con el foco en él (no hace falta escribir
+  nada). El tabulador y Mayús+Tab siguen moviendo el foco y Esc sigue cerrando la ventana, así que esas
+  tres no se pueden grabar; Retroceso o Supr solos vacían el campo, igual que la pequeña cruz de al
+  lado (que se llama «Eliminar» para el lector de pantalla). La combinación se ve escrita con los
+  nombres de teclas del sistema y del idioma de Anki.
+  Hasta la 1.2, Intro y Esc se grababan como atajo y había que usar los botones; ya no.
+- «Restaurar» pone Ctrl+Mayús+O en el campo, sin guardar nada hasta Aceptar.
 - «Aceptar»:
-  - Con la casilla vacía, guarda Ctrl+Mayús+O. No hay manera de dejar el complemento sin atajo.
-  - Si la combinación no sirve (no lleva Ctrl ni Alt, o Anki ya la usa), abre una ventana de aviso
-    titulada «Always on Top» con el texto «No se puede usar «Control+Q». Elige una combinación que
-    incluya Ctrl o Alt y que Anki no use ya.» (con la combinación escrita como en la casilla). La
-    ventana de opciones sigue abierta, con el cursor en la casilla, hasta que elija otra o cancele.
+  - Con el campo vacío, guarda Ctrl+Mayús+O. No hay manera de dejar el complemento sin atajo.
+  - Si la combinación no sirve (no lleva Ctrl ni Alt, o Anki ya la usa), el aviso «No se puede usar
+    «Control+Q». Elige una combinación que incluya Ctrl o Alt y que Anki no use ya.» sale en rojo
+    encima del campo, que se marca con borde rojo, y la ventana sigue abierta con el foco en él
+    (hasta la 1.2 salía una ventana de aviso aparte).
   - Si sirve y es distinta de la guardada, la guarda y funciona al momento, sin reiniciar Anki; la
     anterior deja de funcionar. No muestra ningún aviso de confirmación.
-- «Cancelar» o la cruz de la ventana la cierran sin guardar nada.
-- No recuerda su tamaño ni su posición.
+- «Cancelar», Esc o la cruz de la ventana la cierran sin guardar nada.
 
 ## 5. Mensajes
 
 Todos los textos que puede ver, en español:
 
 - «Siempre visible: activado» y «Siempre visible: desactivado»: aviso breve al pulsar el atajo.
-- «Atajo:» y «Presione el atajo de teclado»: en la ventana de opciones.
-- «No se puede usar «…». Elige una combinación que incluya Ctrl o Alt y que Anki no use ya.»: ventana
-  de aviso al aceptar una combinación que no sirve.
-- «Se restauró la configuración predeterminada»: aviso breve de Anki al restaurar.
+- «Atajo» y «Presione el atajo de teclado»: en la ventana de opciones.
+- «No se puede usar «…». Elige una combinación que incluya Ctrl o Alt y que Anki no use ya.»: aviso
+  en rojo encima del campo al aceptar una combinación que no sirve.
+- «Restaurar los valores predeterminados» y «Deshacer»: enlaces del recuadro de la ventana de
+  opciones (desde la 1.3 ya no sale el aviso breve «Se restauró la configuración predeterminada»).
 - «Always on Top: Se produjo un problema»: si algo falla (apartado 9).
 - El complemento trae también el texto «Atajo de teclado actualizado», pero en la práctica no se
   muestra nunca: solo saldría al guardar desde el editor de texto de la configuración de Anki, que
@@ -95,17 +104,13 @@ Todos los textos que puede ver, en español:
   en inglés. Distingue el portugués de Brasil del de Portugal y el chino simplificado del
   tradicional.
 - Mira el idioma de Anki cada vez que muestra un texto.
-- Los botones de la ventana de opciones, los nombres de las teclas y el aviso de restaurar usan los
+- Los botones de la ventana de opciones, «Deshacer», «Eliminar» y los nombres de las teclas usan los
   textos de Qt y de Anki en el idioma de Anki.
 - En español, el aviso de combinación no válida trata de tú («Elige»), mientras que el resto trata de
   usted («Presione»).
 
 ## 7. Límites y casos raros
 
-- La lista fija de atajos de Anki viene de Anki 25.09 y le faltan seis del editor de Anki 26.09.3
-  (listas, sangría, superíndice y subíndice): la ventana de opciones los acepta, y entonces dentro de
-  Añadir esa combinación enciende o apaga «siempre visible» en lugar de hacer su trabajo en el
-  editor. Está anotado en el registro de errores, en «Pendientes».
 - Si tiene abiertas a la vez las dos versiones de la ventana Añadir, el atajo solo cambia la última
   que se abrió. También está en «Pendientes».
 - Si otro complemento usa la misma combinación en una ventana distinta de la principal, el

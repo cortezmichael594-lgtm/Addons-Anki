@@ -16,8 +16,10 @@ STREAK_LABEL_MIN_LEFT_PERCENT: float = 2.8
 # Minimum streak that triggers the sparkle burst (milestones below this only
 # get the text label).
 CELEBRATION_SPARKLE_MIN_STREAK: int = 5
-# The label stays on screen at least this long, even on very fast answers.
-STREAK_MIN_VISIBLE_MS: int = 2000
+# The streak/record label is shown this long and then fades out on its own,
+# whatever happens with the card (1.2.0, informe del 2026-11-09: antes se
+# quedaba hasta mostrar la respuesta, con un minimo de 2 s).
+LABEL_VISIBLE_MS: int = 1500
 # Below this many cards, checkpoints are hidden (they would be cramped).
 MIN_CARDS_FOR_CHECKPOINTS: int = 10
 # A broken personal record is celebrated from this streak up.
@@ -28,6 +30,12 @@ RECORD_MIN_STREAK: int = 3
 
 
 def is_celebration_milestone(streak: int) -> bool:
-    if streak in (2, 5, 10, 15):
+    """Avisos de racha a las 5, 10, 20, 30... (cada diez desde 10).
+
+    1.2.0 (informe del 2026-11-09): antes salian a las 2, 5, 10, 15, 25, 35...,
+    uno cada cinco respuestas mas o menos, y el de 2 tras casi cada fallo; lo que
+    se repite deja de verse. El primer record (desde 3) sigue avisando.
+    """
+    if streak == 5:
         return True
-    return streak > 15 and streak % 10 == 5
+    return streak >= 10 and streak % 10 == 0

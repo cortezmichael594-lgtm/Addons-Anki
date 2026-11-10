@@ -39,6 +39,7 @@ from typing import Any, Literal, override
 
 from anki.cards import Card
 from anki.collection import Collection
+from anki.scheduler.v3 import Scheduler as V3Scheduler
 from aqt import mw
 from aqt.deckbrowser import DeckBrowser, DeckBrowserBottomBar
 from aqt.overview import Overview, OverviewBottomBar, OverviewContent
@@ -735,10 +736,11 @@ class HiderManager:
         # que usa el repasador, que ademas la consulta igual de sincrona.
         # Vale igual para un mazo con submazos: mira el mazo seleccionado y todo
         # lo que cuelga de el, como hace Anki.
-        if not col.v3_scheduler():
+        sched = col.sched
+        if not col.v3_scheduler() or not isinstance(sched, V3Scheduler):
             # Con el planificador antiguo el repaso ni siquiera arranca.
             return False
-        return bool(col.sched.get_queued_cards(fetch_limit=1).cards)
+        return bool(sched.get_queued_cards(fetch_limit=1).cards)
 
     # --- FIX-001 (2026-07-27) --------------------------------------
     # Sintoma: al abrir un mazo con el salto automatico puesto, la pantalla de

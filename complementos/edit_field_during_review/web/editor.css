@@ -1,11 +1,21 @@
 /* Historial de correcciones de este archivo:
-   FIX-001 (2026-07-24) — El recuadro de edición se partía por líneas en campos
-   largos (varias líneas) mostrados como texto en línea (p. ej. en cursiva). */
+ * FIX-001 (2026-07-24) — El recuadro de edición se partía por líneas en campos
+ *   largos (varias líneas) mostrados como texto en línea (p. ej. en cursiva).
+ * FIX-005 (2026-11-09) — El recuadro de edición tenía dos azules fijos, fuera de
+ *   la paleta, que no seguían a Atelier.
+ */
 
 /* !important: card templates (e.g. Nocturne) style these elements heavily and
    would otherwise hide the outline; the reference add-on did the same. */
+/* --- FIX-005 (2026-11-09) ---
+   Síntoma: con Atelier en Bosque, Lavanda, Atardecer o Papel, el recuadro de
+            edición seguía en un azul propio y no en el color de acción.
+   Causa: el contorno llevaba dos azules fijos (#1971c2 y #4a9eff), fuera de la
+          paleta Nocturne.
+   Regla: el contorno usa el color de foco de la paleta (--border-focus), con su
+          reserva de día y de noche; nunca un color fijo. */
 .lfe-editing {
-  outline: 2px solid #1971c2 !important;
+  outline: 2px solid var(--border-focus, #3B6FE0) !important;
   border-radius: 3px;
   padding: 2px 4px;
   min-height: 1em;
@@ -29,7 +39,7 @@
 body.night_mode .lfe-editing,
 body.nightMode .lfe-editing,
 .card.night_mode .lfe-editing {
-  outline-color: #4a9eff !important;
+  outline-color: var(--border-focus, #6390FF) !important;
 }
 
 .lfe-wrap {

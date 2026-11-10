@@ -18,6 +18,7 @@ bar stays cheap even with a huge collection.
 
 from __future__ import annotations
 
+from anki.collection import Collection, SearchNode
 from aqt import mw
 
 from .errors import report
@@ -38,6 +39,23 @@ def remaining_count() -> int:
     except Exception as exc:
         _log(exc)
     return 0
+
+
+def done_today_search(col: Collection, deck_name: str) -> str:
+    """Búsqueda de las tarjetas de un mazo (con sus submazos) que hoy ya salieron
+    de la cola: respondidas hoy y que no siguen en aprendizaje.
+
+    1.2.0 (informe del 2026-11-09): el 100 % de la barra es todo lo de hoy en ese
+    mazo, lo hecho más lo que queda, para que al volver a un mazo a medias la
+    barra empiece donde lo dejó y no en 0 %. «rated:1» sigue el cambio de día de
+    Anki. Solo se lee: nunca se cambia nada.
+    """
+    return col.build_search_string(SearchNode(deck=deck_name), "rated:1", "-is:learn")
+
+
+def done_today(col: Collection, deck_name: str) -> int:
+    """Cuántas tarjetas del mazo salieron hoy de la cola (ver done_today_search)."""
+    return len(col.find_cards(done_today_search(col, deck_name)))
 
 
 def compute_progress(initial_total: int, remaining: int) -> float:

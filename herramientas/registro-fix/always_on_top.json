@@ -1,0 +1,12 @@
+{
+  "complemento": "always_on_top",
+  "fix": {
+    "FIX-001": [
+      "constants.py",
+      "shortcuts.py"
+    ],
+    "FIX-002": [
+      "shortcuts.py"
+    ]
+  }
+}

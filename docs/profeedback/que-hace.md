@@ -1,6 +1,6 @@
 # Qué hace «ProFeedback»
 
-Versión 2.0.0 · 2026-10-21
+Versión 2.1.0 · 2026-11-09
 
 Hace más agradable el repaso: suena un sonido cuando responde «Bien» o «Fácil», pone una
 insignia encima de la tarjeta (tarjeta nueva, ejercicio difícil o error anterior), da a los botones
@@ -109,27 +109,39 @@ un mínimo de repaso:
 
 ## 6. Ventana de opciones
 
-Título «ProFeedback», sin botón de ayuda. Recuerda su tamaño y su posición. De arriba abajo:
+Título «ProFeedback». Desde la 2.1.0 sigue el modelo de ventana de opciones del taller, el panel de GritMap (regla
+PROP-012, petición del 2026-11-09): un panel de 560 px de ancho y el alto justo para su contenido,
+hecho de recuadros sobre el fondo de Anki, con los colores de la paleta (también con Atelier) y
+Aceptar y Cancelar abajo (en Windows, Aceptar primero). No se enseña hasta estar dibujado, recuerda
+su tamaño y su posición, y si ya está abierto se trae al frente. Esc cancela y Ctrl+Intro acepta.
+Nada se guarda hasta pulsar Aceptar. Aceptar, Cancelar, Restaurar, Sí y No llevan el texto de Qt en
+el idioma de Anki. Con el teclado: el tabulador recorre los controles, cada uno con su contorno de
+foco azul; el lector de pantalla anuncia el nombre de cada control.
 
-| Opción | Valores | Por defecto |
-|---|---|---|
-| Volumen | Deslizador de 0 a 100, con la cifra al lado («100 %»). Vale para todos los sonidos. La mitad suena a la mitad, no casi igual de fuerte | 100 % |
-| Sonidos al responder: «Reproducir sonido al acertar (Bien/Fácil)» | Casilla | Marcada |
-| Sonido | «Aleatorio» o uno de los sonidos de acierto (de serie: good.mp3, magic.mp3 y soft.mp3), con el botón «Probar» | Aleatorio |
-| Sonidos al finalizar: «Reproducir sonido al terminar de repasar» | Casilla | Marcada |
-| «Al terminar un mazo» | «Aleatorio» o un sonido (de serie: duolingo.mp3, khan.mp3 y winners.mp3), con «Probar» | Aleatorio |
-| «Al terminar todos los mazos» | «Aleatorio» o un sonido (de serie: duolingo.mp3 y mario bros.mp3), con «Probar» | Aleatorio |
-| «Al terminar un mazo (perfecto)» | «Aleatorio» o un sonido (de serie: winning1.mp3 y winning2.mp3), con «Probar» | Aleatorio |
-| «Al terminar todos los mazos (perfecto)» | «Aleatorio» o un sonido (de serie: mario-bros.mp3 y sound-celebration.mp3), con «Probar» | Aleatorio |
-| Aspecto: «Confeti» | Casilla | Marcada |
-| Aspecto: «Botones de respuesta 3D de colores» | Casilla | Marcada |
-| Aspecto: «Insignias en la tarjeta (Nueva/Difícil/Error anterior)» | Casilla | Marcada |
+Cuatro recuadros, de arriba abajo (sin «Restaurar», como antes):
 
-- Al pie, la nota «Para añadir sonidos propios, copie archivos .mp3 en la carpeta «user_files/sonidos»
-  del complemento.» (véase el apartado 7) y los botones Aceptar y Cancelar.
-- Un desplegable y su «Probar» se ven apagados si su casilla está desmarcada o si no hay ningún
-  sonido de ese tipo.
-- Si no hay ningún sonido de acierto, en su grupo aparece «No se encontraron archivos .mp3 en
+| Recuadro | Opción | Control | Por defecto |
+|---|---|---|---|
+| — | Volumen | Deslizador de 0 a 100 con la cifra al lado («100 %»), con el carril relleno del color de acción hasta el valor. Vale para todos los sonidos. La mitad suena a la mitad, no casi igual de fuerte | 100 % |
+| Sonidos al responder | «Reproducir sonido al acertar (Bien/Fácil)» | Casilla | Marcada |
+| | Sonido (colgando de la casilla) | Lista desplegable con «Aleatorio» o uno de los sonidos de acierto (de serie: good.mp3, magic.mp3 y soft.mp3), y el botón «Probar» al lado | Aleatorio |
+| Sonidos al finalizar | «Reproducir sonido al terminar de repasar» | Casilla | Marcada |
+| | «Al terminar un mazo» | Lista + «Probar» (duolingo.mp3, khan.mp3 y winners.mp3) | Aleatorio |
+| | «Al terminar todos los mazos» | Lista + «Probar» (duolingo.mp3 y mario bros.mp3) | Aleatorio |
+| | «Al terminar un mazo (perfecto)» | Lista + «Probar» (winning1.mp3 y winning2.mp3) | Aleatorio |
+| | «Al terminar todos los mazos (perfecto)» | Lista + «Probar» (mario-bros.mp3 y sound-celebration.mp3) | Aleatorio |
+| Aspecto | «Confeti» | Casilla | Marcada |
+| | «Botones de respuesta 3D de colores» | Casilla | Marcada |
+| | «Insignias en la tarjeta (Nueva/Difícil/Error anterior)» | Casilla | Marcada |
+
+- Al pie del recuadro de aspecto, la nota gris «Para añadir sonidos propios, copie archivos .mp3 en
+  la subcarpeta de «user_files/sonidos» del complemento que corresponda: «correcto»,
+  «finalizado/mazo», «finalizado/todo», «perfecto-mazo» o «perfecto-todo».» (desde la 2.1.0, en los
+  nueve idiomas completos; en los demás, en inglés). Al abrir la ventana se crean esas subcarpetas
+  vacías si faltan (FIX-004).
+- Lo que cuelga de una casilla se ve atenuado y no responde si la casilla está desmarcada. Una lista y
+  su «Probar» se ven apagados también si no hay ningún sonido de ese tipo.
+- Si no hay ningún sonido de acierto, en su recuadro aparece «No se encontraron archivos .mp3 en
   «sonidos/correcto».»; si no hay ninguno de fin, «No se encontraron archivos .mp3 en
   «sonidos/finalizado».».
 - «Probar» toca el sonido elegido (o uno al azar con «Aleatorio») con el volumen que marca el
@@ -140,7 +152,7 @@ Título «ProFeedback», sin botón de ayuda. Recuerda su tamaño y su posición
   próxima vez que entre a repasar. Las insignias se quitan o se ponen desde la tarjeta siguiente;
   si las activa en mitad de un repaso, salen sin su aspecto hasta que vuelva a entrar (es un fallo
   pendiente). Cancelar cierra sin guardar.
-- Si un sonido guardado ya no existe, el desplegable muestra «Aleatorio» y suena uno al azar.
+- Si un sonido guardado ya no existe, la lista muestra «Aleatorio» y suena uno al azar.
 
 ## 7. Sonidos y letra propios
 
@@ -149,7 +161,7 @@ Título «ProFeedback», sin botón de ayuda. Recuerda su tamaño y su posición
   seleccionarlo y pulsar «Ver archivos»), que Anki conserva al instalar versiones nuevas. Dentro,
   en «sonidos» y en una subcarpeta con el mismo nombre que la del complemento para cada tipo:
   «correcto» (acierto), «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo».
-  Esas carpetas no vienen creadas. Un archivo propio con el mismo nombre que uno de serie lo
+  Desde la 2.1.0 se crean vacías al abrir la ventana de opciones. Un archivo propio con el mismo nombre que uno de serie lo
   sustituye.
 - La lista de sonidos se vuelve a leer al abrir la ventana de opciones y al abrir un perfil.
 - Letra: si deja en «user_files» (o en la carpeta del complemento) un archivo «ProFeedback.ttf» o

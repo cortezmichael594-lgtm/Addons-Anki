@@ -19,6 +19,7 @@ anadido otros complementos.
 #   Parte de este archivo: la lista contra la que ahora se comprueba todo
 #   atajo, y que impide volver a elegir uno ocupado. Regla completa en
 #   constants.py.
+# FIX-002 (2026-11-09) — Se aceptaban seis atajos que el editor de Añadir ya usa.
 
 from __future__ import annotations
 
@@ -51,16 +52,30 @@ _WINDOWS: tuple[str, ...] = (
 
 # Editor de notas. Aqui esta "Ctrl+Shift+T", que en Anki salta al campo de
 # etiquetas: justo dentro de la ventana en la que trabaja este complemento.
+# --- FIX-002 (2026-11-09) ---
+# Síntoma: se podía elegir Ctrl+. (u otras cinco) y, desde entonces, dentro de
+#          Añadir esa combinación encendía «siempre visible» en lugar de crear
+#          la lista numerada.
+# Causa: la lista se sacó de Anki 25.09 y no recogía los atajos de listas,
+#        sangría, superíndice y subíndice del editor de Anki 26.09.3.
+# Regla: al cambiar Anki de versión, se revisa esta lista contra el editor del
+#        Anki instalado (_aqt/data/web/js/editor.js, «Control+…»).
 _EDITOR: tuple[str, ...] = (
     "Ctrl+A", "Ctrl+B", "Ctrl+C", "Ctrl+I", "Ctrl+L", "Ctrl+R", "Ctrl+U", "Ctrl+Y",
     "Ctrl+Shift+C", "Ctrl+Shift+T", "Ctrl+Shift+V",
     "Ctrl+Alt+Shift+C", "Ctrl+Alt+Shift+M",
+    "Ctrl+.", "Ctrl+,", "Ctrl+Shift+.", "Ctrl+Shift+,", "Ctrl+=", "Ctrl+Shift+=",
 )
 
 # Edicion de toda la vida: robarlas dejaria a la persona sin cortar ni pegar
 # mientras escribe una tarjeta.
 _EDITING: tuple[str, ...] = ("Ctrl+X", "Ctrl+V", "Ctrl+S")
 
+# --- FIX-001 (2026-07-28) ---
+# Síntoma: el atajo por defecto era uno que Anki ya usaba.
+# Causa: no había una lista de los atajos de Anki contra la que comprobarlo.
+# Regla: todo atajo, también el de serie, se comprueba contra esta lista y los
+#        menús en vivo antes de usarlo (regla completa en constants.py).
 _RESERVED: tuple[str, ...] = _MENUS + _WINDOWS + _EDITOR + _EDITING
 
 
