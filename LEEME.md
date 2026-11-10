@@ -11,7 +11,7 @@ Su colección de Anki no está aquí, y Claude Code tiene prohibido leerla o toc
 | `CLAUDE.md` | Instrucciones que Claude Code lee al empezar cada sesión. No hace falta tocarlo |
 | `docs/encargo.md` | Para qué sirve el taller y cuándo está bien hecha una entrega |
 | `docs/estado.md` | Por dónde va un trabajo largo y qué queda pendiente |
-| `docs/` | Su paleta Nocturne, las guías de Anki y de interfaz, lo que Claude aprende de una sesión a otra y, por cada complemento, qué hace y sus errores |
+| `docs/` | Su paleta Nocturne, las guías de Anki y de interfaz, lo que Claude aprende de una sesión a otra y, por cada complemento, qué hace, sus errores y su ficha de diseño para la otra IA |
 | `complementos/` | El código de cada complemento, una carpeta por complemento |
 | `pruebas/` | Pruebas automáticas (las escribe Claude) |
 | `herramientas/` | La comprobación general (`comprobar.py`) y el comprobador y empaquetador de complementos (`empaquetar.py`) |
@@ -23,7 +23,8 @@ Su colección de Anki no está aquí, y Claude Code tiene prohibido leerla o toc
 
 ```
 claude.ai/code: elegir este repositorio y pedir lo que quiere
-  -> Claude propone un plan en llano y espera su visto bueno
+  -> Complemento nuevo: Claude propone un plan en llano y espera su visto bueno
+     Corrección, cambio que usted ya describe o informe: empieza sin esperar
   -> Claude trabaja en una rama, lo comprueba y abre un pull request
   -> GitHub comprueba otra vez (marca verde) y guarda el .ankiaddon
   -> Usted lo descarga, lo instala en Anki y lo prueba
@@ -41,10 +42,39 @@ La nube no trae Anki. Hay que pegar una vez un script de preparación que lo ins
 3. Pida lo que quiera. Ejemplos:
    - «Crea un complemento que me avise de las tarjetas con muchos fallos.»
    - «Corrige el complemento GritMap: el botón parpadea al abrir la ventana.»
-4. Claude le propondrá un plan y esperará su visto bueno. Después trabajará en una rama, lo comprobará y le dará el enlace para descargar el `.ankiaddon` y los pasos para probarlo.
+4. Si pide un complemento nuevo, o algo que borre o cambie muchos datos de su colección, Claude le propondrá un plan y esperará su visto bueno. En lo demás (una corrección, un cambio que usted ya describe o un informe que pega) empieza sin esperar. Trabaja en una rama, lo comprueba y le da el enlace para descargar el `.ankiaddon` y los pasos para probarlo.
 5. Si todo está bien, fusione el pull request en GitHub con «Merge pull request». Si no, dígale qué falla.
 
 Use una sesión normal de Claude Code, no un hilo de un proyecto de Claude: en los hilos de proyecto solo se carga CLAUDE.md, y los permisos y la comprobación automática de `.claude/settings.json` no se aplican. El taller sigue funcionando, porque CLAUDE.md manda comprobar y GitHub lo repite, pero con una red de seguridad menos.
+
+## Cómo pedir las cosas
+
+Basta con decir qué quiere conseguir. Los detalles de diseño (dónde va cada cosa, medidas, textos de ayuda) los decide Claude con las guías del taller y se los cuenta al entregar; solo le pregunta lo que cambia lo que el complemento hace con su estudio o con sus datos. Estas dos plantillas ahorran idas y vueltas.
+
+Para aplicar un informe de la otra IA, pegue primero el informe entre las dos etiquetas y escriba la petición al final. Las etiquetas le dicen a Claude dónde empieza y dónde acaba el texto pegado, para que no confunda el informe con lo que usted le pide:
+
+```
+<informe>
+(pegue aquí el informe entero)
+</informe>
+
+Complemento: GritMap.
+Aplica el informe entero.
+Además: en el globo del objetivo debe decir «Objetivo: x».
+No toques: (lo que quiera dejar como está; si no hay nada, borre esta línea).
+```
+
+Para una corrección, diga qué pasa y qué debería pasar:
+
+```
+Complemento: GritMap.
+Qué pasa: el contador de días empieza en 0.
+Qué debería pasar: que empiece en 1.
+```
+
+- Si Anki muestra una ventana de error, pegue su texto entero entre `<error>` y `</error>`.
+- Para pedir mejoras de diseño a la otra IA, pásele tres documentos de `docs/fichas-diseno/`: `00-contexto-comun.md`, `09-patron-configuracion.md` y la ficha del complemento (por ejemplo, `02-gritmap.md`). Claude pone la ficha al día cada vez que una entrega cambia lo que se ve o se puede hacer.
+- Un encargo con varios complementos se hace por partes: Claude termina, comprueba y sube cada complemento antes de empezar el siguiente, y lo anota en `docs/estado.md`. Si la sesión se corta (por ejemplo, con el aviso «Límite de 5 horas alcanzado»), lo terminado ya está subido; al volver, abra una sesión y escriba «Sigue con lo pendiente de docs/estado.md».
 
 ## Instalar lo que le entregue
 

@@ -1,6 +1,6 @@
 # Estado del trabajo
 
-Se actualiza al terminar cada sesión de un trabajo largo y se lee al retomarlo. Va aquí, y no en CLAUDE.md, porque cambia a menudo.
+Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va aquí, y no en CLAUDE.md, porque cambia a menudo.
 
 ## Hecho
 
@@ -50,24 +50,30 @@ Se actualiza al terminar cada sesión de un trabajo largo y se lee al retomarlo.
   barra como barra de progreso para el lector de pantalla; textos impersonales con plurales en 60
   idiomas (i18n_texts.py); barra llena y resumen en «¡Enhorabuena!». 15 pruebas.
 
+- 2026-11-10: instrucciones del taller optimizadas con las guías de prompting y con dos sesiones
+  reales que aportó la persona (PROP-013). CLAUDE.md: los detalles de diseño se deciden con las guías
+  y se cuentan en la entrega; el visto bueno previo queda para cuatro casos con nombre y lo demás
+  empieza sin esperar; los encargos largos se cierran y se suben por partes; la ficha de diseño se
+  pone al día en la misma entrega. docs/normas-del-taller.md: ejemplos de trato entre etiquetas y
+  detalle de las fichas. LEEME.md: «Cómo pedir las cosas», con dos plantillas. El código de los
+  complementos no cambia. Va en el pull request #17.
+
 ## En curso
 
-- El pull request de la adaptación espera la revisión de la persona. No se fusiona sin ella.
+(Nada.)
 
 ## Siguiente paso
 
-Seis complementos no pasan `python herramientas/empaquetar.py <paquete> --solo-comprobar` (Anki 26.09.3, 2026-11-03); su código no se ha tocado. Uno por sesión, cada uno con su corrección, sus notas y su entrega, empezando por los de menos errores:
+Nada pendiente de construir. A 2026-11-10, los ocho complementos pasan
+`python herramientas/comprobar.py --ci --todos` con Anki 26.09.3, y
+`python herramientas/empaquetar.py --revision` acaba en «REVISIÓN: nada pendiente.». Los fallos de
+comprobación que seis de ellos traían de fuera del taller se corrigieron el 2026-11-09 (pull request #16).
 
-| Complemento | Errores | Qué falla |
-| --- | --- | --- |
-| ProFeedback | 1 | `audio.py:43` importa Qt directamente, no desde `aqt.qt`. |
-| Always on Top | 2 | Falla al importarse fuera de Anki (`__init__.py:22`, sin `if mw is None: return`); FIX-001 está en el índice de `shortcuts.py`, pero sin su bloque. |
-| Hider | 2 | mypy: `logic.py:725` (`moveToState` recibe un texto cualquiera) y `logic.py:741` (`get_queued_cards` con el planificador ficticio); falla al importarse fuera de Anki porque importa `aqt.deckbrowser` al cargar, que llama a `tr` (APR-064). |
-| Restart | 3 | Falla al importarse fuera de Anki (`__init__.py:15`); FIX-003 está en el índice de `logic.py` y de `ui.py`, pero sin su bloque. Aviso: la nota FIX-002 de `logic.py:200` no tiene Síntoma, Causa ni Regla. |
-| Edit field during review | 4 | Dos colores fijos en `web/editor.css` (líneas 8 y 32); FIX-001 de `web/editor.css` no está en su índice; falla al importarse fuera de Anki porque `__init__.py` importa `anki.hooks` antes que `aqt` (APR-069). Aviso: `dialogs.py:36` usa `_()` (APR-039). |
-| CoreProgress | 162 | 160 colores fijos en `palettes.py` y 2 en `view.py`: decidir si son paletas de datos legítimas (marca «colores-ok: motivo») o se pasan a la paleta Nocturne. |
+Pendiente de probar por la persona dentro de Anki, de las entregas del 2026-11-09:
 
-Los seis tienen además el aviso de que no hay pruebas de su lógica en `pruebas/<paquete>/`.
+- Las ventanas de opciones nuevas de CoreProgress, ProFeedback, Hider, Restart, Always on Top y Edit
+  field during review.
+- La barra de CoreProgress 1.2.0, en el repaso y en la pantalla «¡Enhorabuena!».
 
 ## Dudas para la persona
 
