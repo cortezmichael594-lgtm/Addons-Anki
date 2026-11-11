@@ -156,8 +156,10 @@ def goal_proposal(measure: str, cfg: Config | None = None) -> tuple[int, int | N
 
     Desde la 4.9.0 se calcula con el mismo promedio que la tarjeta «Promedio
     diario» (por dia natural de los ultimos 30 dias), y la ventana lo dice:
-    el 80 %, redondeado a 5 (Locke y Latham: una meta exigente pero
-    alcanzable). Sin historial, un valor prudente y sin promedio.
+    el 80 % (Locke y Latham: una meta exigente pero alcanzable). Desde la
+    4.16.0 sale del promedio tal como lo escribe la tarjeta y no se redondea
+    a 5, para que «el 80 % de su promedio diario» sea exacto (informe 4.15.1,
+    apartado 4.3). Sin historial, un valor prudente y sin promedio.
     """
     entry = state.data
     average = None
@@ -166,8 +168,9 @@ def goal_proposal(measure: str, cfg: Config | None = None) -> tuple[int, int | N
         average = daily_average(entry.data, measure, 30, paused_days(pause, entry.data.today))
     if not average:
         return _GOAL_FALLBACK.get(measure, DEFAULT_CONFIG.goal), None
-    value = max(GOAL_MIN, min(GOAL_MAX, 5 * max(1, round(average * 0.8 / 5))))
-    return value, round_half_up(average)
+    shown = round_half_up(average)
+    value = max(GOAL_MIN, min(GOAL_MAX, round_half_up(shown * 0.8)))
+    return value, shown
 
 
 # Historial de la meta (4.11.0): solo si hay al menos 7 dias con datos de ese
@@ -231,7 +234,7 @@ def _texts() -> dict[str, str]:
         "opt_key_dates", "opt_save", "opt_cancel", "discard_q", "discard_body", "keep_editing",
         "decks_sub_note", "decks_no_match", "kd_new", "kd_field_name", "kd_field_date", "kd_name_ph",
         "kd_name_required", "kd_duplicate", "kd_limit", "kd_count", "kd_deleted", "kd_edit",
-        "month_prev", "month_next", "loading",
+        "month_prev", "month_next", "loading", "kd_empty",
     )
     texts = {key: t(key) for key in own}
     texts["opt_radius"] = _without_px("opt_radius")
@@ -244,7 +247,7 @@ def _texts() -> dict[str, str]:
     return texts
 
 
-def _payload(cfg: Config, start: str) -> dict[str, Any]:
+def _payload(cfg: Config, start: str, keyboard: bool = False) -> dict[str, Any]:
     """Todo lo que la pagina necesita para dibujarse entera antes de verse."""
     value, average = goal_proposal(cfg.measure, cfg)
     retired = ""
@@ -261,6 +264,8 @@ def _payload(cfg: Config, start: str) -> dict[str, Any]:
         "locale": locale_code(),
         "today": today.isoformat(),
         "start": start,
+        # Abierta con el teclado: el foco se ve desde el principio (4.16.0).
+        "keyboard": keyboard,
         "texts": _texts(),
         "themes": [
             {"name": name, "label": t(f"theme_{name}"), "color": _theme_swatch_color(name)}
@@ -451,7 +456,7 @@ def summary_texts(chosen: dict[str, Any], existing: dict[int, str] | None) -> di
 class HeatmapOptionsDialog(QDialog):
     """Panel de opciones a medida (4.9.0): una pagina dentro de la ventana."""
 
-    def __init__(self, parent: QWidget, cfg: Config, start: str = "") -> None:
+    def __init__(self, parent: QWidget, cfg: Config, start: str = "", keyboard: bool = False) -> None:
         super().__init__(parent)
         self.setWindowTitle(t("opt_title"))
         disable_help_button(self)
@@ -478,7 +483,7 @@ class HeatmapOptionsDialog(QDialog):
         self.resize(_WIDTH, self.height())
 
         package = mw.addonManager.addon_from_module(__name__)
-        payload = _script_safe(json.dumps(_payload(cfg, start), ensure_ascii=False))
+        payload = _script_safe(json.dumps(_payload(cfg, start, keyboard), ensure_ascii=False))
         body = (
             '<div id="gritmap-o-app"></div>'
             f"<script>GritMapOptions.init({payload});</script>"
@@ -672,12 +677,13 @@ def _parent_window() -> QWidget:
     return mw.app.activeWindow() or mw
 
 
-def open_options(start: str = "") -> None:
+def open_options(start: str = "", keyboard: bool = False) -> None:
     """Abre el panel al instante con las opciones guardadas y lee los mazos
     en segundo plano.
 
     Con start, al abrirse muestra ademas una de sus subpaginas: "exclude"
-    (mazos excluidos) o "keydates" (fechas clave).
+    (mazos excluidos) o "keydates" (fechas clave). Con keyboard, se abrio
+    con el teclado y el contorno de foco se ve desde el principio.
     """
     global _dialog
     if _dialog is not None and _dialog.isVisible():
@@ -691,7 +697,7 @@ def open_options(start: str = "") -> None:
         parent = mw
     try:
         cfg = load_config()
-        dialog = HeatmapOptionsDialog(parent, cfg, start)
+        dialog = HeatmapOptionsDialog(parent, cfg, start, keyboard)
     except Exception as exc:
         log_exception("options.open_options", exc)
         return

@@ -266,8 +266,12 @@ def _icon(kind: str) -> str:
             '<circle cx="4.8" cy="7" r="1.7" fill="currentColor"/>'
             '<circle cx="10" cy="10.2" r="1.7" fill="currentColor"/>'
         )
+    # El icono de opciones, a 16 px (4.16.0, informe 4.15.1, apartado 1.4): a
+    # 12 px sus tiradores median 1 o 2 pixeles y se leia como un menu. Las
+    # flechas siguen a 12 px: son un solo trazo.
+    size = 16 if kind == "sliders" else 12
     return (
-        '<svg width="12" height="12" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg"'
+        f'<svg width="{size}" height="{size}" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg"'
         f' aria-hidden="true" focusable="false">{body}</svg>'
     )
 

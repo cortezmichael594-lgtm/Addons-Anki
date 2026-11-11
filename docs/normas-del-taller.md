@@ -4,13 +4,35 @@ Detalle de las normas de `CLAUDE.md`. No se lee entero: cada apartado, cuando `C
 
 ## Ejemplos de trato
 
-Pregunta, cuando falta un dato que cambia el resultado (imita la forma, no el contenido):
+Imita la forma de estos ejemplos, no su contenido.
+
+<examples>
+
+<example>
+Pregunta: falta un dato que cambia lo que el complemento hace con su estudio o con sus datos y no se puede averiguar.
 
 «Antes de empezar, una duda: ¿qué cuenta como tarjeta atascada? a) Ocho fallos o más (recomendada). b) Más de un mes sin aprobarse. c) Otra cosa: dígamela.»
+</example>
 
-Plan en llano, antes de construir algo no trivial:
+<example>
+Plan con visto bueno: uno de los cuatro casos del punto 2 de «Forma de trabajar» (aquí, un complemento nuevo).
 
 «Plan: añadiré “Etiquetar atascadas” al menú Herramientas. Buscará las tarjetas con ocho fallos o más, le dirá cuántas son (por ejemplo, 1.240) y, si usted acepta, les pondrá la etiqueta “atascada”. Se puede deshacer con Ctrl+Z y no cambia nada más. ¿Le parece bien?»
+</example>
+
+<example>
+Arranque sin esperar: una corrección, un cambio que la persona ya ha descrito o un informe que pega para aplicar.
+
+«Aplico el informe entero en “Etiquetar atascadas”. Empiezo por el recuento, porque de él dependen los textos nuevos; después, la ventana de resultados. Al terminar le entrego la versión 1.1.0 con la lista de lo que no se haya podido aplicar y su motivo.»
+</example>
+
+<example>
+Detalle de diseño: se decide con las guías y se cuenta en la entrega, una frase por decisión.
+
+«“Etiquetar atascadas” está en el menú Herramientas, y no en la barra superior, porque es una tarea de mantenimiento que se usa de tarde en tarde. El aviso de cuántas se han etiquetado es el breve de Anki, que desaparece solo, porque no le pide ninguna decisión.»
+</example>
+
+</examples>
 
 ## Notas de corrección
 
@@ -46,6 +68,7 @@ Cada complemento tiene en `docs/<paquete>/` dos documentos en Markdown, escritos
 - `encargo.md`, solo en los complementos creados aquí: el plan aprobado, con los apartados de `docs/encargo.md` (objetivo, qué hará, criterios de aceptación, fuera del alcance, datos y preguntas abiertas).
 - Se crean con el complemento o, si la persona trae uno suyo, antes de cambiar nada (describen lo que hay). Se actualizan en la misma entrega que cada corrección o ajuste. Léelos antes de tocar un complemento.
 - `empaquetar.py` da error si falta alguno de los dos primeros, si la versión de `que-hace.md` no es la del manifiesto o si un FIX del código no figura en `errores.md`.
+- Ficha de diseño (`docs/fichas-diseno/NN-<complemento>.md`): lo que se ve, se oye y se puede hacer, sin código. La persona se la pasa a otra IA, con `00-contexto-comun.md` y `09-patron-configuracion.md`, para que le proponga mejoras; esa IA no ve el código y solo sabe lo que diga la ficha. Se pone al día en la misma entrega cuando cambia algo de eso o se descarta una propuesta: la línea «Versión X.Y.Z (fecha)», los apartados afectados, «Decisiones tomadas a propósito» (lo descartado y su motivo, para que no se vuelva a proponer) y la fila del complemento en la tabla «Las fichas» de `00-contexto-comun.md`. Las fichas son documentos de consulta: tras cambiarlas, `python herramientas/empaquetar.py --revision` da su huella nueva para «Documentos revisados» de `docs/automejora.md`. Ninguna herramienta comprueba que la ficha siga al día: depende de ti.
 
 ## Automejora
 

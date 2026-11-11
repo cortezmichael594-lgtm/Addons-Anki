@@ -10,21 +10,24 @@ from typing import Any
 
 from aqt import gui_hooks, mw
 
-from . import logic
-from .dialogs import open_options
-from .errors import guarded
-from .logic import HiderManager
-
-__version__ = "4.0.3"
+__version__ = "4.1.0"
 
 
-@guarded
-def _on_config_updated(_config: Any) -> None:
-    # Solo salta si la configuracion se cambia por fuera del dialogo propio.
-    logic.reload_active_manager()
+def _register() -> None:
+    # Las piezas de Anki que usa logic.py solo se pueden cargar con Anki en
+    # marcha: se importan aqui para que el paquete se pueda importar fuera de
+    # Anki (pruebas y empaquetar.py).
+    from . import logic
+    from .dialogs import open_options
+    from .errors import guarded
 
+    manager = logic.HiderManager()
 
-def _register(manager: HiderManager) -> None:
+    @guarded
+    def _on_config_updated(_config: Any) -> None:
+        # Solo salta si la configuracion se cambia por fuera del dialogo propio.
+        logic.reload_active_manager()
+
     gui_hooks.state_will_change.append(manager.on_state_will_change)
     gui_hooks.overview_will_render_content.append(manager.on_overview_will_render_content)
     gui_hooks.overview_did_refresh.append(manager.on_overview_did_refresh)
@@ -43,4 +46,5 @@ def _register(manager: HiderManager) -> None:
     mw.addonManager.setConfigUpdatedAction(__name__, _on_config_updated)
 
 
-_register(HiderManager())
+if mw is not None:
+    _register()

@@ -3,6 +3,8 @@
  *                        de la ventana y el pie a media altura.
  * FIX-030 (2026-10-26) — Al marcar «Pausar la racha», la cabecera quedaba fuera
  *                        de la ventana y el pie a media altura.
+ * FIX-032 (2026-11-11) — «Restaurar apariencia», «‹ Opciones» y el texto de
+ *                        ejemplo de los campos no llegaban a 4,5 a 1.
  */
 
 /* GritMap - panel de opciones a medida (4.9.0).
@@ -34,6 +36,18 @@
     --gritmap-o-selected: var(--nocturne-row-highlight, #EAEEF8);
     --gritmap-o-hover: var(--button-gradient-start, #EDF0F5);
     --gritmap-o-danger: var(--accent-danger, #CA2D2D);
+    /* --- FIX-032 (2026-11-11) ---
+     * Sintoma: de noche, «Restaurar apariencia» daba 3,0 a 1, «‹ Opciones»
+     *          3,7 a 1 y el texto de ejemplo de los campos 3,2 a 1.
+     * Causa: el texto que se pulsa usaba el azul de accion, que es un color
+     *        de relleno, y el texto de ejemplo, el gris de serie del navegador.
+     * Regla: el azul de accion es para rellenos y bordes; el texto que se
+     *        pulsa usa FG_LINK, el de ejemplo FG_FAINT y lo apagado
+     *        FG_DISABLED (informe 4.15.1). */
+    --gritmap-o-link: var(--fg-link, #2F63D8);
+    --gritmap-o-faint: var(--fg-faint, #646C7D);
+    --gritmap-o-disabled: var(--fg-disabled, #A9AFBC);
+    --gritmap-o-accent-off: var(--button-primary-disabled, #3B6FE059);
     --gritmap-o-shadow: var(--shadow-subtle, #1B243012);
     --gritmap-o-shadow-float: var(--shadow, #1B243026);
 }
@@ -54,6 +68,10 @@ html.night-mode #gritmap-o-app {
     --gritmap-o-selected: var(--nocturne-row-highlight, #19233F);
     --gritmap-o-hover: var(--button-gradient-start, #2E3747);
     --gritmap-o-danger: var(--accent-danger, #F37777);
+    --gritmap-o-link: var(--fg-link, #A3C1F7);
+    --gritmap-o-faint: var(--fg-faint, #9AA3B4);
+    --gritmap-o-disabled: var(--fg-disabled, #7C869A);
+    --gritmap-o-accent-off: var(--button-primary-disabled, #4066E659);
     /* De noche no hay sombras: la profundidad la dan los fondos. */
     --gritmap-o-shadow: transparent;
     --gritmap-o-shadow-float: transparent;
@@ -107,6 +125,13 @@ html.night-mode body {
     -webkit-user-select: text;
 }
 
+/* Texto de ejemplo de los campos: FG_FAINT (5,8 a 1 de noche), no el gris de
+ * serie del navegador (4.16.0). */
+#gritmap-o-app input::placeholder {
+    color: var(--gritmap-o-faint);
+    opacity: 1;
+}
+
 #gritmap-o-app [hidden] {
     display: none !important;
 }
@@ -136,13 +161,44 @@ html.night-mode body {
     font-weight: 700;
 }
 
+#gritmap-o-app .gritmap-o-body-wrap {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 #gritmap-o-app .gritmap-o-body {
     flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
+    /* El sitio de la barra de desplazamiento, reservado siempre (4.16.0): el
+     * contenido no cambia de ancho entre una pagina y otra. */
+    scrollbar-gutter: stable;
     /* 4 px arriba: el contorno de foco del primer control no se corta. */
     padding: 4px 12px 12px 12px;
-    /* Al llevar el foco a un control, queda siempre a la vista. */
-    scroll-padding: 16px 0;
+    /* Al llevar el foco a un control, queda siempre a la vista y, abajo,
+     * entero por encima del fundido (WCAG 2.4.11). */
+    scroll-padding: 16px 0 40px 0;
+}
+
+/* Mientras quede contenido debajo, los ultimos 24 px del cuerpo se funden con
+ * el fondo de la ventana (4.16.0, informe 4.15.1, apartado 4.1). Sin
+ * animacion; no recoge el raton. */
+#gritmap-o-app .gritmap-o-fade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 24px;
+    background: linear-gradient(to bottom, transparent, var(--gritmap-o-canvas));
+    pointer-events: none;
+    visibility: hidden;
+}
+
+#gritmap-o-app .gritmap-o-more .gritmap-o-fade {
+    visibility: visible;
 }
 
 #gritmap-o-app .gritmap-o-scrolled .gritmap-o-head {
@@ -288,19 +344,25 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     filter: brightness(1.06);
 }
 
-/* Boton terciario: texto azul sin fondo («Restaurar apariencia», «Deshacer»). */
+/* Boton terciario: texto azul sin fondo («Restaurar apariencia», «Deshacer»).
+ * Desde la 4.16.0, en el color de enlace (FG_LINK: 8,1 a 1 de noche, frente al
+ * 3,0 del azul de accion) y subrayado, porque no lleva icono y su azul se
+ * parece al del texto. */
 #gritmap-o-app .gritmap-o-link {
     min-height: 28px;
     padding: 0 8px;
     border: 0;
     border-radius: 6px;
     background: none;
-    color: var(--gritmap-o-accent);
+    color: var(--gritmap-o-link);
     font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 #gritmap-o-app .gritmap-o-link:hover {
     background: var(--gritmap-o-hover);
+    text-decoration: none;
 }
 
 #gritmap-o-app .gritmap-o-icon-btn {
@@ -329,7 +391,8 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     border: 0;
     border-radius: 6px;
     background: none;
-    color: var(--gritmap-o-accent);
+    /* «‹ Opciones»: color de enlace (4.16.0); lleva su flecha, sin subrayado. */
+    color: var(--gritmap-o-link);
     font-weight: 600;
 }
 
@@ -338,12 +401,16 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
 }
 
 /* Foco del teclado: contorno azul de 2 px separado 2 px (WCAG 2.4.13). Anki
- * quita el contorno de todos sus botones; por eso !important (APR-061). */
-#gritmap-o-app button:focus-visible,
+ * quita el contorno de todos sus botones; por eso !important (APR-061).
+ * Abierta con el raton, la ventana lleva gritmap-o-quiet hasta la primera
+ * tecla: el foco inicial no se dibuja (4.16.0). Los campos de texto lo
+ * muestran siempre: en ellos se escribe. (Las casillas y opciones reales son
+ * invisibles; su contorno lo lleva la pieza dibujada.) */
+#gritmap-o-app:not(.gritmap-o-quiet) button:focus-visible,
 #gritmap-o-app input:focus-visible,
-#gritmap-o-app .gritmap-o-chip:has(input:focus-visible),
-#gritmap-o-app .gritmap-o-seg label:has(input:focus-visible),
-#gritmap-o-app .gritmap-o-check:has(input:focus-visible) .gritmap-o-box {
+#gritmap-o-app:not(.gritmap-o-quiet) .gritmap-o-chip:has(input:focus-visible),
+#gritmap-o-app:not(.gritmap-o-quiet) .gritmap-o-seg label:has(input:focus-visible),
+#gritmap-o-app:not(.gritmap-o-quiet) .gritmap-o-check:has(input:focus-visible) .gritmap-o-box {
     outline: 2px solid var(--gritmap-o-focus) !important;
     outline-offset: 2px;
 }
@@ -596,9 +663,27 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     margin-top: 8px;
 }
 
-/* Apagado: atenuado y con una linea que dice por que. */
-#gritmap-o-app .gritmap-o-off {
-    opacity: 0.45;
+/* Apagado: con una linea que dice por que. Desde la 4.16.0, con los tokens
+ * de apagado de la paleta (texto e iconos en FG_DISABLED, lo elegido sin el
+ * azul de accion) en lugar de una transparencia. */
+#gritmap-o-app .gritmap-o-off,
+#gritmap-o-app .gritmap-o-off * {
+    color: var(--gritmap-o-disabled) !important;
+}
+
+/* La casilla sin marcar guarda su ✓ en transparente: no se tine. */
+#gritmap-o-app .gritmap-o-off .gritmap-o-check input:not(:checked) + .gritmap-o-box,
+#gritmap-o-app .gritmap-o-off .gritmap-o-check input:not(:checked) + .gritmap-o-box * {
+    color: transparent !important;
+}
+
+#gritmap-o-app .gritmap-o-off .gritmap-o-check input:checked + .gritmap-o-box {
+    border-color: var(--gritmap-o-accent-off);
+    background: var(--gritmap-o-accent-off);
+}
+
+#gritmap-o-app .gritmap-o-off .gritmap-o-seg label:has(input:checked) {
+    border-color: var(--gritmap-o-control);
 }
 
 #gritmap-o-app .gritmap-o-off * {
@@ -609,8 +694,10 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     cursor: default;
 }
 
+/* «−» y «+» en su limite: el gris de apagado de la paleta (FG_DISABLED,
+ * 4,0 a 1 de noche), no una transparencia (4.16.0). */
 #gritmap-o-app .gritmap-o-step button:disabled {
-    opacity: 0.35;
+    color: var(--gritmap-o-disabled);
 }
 
 /* Pausa: «Desde [26 oct. 2026] hasta [9 nov. 2026] · 15 días». */
@@ -874,11 +961,17 @@ body.isWin #gritmap-o-app .gritmap-o-foot .gritmap-o-primary {
     color: var(--gritmap-o-muted);
 }
 
+/* Contador de fechas y estado vacio: 12 px, como el resto del panel, y
+ * alineados con el texto de las tarjetas (borde de 1 px y relleno de 20 px)
+ * (4.16.0). */
 #gritmap-o-app .gritmap-o-count {
     margin: 8px 0 0 0;
-    font-size: 11px;
-    line-height: 14px;
+    padding-inline: 21px;
     color: var(--gritmap-o-muted);
+}
+
+#gritmap-o-app .gritmap-o-empty {
+    margin-top: 12px;
 }
 
 /* Calendario propio, con el aspecto del mapa (capa flotante). */

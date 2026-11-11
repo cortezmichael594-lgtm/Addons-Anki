@@ -384,9 +384,9 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         return target instanceof Element ? target.closest(selector) : null;
     }
 
-    function send(element) {
+    function send(element, suffix) {
         if (element && element.getAttribute("aria-disabled") !== "true" && element.getAttribute("data-gritmap-cmd")) {
-            pycmd(state.prefix + element.getAttribute("data-gritmap-cmd"));
+            pycmd(state.prefix + element.getAttribute("data-gritmap-cmd") + (suffix || ""));
         }
     }
 
@@ -516,7 +516,12 @@ var GritMap = (typeof GritMap !== "undefined" && GritMap) || (function () {
         container.setAttribute(BOUND_ATTR, "1");
 
         container.addEventListener("click", function (event) {
-            send(closest(event.target, "[data-gritmap-cmd]"));
+            var target = closest(event.target, "[data-gritmap-cmd]");
+            /* Opciones abierto con el teclado (Intro o Espacio: el clic llega
+             * sin pulsaciones): la ventana muestra el foco desde el principio
+             * (4.16.0). Con el raton, solo cuando se use el teclado. */
+            var keyboard = event.detail === 0 && target && target.getAttribute("data-gritmap-cmd") === "opts";
+            send(target, keyboard ? ":key" : "");
         });
         container.addEventListener("keydown", onKeyDown);
         container.addEventListener("mouseover", function (event) {

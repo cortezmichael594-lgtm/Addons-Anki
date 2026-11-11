@@ -198,10 +198,15 @@ def _connect_quit_hook() -> None:
 
 def _on_abort_check() -> None:
     # --- FIX-002 (2026-07-28) --------------------------------------
-    # Segunda mitad de la corrección: además de caducar, la orden se retira en
-    # cuanto se nota que el cierre no siguió adelante. Anki deshabilita la
-    # ventana principal en cuanto el cierre es irreversible, así que si sigue
-    # habilitada y no hay ninguna pregunta en pantalla, el cierre se abortó.
+    # Síntoma: Anki se volvía a abrir sola al cerrarla mucho después, sin que
+    #          se hubiera pedido ningún reinicio.
+    # Causa: la orden de reinicio seguía guardada aunque el cierre pedido no
+    #        hubiera seguido adelante.
+    # Regla: segunda mitad de la corrección: además de caducar, la orden se
+    #        retira en cuanto se nota que el cierre no siguió adelante. Anki
+    #        deshabilita la ventana principal en cuanto el cierre es
+    #        irreversible, así que si sigue habilitada y no hay ninguna
+    #        pregunta en pantalla, el cierre se abortó.
     # ---------------------------------------------------------------
     if _state.pending_command is None or sip.isdeleted(mw):
         return
@@ -306,6 +311,13 @@ def unregister_shortcuts() -> None:
     _state.registered.clear()
 
 
+# --- FIX-003 (2026-07-28) --------------------------------------
+# Síntoma: el complemento ofrecía un segundo atajo para cerrar Anki que no
+#          aportaba nada.
+# Causa: se añadió sin comprobar antes que Anki ya trae Ctrl+Q para salir.
+# Regla: aquí solo se registra el atajo de reinicio; no volver a añadir un
+#        atajo para cerrar Anki.
+# ---------------------------------------------------------------
 def register_shortcuts() -> None:
     settings = load_settings()
     if not settings.restart_enabled:

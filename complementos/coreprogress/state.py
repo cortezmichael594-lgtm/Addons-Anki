@@ -21,7 +21,14 @@ class SessionState:
     # los contadores vivos del planificador, nadie los leia: eran memoria y
     # ocasion de descuadre. La sesion solo guarda ya lo que de verdad usa.
     deck_id: int | None = None
+    deck_name: str = ""
     initial_total: int = 0
+    # 1.2.0: tarjetas del mazo que ya habían salido hoy de la cola al entrar
+    # (data.done_today). El 100 % es base_done + initial_total.
+    base_done: int = 0
+    # Lo que enseña la barra: nunca baja salvo al deshacer (ver progress()).
+    shown_progress: float = 0.0
+    undo_pending: bool = False
     answer_history: list[AnswerRecord] = field(default_factory=list)
     bar_injected: bool = False
     active: bool = False
@@ -34,7 +41,11 @@ class SessionState:
 
     def reset(self) -> None:
         self.deck_id = None
+        self.deck_name = ""
         self.initial_total = 0
+        self.base_done = 0
+        self.shown_progress = 0.0
+        self.undo_pending = False
         self.answer_history.clear()
         self.bar_injected = False
         self.active = False
@@ -45,8 +56,32 @@ class SessionState:
         self.session_max = 0
         self.record_enabled = True
 
+    @property
+    def day_total(self) -> int:
+        """Todo lo de hoy en el mazo: lo que ya estaba hecho al entrar más lo que
+        quedaba."""
+        return self.base_done + self.initial_total
+
+    def real_progress(self, remaining: int) -> float:
+        return compute_progress(self.day_total, remaining)
+
     def progress(self) -> float:
-        return compute_progress(self.initial_total, remaining_count())
+        """Lo que enseña la barra.
+
+        1.2.0 (informe del 2026-11-09): si la cuenta de Anki sube (vencen
+        tarjetas en aprendizaje), la barra se queda quieta hasta que el avance la
+        alcance, en vez de retroceder; solo retrocede al deshacer. Al terminar,
+        lo que queda es cero y llega al 100 % igualmente.
+        """
+        return self.update_shown(self.real_progress(remaining_count()))
+
+    def update_shown(self, real: float) -> float:
+        if self.undo_pending:
+            self.undo_pending = False
+            self.shown_progress = real
+        else:
+            self.shown_progress = max(self.shown_progress, real)
+        return self.shown_progress
 
     def register_answer(self, card_id: int, was_correct: bool) -> None:
         if was_correct:

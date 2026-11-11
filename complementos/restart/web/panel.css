@@ -1,0 +1,837 @@
+/* Panel de opciones con el modelo de GritMap
+ * (docs/fichas-diseno/09-patron-configuracion.md).
+ *
+ * El mismo material que el panel de GritMap: fondo de Anki, recuadros de capa
+ * elevada con borde suave y esquinas de 10 px, la letra de Anki y la escala de
+ * espacios 4, 8, 16, 24 y 32. Un solo azul (el de accion de Anki) para lo que
+ * se pulsa, lo elegido y el foco. Todo sale de la paleta Nocturne; el borde de
+ * los controles es NOCTURNE_CONTROL_BORDER (3:1 o mas), que no tiene variable
+ * CSS. Sin animaciones, salvo el hundimiento de 1 px al pulsar.
+ *
+ * Todo lleva el prefijo «restart-» (nombre del paquete).
+ */
+
+#restart-app {
+    --restart-canvas: var(--canvas, #F7F8FA);
+    --restart-card: var(--canvas-elevated, #FBFCFE);
+    --restart-overlay: var(--canvas-overlay, #FBFCFE);
+    --restart-inset: var(--canvas-inset, #EEF0F4);
+    --restart-fg: var(--fg, #1B2430);
+    --restart-muted: var(--fg-subtle, #4E576A);
+    --restart-card-border: var(--border-subtle, #E8EAF0);
+    --restart-line: var(--border, #DADEE7);
+    --restart-control: #878C97; /* colores-ok: NOCTURNE_CONTROL_BORDER (día), sin variable CSS en Anki */
+    --restart-accent: var(--button-primary-bg, #3B6FE0);
+    --restart-on-accent: var(--highlight-fg, #FFFFFF);
+    --restart-focus: var(--border-focus, #3B6FE0);
+    --restart-selected: var(--nocturne-row-highlight, #EAEEF8);
+    --restart-hover: var(--button-gradient-start, #EDF0F5);
+    --restart-danger: var(--accent-danger, #CA2D2D);
+    --restart-shadow: var(--shadow-subtle, #1B243012);
+    --restart-shadow-float: var(--shadow, #1B243026);
+}
+
+html.night-mode #restart-app {
+    --restart-canvas: var(--canvas, #12161F);
+    --restart-card: var(--canvas-elevated, #212836);
+    --restart-overlay: var(--canvas-overlay, #293040);
+    --restart-inset: var(--canvas-inset, #0F131B);
+    --restart-fg: var(--fg, #D6DAE1);
+    --restart-muted: var(--fg-subtle, #B7BECC);
+    --restart-card-border: var(--border-subtle, #1F2635);
+    --restart-line: var(--border, #2C3444);
+    --restart-control: #727B8C; /* colores-ok: NOCTURNE_CONTROL_BORDER (noche), sin variable CSS en Anki */
+    --restart-accent: var(--button-primary-bg, #4066E6);
+    --restart-on-accent: var(--highlight-fg, #FFFFFF);
+    --restart-focus: var(--border-focus, #6390FF);
+    --restart-selected: var(--nocturne-row-highlight, #19233F);
+    --restart-hover: var(--button-gradient-start, #2E3747);
+    --restart-danger: var(--accent-danger, #F37777);
+    /* De noche no hay sombras: la profundidad la dan los fondos. */
+    --restart-shadow: transparent;
+    --restart-shadow-float: transparent;
+}
+
+/* La pagina entera nunca se desplaza: solo el cuerpo del panel (regla de
+ * FIX-028 de GritMap). overflow: clip y no hidden: hidden aun deja desplazar
+ * con el foco. */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: clip;
+    background: var(--canvas, #F7F8FA);
+}
+
+html.night-mode body {
+    background: var(--canvas, #12161F);
+}
+
+#restart-app,
+#restart-app * {
+    box-sizing: border-box;
+}
+
+#restart-app {
+    height: 100%;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--restart-fg);
+    background: var(--restart-canvas);
+    font-variant-numeric: tabular-nums;
+    /* Ningun texto se selecciona, salvo lo que se escribe en los campos. */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#restart-app input[type="search"] {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+#restart-app [hidden] {
+    display: none !important;
+}
+
+/* Cabecera y pie fijos; el cuerpo se desplaza si no cabe. */
+#restart-app .restart-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#restart-app .restart-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 24px;
+}
+
+#restart-app .restart-head h1 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+}
+
+#restart-app .restart-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    /* 4 px arriba: el contorno de foco del primer control no se corta. */
+    padding: 4px 12px 12px 12px;
+    scroll-padding: 16px 0;
+}
+
+#restart-app .restart-scrolled .restart-head {
+    border-bottom: 1px solid var(--restart-line);
+}
+
+#restart-app .restart-foot {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    min-height: 52px;
+    align-items: center;
+    padding: 0 24px;
+}
+
+#restart-app .restart-overflow .restart-foot {
+    border-top: 1px solid var(--restart-line);
+}
+
+/* En Windows, Aceptar va primero, como en sus ventanas; en macOS y Linux, a
+ * la derecha. */
+body.isWin #restart-app .restart-foot .restart-primary {
+    order: -1;
+}
+
+/* Recuadros */
+#restart-app .restart-card {
+    background: var(--restart-card);
+    border: 1px solid var(--restart-card-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px var(--restart-shadow);
+}
+
+#restart-app .restart-card + .restart-card {
+    margin-top: 12px;
+}
+
+#restart-app .restart-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-height: 28px;
+}
+
+#restart-app .restart-card-head h2 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#restart-app .restart-card-actions {
+    display: flex;
+    gap: 4px;
+    margin-inline-start: auto;
+}
+
+#restart-app .restart-card-note {
+    margin: 4px 0 0 0;
+    color: var(--restart-muted);
+}
+
+/* La primera opcion de un recuadro sin titulo no deja hueco arriba. */
+#restart-app .restart-card > .restart-option:first-child {
+    margin-top: 0;
+}
+
+#restart-app .restart-option {
+    margin-top: 16px;
+}
+
+#restart-app .restart-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+#restart-app .restart-rule {
+    margin: 8px 0 0 0;
+    color: var(--restart-muted);
+}
+
+/* Ayuda bajo una casilla: alineada con su texto (18 px de cuadro y 8 de hueco). */
+#restart-app .restart-check + .restart-rule {
+    margin: 0 0 0 26px;
+}
+
+/* Aviso: franja hundida con icono de informacion, nunca en rojo. */
+#restart-app .restart-notice {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--restart-inset);
+}
+
+#restart-app .restart-notice svg {
+    flex: none;
+    margin-top: 2px;
+    color: var(--restart-muted);
+}
+
+/* Botones */
+#restart-app button {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+    cursor: pointer;
+}
+
+#restart-app .restart-btn {
+    min-height: 32px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid var(--restart-control);
+    background: var(--restart-card);
+    color: var(--restart-fg);
+    white-space: nowrap;
+}
+
+#restart-app .restart-btn:hover:not(:disabled) {
+    background: var(--restart-hover);
+}
+
+#restart-app .restart-btn:active:not(:disabled),
+#restart-app .restart-step button:active:not(:disabled),
+#restart-app .restart-row:active,
+#restart-app .restart-link:active {
+    transform: translateY(1px);
+}
+
+#restart-app .restart-primary {
+    border-color: var(--restart-accent);
+    background: var(--restart-accent);
+    color: var(--restart-on-accent);
+    font-weight: 600;
+}
+
+#restart-app .restart-primary:hover:not(:disabled) {
+    background: var(--restart-accent);
+    filter: brightness(1.06);
+}
+
+/* Boton terciario: texto azul sin fondo («Restaurar», «Deshacer»). */
+#restart-app .restart-link {
+    min-height: 28px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--restart-accent);
+    font-weight: 600;
+}
+
+#restart-app .restart-link:hover {
+    background: var(--restart-hover);
+}
+
+#restart-app .restart-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--restart-muted);
+}
+
+#restart-app .restart-icon-btn:hover:not(:disabled) {
+    background: var(--restart-hover);
+    color: var(--restart-fg);
+}
+
+#restart-app .restart-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 28px;
+    padding: 0 8px 0 4px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--restart-accent);
+    font-weight: 600;
+}
+
+#restart-app .restart-back:hover {
+    background: var(--restart-hover);
+}
+
+/* Foco del teclado: contorno azul de 2 px separado 2 px. Anki quita el
+ * contorno de todos sus botones; por eso !important. */
+#restart-app button:focus-visible,
+#restart-app input:focus-visible,
+#restart-app select:focus-visible,
+#restart-app .restart-chip:has(input:focus-visible),
+#restart-app .restart-check:has(input:focus-visible) .restart-box {
+    outline: 2px solid var(--restart-focus) !important;
+    outline-offset: 2px;
+}
+
+/* Fichas: botones de opcion de verdad, con su teclado. */
+#restart-app .restart-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#restart-app .restart-chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--restart-control);
+    border-radius: 8px;
+    background: var(--restart-card);
+    cursor: pointer;
+}
+
+#restart-app .restart-chip:hover {
+    background: var(--restart-hover);
+}
+
+#restart-app .restart-chip:has(input:checked) {
+    border: 2px solid var(--restart-accent);
+    padding: 0 11px;
+    background: var(--restart-selected);
+}
+
+#restart-app .restart-chip input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
+
+#restart-app .restart-swatch {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+#restart-app .restart-chip-name {
+    flex: 1;
+    min-width: 0;
+}
+
+#restart-app .restart-tick {
+    flex: none;
+    visibility: hidden;
+    color: var(--restart-accent);
+}
+
+#restart-app .restart-chip:has(input:checked) .restart-tick {
+    visibility: visible;
+}
+
+/* Campo numerico con − y + */
+#restart-app .restart-step-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#restart-app .restart-step {
+    display: inline-flex;
+    align-items: stretch;
+    height: 32px;
+    border: 1px solid var(--restart-control);
+    border-radius: 8px;
+    background: var(--restart-card);
+    overflow: hidden;
+}
+
+#restart-app .restart-step button {
+    width: 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 16px;
+}
+
+#restart-app .restart-step button:hover:not(:disabled) {
+    background: var(--restart-hover);
+}
+
+#restart-app .restart-step button:focus-visible {
+    outline-offset: -2px;
+}
+
+#restart-app .restart-step button:disabled {
+    opacity: 0.35;
+}
+
+#restart-app .restart-step input {
+    width: calc(4ch + 16px);
+    padding: 0 8px;
+    border: 0;
+    border-inline: 1px solid var(--restart-line);
+    background: none;
+    color: var(--restart-fg);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+#restart-app .restart-step input:focus-visible {
+    outline-offset: 0;
+}
+
+#restart-app .restart-unit {
+    color: var(--restart-muted);
+}
+
+/* Deslizador: carril hundido, tramo lleno del color de accion y tirador de
+ * capa elevada con el borde de los controles. */
+#restart-app .restart-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#restart-app .restart-slider {
+    --restart-fill: 50%;
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    margin: 0;
+    background: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#restart-app .restart-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(
+        to right,
+        var(--restart-accent) 0,
+        var(--restart-accent) var(--restart-fill),
+        var(--restart-inset) var(--restart-fill),
+        var(--restart-inset) 100%
+    );
+    box-shadow: inset 0 0 0 1px var(--restart-line);
+}
+
+#restart-app .restart-slider::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    margin-top: -6px;
+    border: 1px solid var(--restart-control);
+    border-radius: 50%;
+    background: var(--restart-card);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#restart-app .restart-slider:hover::-webkit-slider-thumb {
+    background: var(--restart-hover);
+}
+
+#restart-app .restart-slider:focus-visible {
+    outline-offset: 4px;
+}
+
+#restart-app .restart-slider-value {
+    flex: none;
+    min-width: 5ch;
+    text-align: end;
+    font-weight: 600;
+}
+
+/* Lista desplegable: un <select> de verdad con el aspecto de los campos. */
+#restart-app .restart-select-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#restart-app .restart-select-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+#restart-app .restart-select {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 32px 0 12px;
+    border: 1px solid var(--restart-control);
+    border-radius: 8px;
+    background: var(--restart-card);
+    color: var(--restart-fg);
+    font: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#restart-app .restart-select:hover:not(:disabled) {
+    background: var(--restart-hover);
+}
+
+#restart-app .restart-select option {
+    background: var(--restart-overlay);
+    color: var(--restart-fg);
+}
+
+#restart-app .restart-select-wrap svg {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    margin-top: -6px;
+    color: var(--restart-muted);
+    pointer-events: none;
+}
+
+/* Campo grabador de atajos */
+#restart-app .restart-key-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#restart-app .restart-key {
+    flex: 1;
+    min-width: 0;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--restart-control);
+    border-radius: 8px;
+    background: var(--restart-card);
+    color: var(--restart-fg);
+    font: inherit;
+    font-weight: 600;
+    caret-color: transparent;
+    cursor: pointer;
+}
+
+#restart-app .restart-key::placeholder {
+    color: var(--restart-muted);
+    font-weight: 400;
+}
+
+#restart-app .restart-key:focus-visible {
+    border-color: var(--restart-accent);
+}
+
+/* Casillas: un <input type="checkbox"> de verdad, dibujado a medida. El
+ * control invisible va dentro de su fila (regla de FIX-030 de GritMap). */
+#restart-app .restart-check {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 28px;
+    padding: 4px 0;
+    cursor: pointer;
+}
+
+#restart-app .restart-check input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+
+#restart-app .restart-box {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-top: 0;
+    border: 1px solid var(--restart-control);
+    border-radius: 4px;
+    background: var(--restart-card);
+    color: transparent;
+}
+
+#restart-app .restart-check input:checked + .restart-box {
+    border-color: var(--restart-accent);
+    background: var(--restart-accent);
+    color: var(--restart-on-accent);
+}
+
+#restart-app .restart-check-text {
+    font-weight: 600;
+}
+
+/* Lo que depende de una casilla, agrupado por una linea a la izquierda. */
+#restart-app .restart-group {
+    margin-top: 8px;
+    padding-inline-start: 16px;
+    border-inline-start: 2px solid var(--restart-line);
+}
+
+#restart-app .restart-group > .restart-option:first-child {
+    margin-top: 8px;
+}
+
+/* Apagado: atenuado. */
+#restart-app .restart-off {
+    opacity: 0.45;
+}
+
+#restart-app .restart-off * {
+    cursor: default !important;
+}
+
+#restart-app :disabled {
+    cursor: default;
+}
+
+/* Linea de dato con accion («Su récord actual: 7 seguidas!  Restablecer»). */
+#restart-app .restart-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#restart-app .restart-stat-text strong {
+    font-weight: 700;
+}
+
+/* Fila de resumen: toda la fila es un boton que abre su subpagina. */
+#restart-app .restart-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 6px 16px;
+    border: 1px solid var(--restart-control);
+    border-radius: 8px;
+    background: var(--restart-card);
+    text-align: start;
+}
+
+#restart-app .restart-row:hover {
+    background: var(--restart-hover);
+}
+
+#restart-app .restart-row-text {
+    flex: 1;
+    min-width: 0;
+}
+
+#restart-app .restart-row-title {
+    display: block;
+    font-weight: 600;
+}
+
+#restart-app .restart-row-summary {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    color: var(--restart-muted);
+}
+
+#restart-app .restart-chevron {
+    flex: none;
+    color: var(--restart-muted);
+}
+
+/* Hueco gris mientras llega un dato que tarda. */
+#restart-app .restart-bone {
+    display: inline-block;
+    width: 160px;
+    height: 12px;
+    border-radius: 6px;
+    background: var(--restart-inset);
+    vertical-align: middle;
+}
+
+/* Subpagina con buscador y lista de casillas */
+#restart-app .restart-search {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--restart-control);
+    border-radius: 8px;
+    background: var(--restart-card);
+    color: var(--restart-fg);
+    font: inherit;
+}
+
+#restart-app .restart-list {
+    list-style: none;
+    margin: 12px 0 0 0;
+    padding: 0;
+}
+
+#restart-app .restart-list li {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+}
+
+#restart-app .restart-list .restart-check {
+    flex: 1;
+    min-width: 0;
+}
+
+#restart-app .restart-list .restart-check-text {
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+/* Error: encima del campo, con icono, y el campo con borde rojo. */
+#restart-app .restart-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    color: var(--restart-danger);
+}
+
+#restart-app .restart-invalid,
+#restart-app .restart-invalid:focus-visible {
+    border-color: var(--restart-danger) !important;
+}
+
+/* Pregunta antes de perder algo: un <dialog> de verdad. */
+#restart-app dialog {
+    max-width: 400px;
+    padding: 24px;
+    border: 1px solid var(--restart-card-border);
+    border-radius: 10px;
+    background: var(--restart-overlay);
+    color: var(--restart-fg);
+    box-shadow: 0 8px 24px var(--restart-shadow-float);
+}
+
+#restart-app dialog::backdrop {
+    background: var(--shadow, #1B243026);
+}
+
+#restart-app dialog h2 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#restart-app dialog p {
+    margin: 0;
+    color: var(--restart-muted);
+}
+
+#restart-app .restart-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+body.isWin #restart-app .restart-dialog-actions .restart-primary {
+    order: -1;
+}
+
+/* Zona invisible para los avisos hablados del lector de pantalla. */
+#restart-app .restart-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Colores forzados (alto contraste de Windows): todo control tiene borde
+ * real; lo elegido se marca con borde y ✓; el foco, con el resaltado del
+ * sistema. Solo las muestras de color conservan su color. */
+@media (forced-colors: active) {
+    #restart-app .restart-chip:has(input:checked) {
+        border-color: Highlight;
+    }
+
+    #restart-app .restart-swatch {
+        forced-color-adjust: none;
+    }
+
+    #restart-app button:focus-visible,
+    #restart-app input:focus-visible,
+    #restart-app select:focus-visible {
+        outline-color: Highlight !important;
+    }
+
+    #restart-app .restart-slider::-webkit-slider-runnable-track {
+        background: CanvasText;
+    }
+}
