@@ -1,5 +1,6 @@
 /* Historial de correcciones de este archivo:
  * FIX-009 (2026-10-28): el panel no se mostraba nunca y siempre se abría la ventana sencilla.
+ * FIX-014 (2026-11-11): de noche, el borde de la paleta elegida medía 1 px en vez de 2.
  */
 
 /* Atelier - panel de configuración a medida (versión 3.7.0).
@@ -180,12 +181,20 @@ body.isWin #nocturne-panel .nocturne-p-foot .nocturne-p-primary {
     outline: none;
 }
 
-html.night-mode #nocturne-panel .nocturne-p-row {
+/* --- FIX-014 (2026-11-11) ---
+ * Síntoma: de noche, la paleta elegida llevaba un borde de 1 px, y la descripción decía 2.
+ * Causa: la segunda línea del borde es una sombra por dentro, y esta regla, que quita la sombra
+ *        de las filas de noche, pesaba más que la de la elegida y la borraba también.
+ * Regla: una regla general nunca pisa la de un estado (elegida, foco): se limita a las filas
+ *        que no lo tienen (:not), y la prueba mide el borde de la elegida en los dos modos. */
+html.night-mode #nocturne-panel .nocturne-p-row:not([aria-checked="true"]) {
     box-shadow: none;
 }
 
+/* Versión 3.9.0 (informe del 2026-11-11, apartado 8.9): con el ratón encima, el borde se marca
+ * con el borde fuerte; de noche se aclara (la descripción decía «se oscurece»). */
 #nocturne-panel .nocturne-p-row:hover {
-    border-color: var(--nocturne-control-border, var(--border-strong));
+    border-color: var(--border-strong);
 }
 
 /* Elegida: borde de 2 px por dentro (nada se mueve), tinte de acción y ✓. */
@@ -195,9 +204,12 @@ html.night-mode #nocturne-panel .nocturne-p-row {
     box-shadow: inset 0 0 0 1px var(--border-focus);
 }
 
+/* Versión 3.9.0 (informe del 2026-11-11, apartado 8.9): un solo contorno. Con el foco, el borde
+ * de la elegida se engrosa 2 px hacia fuera, pegado, sin hueco: se ve una sola línea de 4 px en
+ * lugar de dos líneas azules separadas. Cabe en los 8 px entre filas: nada se mueve. */
 #nocturne-panel .nocturne-p-row:focus-visible {
     outline: 2px solid var(--border-focus);
-    outline-offset: 2px;
+    outline-offset: 0;
 }
 
 #nocturne-panel .nocturne-p-thumbs {
@@ -221,9 +233,11 @@ html.night-mode #nocturne-panel .nocturne-p-row {
     font-weight: normal;
 }
 
+/* Versión 3.9.0: dos líneas, partidas por el punto (colores y botones; la forma). */
 #nocturne-panel .nocturne-p-desc {
     margin-top: 4px;
     color: var(--fg-subtle);
+    white-space: pre-line;
 }
 
 #nocturne-panel .nocturne-p-check {
@@ -249,7 +263,9 @@ html.night-mode #nocturne-panel .nocturne-p-row {
     height: 48px;
     overflow: hidden;
     background: var(--t-canvas);
-    border: 1px solid var(--t-line);
+    /* Versión 3.9.0: el borde fuerte de la paleta; el suave no se veía sobre la fila elegida
+     * (1,02:1 de noche). */
+    border: 1px solid var(--t-edge);
     border-radius: var(--t-radius);
 }
 
@@ -334,21 +350,31 @@ html.night-mode #nocturne-panel .nocturne-p-row {
     background: var(--t-action);
 }
 
-/* Botones del pie, del mismo alto que los de GritMap (32 px). */
+/* Botones del pie, del mismo alto que los de GritMap (32 px). Versión 3.9.0 (informe del
+ * 2026-11-11, apartado 8.6): el botón secundario es el de todo Anki (fondo de botón y borde de
+ * control; con el ratón, un escalón más; pulsado, uno menos) y los dos miden 88 px de ancho
+ * como mínimo (antes, 76 y 80). */
 #nocturne-panel button {
     min-height: 32px;
+    min-width: 88px;
     padding: 0 16px;
     font: inherit;
     font-weight: 600;
     color: var(--fg);
-    background: var(--canvas-elevated);
+    background: var(--button-bg);
     border: 1px solid var(--nocturne-control-border, var(--border-strong));
     border-radius: var(--nocturne-control-radius, 6px);
     cursor: pointer;
 }
 
 #nocturne-panel button:hover {
-    background: var(--canvas-inset);
+    background: var(--button-gradient-start);
+    border-color: var(--button-hover-border);
+}
+
+#nocturne-panel button:active {
+    background: var(--nocturne-button-pressed);
+    border-color: var(--button-hover-border);
 }
 
 #nocturne-panel button:focus-visible {
@@ -365,6 +391,15 @@ html.night-mode #nocturne-panel .nocturne-p-row {
 #nocturne-panel .nocturne-p-primary:hover {
     background: var(--button-primary-gradient-end);
     border-color: var(--button-primary-gradient-end);
+}
+
+#nocturne-panel .nocturne-p-primary:active {
+    background: var(--nocturne-primary-pressed);
+    border-color: var(--nocturne-primary-pressed);
+}
+
+#nocturne-panel .nocturne-p-primary:focus-visible {
+    outline-color: var(--nocturne-primary-ring);
 }
 
 #nocturne-panel .nocturne-p-banner button {

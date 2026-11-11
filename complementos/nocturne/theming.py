@@ -27,8 +27,11 @@ from pathlib import Path
 
 import aqt.colors
 import aqt.props
+from anki.hooks import wrap
+from anki.utils import is_win
 from aqt import mw
-from aqt.theme import WidgetStyle, theme_manager
+from aqt.qt import QColor, QIcon, QPainter
+from aqt.theme import ThemeManager, WidgetStyle, theme_manager
 
 from . import themes
 from .errors import guard, guard_filter, note_failure
@@ -178,6 +181,8 @@ def on_style_did_init(style: str) -> str:
         + _fields_css(pick)
         + _tabs_css(pick)
         + _icons_css(pick)
+        + _controls_css(pick)
+        + _scrollbar_css()
     )
 
 
@@ -201,6 +206,11 @@ def _buttons_css(pick: Callable[[str], str]) -> str:
     «Restablecer tamaños de las ventanas», que salía como la acción principal. Un botón
     del cuerpo conserva el aspecto de Anki: fondo normal y, si responde a Intro, el borde
     azul fino de Anki.
+
+    Versión 3.9.0 (informe del 2026-11-11, apartado 8.5): con el ratón encima, el botón
+    principal se oscurece sin anillo; el anillo queda para el foco, para que signifique una
+    sola cosa («aquí está el teclado»). Pulsado, más oscuro y sin anillo. El borde sigue en
+    2 px en esos estados, del color del relleno: nada salta (APR-059).
     """
     # --- FIX-013 (2026-11-04) ---
     # Síntoma: en Preferencias, «Restablecer tamaños de las ventanas» salía relleno del color de
@@ -239,19 +249,22 @@ def _buttons_css(pick: Callable[[str], str]) -> str:
         color: {pick("HIGHLIGHT_FG")};
         border: 1px solid {pick("BUTTON_PRIMARY_BG")};
     }}
-    QDialogButtonBox QPushButton:default:hover,
+    QDialogButtonBox QPushButton:default:hover {{
+        background: {pick("BUTTON_PRIMARY_GRADIENT_END")};
+        border: 2px solid {pick("BUTTON_PRIMARY_GRADIENT_END")};
+    }}
     QDialogButtonBox QPushButton:default:focus {{
         background: {pick("BUTTON_PRIMARY_GRADIENT_END")};
         border: 2px solid {pick("NOCTURNE_PRIMARY_RING")};
     }}
     QDialogButtonBox QPushButton:default:pressed {{
         background: {pick("NOCTURNE_PRIMARY_PRESSED")};
-        border: 2px solid {pick("NOCTURNE_PRIMARY_RING")};
+        border: 2px solid {pick("NOCTURNE_PRIMARY_PRESSED")};
     }}
     QDialogButtonBox QPushButton:default:disabled {{
         background: {pick("BUTTON_BG")};
         color: {pick("FG_DISABLED")};
-        border: 1px solid {pick("BORDER_SUBTLE")};
+        border: 1px solid {pick("BORDER")};
     }}
 """
 
@@ -263,12 +276,23 @@ def _tooltip_css(pick: Callable[[str], str]) -> str:
     confunden con lo que tapan. Como los menús, flotan sobre la ventana: fondo de
     superposición, borde suave y algo de aire alrededor del texto (Refactoring UI,
     profundidad; Practical UI, M3).
+
+    Versión 3.9.0 (informe del 2026-11-11, apartados 2.4 y 8.6): globos y menús con el borde
+    fuerte (BORDER_STRONG), que se ve sobre el propio globo y sobre el fondo; el suave se
+    confundía con los dos (1,06:1). Relleno de 6 por 8 px en los globos y opciones de menú de
+    28 px de alto con 12 px a los lados.
     """
     return f"""
     QToolTip {{
         background-color: {pick("CANVAS_OVERLAY")};
-        border: 1px solid {pick("BORDER_SUBTLE")};
-        padding: 4px 6px;
+        border: 1px solid {pick("BORDER_STRONG")};
+        padding: 6px 8px;
+    }}
+    QMenu {{
+        border-color: {pick("BORDER_STRONG")};
+    }}
+    QMenu::item {{
+        padding: 6px 12px;
     }}
 """
 
@@ -366,6 +390,99 @@ def _tabs_css(pick: Callable[[str], str]) -> str:
 """
 
 
+def _controls_css(pick: Callable[[str], str]) -> str:
+    """Versión 3.9.0 (informe del 2026-11-11, apartados 2.1, 2.3, 2.5 y 8.6): las reglas
+    del rediseño en las ventanas.
+
+    - Un borde para todo lo que se pulsa o se rellena: los botones llevan el borde de control
+      (NOCTURNE_CONTROL_BORDER), el de los campos y las casillas, en sus cuatro lados (Anki
+      pone el inferior en SHADOW). Antes se distinguían del fondo a 1,29:1 y de un recuadro a
+      1,05:1. Con el ratón encima, BUTTON_HOVER_BORDER (sobre el botón con el ratón, el de
+      control bajaría de 3:1); pulsado, el fondo baja un escalón (NOCTURNE_BUTTON_PRESSED);
+      desactivado, el borde suave. El botón con el foco y el que responde a Intro conservan el
+      borde azul de Anki (sus reglas son más específicas). Solo cambia el color: nada salta.
+    - Un tamaño de control: botones, listas desplegables, campos y pestañas miden 28 px de
+      alto en las ventanas (antes 21, 23, 26 y 27). En la hoja de Qt, min-height mide solo el
+      contenido: se le resta el relleno, el borde y el margen que pone Anki (medido dibujando
+      cada control con la hoja de Anki). Los botones del pie, 88 px de ancho como mínimo.
+    - Lo inactivo se atenúa: las pestañas que no están elegidas van sin relleno y en el texto
+      secundario; con el ratón encima, con el fondo de botón y el texto normal. Así la activa
+      es la única con relleno (antes las demás eran más claras que ella).
+    - El texto de ejemplo de los campos, en el texto tenue: en el secundario parecía escrito.
+    """
+    pad = 25 if is_win else 15  # relleno lateral de los botones en la hoja de Anki
+    return f"""
+    QPushButton {{
+        border-color: {pick("NOCTURNE_CONTROL_BORDER")};
+        min-height: 22px;
+    }}
+    QPushButton:hover:!focus:!default {{
+        border-color: {pick("BUTTON_HOVER_BORDER")};
+    }}
+    QPushButton:pressed:!default {{
+        background: {pick("NOCTURNE_BUTTON_PRESSED")};
+    }}
+    QPushButton:disabled {{
+        border-color: {pick("BORDER")};
+    }}
+    QDialogButtonBox QPushButton {{
+        min-width: {86 - 2 * pad}px;
+    }}
+    QLineEdit {{
+        min-height: 22px;
+    }}
+    QComboBox {{
+        min-height: 23px;
+    }}
+    QSpinBox,
+    QDateTimeEdit {{
+        min-height: 19px;
+    }}
+    QComboBox QLineEdit,
+    QAbstractSpinBox QLineEdit {{
+        min-height: 0px;
+    }}
+    QLineEdit,
+    QTextEdit,
+    QPlainTextEdit {{
+        placeholder-text-color: {pick("FG_FAINT")};
+    }}
+    QTabBar::tab {{
+        min-height: 18px;
+    }}
+    QTabBar::tab:!selected {{
+        background: transparent;
+        color: {pick("FG_SUBTLE")};
+    }}
+    QTabBar::tab:!selected:hover {{
+        background: {pick("BUTTON_BG")};
+        color: {pick("FG")};
+    }}
+    QTabBar::tab:!selected:disabled {{
+        background: transparent;
+        color: {pick("FG_DISABLED")};
+    }}
+"""
+
+
+def _scrollbar_css() -> str:
+    """Versión 3.9.0 (informe del 2026-11-11, apartado 8.6): barra de desplazamiento con el
+    carril de 12 px sin fondo, como en Anki, y el tirador de 8 px, centrado y redondo. Los
+    colores del tirador (SCROLLBAR_BG y sus estados) ya llegan a 3:1. No cambia de ancho en
+    ningún estado: nada se mueve."""
+    return """
+    QScrollBar:vertical {
+        padding: 0px 2px;
+    }
+    QScrollBar:horizontal {
+        padding: 2px 0px;
+    }
+    QScrollBar::handle {
+        border-radius: 4px;
+    }
+"""
+
+
 def _icons_css(pick: Callable[[str], str]) -> str:
     """Versión 3.8.0 (informe del 2026-11-04, apartado 1.4): las flechas de las listas
     desplegables, de los campos numéricos y de orden de las columnas, en el texto
@@ -420,6 +537,51 @@ def _tinted_icon(name: str, color: str) -> str:
     # comillas y letras acentuadas de la ruta escapadas con «\».
     path = target.as_posix().replace("\\\\?\\", "")
     return re.sub(r"(['¡-ÿ])", r"\\\1", path)
+
+
+# Versión 3.9.0 (informe del 2026-11-11, apartado 1.4): un gris para todos los iconos, el texto
+# secundario. Anki dibuja en negro los iconos sin color propio (la barra lateral de Explorar, sus
+# herramientas) y de noche los invierte: salían en blanco puro, a 18:1, más fuertes que el texto
+# que acompañan. Los iconos con color propio (banderas, estados) no se tocan. Anki no ofrece un
+# gancho para esto: se envuelve su función (APR-015; está en «Así a propósito»). Si falla una
+# vez, se deja de teñir hasta el próximo arranque y quedan los iconos de Anki.
+_TINTED_ICONS: dict[tuple[str, str], QIcon] = {}
+_ICON_TINT = {"installed": False, "active": True}
+_ICON_PIXELS = 64  # se dibuja grande y Qt lo reduce: nítido con cualquier tamaño de interfaz
+
+
+def install_icon_tint() -> None:
+    """Envuelve ThemeManager.icon_from_resources una sola vez."""
+    if _ICON_TINT["installed"]:
+        return
+    ThemeManager.icon_from_resources = wrap(  # type: ignore[method-assign]
+        ThemeManager.icon_from_resources, _icon_from_resources, "around"
+    )
+    _ICON_TINT["installed"] = True
+
+
+def _icon_from_resources(self: ThemeManager, path: object, _old: Callable[..., QIcon]) -> QIcon:
+    if _ICON_TINT["active"] and isinstance(path, str):
+        try:
+            entry = themes.colors()["FG_SUBTLE"]
+            color = entry["dark"] if self.night_mode else entry["light"]
+            key = (path, color)
+            icon = _TINTED_ICONS.get(key)
+            if icon is None:
+                source = self.themed_icon(path) if path.startswith("mdi:") else path
+                pixmap = QIcon(source).pixmap(_ICON_PIXELS, _ICON_PIXELS)
+                if pixmap.isNull():
+                    return _old(self, path)
+                painter = QPainter(pixmap)
+                painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+                painter.fillRect(pixmap.rect(), QColor(color))
+                painter.end()
+                icon = _TINTED_ICONS.setdefault(key, QIcon(pixmap))
+            return icon
+        except Exception:
+            _ICON_TINT["active"] = False
+            note_failure("no se pudieron teñir los iconos")
+    return _old(self, path)
 
 
 @guard

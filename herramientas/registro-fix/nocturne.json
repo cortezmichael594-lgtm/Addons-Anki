@@ -41,6 +41,12 @@
     ],
     "FIX-013": [
       "theming.py"
+    ],
+    "FIX-014": [
+      "web/panel.css"
+    ],
+    "FIX-015": [
+      "webview_style.py"
     ]
   }
 }
