@@ -59,8 +59,11 @@ inventa colores: los toma de ahí.
   en Anki 26.09.3, a `BUTTON_GRADIENT_START` (CSS `--button-gradient-start`). El nombre
   `colors.BUTTON_HOVER` no existe y daría error. Anki tiene además `BUTTON_GRADIENT_END`.
   Antes de usar un token, confírmelo con Grep en `_aqt/colors.py` del Anki instalado.
-- **Reglas de coherencia.** Un único azul de acción (`BUTTON_PRIMARY_BG` o `HIGHLIGHT_BG`),
-  con `HIGHLIGHT_FG` encima; fondos con `CANVAS` y `CANVAS_ELEVATED`, nunca negro ni blanco
+- **Reglas de coherencia.** Un único azul de acción (`BUTTON_PRIMARY_BG` o `HIGHLIGHT_BG`)
+  para rellenos y bordes, con `HIGHLIGHT_FG` encima; el texto que se pulsa (enlaces y
+  botones de texto) usa `FG_LINK`, subrayado si no lleva icono, porque el azul de acción
+  como texto no llega a 4,5 a 1 de noche; el texto de ejemplo de los campos, `FG_FAINT`, y
+  lo apagado, `FG_DISABLED`; fondos con `CANVAS` y `CANVAS_ELEVATED`, nunca negro ni blanco
   puros; rojos y verdes solo de `ACCENT_DANGER`, `ACCENT_NOTE`, `STATE_*` y `FLAG_*`; todo
   color que defina el complemento lleva su pareja de día y de noche.
 - **Control automático.** `herramientas/empaquetar.py` rechaza los colores fijos. La

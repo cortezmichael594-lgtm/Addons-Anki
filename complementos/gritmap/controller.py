@@ -363,10 +363,12 @@ def _on_js_message(
         return (True, None)
 
 
-    if action == "opts":
+    if action in ("opts", "opts:key"):
         # Se aplaza para que el mensaje de la pagina termine antes de abrir
-        # una ventana modal.
-        mw.progress.single_shot(0, open_options)
+        # una ventana modal. «opts:key»: se abrio con el teclado, y la ventana
+        # muestra el foco desde el principio (4.16.0).
+        keyboard = action == "opts:key"
+        mw.progress.single_shot(0, lambda: open_options(keyboard=keyboard))
         return (True, None)
 
 

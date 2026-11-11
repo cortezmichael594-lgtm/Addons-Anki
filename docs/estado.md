@@ -58,6 +58,16 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   detalle de las fichas. LEEME.md: «Cómo pedir las cosas», con dos plantillas. El código de los
   complementos no cambia. Va en el pull request #17.
 
+- 2026-11-11: GritMap 4.16.0 con el informe «GritMap 4.15.1: auditoría y rediseño de la interfaz»
+  (aprobado entero el 2026-11-10): Opciones por orden de uso, borde que se desvanece, colores de enlace,
+  de ejemplo y de apagado, foco solo con el teclado, estado vacío de «Fechas clave» (51 idiomas),
+  propuesta de meta sin redondear a 5, icono de opciones a 16 px. FIX-032 y FIX-033. Regla de los
+  enlaces en la guía de interfaz, en la paleta, en el contexto común y en el modelo de opciones
+  (`09-patron-configuracion.md`, apartado 7.1); ficha de GritMap al día. 70 pruebas. Pendiente, fuera
+  del alcance que fijó la persona («solo GritMap»): los paneles copiados en CoreProgress, ProFeedback,
+  Hider, Restart, Always on Top y Edit field during review aún usan el azul de acción en sus enlaces, y
+  la barra de desplazamiento de Atelier contrasta 1,35 a 1.
+
 ## En curso
 
 (Nada.)

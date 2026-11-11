@@ -1,6 +1,6 @@
 # Qué hace «GritMap»
 
-Versión 4.15.1 · 2026-11-09
+Versión 4.16.0 · 2026-11-11
 
 Un mapa de calor de su estudio, parecido al de las contribuciones de GitHub: un cuadrito por cada
 día del año, más intenso cuanto más estudió, y en gris los días que vienen, según las tarjetas que
@@ -11,7 +11,9 @@ cambia tarjetas, notas ni repasos. Guarda sus opciones y, cada día con meta, si
 Esta descripción se rehízo a partir del código de la 4.11.2 al traerla al taller, con los cambios de
 la 4.12.0 (informe 4.11, aprobado el 2026-11-04) y de la 4.13.0 (dos propuestas del informe de
 Atelier 3.7, aprobado el mismo día, para que los dos complementos combinen: la esquina de las
-tarjetas y los grises de los días que vienen).
+tarjetas y los grises de los días que vienen). La 4.16.0 aplica el informe 4.15.1 (aprobado entero el
+2026-11-10): orden de los grupos de Opciones, borde que se desvanece, colores de enlace, de ejemplo y de
+apagado de la paleta, estado vacío de «Fechas clave» y propuesta de meta exacta.
 
 ## 1. Dónde aparece
 
@@ -30,9 +32,10 @@ tarjetas y los grises de los días que vienen).
   Encima van los meses y, a la izquierda, las iniciales del lunes, el miércoles y el viernes, en el
   idioma de Anki y siempre con el calendario gregoriano.
 - Encima del mapa, centrado, «‹ 2026 ›»: las flechas pasan al año anterior o al siguiente. Se apagan
-  cuando no hay otro año con datos (siguen diciendo su nombre al pasar el ratón y el lector de
-  pantalla las anuncia como no disponibles). En la esquina, el botón de opciones (icono de
-  deslizadores, «Opciones»). Los tres botones reaccionan también un poco más allá de su borde (4.12.0).
+  cuando no hay otro año con datos, en el gris de apagado de la paleta (4.16.0; antes, transparentes)
+  (siguen diciendo su nombre al pasar el ratón y el lector de pantalla las anuncia como no
+  disponibles). En la esquina, el botón de opciones (icono de deslizadores de 16 px desde la 4.16.0,
+  «Opciones»). Los tres botones reaccionan también un poco más allá de su borde (4.12.0).
 - Qué color tiene cada cuadrito:
   - Días pasados y hoy con estudio: uno de los cuatro tonos del tema, según las tarjetas distintas
     respondidas ese día. Los cortes salen de su propio promedio: hasta la mitad, hasta el promedio,
@@ -168,13 +171,25 @@ La línea gris (4.15.0):
 
 Un panel propio de 560 px de ancho, hecho del mismo material que las tarjetas del mapa, con el título
 «Opciones», tres grupos y Aceptar y Cancelar abajo, en el orden de cada sistema. Nada se guarda hasta
-Aceptar. Si tenía el tema Rojo fuego, que se retiró, arriba sale «Su tema «Rojo fuego» se ha
+Aceptar.
+
+Desde la 4.16.0 los grupos van por orden de uso: «Metas y fechas», «Qué se cuenta» y «Apariencia». Al
+abrirse, el foco está en «Mostrar racha y meta». Si el contenido no cabe, el borde inferior del panel se
+desvanece mientras quede algo debajo, y desaparece al llegar al final; al moverse con el tabulador, el
+control con el foco queda siempre entero por encima. El sitio de la barra de desplazamiento está siempre
+reservado, así que nada cambia de ancho al entrar o salir de una subpágina. Si la ventana se abrió con el
+ratón, el contorno de foco no se ve hasta que se pulsa una tecla (en los campos de texto, siempre); si se
+abrió con el teclado desde el mapa, se ve desde el principio. Los textos que se pulsan («Restaurar
+apariencia», «Deshacer») van en el color de enlace de la paleta y subrayados; «‹ Opciones», en el mismo
+color, con su flecha. El texto de ejemplo de los campos va en el gris tenue de la paleta, y lo apagado (lo
+que depende de «Mostrar racha y meta» cuando está desmarcada, y «−» y «+» en su límite), en su gris de
+apagado. Si tenía el tema Rojo fuego, que se retiró, arriba sale «Su tema «Rojo fuego» se ha
 retirado; ahora usa «Naranja atardecer».».
 
 ### Apariencia
 
 «Se ve ya en el mapa; se guarda al aceptar.»: el mapa de detrás cambia en vivo y Cancelar lo
-deshace. Arriba a la derecha, «Restaurar apariencia» (con «Deshacer» al lado tras usarlo).
+deshace. Arriba a la derecha, «Restaurar apariencia» (con «Deshacer» al lado tras usarlo), subrayados.
 
 | Opción | Valores | De serie |
 |---|---|---|
@@ -199,7 +214,8 @@ deshace. Arriba a la derecha, «Restaurar apariencia» (con «Deshacer» al lado
   cuentan mientras esté desmarcada; se conservan.».
 - Meta diaria: «Sin meta» (de serie), «Un número» o «Terminar lo de hoy».
   - «Un número»: de 1 a 9.999 tarjetas al día; al elegirla se propone el 80 % de su promedio diario
-    («Propuesta: 5 (el 80 % de su promedio diario).», sin la cifra del promedio desde la 4.15.1; sin historial, 30). Debajo: «Si es menor que
+    («Propuesta: 16 (el 80 % de su promedio diario).», sin la cifra del promedio desde la 4.15.1; sin historial, 30).
+    Desde la 4.16.0 es el 80 % exacto del promedio que dice la tarjeta (20 → 16), sin redondear a 5. Debajo: «Si es menor que
     lo que vence, el resto queda para mañana.».
   - «Terminar lo de hoy»: «Las tarjetas que vencen hoy, con los límites diarios de Anki.».
   - Con al menos 7 días con datos de esa meta, «Cumplida 12 de los últimos 14 días.»; con «Terminar
@@ -219,6 +235,12 @@ deshace. Arriba a la derecha, «Restaurar apariencia» (con «Deshacer» al lado
   «Deshacer» en el sitio de la fila. Si hay cambios sin guardar en las fechas y pulsa Cancelar,
   pregunta «¿Descartar los cambios?» («Se perderán las fechas clave que ha añadido, cambiado o
   eliminado.»), con el foco en «Seguir editando».
+  Desde la 4.16.0: sin fechas, en lugar de «0 de 50 fechas», sale «Cada fecha clave se marca con un rombo
+  en el mapa. Mientras esté por venir, la tarjeta «Próxima fecha» cuenta los días que faltan.»; con la
+  primera fecha vuelve el contador («1 de 50 fechas»), a 12 px y alineado con el texto de las tarjetas.
+  Un nombre escrito en «Nueva fecha» sin pulsar «Añadir» cuenta: Aceptar lo añade y cierra, o, si no se
+  puede (repetido o sin sitio), no cierra y muestra el aviso de siempre encima del campo; Cancelar o Esc
+  preguntan «¿Descartar los cambios?»; «‹ Opciones» vuelve y lo escrito se conserva.
 
 ## 8. Qué guarda y dónde
 
