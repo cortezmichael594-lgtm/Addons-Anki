@@ -1,9 +1,10 @@
 # Modelo de ventana de configuración (el de GritMap)
 
-Fecha: 9 de noviembre de 2026. Léase junto con `00-contexto-comun.md`.
+Fecha: 9 de noviembre de 2026; al día con GritMap 4.16.0 el 11 de noviembre de 2026 (informe 4.15.1,
+apartado 7.1). Léase junto con `00-contexto-comun.md`.
 
 La persona quiere que la ventana de configuración de todos sus complementos siga el diseño del panel
-de opciones de GritMap (4.15.1), que ya copia Atelier (3.8.0). Este documento describe ese diseño
+de opciones de GritMap (4.16.0), que ya copia Atelier (3.8.0). Este documento describe ese diseño
 pieza a pieza, sin código, para que se pueda reproducir igual en cualquier complemento. Al final
 indica qué pieza corresponde a cada opción de los demás complementos y qué piezas faltan por
 diseñar.
@@ -14,8 +15,9 @@ diseñar.
   ventana de Anki, como las opciones de mazo de Anki.
 - Está hecho del mismo material que las tarjetas del mapa de GritMap: fondo de Anki, recuadros de
   capa elevada con borde suave, la letra de Anki y una escala fija de espacios.
-- Un solo azul (el de acción de Anki) para lo que se pulsa, lo elegido y el foco. Ningún otro color de
-  marca: los colores propios del complemento solo aparecen en sus muestras (por ejemplo, la muestra de
+- Un solo azul de acción (el de Anki) para rellenos y bordes: el botón principal, lo elegido y el foco.
+  El texto que se pulsa usa el color de enlace, más claro de noche, porque el azul de acción como texto
+  no llega a 4,5 a 1. Ningún otro color de marca: los colores propios del complemento solo aparecen en sus muestras (por ejemplo, la muestra de
   cada tema).
 - Todos los colores salen de la paleta Nocturne y cambian con Atelier y con el modo día o noche.
 - Sin animaciones, salvo un hundimiento de 1 px al pulsar.
@@ -62,8 +64,15 @@ diseñar.
 - Cabecera: 48 px de alto, 24 px de margen a los lados, título de 14 px en negrita (700). Al
   desplazar el cuerpo aparece debajo una raya de 1 px.
 - Cuerpo: margen de 4 px arriba (para que no se corte el foco del primer control) y 12 px a los lados
-  y abajo. Al llevar el foco a un control, queda siempre a la vista con 16 px de holgura. La página
-  entera nunca se desplaza: solo el cuerpo.
+  y abajo. Al llevar el foco a un control, queda siempre a la vista con 16 px de holgura arriba y 40
+  abajo (entero por encima del fundido). La página entera nunca se desplaza: solo el cuerpo. El sitio
+  de la barra de desplazamiento está siempre reservado, para que el contenido no cambie de ancho entre
+  páginas.
+- Si el contenido no cabe, los últimos 24 px del cuerpo se funden con el fondo de la ventana mientras
+  quede algo debajo, y el fundido desaparece al llegar al final. Sin animación.
+- Orden de los recuadros: por uso. Arriba, lo que se vuelve a cambiar durante el uso (metas, fechas);
+  la apariencia, que se elige una vez, al final. El foco inicial va al primer control del primer
+  recuadro.
 - Pie: 52 px de alto, 24 px de margen a los lados, botones a la derecha separados 8 px. Raya de 1 px
   arriba solo si el cuerpo tiene contenido oculto por debajo. En Windows, «Aceptar» va primero; en
   macOS y Linux, a la derecha.
@@ -104,7 +113,11 @@ diseñar.
 | Borde de recuadros | BORDER_SUBTLE | #E8EAF0 | #1F2635 |
 | Rayas y separadores | BORDER | #DADEE7 | #2C3444 |
 | Borde de controles (3 a 1 o más) | NOCTURNE_CONTROL_BORDER | #878C97 | #727B8C |
-| Acción: botón principal, elegido, enlaces | BUTTON_PRIMARY_BG | #3B6FE0 | #4066E6 |
+| Acción: botón principal, casilla marcada, borde de lo elegido | BUTTON_PRIMARY_BG | #3B6FE0 | #4066E6 |
+| Texto que se pulsa (enlaces, «‹ Volver») | FG_LINK | #2F63D8 | #A3C1F7 |
+| Texto de ejemplo de los campos | FG_FAINT | #646C7D | #9AA3B4 |
+| Texto e iconos apagados | FG_DISABLED | #A9AFBC | #7C869A |
+| Casilla marcada apagada | BUTTON_PRIMARY_DISABLED | #3B6FE059 | #4066E659 |
 | Texto sobre la acción | HIGHLIGHT_FG | #FFFFFF | #FFFFFF |
 | Foco | BORDER_FOCUS | #3B6FE0 | #6390FF |
 | Fondo de lo elegido | NOCTURNE_ROW_HIGHLIGHT | #EAEEF8 | #19233F |
@@ -126,9 +139,11 @@ Botones:
 - Secundario («Cancelar», «Añadir»): mismas medidas, fondo de capa elevada, borde de control, texto
   normal. Con el ratón, fondo de pasar el ratón.
 - Enlace o terciario («Restaurar apariencia», «Deshacer», «Editar»): 28 px de alto, 8 px de relleno,
-  esquinas de 6 px, sin fondo ni borde, texto azul de acción en seminegrita; fondo suave con el ratón.
+  esquinas de 6 px, sin fondo ni borde, texto en el color de enlace, en seminegrita y subrayado (sin
+  icono, el color solo no basta); con el ratón, fondo suave y sin subrayado.
 - Botón de icono (flechas del calendario): 28 × 28 px, sin fondo, esquinas de 6 px.
-- Volver (en subpáginas, en lugar del título): «‹ Volver», 28 px, texto azul en seminegrita, sin fondo.
+- Volver (en subpáginas, en lugar del título): «‹ Volver», 28 px, texto en el color de enlace, en
+  seminegrita, sin fondo ni subrayado (lleva su flecha).
 - Al pulsar cualquier botón o fila, se hunde 1 px.
 
 Elegir una opción entre varias:
@@ -149,7 +164,7 @@ Números:
 - Campo con «−» y «+»: 32 px de alto, borde de control, esquinas de 8 px. Botones de 32 px de ancho a
   los lados; en medio, la cifra centrada (ancho para cuatro dígitos) entre dos rayas finas; la unidad
   («px») en gris a la derecha. Mantener pulsado «−» o «+» repite (tras 0,4 s, cada 0,08 s). En el
-  límite, el botón se apaga (35 % de opacidad). Debajo, su regla en gris («Hasta la mitad del
+  límite, el botón se apaga (su signo en el gris de apagado). Debajo, su regla en gris («Hasta la mitad del
   cuadrito (12 px).»).
 
 Sí o no:
@@ -158,7 +173,9 @@ Sí o no:
   rellena del color de acción con la marca blanca. Texto en seminegrita a 8 px, alineado con la primera
   línea; fila de 28 px como mínimo. Toda la fila se pulsa.
 - Opciones que dependen de una casilla: agrupadas debajo con una raya vertical de 2 px a la izquierda y
-  16 px de sangría. Si la casilla está desmarcada, se ven atenuadas (45 %) y una línea dice por qué y
+  16 px de sangría. Si la casilla está desmarcada, se ven apagadas (texto e iconos en el gris de
+  apagado, casillas marcadas en el azul apagado, el borde de lo elegido en el de los controles) y una
+  línea dice por qué y
   que se conservan («La meta, los comodines y la pausa no cuentan mientras esté desmarcada; se
   conservan.»).
 
@@ -176,7 +193,9 @@ Listas y subpáginas:
   Al eliminar, la fila se sustituye en su sitio por «Se eliminó «Parcial».» con «Deshacer».
 - Formulario de alta: etiquetas encima de los campos, campos de 32 px, botón «Añadir» a la derecha; el
   error va encima de los campos en rojo de error con un icono, y el campo erróneo lleva el borde rojo.
-  Contador de caracteres en 11 px gris.
+  Contador de caracteres en 11 px gris. El texto de ejemplo de los campos, en el gris tenue.
+- Lista vacía: en lugar de contar cero («0 de 50 fechas»), una línea en gris que dice para qué sirve;
+  con el primer elemento vuelve el contador (12 px, alineado con el texto de los recuadros).
 
 Fechas:
 
@@ -230,6 +249,8 @@ Mensajes:
   tras usarlo, «Deshacer» al lado.
 - Si hay cambios que se perderían (por ejemplo, fechas añadidas) y se cancela, pregunta «¿Descartar los
   cambios?» con el foco en «Seguir editando».
+- Lo escrito en un formulario interior sin pulsar «Añadir» cuenta: «Aceptar» lo añade (si no se puede,
+  no cierra y avisa encima del campo), «Cancelar» lo cuenta como cambio y «‹ Volver» lo conserva.
 - Al elegir una opción que necesita un valor, se propone uno razonable y se explica de dónde sale.
 - La ventana se abre al instante con lo guardado; lo que tarda en leerse (la lista de mazos) llega
   después, con huecos de carga, sin bloquear Anki.
@@ -240,7 +261,9 @@ Mensajes:
 ## 8. Accesibilidad
 
 - Foco del teclado: contorno de 2 px del color de foco, separado 2 px (dentro del campo numérico, por
-  dentro). Visible en botones, campos, fichas, segmentos y casillas.
+  dentro). Visible en botones, campos, fichas, segmentos y casillas, solo cuando se usa el teclado:
+  si la ventana se abrió con el ratón, el foco inicial no se dibuja hasta la primera tecla (en los
+  campos de texto se ve siempre).
 - Teclado: el tabulador recorre en orden visual; las flechas mueven dentro de fichas y segmentos (grupos
   de botones de opción); Espacio marca casillas; Intro pulsa el botón que tiene el foco (nunca acepta la
   ventana por su cuenta); Esc cancela.

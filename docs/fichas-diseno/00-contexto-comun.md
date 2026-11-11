@@ -166,8 +166,11 @@ es el nombre con el que las páginas de Anki la usan.
 ## Reglas de la paleta
 
 - Todo color nuevo sale de un token de la tabla y tiene pareja de día y de noche.
-- El azul de acción (botones principales, enlaces destacados) es BUTTON_PRIMARY_BG / HIGHLIGHT_BG;
-  el texto encima, HIGHLIGHT_FG (blanco).
+- El azul de acción (botones principales, casillas marcadas, borde de lo elegido) es
+  BUTTON_PRIMARY_BG / HIGHLIGHT_BG, solo en rellenos y bordes; el texto encima, HIGHLIGHT_FG (blanco).
+  El texto que se pulsa (enlaces, botones de texto) usa FG_LINK: el azul de acción como texto da 3,0 a
+  1 de noche. El texto de ejemplo de los campos usa FG_FAINT, y lo apagado, FG_DISABLED (aprobado el
+  10 de noviembre de 2026, informe de GritMap 4.15.1).
 - No hay un segundo azul de acción, ni rojos o verdes fuera de ACCENT_DANGER, ACCENT_NOTE y FLAG_*.
 - De noche, lo que está «más arriba» es más claro: CANVAS_INSET < CANVAS < CANVAS_ELEVATED <
   BUTTON_BG < CANVAS_OVERLAY < BUTTON_HOVER.
@@ -179,7 +182,7 @@ es el nombre con el que las páginas de Anki la usan.
 | Complemento | Versión | Qué hace, en una línea |
 |---|---|---|
 | Atelier (paquete «nocturne») | 3.8.0 | Temas de color completos para todo Anki: cinco paletas de día y de noche |
-| GritMap | 4.15.1 | Mapa de calor del estudio del año, con racha, meta diaria y fechas clave |
+| GritMap | 4.16.0 | Mapa de calor del estudio del año, con racha, meta diaria y fechas clave |
 | CoreProgress | 1.2.0 | Barra de progreso del repaso, con hitos, racha de aciertos y récord |
 | ProFeedback | 2.1.0 | Sonidos al acertar, insignias en la tarjeta, botones de colores y confeti al terminar |
 | Hider | 4.1.0 | Repaso sin distracciones: oculta barras y puntero, y entra directo al repaso |

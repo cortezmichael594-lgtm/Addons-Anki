@@ -1,6 +1,6 @@
 # Ficha de diseño: GritMap
 
-Versión 4.15.1 (9 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 4.16.0 (11 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
@@ -36,8 +36,8 @@ se ve donde ocurre; nada de paneles de ceros el primer día.
 De arriba abajo, dentro del ancho de la lista de mazos:
 
 1. Tarjeta del mapa (un recuadro):
-   - Arriba, centrado: «‹ 2026 ›» (flechas de año). En la esquina, botón de opciones (icono de
-     deslizadores, nombre «Opciones»).
+   - Arriba, centrado: «‹ 2026 ›» (flechas de año; sin más años, en FG_DISABLED). En la esquina,
+     botón de opciones de 28 px (icono de deslizadores de 16 px, nombre «Opciones»).
    - Encima de la rejilla, los meses; a la izquierda, las iniciales del lunes, miércoles y viernes.
    - La rejilla: columnas de semanas que empiezan en lunes, de enero a diciembre, siempre calendario
      gregoriano.
@@ -110,6 +110,7 @@ atardecer y lo ve avisado en Opciones.
 | Botones del mapa | BUTTON_BG, borde BORDER | #FBFCFE / #DADEE7 | #242C3A / #2C3444 |
 | Botones con el ratón | BUTTON_HOVER, borde BUTTON_HOVER_BORDER | #EDF0F5 / #C0C6D3 | #2E3747 / #3D475C |
 | Contorno de foco | BORDER_FOCUS | #3B6FE0 | #6390FF |
+| Flechas de año apagadas | FG_DISABLED | #A9AFBC | #7C869A |
 | Globo | CANVAS_OVERLAY, texto FG, borde BORDER, sombra 0 6px 18px SHADOW | #FBFCFE | #293040 |
 
 ## 6. Pie del mapa
@@ -192,13 +193,18 @@ Separador «·».
 ## 11. Ventana de opciones
 
 Panel propio de 560 px de ancho, del mismo material que las tarjetas del mapa (el panel de Atelier
-copia sus medidas). Título «Opciones», tres grupos en recuadros, y Aceptar y Cancelar abajo, en el
-orden de cada sistema. Nada se guarda hasta Aceptar. Si tenía Rojo fuego, arriba: «Su tema «Rojo
+copia sus medidas). Título «Opciones», tres grupos en recuadros, por orden de uso desde la 4.16.0
+(«Metas y fechas», «Qué se cuenta», «Apariencia»), y Aceptar y Cancelar abajo, en el orden de cada
+sistema. Al abrir, el foco está en «Mostrar racha y meta»; si se abrió con el ratón, el contorno de foco
+no se ve hasta la primera tecla. Si no cabe, los últimos 24 px del cuerpo se funden con el fondo
+mientras quede contenido debajo. El sitio de la barra de desplazamiento está siempre reservado. Nada se guarda hasta Aceptar. Si tenía Rojo fuego, arriba: «Su tema «Rojo
 fuego» se ha retirado; ahora usa «Naranja atardecer».».
 
 Colores del panel (Nocturne): fondo CANVAS, recuadros CANVAS_ELEVATED con borde BORDER_SUBTLE,
 campos hundidos CANVAS_INSET, líneas BORDER, bordes de controles #878C97 de día y #727B8C de noche,
-acción BUTTON_PRIMARY_BG con texto blanco, foco BORDER_FOCUS, opción elegida con el resaltado de fila
+acción BUTTON_PRIMARY_BG con texto blanco (solo rellenos y bordes), texto que se pulsa FG_LINK
+(«Restaurar apariencia» y «Deshacer» subrayados; «‹ Opciones» con su flecha), texto de ejemplo
+FG_FAINT, lo apagado FG_DISABLED (casilla marcada apagada BUTTON_PRIMARY_DISABLED), foco BORDER_FOCUS, opción elegida con el resaltado de fila
 (#EAEEF8 / #19233F), hover BUTTON_HOVER, peligro ACCENT_DANGER. Filas de al menos 48–52 px; botones de
 32 px; letra de 14 px en las filas, 12 px en ayudas, 16 px en títulos de subpágina, 11 px en detalles
 del calendario.
@@ -206,7 +212,7 @@ del calendario.
 ### Apariencia
 
 «Se ve ya en el mapa; se guarda al aceptar.»: el mapa de detrás cambia en vivo y Cancelar lo deshace.
-Arriba a la derecha, «Restaurar apariencia» (con «Deshacer» al lado tras usarlo).
+Arriba a la derecha, «Restaurar apariencia» (con «Deshacer» al lado tras usarlo), subrayados.
 
 | Opción | Control | Valores | De serie |
 |---|---|---|---|
@@ -229,8 +235,9 @@ Arriba a la derecha, «Restaurar apariencia» (con «Deshacer» al lado tras usa
 - «Mostrar racha y meta» (marcada). Desmarcada: «La meta, los comodines y la pausa no cuentan mientras
   esté desmarcada; se conservan.».
 - Meta diaria: «Sin meta» (de serie), «Un número» o «Terminar lo de hoy».
-  - «Un número»: 1 a 9.999; al elegirla propone el 80 % del promedio («Propuesta: 5 (el 80 % de su
-    promedio diario).»; sin historial, 30). Debajo: «Si es menor que lo que vence, el resto queda para
+  - «Un número»: 1 a 9.999; al elegirla propone el 80 % exacto del promedio que dice la tarjeta, sin
+    redondear («Propuesta: 16 (el 80 % de su promedio diario).» con un promedio de 20; sin historial,
+    30). Debajo: «Si es menor que lo que vence, el resto queda para
     mañana.».
   - «Terminar lo de hoy»: «Las tarjetas que vencen hoy, con los límites diarios de Anki.».
   - Con 7 días o más de datos: «Cumplida 12 de los últimos 14 días.»; con «Terminar lo de hoy» cumplida
@@ -248,7 +255,11 @@ Arriba a la derecha, «Restaurar apariencia» (con «Deshacer» al lado tras usa
   los campos: «Falta el nombre de la fecha.», «Esa fecha con ese nombre ya está en la lista.», «Caben
   hasta 50 fechas.». Al eliminar: «Se eliminó «Parcial».» con «Deshacer» en el sitio de la fila. Al
   cancelar con cambios: «¿Descartar los cambios?» («Se perderán las fechas clave que ha añadido,
-  cambiado o eliminado.»), con el foco en «Seguir editando».
+  cambiado o eliminado.»), con el foco en «Seguir editando». Sin fechas, en lugar de «0 de 50 fechas»:
+  «Cada fecha clave se marca con un rombo en el mapa. Mientras esté por venir, la tarjeta «Próxima
+  fecha» cuenta los días que faltan.»; con fechas, «2 de 50 fechas» a 12 px, alineado con el texto de
+  las tarjetas. Un nombre escrito sin «Añadir» cuenta: Aceptar lo añade (si no se puede, no cierra y
+  avisa), Cancelar pregunta y «‹ Opciones» lo conserva.
 
 ## 12. Movimiento
 
@@ -280,7 +291,9 @@ movimiento). Nada más se anima.
 - Color nunca solo: hoy por borde, cubierto por borde discontinuo, fecha clave por rombo, pendientes por
   su posición en el futuro.
 - Contraste: línea gris 7,9 a 1 de noche; borde de los controles de Opciones 3,2 a 1 o más; texto blanco
-  sobre el azul de acción 4,6 a 1 de día y 4,9 de noche.
+  sobre el azul de acción 4,6 a 1 de día y 4,9 de noche; enlaces (FG_LINK) 8,1 a 1 de noche y 5,3 de
+  día sobre los recuadros; texto de ejemplo (FG_FAINT) 5,8 de noche y 5,1 de día; flechas apagadas
+  (FG_DISABLED) 4,0 de noche.
 - Idiomas de derecha a izquierda: el eje del tiempo (flechas, rejilla, leyenda) sigue de izquierda a
   derecha.
 - Desviación aceptada por la persona: el globo de los días no se puede recorrer con el ratón (WCAG 2.2,
@@ -310,6 +323,12 @@ fechas y meses los escribe Anki; en español, punto de millar desde 1.000. «Añ
 - «Perdonado» pasó a «cubierto».
 - «0 de 2» con una sola tarjeta pendiente es correcto: 2 es la meta elegida.
 - Texto blanco sobre el azul también de noche (lo fija la paleta).
+- El ✓ de la meta aparece con un leve aumento: es una transformación de 150 ms, que la norma admite.
+- La leyenda no añade paradas al tabulador: el lector de pantalla ya lee las cifras de cada cuadrito.
+- Las tarjetas se reparten el ancho del mapa (decisión de la 4.1.0); si un día molesta, la salida
+  prevista es un tope de 400 px por tarjeta, alineadas a la izquierda.
+- Opciones sin índice ni pestañas, sin botón «Usar 16» junto a la propuesta y sin ayuda bajo «Suelo
+  estudiar» (informe 4.15.1, apartado 7.4): el orden por uso y el fundido bastan.
 - Sin llama de racha, sin premios, sin notificaciones, sin botón «Hoy» ni botones de periodo junto al
   año (el periodo está en Opciones).
 - La retención usa la misma ventana que el promedio y solo días completos. Las tarjetas borradas

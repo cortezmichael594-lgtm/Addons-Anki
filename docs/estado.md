@@ -62,8 +62,11 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   (aprobado entero el 2026-11-10): Opciones por orden de uso, borde que se desvanece, colores de enlace,
   de ejemplo y de apagado, foco solo con el teclado, estado vacío de «Fechas clave» (51 idiomas),
   propuesta de meta sin redondear a 5, icono de opciones a 16 px. FIX-032 y FIX-033. Regla de los
-  enlaces en la guía de interfaz y en la paleta. 70 pruebas. No aplicado por falta de material:
-  `09-patron-configuracion.md` (no está en el repositorio) y la barra de desplazamiento de Atelier.
+  enlaces en la guía de interfaz, en la paleta, en el contexto común y en el modelo de opciones
+  (`09-patron-configuracion.md`, apartado 7.1); ficha de GritMap al día. 70 pruebas. Pendiente, fuera
+  del alcance que fijó la persona («solo GritMap»): los paneles copiados en CoreProgress, ProFeedback,
+  Hider, Restart, Always on Top y Edit field during review aún usan el azul de acción en sus enlaces, y
+  la barra de desplazamiento de Atelier contrasta 1,35 a 1.
 
 ## En curso
 
