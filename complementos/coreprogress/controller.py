@@ -11,23 +11,25 @@ from typing import TYPE_CHECKING
 from anki.cards import Card
 from anki.collection import OpChanges, OpChangesAfterUndo
 from aqt import gui_hooks, mw
+from aqt.operations import QueryOp
 from aqt.qt import QTimer
 from aqt.theme import theme_manager
 
-from .data import checkpoint_marks
+from .data import checkpoint_marks, done_today, remaining_count
 from .effects import (
     CELEBRATION_SPARKLE_MIN_STREAK,
     MIN_CARDS_FOR_CHECKPOINTS,
     RECORD_MIN_STREAK,
-    STREAK_MIN_VISIBLE_MS,
+    LABEL_VISIBLE_MS,
     UPDATE_INTERVAL_MS,
     is_celebration_milestone,
 )
 from .errors import guard, report
-from .i18n import record_label, streak_label
+from .i18n import cards_label, progress_text, record_label, streak_label, t
 from .palettes import StyleBundle, fill_bundle
 from .settings import (
     Config,
+    auto_space,
     load_best_streak,
     load_config,
     migrate_best_streak,
@@ -43,6 +45,7 @@ from .view import (
     build_hide_label_js,
     build_set_dark_js,
     build_show_label_js,
+    build_summary_js,
     reviewer_eval,
     reviewer_page_body,
     reviewer_page_head,
@@ -63,6 +66,9 @@ class ProgressBarTracker:
         self._config: Config = load_config()
         self._pending_label: str | None = None
         self._pending_sparkle: bool = False
+        # Resumen para la pantalla de «Enhorabuena» (1.2.0): se prepara al
+        # salir del repaso con el mazo terminado y se pinta una sola vez.
+        self._pending_summary: tuple[StyleBundle, str, str] | None = None
         self._timer = QTimer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(UPDATE_INTERVAL_MS)
@@ -81,6 +87,7 @@ class ProgressBarTracker:
         gui_hooks.webview_will_set_content.append(self._on_webview_will_set_content)
         gui_hooks.profile_did_open.append(self._on_profile_open)
         gui_hooks.profile_will_close.append(self._on_profile_close)
+        gui_hooks.overview_did_refresh.append(self._on_overview_did_refresh)
 
     def _register_config_action(self) -> None:
         try:
@@ -193,6 +200,7 @@ class ProgressBarTracker:
             return
         self._state.reset()
         self._state.deck_id = deck_id
+        self._state.deck_name = deck_name
         self._state.active = True
         self._state.best_at_start = load_best_streak()
         self._state.record_enabled = not self._deck_excluded(deck_id, deck_name)
@@ -202,9 +210,31 @@ class ProgressBarTracker:
         except Exception as exc:
             _log(exc)
             self._state.initial_total = 0
-        QTimer.singleShot(0, self._do_enter)
+        self._read_done_today(deck_id, deck_name)
+
+    def _read_done_today(self, deck_id: int, deck_name: str) -> None:
+        """Lo hecho hoy en el mazo, leído en segundo plano; después, la barra.
+
+        1.2.0 (informe del 2026-11-09): al volver a un mazo a medias, la barra
+        empieza donde lo dejó y no vacía.
+        """
+
+        def on_done(count: int) -> None:
+            if self._state.active and self._state.deck_id == deck_id:
+                self._state.base_done = max(0, int(count))
+                self._do_enter()
+
+        def on_failure(exc: Exception) -> None:
+            _log(exc)
+            if self._state.active and self._state.deck_id == deck_id:
+                self._do_enter()
+
+        QueryOp(
+            parent=mw, op=lambda col: done_today(col, deck_name), success=on_done
+        ).failure(on_failure).run_in_background()
 
     def _handle_review_exit(self) -> None:
+        self._prepare_summary()
         try:
             if self._state.record_enabled:
                 save_best_streak(self._state.session_max)
@@ -229,17 +259,21 @@ class ProgressBarTracker:
         if self._state.initial_total == 0:
             return
         cfg = self._config
-        show_cp = cfg.checkpoints_enabled and self._state.initial_total >= MIN_CARDS_FOR_CHECKPOINTS
-        marks = checkpoint_marks(self._state.initial_total) if show_cp else []
+        total = self._state.day_total
+        show_cp = cfg.checkpoints_enabled and total >= MIN_CARDS_FOR_CHECKPOINTS
+        marks = checkpoint_marks(total) if show_cp else []
+        progress = self._state.progress()
         js = build_enter_js(
             bundle=self._bundle(),
-            progress=self._state.progress(),
+            progress=progress,
             bar_height=cfg.bar_height,
-            push_down=cfg.push_down,
+            push_down=auto_space(cfg.bar_height, cfg.effects_enabled) + cfg.push_down,
             show_checkpoints=bool(marks),
             marks=marks,
             dark=bool(theme_manager.night_mode),
             effects=cfg.effects_enabled,
+            label_ms=LABEL_VISIBLE_MS,
+            aria=self._aria(progress),
         )
         reviewer_eval(js)
         self._state.bar_injected = True
@@ -258,14 +292,20 @@ class ProgressBarTracker:
 
     @guard
     def _on_show_answer(self, _card: Card) -> None:
-        if self._state.active and self._state.bar_injected:
-            reviewer_eval(build_hide_label_js(STREAK_MIN_VISIBLE_MS))
+        # 1.2.0: el aviso se apaga solo a los 1,5 s (LABEL_VISIBLE_MS), sin
+        # esperar a la respuesta.
+        return
 
     @guard
     def _on_answer_card(self, _reviewer: Reviewer, card: Card, ease: int) -> None:
         if not self._state.active or self._state.initial_total == 0:
             return
-        was_correct = ease >= 3
+        # 1.2.0 (informe del 2026-11-09, aprobado por el cliente): «Difícil» es
+        # un acierto, como dice el manual de Anki («la respuesta es correcta,
+        # pero le costó»), y mantiene la racha. Solo «Otra vez» la pone a cero.
+        # Antes «Difícil» la rompía, y eso empujaba a pulsar «Bien» tras dudar,
+        # que alarga el intervalo y hace olvidar más.
+        was_correct = ease >= 2
         self._state.register_answer(card.id, was_correct)
         if self._config.effects_enabled and was_correct:
             streak = self._state.correct_streak
@@ -309,6 +349,8 @@ class ProgressBarTracker:
         if not changes.changes.study_queues:
             return
         self._state.pop_last_answer()
+        # Deshacer es lo único que hace retroceder la barra.
+        self._state.undo_pending = True
         self._state.pending_celebration = False
         self._pending_label = None
         self._pending_sparkle = False
@@ -333,7 +375,7 @@ class ProgressBarTracker:
             return
         progress = self._state.progress()
         bundle = self._bundle()
-        reviewer_eval(build_apply_js(bundle, progress))
+        reviewer_eval(build_apply_js(bundle, progress, self._aria(progress)))
         if self._state.pending_celebration:
             self._state.pending_celebration = False
             label = self._pending_label
@@ -345,6 +387,52 @@ class ProgressBarTracker:
                     reviewer_eval(build_celebrate_js())
                 if label:
                     reviewer_eval(build_show_label_js(label, bundle))
+
+    def _aria(self, progress: float) -> str:
+        total = self._state.day_total
+        done = min(total, max(0, round(progress / 100 * total)))
+        return progress_text(done, total)
+
+    def _prepare_summary(self) -> None:
+        """Si se sale del repaso con el mazo terminado, deja preparada la línea
+        de la pantalla de «Enhorabuena»: «48 tarjetas · mejor racha: 17»."""
+        self._pending_summary = None
+        state = self._state
+        if not state.active or not state.answer_history or state.day_total <= 0:
+            return
+        if remaining_count() > 0:
+            return
+        total = state.day_total
+        parts = [cards_label(total)]
+        best = state.session_max
+        if best > 0:
+            beaten = state.record_enabled and best > state.best_at_start and best >= 3
+            key = "summary_record" if beaten else "summary_best"
+            parts.append(t(key).format(count=best))
+        self._pending_summary = (self._bundle_plain(), " · ".join(parts), progress_text(total, total))
+
+    def _bundle_plain(self) -> StyleBundle:
+        return fill_bundle(self._config.theme, False)
+
+    @guard
+    def _on_overview_did_refresh(self, _overview: object) -> None:
+        pending = self._pending_summary
+        self._pending_summary = None
+        if pending is None or mw is None or mw.col is None:
+            return
+        # Solo en la pantalla de «Enhorabuena»: el mazo ya no tiene nada hoy.
+        if remaining_count() > 0:
+            return
+        bundle, line, aria = pending
+        mw.web.eval(build_summary_js(bundle, line, aria, bool(theme_manager.night_mode)))
+
+    def current_best(self) -> int:
+        """El récord con la racha en curso incluida, si la supera (para la
+        ventana de opciones abierta durante un repaso)."""
+        best = load_best_streak()
+        if self._state.active and self._state.record_enabled:
+            best = max(best, self._state.session_max)
+        return best
 
     def config_changed(self) -> None:
         """Re-read the settings and redraw the bar if a session is running."""
@@ -370,6 +458,7 @@ class ProgressBarTracker:
         gui_hooks.webview_will_set_content.remove(self._on_webview_will_set_content)
         gui_hooks.profile_did_open.remove(self._on_profile_open)
         gui_hooks.profile_will_close.remove(self._on_profile_close)
+        gui_hooks.overview_did_refresh.remove(self._on_overview_did_refresh)
         self._timer.stop()
 
 
@@ -380,6 +469,13 @@ def notify_config_changed() -> None:
     """Called by the settings dialog once new values are saved."""
     if _tracker is not None:
         _tracker.config_changed()
+
+
+def current_best() -> int:
+    """Récord para la ventana de opciones, con la racha en curso si la supera."""
+    if _tracker is not None:
+        return _tracker.current_best()
+    return load_best_streak()
 
 
 def notify_record_reset() -> None:

@@ -1,6 +1,6 @@
 # Qué hace «Restart»
 
-Versión 2.0.0 · 2026-10-21
+Versión 2.1.0 · 2026-11-09
 
 Reinicia Anki con un atajo de teclado (combinación de teclas), por defecto Ctrl+R. El reinicio es un
 cierre normal de Anki, el mismo que con Archivo > Salir: guarda la colección, sincroniza si usted
@@ -69,15 +69,28 @@ desde la última comprobación. A partir de ahí puede volver a pulsar el atajo.
 
 ## 4. Ventana de opciones
 
-- Título: «Restart». No tiene botón de ayuda. Se abre por encima de la ventana de complementos.
-- Casilla «Activar atajo para reiniciar Anki»: marcada por defecto. Al desmarcarla, el campo del
-  atajo queda en gris y, al aceptar, el atajo deja de funcionar al momento.
-- Campo «Atajo:»: por defecto, Ctrl+R. Se rellena pulsando la combinación que quiera, que debe ser
-  una sola (no una secuencia de varias). Tiene un botón pequeño para vaciarlo; si lo deja vacío y
-  pulsa Aceptar, se conserva el atajo que ya estaba guardado.
-- Botones Aceptar, Cancelar y el estándar para restaurar los valores predeterminados, con los textos
-  de Qt en el idioma de Anki (en español, sí). Restaurar marca la casilla y pone Ctrl+R, pero no
-  guarda nada hasta que pulse Aceptar. Cancelar cierra sin guardar.
+Título: «Restart».
+Desde la 2.1.0 sigue el modelo de ventana de opciones del taller, el panel de GritMap (regla
+PROP-012, petición del 2026-11-09): un panel de 560 px de ancho y el alto justo para su contenido,
+hecho de recuadros sobre el fondo de Anki, con los colores de la paleta (también con Atelier) y
+Aceptar y Cancelar abajo (en Windows, Aceptar primero). No se enseña hasta estar dibujado, recuerda
+su tamaño y su posición, y si ya está abierto se trae al frente. Esc cancela y Ctrl+Intro acepta.
+Nada se guarda hasta pulsar Aceptar. Aceptar, Cancelar y Restaurar llevan el texto de Qt en el
+idioma de Anki. Con el teclado: el tabulador recorre los controles, cada uno con su contorno de foco
+azul; el lector de pantalla anuncia el nombre de cada control.
+
+Un solo recuadro, con «Restaurar los valores predeterminados» arriba a la derecha (tras usarlo,
+«Deshacer» al lado):
+
+- Casilla «Activar atajo para reiniciar Anki»: marcada por defecto. Al desmarcarla, el campo del atajo
+  queda atenuado y, al aceptar, el atajo deja de funcionar al momento.
+- Colgando de ella, el campo «Atajo» (sin los dos puntos de antes): por defecto, Ctrl+R. El campo del atajo graba la combinación que se pulse con el foco en él (no hace falta escribir
+nada). El tabulador y Mayús+Tab siguen moviendo el foco y Esc sigue cerrando la ventana, así que esas
+tres no se pueden grabar; Retroceso o Supr solos vacían el campo, igual que la pequeña cruz de al
+lado (que se llama «Eliminar» para el lector de pantalla). La combinación se ve escrita con los
+nombres de teclas del sistema y del idioma de Anki.
+  Si lo deja vacío y pulsa Aceptar, se conserva el atajo que ya estaba guardado.
+- Restaurar marca la casilla y pone Ctrl+R, sin guardar nada hasta Aceptar.
 - Aceptar comprueba la combinación (si la casilla está marcada). No se admite:
   - una tecla suelta o con solo Mayúsculas: debe llevar Ctrl o Alt (también vale la tecla Meta; en
     Mac, ⌘, ⌥ o Control);
@@ -87,9 +100,9 @@ desde la última comprobación. A partir de ahí puede volver a pulsar el atajo.
     escritorios de Linux;
   - las del repaso con tecla modificadora: Ctrl+1 a Ctrl+7 (banderas), Ctrl+Alt+N, Ctrl+Alt+E,
     Ctrl+Alt+I, Ctrl+Shift+D, Ctrl+Supr y Ctrl+Retroceso (y dos variantes para teclado coreano).
-  Si no se admite, muestra la ventana de aviso «Restart» con «No se puede usar «Ctrl+W». Elige una
-  combinación que incluya Ctrl o Alt y que Anki no use ya.» (con la combinación que eligió) y la
-  ventana de opciones sigue abierta para que elija otra.
+  Si no se admite, el aviso «No se puede usar «Ctrl+W». Elige una combinación que incluya Ctrl o Alt
+  y que Anki no use ya.» sale en rojo encima del campo, que se marca con borde rojo, y la ventana
+  sigue abierta con el foco en él (hasta la 2.0.0 salía una ventana de aviso aparte).
 - Si se admite, guarda, cierra la ventana y el nuevo atajo funciona al momento, sin reiniciar. No
   muestra mensaje de confirmación.
 

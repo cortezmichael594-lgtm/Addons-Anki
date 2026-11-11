@@ -13,7 +13,7 @@ ADDON_NAME: Final[str] = "Hider"
 PACKAGE_NAME: Final[str] = "hider"
 
 # Estados de la ventana principal (aqt/main.py, MainWindowState).
-REVIEW_STATE: Final[str] = "review"
+REVIEW_STATE: Final = "review"
 DECK_BROWSER_STATE: Final[str] = "deckBrowser"
 OVERVIEW_STATE: Final[str] = "overview"
 

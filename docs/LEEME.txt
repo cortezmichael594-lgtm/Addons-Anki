@@ -23,6 +23,10 @@ Carpeta docs: documentos de consulta y de trabajo. Claude Code los lee cuando lo
   referencias/              sus resúmenes de libros, artículos y vídeos, con «indice.md» (una línea por
                             documento). Claude Code solo lee el índice y, al diseñar, el apartado que
                             venga al caso. Deje aquí cada resumen nuevo: lo anotará en el índice.
+  fichas-diseno/            una ficha por complemento para quien rediseñe su interfaz o sus funciones
+                            (qué hace, colores, medidas, accesibilidad y textos, sin código), con
+                            «00-contexto-comun.md» (Anki, normas y paleta). Se rehacen a partir de
+                            «que-hace.md» y del código cuando cambia un complemento.
   <complemento>/            una carpeta por complemento con «que-hace.md» (todo lo que hace, en
                             lenguaje llano), «errores.md» (fallos pendientes, corregidos y lo que es
                             así a propósito) y, en los creados aquí, «encargo.md» (lo que usted aprobó).

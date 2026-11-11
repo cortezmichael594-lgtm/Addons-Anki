@@ -9,15 +9,6 @@ versión exacta no consta, solo su fecha.
 
 Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa y propuesta.
 
-- 2026-10-21 · versión 1.2 · Qué pasa: la ventana de opciones acepta como atajo seis combinaciones
-  que el editor de la ventana Añadir de Anki 26.09.3 ya usa: Ctrl+. (lista numerada), Ctrl+, (lista
-  con viñetas), Ctrl+Mayús+. y Ctrl+Mayús+, (aumentar y reducir la sangría de una lista), y Ctrl+= y
-  Ctrl+Mayús+= (superíndice y subíndice). Por ejemplo, si elige Ctrl+. y pulsa «Aceptar», no sale
-  ningún aviso y, desde entonces, dentro de Añadir esa combinación enciende o apaga «siempre visible»
-  y ya no crea la lista numerada. Por qué: la lista de atajos ocupados se sacó de Anki 25.09 y no
-  recoge esos atajos del editor; es justo lo que la regla de FIX-001 quería evitar. Propuesta: añadir
-  esas seis combinaciones a la lista de atajos ocupados y revisarla entera contra Anki 26.09.3. El
-  atajo por defecto, Ctrl+Mayús+O, no está afectado: Anki 26.09.3 no lo usa.
 - 2026-10-21 · versión 1.2 · Qué pasa: si tiene abiertas a la vez las dos versiones de la ventana
   Añadir (la normal y la que Anki abre si se pulsa Añadir con Mayús), el atajo solo cambia la última
   que se abrió. Por ejemplo: con «siempre visible» encendido abre Añadir, después la otra con Mayús,
@@ -37,6 +28,12 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   usa ya Anki. Regla: todo atajo por defecto, y todo atajo que se le ofrezca a usted, se compara antes
   con la lista de atajos que Anki ya usa; si coincide, no se usa. Desde entonces el atajo por defecto
   es Ctrl+Mayús+O.
+- FIX-002 · 2026-11-09 · versión 1.3 · Qué pasaba: la ventana de opciones aceptaba seis combinaciones
+  que el editor de Añadir de Anki 26.09.3 ya usa: Ctrl+. y Ctrl+, (listas), Ctrl+Mayús+. y
+  Ctrl+Mayús+, (sangría), y Ctrl+= y Ctrl+Mayús+= (superíndice y subíndice); con una de ellas, dentro
+  de Añadir se encendía «siempre visible» en lugar de hacer su trabajo. Por qué: la lista de atajos
+  ocupados venía de Anki 25.09. Regla: al cambiar Anki de versión, la lista se revisa contra el
+  editor del Anki instalado. Ahora esas seis se rechazan con el aviso de siempre.
 
 ## Así a propósito
 

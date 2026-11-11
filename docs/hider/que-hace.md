@@ -1,6 +1,6 @@
 # Qué hace «Hider»
 
-Versión 4.0.3 · 2026-10-21
+Versión 4.1.0 · 2026-11-09
 
 Deja la pantalla de repaso limpia para concentrarse en la tarjeta: mientras repasa, pliega la barra
 de menú, la barra superior y la barra inferior de la ventana, quita la barra de desplazamiento de la
@@ -108,40 +108,44 @@ respuesta» ni los botones de respuesta: se repasa con el teclado, con los atajo
 
 ## 7. Ventana de opciones
 
-Título «Configurar 'Hider'», el mismo que Anki pone a la configuración de cualquier complemento. No
-tiene botón de ayuda. Es una ventana que hay que cerrar para seguir usando Anki. No recuerda su
-tamaño ni su posición.
+Título «Configurar 'Hider'», el mismo que Anki pone a la configuración de cualquier complemento.
+Desde la 4.1.0 sigue el modelo de ventana de opciones del taller, el panel de GritMap (regla
+PROP-012, petición del 2026-11-09): un panel de 560 px de ancho y el alto justo para su contenido,
+hecho de recuadros sobre el fondo de Anki, con los colores de la paleta (también con Atelier) y
+Aceptar y Cancelar abajo (en Windows, Aceptar primero). No se enseña hasta estar dibujado, recuerda
+su tamaño y su posición, y si ya está abierto se trae al frente. Esc cancela y Ctrl+Intro acepta.
+Nada se guarda hasta pulsar Aceptar. Aceptar, Cancelar y Restaurar llevan el texto de Qt en el
+idioma de Anki. Con el teclado: el tabulador recorre los controles, cada uno con su contorno de foco
+azul; el lector de pantalla anuncia el nombre de cada control.
 
-Primer grupo, «Durante el repaso, ocultar:»:
+Primer recuadro, «Durante el repaso, ocultar» (sin los dos puntos del rótulo antiguo), con la nota
+gris «Vuelve a aparecer en cuanto sales del repaso.» debajo del título y «Restaurar los valores
+predeterminados» a la derecha (tras usarlo, «Deshacer» al lado):
 
-| Opción | Globo al pasar el ratón | Por defecto |
+| Opción | Nota gris debajo | Por defecto |
 |---|---|---|
-| «La barra de menú (Archivo, Editar, Herramientas...)» | «Vuelve a aparecer en cuanto sales del repaso.» | Marcada |
-| «La barra superior (Mazos, Añadir, Explorar, Estadísticas)» | «Vuelve a aparecer en cuanto sales del repaso.» | Marcada |
-| «La barra inferior de la ventana» | «Vuelve a aparecer en cuanto sales del repaso.» | Marcada |
+| «La barra de menú (Archivo, Editar, Herramientas...)» | — | Marcada |
+| «La barra superior (Mazos, Añadir, Explorar, Estadísticas)» | — | Marcada |
+| «La barra inferior de la ventana» | — | Marcada |
 | «La barra de desplazamiento de la tarjeta» | «Solo visual: puedes seguir bajando con la rueda del ratón. El cambio se nota en la tarjeta siguiente.» | Marcada |
 | «Los botones «Difícil» y «Fácil»» | «Deja solo «Otra vez» y «Bien». Sus atajos de teclado también quedan bloqueados, para que no respondas sin querer con un botón que no ves.» | Marcada |
-| «El puntero del ratón cuando lleva quieto:» y, al lado, un número de segundos (de 1 a 60, escrito como «3 s»), que se apaga si la casilla está desmarcada | «Reaparece en cuanto mueves el ratón.» | Marcada, 3 s |
+| «El puntero del ratón cuando lleva quieto» y, colgando de ella, el campo de segundos con «−» y «+» (de 1 a 60, «s» al lado), atenuado si la casilla está desmarcada | «Reaparece en cuanto mueves el ratón.» | Marcada, 3 s |
 
-Segundo grupo, «Comportamiento»:
+Segundo recuadro, «Comportamiento», con su propio «Restaurar»:
 
-| Opción | Globo al pasar el ratón | Por defecto |
+| Opción | Nota gris debajo | Por defecto |
 |---|---|---|
 | «Empezar el repaso automáticamente al abrir un mazo» | «Solo si hay tarjetas pendientes. Si eres tú quien sale del repaso, Hider no te vuelve a meter dentro.» | Marcada |
 
-Botones Aceptar, Cancelar y el estándar para restaurar los valores predeterminados, con los textos de
-Qt en el idioma de Anki.
-
-- Restaurar valores predeterminados marca todas las casillas y pone 3 segundos, y muestra el aviso
-  breve de Anki «Se restauró la configuración predeterminada». No guarda nada hasta que pulse
-  Aceptar.
+- Hasta la 4.0.3 las explicaciones eran globos al pasar el ratón; ahora se leen a la vista.
+- «Restaurar» de cada recuadro pone sus valores de serie sin guardar nada; «Deshacer» los devuelve.
 - Aceptar guarda, aplica el cambio en el acto (también en mitad del repaso) y muestra durante 2
   segundos «Configuración de Hider guardada.».
-- Cancelar cierra sin guardar nada.
-- Si no se pudiera guardar, sale una ventana de aviso titulada «Hider» con el texto «No se ha podido
-  guardar la configuración de Hider.» y la configuración anterior sigue en vigor.
+- Cancelar, Esc o la X cierran sin guardar nada.
+- Si no se pudiera guardar, el aviso «No se ha podido guardar la configuración de Hider.» sale en
+  rojo encima de la primera casilla y la ventana sigue abierta.
 
-El globo de la barra de desplazamiento dice que el cambio se nota en la tarjeta siguiente; en
+La nota de la barra de desplazamiento dice que el cambio se nota en la tarjeta siguiente; en
 realidad, si cambia la opción en mitad del repaso se nota en el acto, y si la cambia fuera del
 repaso, la próxima vez que entre en él.
 

@@ -1,0 +1,837 @@
+/* Panel de opciones con el modelo de GritMap
+ * (docs/fichas-diseno/09-patron-configuracion.md).
+ *
+ * El mismo material que el panel de GritMap: fondo de Anki, recuadros de capa
+ * elevada con borde suave y esquinas de 10 px, la letra de Anki y la escala de
+ * espacios 4, 8, 16, 24 y 32. Un solo azul (el de accion de Anki) para lo que
+ * se pulsa, lo elegido y el foco. Todo sale de la paleta Nocturne; el borde de
+ * los controles es NOCTURNE_CONTROL_BORDER (3:1 o mas), que no tiene variable
+ * CSS. Sin animaciones, salvo el hundimiento de 1 px al pulsar.
+ *
+ * Todo lleva el prefijo «edit_field_during_review-» (nombre del paquete).
+ */
+
+#edit_field_during_review-app {
+    --edit_field_during_review-canvas: var(--canvas, #F7F8FA);
+    --edit_field_during_review-card: var(--canvas-elevated, #FBFCFE);
+    --edit_field_during_review-overlay: var(--canvas-overlay, #FBFCFE);
+    --edit_field_during_review-inset: var(--canvas-inset, #EEF0F4);
+    --edit_field_during_review-fg: var(--fg, #1B2430);
+    --edit_field_during_review-muted: var(--fg-subtle, #4E576A);
+    --edit_field_during_review-card-border: var(--border-subtle, #E8EAF0);
+    --edit_field_during_review-line: var(--border, #DADEE7);
+    --edit_field_during_review-control: #878C97; /* colores-ok: NOCTURNE_CONTROL_BORDER (día), sin variable CSS en Anki */
+    --edit_field_during_review-accent: var(--button-primary-bg, #3B6FE0);
+    --edit_field_during_review-on-accent: var(--highlight-fg, #FFFFFF);
+    --edit_field_during_review-focus: var(--border-focus, #3B6FE0);
+    --edit_field_during_review-selected: var(--nocturne-row-highlight, #EAEEF8);
+    --edit_field_during_review-hover: var(--button-gradient-start, #EDF0F5);
+    --edit_field_during_review-danger: var(--accent-danger, #CA2D2D);
+    --edit_field_during_review-shadow: var(--shadow-subtle, #1B243012);
+    --edit_field_during_review-shadow-float: var(--shadow, #1B243026);
+}
+
+html.night-mode #edit_field_during_review-app {
+    --edit_field_during_review-canvas: var(--canvas, #12161F);
+    --edit_field_during_review-card: var(--canvas-elevated, #212836);
+    --edit_field_during_review-overlay: var(--canvas-overlay, #293040);
+    --edit_field_during_review-inset: var(--canvas-inset, #0F131B);
+    --edit_field_during_review-fg: var(--fg, #D6DAE1);
+    --edit_field_during_review-muted: var(--fg-subtle, #B7BECC);
+    --edit_field_during_review-card-border: var(--border-subtle, #1F2635);
+    --edit_field_during_review-line: var(--border, #2C3444);
+    --edit_field_during_review-control: #727B8C; /* colores-ok: NOCTURNE_CONTROL_BORDER (noche), sin variable CSS en Anki */
+    --edit_field_during_review-accent: var(--button-primary-bg, #4066E6);
+    --edit_field_during_review-on-accent: var(--highlight-fg, #FFFFFF);
+    --edit_field_during_review-focus: var(--border-focus, #6390FF);
+    --edit_field_during_review-selected: var(--nocturne-row-highlight, #19233F);
+    --edit_field_during_review-hover: var(--button-gradient-start, #2E3747);
+    --edit_field_during_review-danger: var(--accent-danger, #F37777);
+    /* De noche no hay sombras: la profundidad la dan los fondos. */
+    --edit_field_during_review-shadow: transparent;
+    --edit_field_during_review-shadow-float: transparent;
+}
+
+/* La pagina entera nunca se desplaza: solo el cuerpo del panel (regla de
+ * FIX-028 de GritMap). overflow: clip y no hidden: hidden aun deja desplazar
+ * con el foco. */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: clip;
+    background: var(--canvas, #F7F8FA);
+}
+
+html.night-mode body {
+    background: var(--canvas, #12161F);
+}
+
+#edit_field_during_review-app,
+#edit_field_during_review-app * {
+    box-sizing: border-box;
+}
+
+#edit_field_during_review-app {
+    height: 100%;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--edit_field_during_review-fg);
+    background: var(--edit_field_during_review-canvas);
+    font-variant-numeric: tabular-nums;
+    /* Ningun texto se selecciona, salvo lo que se escribe en los campos. */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#edit_field_during_review-app input[type="search"] {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+#edit_field_during_review-app [hidden] {
+    display: none !important;
+}
+
+/* Cabecera y pie fijos; el cuerpo se desplaza si no cabe. */
+#edit_field_during_review-app .edit_field_during_review-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#edit_field_during_review-app .edit_field_during_review-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 24px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-head h1 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+}
+
+#edit_field_during_review-app .edit_field_during_review-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    /* 4 px arriba: el contorno de foco del primer control no se corta. */
+    padding: 4px 12px 12px 12px;
+    scroll-padding: 16px 0;
+}
+
+#edit_field_during_review-app .edit_field_during_review-scrolled .edit_field_during_review-head {
+    border-bottom: 1px solid var(--edit_field_during_review-line);
+}
+
+#edit_field_during_review-app .edit_field_during_review-foot {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    min-height: 52px;
+    align-items: center;
+    padding: 0 24px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-overflow .edit_field_during_review-foot {
+    border-top: 1px solid var(--edit_field_during_review-line);
+}
+
+/* En Windows, Aceptar va primero, como en sus ventanas; en macOS y Linux, a
+ * la derecha. */
+body.isWin #edit_field_during_review-app .edit_field_during_review-foot .edit_field_during_review-primary {
+    order: -1;
+}
+
+/* Recuadros */
+#edit_field_during_review-app .edit_field_during_review-card {
+    background: var(--edit_field_during_review-card);
+    border: 1px solid var(--edit_field_during_review-card-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px var(--edit_field_during_review-shadow);
+}
+
+#edit_field_during_review-app .edit_field_during_review-card + .edit_field_during_review-card {
+    margin-top: 12px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-height: 28px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-card-head h2 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#edit_field_during_review-app .edit_field_during_review-card-actions {
+    display: flex;
+    gap: 4px;
+    margin-inline-start: auto;
+}
+
+#edit_field_during_review-app .edit_field_during_review-card-note {
+    margin: 4px 0 0 0;
+    color: var(--edit_field_during_review-muted);
+}
+
+/* La primera opcion de un recuadro sin titulo no deja hueco arriba. */
+#edit_field_during_review-app .edit_field_during_review-card > .edit_field_during_review-option:first-child {
+    margin-top: 0;
+}
+
+#edit_field_during_review-app .edit_field_during_review-option {
+    margin-top: 16px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+#edit_field_during_review-app .edit_field_during_review-rule {
+    margin: 8px 0 0 0;
+    color: var(--edit_field_during_review-muted);
+}
+
+/* Ayuda bajo una casilla: alineada con su texto (18 px de cuadro y 8 de hueco). */
+#edit_field_during_review-app .edit_field_during_review-check + .edit_field_during_review-rule {
+    margin: 0 0 0 26px;
+}
+
+/* Aviso: franja hundida con icono de informacion, nunca en rojo. */
+#edit_field_during_review-app .edit_field_during_review-notice {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--edit_field_during_review-inset);
+}
+
+#edit_field_during_review-app .edit_field_during_review-notice svg {
+    flex: none;
+    margin-top: 2px;
+    color: var(--edit_field_during_review-muted);
+}
+
+/* Botones */
+#edit_field_during_review-app button {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+    cursor: pointer;
+}
+
+#edit_field_during_review-app .edit_field_during_review-btn {
+    min-height: 32px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid var(--edit_field_during_review-control);
+    background: var(--edit_field_during_review-card);
+    color: var(--edit_field_during_review-fg);
+    white-space: nowrap;
+}
+
+#edit_field_during_review-app .edit_field_during_review-btn:hover:not(:disabled) {
+    background: var(--edit_field_during_review-hover);
+}
+
+#edit_field_during_review-app .edit_field_during_review-btn:active:not(:disabled),
+#edit_field_during_review-app .edit_field_during_review-step button:active:not(:disabled),
+#edit_field_during_review-app .edit_field_during_review-row:active,
+#edit_field_during_review-app .edit_field_during_review-link:active {
+    transform: translateY(1px);
+}
+
+#edit_field_during_review-app .edit_field_during_review-primary {
+    border-color: var(--edit_field_during_review-accent);
+    background: var(--edit_field_during_review-accent);
+    color: var(--edit_field_during_review-on-accent);
+    font-weight: 600;
+}
+
+#edit_field_during_review-app .edit_field_during_review-primary:hover:not(:disabled) {
+    background: var(--edit_field_during_review-accent);
+    filter: brightness(1.06);
+}
+
+/* Boton terciario: texto azul sin fondo («Restaurar», «Deshacer»). */
+#edit_field_during_review-app .edit_field_during_review-link {
+    min-height: 28px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--edit_field_during_review-accent);
+    font-weight: 600;
+}
+
+#edit_field_during_review-app .edit_field_during_review-link:hover {
+    background: var(--edit_field_during_review-hover);
+}
+
+#edit_field_during_review-app .edit_field_during_review-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--edit_field_during_review-muted);
+}
+
+#edit_field_during_review-app .edit_field_during_review-icon-btn:hover:not(:disabled) {
+    background: var(--edit_field_during_review-hover);
+    color: var(--edit_field_during_review-fg);
+}
+
+#edit_field_during_review-app .edit_field_during_review-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 28px;
+    padding: 0 8px 0 4px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--edit_field_during_review-accent);
+    font-weight: 600;
+}
+
+#edit_field_during_review-app .edit_field_during_review-back:hover {
+    background: var(--edit_field_during_review-hover);
+}
+
+/* Foco del teclado: contorno azul de 2 px separado 2 px. Anki quita el
+ * contorno de todos sus botones; por eso !important. */
+#edit_field_during_review-app button:focus-visible,
+#edit_field_during_review-app input:focus-visible,
+#edit_field_during_review-app select:focus-visible,
+#edit_field_during_review-app .edit_field_during_review-chip:has(input:focus-visible),
+#edit_field_during_review-app .edit_field_during_review-check:has(input:focus-visible) .edit_field_during_review-box {
+    outline: 2px solid var(--edit_field_during_review-focus) !important;
+    outline-offset: 2px;
+}
+
+/* Fichas: botones de opcion de verdad, con su teclado. */
+#edit_field_during_review-app .edit_field_during_review-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--edit_field_during_review-control);
+    border-radius: 8px;
+    background: var(--edit_field_during_review-card);
+    cursor: pointer;
+}
+
+#edit_field_during_review-app .edit_field_during_review-chip:hover {
+    background: var(--edit_field_during_review-hover);
+}
+
+#edit_field_during_review-app .edit_field_during_review-chip:has(input:checked) {
+    border: 2px solid var(--edit_field_during_review-accent);
+    padding: 0 11px;
+    background: var(--edit_field_during_review-selected);
+}
+
+#edit_field_during_review-app .edit_field_during_review-chip input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
+
+#edit_field_during_review-app .edit_field_during_review-swatch {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-chip-name {
+    flex: 1;
+    min-width: 0;
+}
+
+#edit_field_during_review-app .edit_field_during_review-tick {
+    flex: none;
+    visibility: hidden;
+    color: var(--edit_field_during_review-accent);
+}
+
+#edit_field_during_review-app .edit_field_during_review-chip:has(input:checked) .edit_field_during_review-tick {
+    visibility: visible;
+}
+
+/* Campo numerico con − y + */
+#edit_field_during_review-app .edit_field_during_review-step-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-step {
+    display: inline-flex;
+    align-items: stretch;
+    height: 32px;
+    border: 1px solid var(--edit_field_during_review-control);
+    border-radius: 8px;
+    background: var(--edit_field_during_review-card);
+    overflow: hidden;
+}
+
+#edit_field_during_review-app .edit_field_during_review-step button {
+    width: 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 16px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-step button:hover:not(:disabled) {
+    background: var(--edit_field_during_review-hover);
+}
+
+#edit_field_during_review-app .edit_field_during_review-step button:focus-visible {
+    outline-offset: -2px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-step button:disabled {
+    opacity: 0.35;
+}
+
+#edit_field_during_review-app .edit_field_during_review-step input {
+    width: calc(4ch + 16px);
+    padding: 0 8px;
+    border: 0;
+    border-inline: 1px solid var(--edit_field_during_review-line);
+    background: none;
+    color: var(--edit_field_during_review-fg);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+#edit_field_during_review-app .edit_field_during_review-step input:focus-visible {
+    outline-offset: 0;
+}
+
+#edit_field_during_review-app .edit_field_during_review-unit {
+    color: var(--edit_field_during_review-muted);
+}
+
+/* Deslizador: carril hundido, tramo lleno del color de accion y tirador de
+ * capa elevada con el borde de los controles. */
+#edit_field_during_review-app .edit_field_during_review-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-slider {
+    --edit_field_during_review-fill: 50%;
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    margin: 0;
+    background: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#edit_field_during_review-app .edit_field_during_review-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(
+        to right,
+        var(--edit_field_during_review-accent) 0,
+        var(--edit_field_during_review-accent) var(--edit_field_during_review-fill),
+        var(--edit_field_during_review-inset) var(--edit_field_during_review-fill),
+        var(--edit_field_during_review-inset) 100%
+    );
+    box-shadow: inset 0 0 0 1px var(--edit_field_during_review-line);
+}
+
+#edit_field_during_review-app .edit_field_during_review-slider::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    margin-top: -6px;
+    border: 1px solid var(--edit_field_during_review-control);
+    border-radius: 50%;
+    background: var(--edit_field_during_review-card);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#edit_field_during_review-app .edit_field_during_review-slider:hover::-webkit-slider-thumb {
+    background: var(--edit_field_during_review-hover);
+}
+
+#edit_field_during_review-app .edit_field_during_review-slider:focus-visible {
+    outline-offset: 4px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-slider-value {
+    flex: none;
+    min-width: 5ch;
+    text-align: end;
+    font-weight: 600;
+}
+
+/* Lista desplegable: un <select> de verdad con el aspecto de los campos. */
+#edit_field_during_review-app .edit_field_during_review-select-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-select-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+#edit_field_during_review-app .edit_field_during_review-select {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 32px 0 12px;
+    border: 1px solid var(--edit_field_during_review-control);
+    border-radius: 8px;
+    background: var(--edit_field_during_review-card);
+    color: var(--edit_field_during_review-fg);
+    font: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#edit_field_during_review-app .edit_field_during_review-select:hover:not(:disabled) {
+    background: var(--edit_field_during_review-hover);
+}
+
+#edit_field_during_review-app .edit_field_during_review-select option {
+    background: var(--edit_field_during_review-overlay);
+    color: var(--edit_field_during_review-fg);
+}
+
+#edit_field_during_review-app .edit_field_during_review-select-wrap svg {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    margin-top: -6px;
+    color: var(--edit_field_during_review-muted);
+    pointer-events: none;
+}
+
+/* Campo grabador de atajos */
+#edit_field_during_review-app .edit_field_during_review-key-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-key {
+    flex: 1;
+    min-width: 0;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--edit_field_during_review-control);
+    border-radius: 8px;
+    background: var(--edit_field_during_review-card);
+    color: var(--edit_field_during_review-fg);
+    font: inherit;
+    font-weight: 600;
+    caret-color: transparent;
+    cursor: pointer;
+}
+
+#edit_field_during_review-app .edit_field_during_review-key::placeholder {
+    color: var(--edit_field_during_review-muted);
+    font-weight: 400;
+}
+
+#edit_field_during_review-app .edit_field_during_review-key:focus-visible {
+    border-color: var(--edit_field_during_review-accent);
+}
+
+/* Casillas: un <input type="checkbox"> de verdad, dibujado a medida. El
+ * control invisible va dentro de su fila (regla de FIX-030 de GritMap). */
+#edit_field_during_review-app .edit_field_during_review-check {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 28px;
+    padding: 4px 0;
+    cursor: pointer;
+}
+
+#edit_field_during_review-app .edit_field_during_review-check input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+
+#edit_field_during_review-app .edit_field_during_review-box {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-top: 0;
+    border: 1px solid var(--edit_field_during_review-control);
+    border-radius: 4px;
+    background: var(--edit_field_during_review-card);
+    color: transparent;
+}
+
+#edit_field_during_review-app .edit_field_during_review-check input:checked + .edit_field_during_review-box {
+    border-color: var(--edit_field_during_review-accent);
+    background: var(--edit_field_during_review-accent);
+    color: var(--edit_field_during_review-on-accent);
+}
+
+#edit_field_during_review-app .edit_field_during_review-check-text {
+    font-weight: 600;
+}
+
+/* Lo que depende de una casilla, agrupado por una linea a la izquierda. */
+#edit_field_during_review-app .edit_field_during_review-group {
+    margin-top: 8px;
+    padding-inline-start: 16px;
+    border-inline-start: 2px solid var(--edit_field_during_review-line);
+}
+
+#edit_field_during_review-app .edit_field_during_review-group > .edit_field_during_review-option:first-child {
+    margin-top: 8px;
+}
+
+/* Apagado: atenuado. */
+#edit_field_during_review-app .edit_field_during_review-off {
+    opacity: 0.45;
+}
+
+#edit_field_during_review-app .edit_field_during_review-off * {
+    cursor: default !important;
+}
+
+#edit_field_during_review-app :disabled {
+    cursor: default;
+}
+
+/* Linea de dato con accion («Su récord actual: 7 seguidas!  Restablecer»). */
+#edit_field_during_review-app .edit_field_during_review-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#edit_field_during_review-app .edit_field_during_review-stat-text strong {
+    font-weight: 700;
+}
+
+/* Fila de resumen: toda la fila es un boton que abre su subpagina. */
+#edit_field_during_review-app .edit_field_during_review-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 6px 16px;
+    border: 1px solid var(--edit_field_during_review-control);
+    border-radius: 8px;
+    background: var(--edit_field_during_review-card);
+    text-align: start;
+}
+
+#edit_field_during_review-app .edit_field_during_review-row:hover {
+    background: var(--edit_field_during_review-hover);
+}
+
+#edit_field_during_review-app .edit_field_during_review-row-text {
+    flex: 1;
+    min-width: 0;
+}
+
+#edit_field_during_review-app .edit_field_during_review-row-title {
+    display: block;
+    font-weight: 600;
+}
+
+#edit_field_during_review-app .edit_field_during_review-row-summary {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    color: var(--edit_field_during_review-muted);
+}
+
+#edit_field_during_review-app .edit_field_during_review-chevron {
+    flex: none;
+    color: var(--edit_field_during_review-muted);
+}
+
+/* Hueco gris mientras llega un dato que tarda. */
+#edit_field_during_review-app .edit_field_during_review-bone {
+    display: inline-block;
+    width: 160px;
+    height: 12px;
+    border-radius: 6px;
+    background: var(--edit_field_during_review-inset);
+    vertical-align: middle;
+}
+
+/* Subpagina con buscador y lista de casillas */
+#edit_field_during_review-app .edit_field_during_review-search {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--edit_field_during_review-control);
+    border-radius: 8px;
+    background: var(--edit_field_during_review-card);
+    color: var(--edit_field_during_review-fg);
+    font: inherit;
+}
+
+#edit_field_during_review-app .edit_field_during_review-list {
+    list-style: none;
+    margin: 12px 0 0 0;
+    padding: 0;
+}
+
+#edit_field_during_review-app .edit_field_during_review-list li {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+}
+
+#edit_field_during_review-app .edit_field_during_review-list .edit_field_during_review-check {
+    flex: 1;
+    min-width: 0;
+}
+
+#edit_field_during_review-app .edit_field_during_review-list .edit_field_during_review-check-text {
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+/* Error: encima del campo, con icono, y el campo con borde rojo. */
+#edit_field_during_review-app .edit_field_during_review-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    color: var(--edit_field_during_review-danger);
+}
+
+#edit_field_during_review-app .edit_field_during_review-invalid,
+#edit_field_during_review-app .edit_field_during_review-invalid:focus-visible {
+    border-color: var(--edit_field_during_review-danger) !important;
+}
+
+/* Pregunta antes de perder algo: un <dialog> de verdad. */
+#edit_field_during_review-app dialog {
+    max-width: 400px;
+    padding: 24px;
+    border: 1px solid var(--edit_field_during_review-card-border);
+    border-radius: 10px;
+    background: var(--edit_field_during_review-overlay);
+    color: var(--edit_field_during_review-fg);
+    box-shadow: 0 8px 24px var(--edit_field_during_review-shadow-float);
+}
+
+#edit_field_during_review-app dialog::backdrop {
+    background: var(--shadow, #1B243026);
+}
+
+#edit_field_during_review-app dialog h2 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#edit_field_during_review-app dialog p {
+    margin: 0;
+    color: var(--edit_field_during_review-muted);
+}
+
+#edit_field_during_review-app .edit_field_during_review-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+body.isWin #edit_field_during_review-app .edit_field_during_review-dialog-actions .edit_field_during_review-primary {
+    order: -1;
+}
+
+/* Zona invisible para los avisos hablados del lector de pantalla. */
+#edit_field_during_review-app .edit_field_during_review-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Colores forzados (alto contraste de Windows): todo control tiene borde
+ * real; lo elegido se marca con borde y ✓; el foco, con el resaltado del
+ * sistema. Solo las muestras de color conservan su color. */
+@media (forced-colors: active) {
+    #edit_field_during_review-app .edit_field_during_review-chip:has(input:checked) {
+        border-color: Highlight;
+    }
+
+    #edit_field_during_review-app .edit_field_during_review-swatch {
+        forced-color-adjust: none;
+    }
+
+    #edit_field_during_review-app button:focus-visible,
+    #edit_field_during_review-app input:focus-visible,
+    #edit_field_during_review-app select:focus-visible {
+        outline-color: Highlight !important;
+    }
+
+    #edit_field_during_review-app .edit_field_during_review-slider::-webkit-slider-runnable-track {
+        background: CanvasText;
+    }
+}

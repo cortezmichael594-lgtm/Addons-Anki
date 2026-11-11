@@ -1,0 +1,21 @@
+{
+  "complemento": "edit_field_during_review",
+  "fix": {
+    "FIX-001": [
+      "web/editor.css",
+      "web/editor.js"
+    ],
+    "FIX-002": [
+      "web/editor.js"
+    ],
+    "FIX-003": [
+      "review.py"
+    ],
+    "FIX-004": [
+      "constants.py"
+    ],
+    "FIX-005": [
+      "web/editor.css"
+    ]
+  }
+}
