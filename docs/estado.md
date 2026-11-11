@@ -32,6 +32,13 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
 - 2026-11-09: GritMap 4.15.1: «Propuesta: 5 (el 80 % de su promedio diario).», sin la cifra final,
   en 51 idiomas (petición del cliente).
 
+- 2026-11-11: Atelier 3.9.0 con el informe «Atelier 3.8.0: auditoría y rediseño de la interfaz»
+  (aprobado entero, con sus dos decisiones: botones de estudio sin píldora y tres tamaños de letra
+  proporcionales). Ocho reglas en ventanas, páginas y panel; barras de desplazamiento a 3 a 1 en las
+  cinco paletas; FIX-014 (borde de la elegida en el panel, de noche) y FIX-015 (texto del editor en
+  blanco puro, que estaba en Pendientes); APR-070; docs/paleta-nocturne.md al día. Las propuestas del
+  panel que el informe comparte con GritMap (borde de la elegida, miniaturas, botones de 88 px) no se
+  han llevado a GritMap: el encargo era de Atelier.
 - 2026-11-09: las ventanas de opciones de CoreProgress 1.1.0, ProFeedback 2.1.0, Hider 4.1.0,
   Restart 2.1.0, Always on Top 1.3 y Edit field during review 1.1.0 siguen el panel modelo de GritMap
   (PROP-012), con una pieza común copiada en cada complemento (panel.py y web/panel.css y panel.js,

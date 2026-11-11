@@ -27,7 +27,14 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-*.txt
       - name: Instalar la pieza gráfica que necesita Qt
-        run: sudo apt-get update -q && sudo apt-get install -y -q libegl1
+        # Hasta 5 intentos, con 30 s entre ellos: a veces la red de GitHub no encuentra los
+        # servidores de Ubuntu durante unos minutos. Si los 5 fallan, el paso falla.
+        run: |
+          for intento in 1 2 3 4 5; do
+            sudo apt-get update -q && sudo apt-get install -y -q libegl1 && exit 0
+            sleep 30
+          done
+          exit 1
       - name: Instalar Anki y las herramientas
         run: python -m pip install -q -r requirements-dev.txt -r requirements-anki.txt
       - name: Comprobar

@@ -1,6 +1,6 @@
 # Qué hace «Atelier»
 
-Versión 3.8.0 · 2026-11-04
+Versión 3.9.0 · 2026-11-11
 
 Temas de color para Anki, en modo día y en modo noche. Trae cinco paletas (Nocturne, Papel, Bosque,
 Lavanda y Atardecer), y Nocturne está elegida de serie. Hasta la 3.5.0 el complemento se llamaba
@@ -13,6 +13,14 @@ elige en la configuración del complemento, se ve al momento mientras se elige y
 la paleta. Si su sistema pide más contraste, Atelier se aparta y deja los colores del sistema. No toca
 su colección, sus tarjetas ni sus plantillas.
 
+Desde la 3.9.0 aplica la auditoría del 2026-11-11 (informe 3.8), aprobada entera por el cliente,
+con sus dos decisiones: los botones de estudio dejan de ser píldoras y tres textos de estudio
+crecen en proporción a la letra de Anki. No cambia ningún color con significado ni mueve ninguna
+pieza: cambian bordes, esquinas, alturas y el gris de los iconos, con ocho reglas que se describen
+en el apartado 4. Dos fallos quedan corregidos (en errores, FIX-014 y FIX-015). Se apoya en los
+resúmenes de diseño del informe (sobre todo «Refactoring UI», «Practical UI» y «UI Pedia») y en
+WCAG 2.2 (contraste de lo que no es texto, 1.4.11).
+
 Desde la 3.8.0 aplica también la auditoría del 2026-11-04 (informe 3.7), aprobada entera por el
 cliente: la fila seleccionada de Explorar y el botón relleno de Preferencias, corregidos (en errores,
 FIX-012 y FIX-013), y retoques de botones, pestañas, casillas, campos, iconos, lista de mazos, editor
@@ -23,7 +31,7 @@ Desde la 3.5.0 aplica el informe de mejoras del 2026-10-26, salvo lo que trata d
 la meta diaria, que el cliente descartó (no aplica a un tema de colores).
 
 La paleta Nocturne conserva el aspecto de la original que usted subió al taller (la del 28 de julio de
-2026). Las decisiones se apoyan en los resúmenes de docs/referencias: sobre todo «Refactoring UI»,
+2026). Las decisiones se apoyan en los resúmenes de diseño que aportó el cliente: sobre todo «Refactoring UI»,
 «Practical UI», Norman, Tufte y el vídeo de tipografía de Tim Gabe, y en menor medida Webflow, Orbix y
 Weinschenk. La versión 2.0.0, hecha en otra copia del taller, se descartó el 2026-10-21 y no está aquí.
 Las paletas Grafito y Alto contraste existieron en la 3.1.0 y se retiraron en la 3.2.0 a petición del
@@ -73,20 +81,31 @@ cliente del 2026-10-28): es una página dentro de la ventana, como las opciones 
     que cambia entre paletas: su fondo, su borde, la barra superior, un recuadro con dos filas (texto
     principal y secundario) y los tres puntos azul, rojo y verde de Nuevas, Aprendiendo y A repasar, y
     un botón del color de acción, con la esquina de esa paleta. La de día va siempre en sus colores
-    de día y la de noche en los de noche, esté Anki como esté;
+    de día y la de noche en los de noche, esté Anki como esté. Desde la 3.9.0, su borde es el
+    fuerte de la paleta, que se ve también sobre la fila elegida (antes, 1,02 a 1 de noche);
   - el nombre (en Papel, en su letra de títulos, Georgia o Cambria), con «predeterminada» detrás en
-    Nocturne, y debajo la descripción (apartado 3);
+    Nocturne, y debajo la descripción, en dos líneas (apartado 3);
   - a la derecha, una marca ✓ en la elegida.
 - La elegida lleva borde de 2 px en el tono de trazo de acción, por dentro (nada se mueve), el fondo
-  con el tinte de acción y la ✓. Con el ratón encima, el borde se oscurece. Toda la fila se pulsa.
+  con el tinte de acción y la ✓. Hasta la 3.8.0, de noche ese borde medía 1 px (FIX-014). Con el
+  ratón encima de otra, su borde se marca con el borde fuerte de la paleta (desde la 3.9.0; antes
+  «se oscurecía»). Toda la fila se pulsa.
 - Un clic en una paleta la aplica al momento a todo Anki, también al propio panel. Con el teclado: el
   tabulador entra en la paleta elegida; las flechas (arriba, abajo, izquierda o derecha) pasan a la
   siguiente y la eligen, y de la última vuelven a la primera; se aplica cuando la elección lleva 200
   milisegundos quieta, para que recorrerlas no repinte Anki a cada paso; la barra espaciadora elige la
-  que tiene el foco. El foco se ve con un contorno de 2 px del color de acción.
-- «Aceptar» (o Ctrl+Intro) conserva y guarda la paleta, sin más avisos: el cambio ya se ha visto.
+  que tiene el foco. Con el foco, el borde de la elegida se engrosa a 4 px hacia fuera, sin
+  separación: una sola línea (desde la 3.9.0; antes, un contorno de 2 px separado del borde, que se
+  veía como dos líneas azules). Si el panel no cabe entero, la fila con el foco se desplaza hasta
+  quedar a la vista, nunca debajo del pie.
+- «Aceptar» (Intro o Ctrl+Intro) conserva y guarda la paleta, sin más avisos: el cambio ya se ha
+  visto. Desde la 3.9.0, Intro sin Ctrl acepta cuando el foco está en la lista; con el foco en un
+  botón, Intro pulsa ese botón.
   «Cancelar», Esc o la X vuelven a la paleta que había al abrir el panel. En Windows, «Aceptar» va
   primero, como en sus ventanas; en macOS y Linux, a la derecha. «Aceptar» es el único botón relleno.
+  Desde la 3.9.0 los dos miden 88 px de ancho como mínimo, y «Cancelar» es el botón secundario de
+  todo Anki (fondo de botón, borde de control; con el ratón, un escalón más claro de noche; pulsado,
+  uno más hundido). «Aceptar», con el ratón, se oscurece; pulsado, más; con el teclado, contorno.
 - Debajo de la lista (texto de la 3.8.0, que nombra el ajuste como Anki): «Cada paleta tiene versión
   de día y de noche. Anki está ahora en modo noche; se cambia en Preferencias de Anki, en «Tema».» (o
   «modo día»). Antes decía: «Cada paleta tiene versión de día y de noche. Anki está ahora en modo noche; el
@@ -120,15 +139,17 @@ cliente del 2026-10-28): es una página dentro de la ventana, como las opciones 
 Todas siguen el modo día o noche que usted elija en Anki y cambian con él. Ningún color es blanco ni
 negro puro.
 
-Cada descripción ocupa una sola línea y todas siguen la misma estructura: colores y botones, y
-después su forma. Valen para el día y para la noche. Desde la 3.5.0 dicen «botones» en lugar de
+Cada descripción ocupa dos líneas (desde la 3.9.0): la primera, colores y botones; la segunda, su
+forma. Hasta la 3.8.0 debía ocupar una, pero en el panel salían dos cortadas a media frase.
+Todas siguen la misma estructura. Valen para el día y para la noche. Desde la 3.5.0 dicen «botones» en lugar de
 «acento». El nombre «Tinta» de Papel de noche no aparece en la ventana: un nombre por cosa.
 
 - Nocturne (de serie). Descripción en la ventana: «Grises azulados y botones azules. Letra del sistema
   y esquinas suaves.». Fondo #F7F8FA de día y #12161F de noche; texto #1B2430 y #D6DAE1;
   azul de acción #3B6FE0 y #4066E6. Títulos en seminegrita con las letras un poco más juntas, esquinas
   de 6px en botones y campos de las ventanas y 12px en los recuadros de las páginas. Un degradado azul
-  muy tenue en la esquina superior derecha del fondo de las páginas. «Aprendiendo» va en el rojo de la
+  muy tenue en la esquina superior derecha del fondo de las páginas. No aparece en las barras ni en el
+  repaso (desde la 3.9.0; antes se repetía dentro de la barra inferior). «Aprendiendo» va en el rojo de la
   paleta desde la 3.5.0 (antes, naranja, que también era el color de «Difícil»).
 - Papel. «Papel y tinta, con botones azul petróleo. Títulos con remates, como un libro.». De día: fondo #FAF7F1,
   texto #2A2520, acento #1F6A80. De noche («Tinta», elegida por el cliente el 2026-10-21): fondo azul
@@ -188,8 +209,10 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   secundario, para distinguir cuál es la activa. Los botones de minimizar, maximizar y cerrar siguen
   el modo día o noche de Anki, aunque Windows esté en el otro. Cada ventana se tiñe antes de aparecer,
   así que no se ve primero blanca. En Windows 10, macOS y Linux la barra queda como siempre.
-- Ayudas emergentes (el recuadro que aparece al dejar el ratón sobre un botón): con el mismo fondo, el
-  mismo borde suave y algo de margen que los menús, en vez de confundirse con la ventana.
+- Ayudas emergentes (el recuadro que aparece al dejar el ratón sobre un botón): con el mismo fondo que
+  los menús, en vez de confundirse con la ventana. Desde la 3.9.0, globos y menús llevan el borde
+  fuerte de la paleta (antes, el suave, que casi no se veía); los globos, 6 px de margen arriba y
+  abajo y 8 a los lados, y cada opción de menú, 28 px de alto y 12 a los lados.
 - Lista de mazos (desde la 3.7.1): la tabla de los mazos tiene el fondo de los recuadros de la
   paleta, el mismo que las tarjetas de GritMap (mapa de calor y cifras), en vez del fondo
   semitransparente de Anki: un solo material para todo lo que va encima del fondo.
@@ -232,24 +255,34 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
 - Pestañas de las ventanas (por ejemplo, las de Preferencias; desde la 3.8.0): la activa lleva el
   tinte de acción, el texto normal y una raya de 2 px abajo en el tono de trazo, en lugar de ir
   rellena de azul con texto blanco. Mide lo mismo que las demás: nada se mueve al cambiar de pestaña.
-  La letra no cambia de grosor.
+  La letra no cambia de grosor. Desde la 3.9.0, las inactivas no llevan relleno y van en el texto
+  secundario; con el ratón encima, el fondo de botón y el texto normal. Así la activa es la única con
+  relleno.
 - Campos de texto, campos numéricos y listas desplegables de las ventanas (desde la 3.8.0): con un
   borde fino visible, el mismo de las casillas, en lugar del borde casi invisible de antes (el filtro
   de la barra lateral de Explorar, por ejemplo, se veía solo por su texto de ejemplo). Con el foco, el
   borde toma el color de acción, como antes. Listas, tablas y separadores siguen con bordes suaves.
+  Desde la 3.9.0, también los campos del editor y el de etiquetas (Añadir, Editar y Explorar) llevan
+  ese borde (antes, 1,18 a 1), y el texto de ejemplo de los campos de las ventanas (por ejemplo,
+  «Filtrar» en Explorar) va en el texto más suave, para que no parezca escrito.
 - Flechas de las listas desplegables, de los campos numéricos y de orden de las columnas (desde la
   3.8.0): en el texto secundario, en vez del blanco casi puro (de noche) o casi negro (de día) con que
-  las trae Anki. Los iconos de la barra lateral de Explorar y los del editor quedan como los dibuja
-  Anki.
+  las trae Anki. Desde la 3.9.0, todos los iconos van en el texto secundario: también los de la barra
+  lateral de Explorar y sus herramientas (antes, blanco puro de noche), los de la barra del editor y
+  el engranaje de la lista de mazos, que además se pulsa en una zona de 24 × 24 px con el dibujo del
+  mismo tamaño. Los iconos con color propio (banderas, estados de tarjeta) no cambian.
 - Interruptor «Tarjetas/Notas» de Explorar (desde la 3.8.0): el lado «Tarjetas» va en el color de
   acción de la paleta (de noche, el tono de trazo) y no en el azul claro de «Nuevas»; su rótulo se lee
   a 4,5 a 1 o más. El lado «Notas» sigue en verde.
 - Editor (Añadir, Editar y Explorar; desde la 3.8.0): los nombres de los campos van en el texto
-  secundario; lo que se escribe, en el color del texto.
+  secundario; lo que se escribe, en el color del texto. Hasta la 3.8.0 no era así: Anki lo pintaba en
+  blanco puro de noche y en negro puro de día (FIX-015). El tamaño y la letra de lo escrito los
+  sigue fijando el tipo de nota.
 - Repaso: los intervalos que salen encima de los botones de respuesta («10 min», «4 d») van en el texto
   secundario y con cifras de igual ancho (desde la 3.5.0). «Comenzar a estudiar» ya va relleno del
   color de acción con texto blanco: lo hace Anki con el azul de la paleta. Las cifras en cero de la
-  lista de mazos ya van en el texto más suave: también lo hace Anki con el de la paleta.
+  lista de mazos ya van en el texto más suave: también lo hace Anki con el de la paleta. Desde la
+  3.9.0, también las de la pantalla de un mazo: «Aprendiendo: 0» iba en rojo.
 - Al moverse con el teclado por la barra superior (Mazos, Añadir, Explorar...) y por los enlaces de
   las páginas (el nombre de cada mazo, el engranaje de opciones), la opción con el foco lleva el
   contorno del color de acción de la paleta. Anki lo oculta en la barra superior; el contorno no ocupa
@@ -260,15 +293,40 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   más que los nombres de los mazos.
 - Botones de respuesta del repaso: una raya fina de color al pie de «Otra vez» (rojo), «Difícil»
   (naranja), «Bien» (verde) y «Fácil» (azul), también con el ratón encima. El texto no cambia; el color
-  solo ayuda a reconocerlos de un vistazo.
+  solo ayuda a reconocerlos de un vistazo. Desde la 3.9.0 la raya mide 3 px, va por dentro, pegada
+  al borde inferior y de lado a lado (antes la curva de la píldora la recortaba), y ocupa el sitio del
+  borde de abajo.
+- Botones de estudio (desde la 3.9.0): los cuatro de respuesta, «Mostrar respuesta» y «Comenzar a
+  estudiar» miden 36 px de alto (antes 28 y 32), con la esquina de los botones en lugar de la
+  píldora (decisión 1 del informe, aprobada). Los de respuesta, 96 px de ancho como mínimo y 16 px
+  entre ellos (antes 80 y 20); «Comenzar a estudiar», 24 px a los lados. Su rótulo va al tamaño del
+  texto de la página (15 px de serie; antes 12) y el título de la pantalla de un mazo, un tercio
+  mayor que ese texto (20 px de serie; antes 17): son proporciones, así que suben con la letra que
+  elija en Anki (decisión 2, aprobada). Los intervalos de encima no cambian.
+- Botones de las páginas (barras inferiores de la lista de mazos y de la pantalla de un mazo,
+  botones de respuesta y los del editor clásico; desde la 3.9.0): con el borde de los campos, a 3 a 1
+  o más sobre el fondo y los recuadros (antes, 1,29 y 1,05 a 1). Con el ratón encima, el borde se
+  marca más; pulsados, el fondo baja un escalón; desactivados, borde suave. Entre los botones de las
+  barras inferiores, 16 px (antes 14). «Editar» y «Más» del repaso siguen sin fondo ni borde.
 - Botón principal de las ventanas (el que se pulsa con Intro en la fila de botones de abajo, por
-  ejemplo «Aceptar» o «Añadir») relleno del color de acción, con texto blanco. Al pasar el ratón o
-  llegar con el teclado se oscurece y lleva un anillo; al pulsarlo, se oscurece más. Si está
+  ejemplo «Aceptar» o «Añadir») relleno del color de acción, con texto blanco. Con el ratón se
+  oscurece; con el foco lleva además un anillo (desde la 3.9.0; antes, el anillo salía también con el
+  ratón); al pulsarlo, se oscurece más, sin anillo. Si está
   desactivado, se ve como un botón normal apagado. Al moverse con Tab entre los botones de esa fila,
   el relleno sigue al botón que respondería a Intro. Desde la 3.8.0, un botón del cuerpo de la ventana
   nunca se rellena, aunque responda a Intro (por ejemplo, «Restablecer tamaños de las ventanas» en
   Preferencias): conserva su fondo y lleva el borde azul fino de Anki. Una ventana sin botón principal
   en esa fila, como Preferencias, no tiene ningún botón relleno.
+- Resto de botones de las ventanas (desde la 3.9.0): con el borde de los campos en sus cuatro lados;
+  con el ratón encima, un borde algo más marcado; pulsados, el fondo baja un escalón; desactivados,
+  borde suave. El que tiene el foco y el que responde a Intro conservan el borde azul de Anki.
+- Un alto de control en las ventanas (desde la 3.9.0): botones, listas desplegables, campos de texto,
+  campos numéricos y pestañas miden 28 px (antes 21, 23, 27 y 26), y los botones de la fila de abajo,
+  88 px de ancho como mínimo (antes, unos 84). Las ventanas crecen un poco: Preferencias, unos 35 px.
+- Barras de desplazamiento (desde la 3.9.0): el tirador se ve a 3 a 1 o más sobre el fondo, los
+  campos y los recuadros (antes, 1,35 a 1 de noche y 1,33 de día); con el ratón encima, más marcado,
+  y al arrastrar, en el texto más suave. Mide 8 px, centrado y redondo, en un carril de 12 que no
+  cambia de ancho.
 - Esquinas según la paleta, con una regla para todas (desde la 3.5.0): botones y campos (de texto,
   listas desplegables, listas) llevan la misma esquina, y los recuadros de las páginas, el doble.
   Desde la 3.7.0, dos familias separadas un 33 %: suaves (6 y 12px: Nocturne, Papel y Lavanda) y
@@ -277,7 +335,8 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   los botones de la barra inferior de la lista de mazos y de la pantalla de un mazo («Descargar mazos
   compartidos», «Crear mazo», «Importar archivo», «Opciones»...), que eran medias píldoras de 16 o
   20 px, y la fila resaltada de la lista de mazos (mazo actual o con el ratón encima), que llevaba la
-  de los recuadros. Los botones de respuesta del repaso no cambian.
+  de los recuadros. Desde la 3.9.0 no queda ninguna píldora: los botones de respuesta y «Comenzar a
+  estudiar» llevan también la esquina de los botones.
 - Casillas y botones de opción con un borde visible sin marcar; con el ratón encima o con el foco, el
   borde toma el color de acción. Desde la 3.8.0, una casilla marcada va rellena del color de acción,
   con la marca en blanco, para que se distinga de un vistazo de una vacía.
@@ -304,7 +363,9 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
 - Letra del texto de las páginas: la de interfaz del sistema (en Windows, Segoe UI Variable o Segoe
   UI), con la que Anki elige para su idioma como reserva (por ejemplo, para japonés o chino).
 - No cambia el tamaño de la letra (manda el que tenga elegido en Anki) ni la letra de las ventanas,
-  que Anki elige según el idioma.
+  que Anki elige según el idioma, salvo tres textos de estudio desde la 3.9.0, que crecen en
+  proporción a esa letra: el título de la pantalla de un mazo (un tercio mayor) y los rótulos de
+  «Comenzar a estudiar» y de los botones de respuesta (del tamaño del texto de la página).
 
 ## 5. Alto contraste del sistema (desde la 3.5.0)
 
@@ -374,7 +435,11 @@ paletas, de día y de noche.
   a 5 (desde la 3.8.0; antes se quedaba en 4,46 en Nocturne de noche y entre 3,1 y 4,1 en Papel,
   Bosque y Atardecer de noche, FIX-012).
 - Los bordes de campos, listas desplegables y casillas sin marcar llegan a 3 sobre el fondo, los
-  recuadros, los botones y el fondo de los campos (desde la 3.8.0).
+  recuadros, los botones y el fondo de los campos (desde la 3.8.0). Desde la 3.9.0, también los de los
+  botones (y, con el ratón encima, su borde sobre el botón), los de los campos del editor y el tirador
+  de las barras de desplazamiento, en reposo, sobre el fondo, los campos y los recuadros.
+- Lo que se escribe en el editor va en el texto principal: de noche, en Nocturne, 10,5 a 1 sobre el
+  campo, por debajo del techo de 13,5 (antes, blanco puro: 14,8; desde la 3.9.0).
 - La bandera roja y la verde se diferencian en claridad al menos 1,4 veces, también vistas como las ve
   quien tiene deuteranopía o protanopía (simulación de Machado, 2009; desde la 3.5.0).
 - Los trazos de acción (foco, anillo, enlaces) llegan a 3 sobre cualquier fondo (desde la 3.5.0).

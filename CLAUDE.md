@@ -36,6 +36,7 @@ Si dos chocan, gana la de número menor.
 - Una carpeta de nombre numérico (por ejemplo, 1234567890) viene de AnkiWeb y es de otra persona: avisa de que AnkiWeb borrará los cambios en su próxima actualización y propón, por este orden, un complemento propio que lo complemente con ganchos o una copia con otro nombre de paquete que respete su licencia.
 - `pruebas/<paquete>/`: pruebas de la lógica de cada complemento; `pruebas/herramientas/`, las de las herramientas.
 - `docs/<paquete>/`: `que-hace.md` y `errores.md` de cada complemento. `docs/ejemplo-referencia/`: complemento modelo ya comprobado; copia su estructura (no se instala).
+- `docs/`: guías (`guia-interfaz.md`, `guia-complementos.md`, `paleta-nocturne.md`, `preparar-entorno.md`) y lo aprendido (`aprendizajes.md` y `automejora.md`).
 - `docs/fichas-diseno/`: una ficha por complemento con lo que se ve y se puede hacer, sin código. La persona se la pasa, con `00-contexto-comun.md` y `09-patron-configuracion.md`, a otra IA que le propone mejoras de diseño; sus informes vuelven aquí como encargos.
 - `docs/`: guías (`guia-interfaz.md`, `guia-complementos.md`, `paleta-nocturne.md`, `preparar-entorno.md`), lo aprendido (`aprendizajes.md` y `automejora.md`) y `referencias/` (resúmenes, con `indice.md`).
 - `herramientas/`: `comprobar.py` (todo), `empaquetar.py` (un complemento), `registro-fix/` (notas FIX de cada entrega) y `version-anki.txt`. `paquetes/`: los `.ankiaddon` entregados, con la versión en el nombre; son los puntos de vuelta atrás.

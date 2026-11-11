@@ -124,7 +124,7 @@ PALETTE: dict[str, Token] = {
     "BUTTON_BG":                     {"css": ("--button-bg",),                                     "light": "#FBFCFE",   "dark": "#242C3A"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_DISABLED":               {"css": ("--button-disabled",),                               "light": "#FBFCFE80", "dark": "#242C3A80"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_HOVER":                  {"css": ("--button-gradient-start", "--button-gradient-end"), "light": "#EDF0F5",   "dark": "#2E3747"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "BUTTON_HOVER_BORDER":           {"css": ("--button-hover-border",),                           "light": "#C0C6D3",   "dark": "#3D475C"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "BUTTON_HOVER_BORDER":           {"css": ("--button-hover-border",),                           "light": "#6F7682",   "dark": "#8590A3"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_PRIMARY_BG":             {"css": ("--button-primary-bg",),                             "light": "#3B6FE0",   "dark": "#4066E6"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_PRIMARY_DISABLED":       {"css": ("--button-primary-disabled",),                       "light": "#3B6FE059", "dark": "#4066E659"},  # colores-ok: paleta del tema, origen de todos sus colores
     "BUTTON_PRIMARY_GRADIENT_END":   {"css": ("--button-primary-gradient-end",),                   "light": "#2F5BC7",   "dark": "#3452C8"},  # colores-ok: paleta del tema, origen de todos sus colores
@@ -149,9 +149,9 @@ PALETTE: dict[str, Token] = {
     "FLAG_7":                        {"css": ("--flag-7",),                                        "light": "#7048E8",   "dark": "#9680D6"},  # colores-ok: paleta del tema, origen de todos sus colores
     "HIGHLIGHT_BG":                  {"css": ("--highlight-bg",),                                  "light": "#3B6FE0",   "dark": "#4066E6"},  # colores-ok: paleta del tema, origen de todos sus colores
     "HIGHLIGHT_FG":                  {"css": ("--highlight-fg",),                                  "light": "#FFFFFF",   "dark": "#FFFFFF"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "SCROLLBAR_BG":                  {"css": ("--scrollbar-bg",),                                  "light": "#D5D9E2",   "dark": "#272F3F"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "SCROLLBAR_BG_ACTIVE":           {"css": ("--scrollbar-bg-active",),                           "light": "#AAB1C0",   "dark": "#3D475C"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "SCROLLBAR_BG_HOVER":            {"css": ("--scrollbar-bg-hover",),                            "light": "#C0C6D3",   "dark": "#353E50"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "SCROLLBAR_BG":                  {"css": ("--scrollbar-bg",),                                  "light": "#828893",   "dark": "#6C7587"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "SCROLLBAR_BG_ACTIVE":           {"css": ("--scrollbar-bg-active",),                           "light": "#646C7D",   "dark": "#9AA3B4"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "SCROLLBAR_BG_HOVER":            {"css": ("--scrollbar-bg-hover",),                            "light": "#6F7682",   "dark": "#8590A3"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SELECTED_BG":                   {"css": ("--selected-bg",),                                   "light": "#3B6FE038", "dark": "#6390FF40"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SELECTED_FG":                   {"css": ("--selected-fg",),                                   "light": "#1B2430",   "dark": "#D6DAE1"},  # colores-ok: paleta del tema, origen de todos sus colores
     "SHADOW":                        {"css": ("--shadow",),                                        "light": "#1B243026", "dark": "#05080F66"},  # colores-ok: paleta del tema, origen de todos sus colores
@@ -166,16 +166,28 @@ PALETTE: dict[str, Token] = {
     "STATE_SUSPENDED":               {"css": ("--state-suspended",),                              "light": "#868E96",   "dark": "#848E9C"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_CONTROL_BORDER":       {"css": ("--nocturne-control-border",),                         "light": "#878C97",   "dark": "#727B8C"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_ROW_HIGHLIGHT":        {"css": ("--nocturne-row-highlight",),                          "light": "#EAEEF8",   "dark": "#19233F"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "NOCTURNE_PRIMARY_PRESSED":      {"css": (),                                                     "light": "#284EAA",   "dark": "#2B45AA"},  # colores-ok: paleta del tema, origen de todos sus colores
-    "NOCTURNE_PRIMARY_RING":         {"css": (),                                                     "light": "#1C3A8A",   "dark": "#A9C4FF"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "NOCTURNE_PRIMARY_PRESSED":      {"css": ("--nocturne-primary-pressed",),                        "light": "#284EAA",   "dark": "#2B45AA"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "NOCTURNE_PRIMARY_RING":         {"css": ("--nocturne-primary-ring",),                           "light": "#1C3A8A",   "dark": "#A9C4FF"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_TITLEBAR":             {"css": (),                                                     "light": "#FAFBFE",   "dark": "#070C16"},  # colores-ok: paleta del tema, origen de todos sus colores
     "NOCTURNE_TABLE_SELECTED":       {"css": (),                                                     "light": "#92AEEB",   "dark": "#3D5696"},  # colores-ok: paleta del tema, origen de todos sus colores
+    "NOCTURNE_BUTTON_PRESSED":       {"css": ("--nocturne-button-pressed",),                         "light": "#DADEE7",   "dark": "#212836"},  # colores-ok: paleta del tema, origen de todos sus colores
 }
 # Versión 3.8.0 (informe del 2026-11-04, apartado 1.2): NOCTURNE_TABLE_SELECTED es el fondo
 # opaco de las filas seleccionadas de Explorar. Anki usa SELECTED_BG, que es transparente, y
 # Explorar lo pinta tres veces encima de la fila (estilo, celda y delegado de Anki): de noche
 # quedaba en #425EA3, con el texto a 4,46:1. Opaco, se ve igual lo pinte quien lo pinte; de día
 # es el mismo color que ya se veía y de noche el mismo tono algo más oscuro, a 5:1 o más.
+#
+# Versión 3.9.0 (informe del 2026-11-11, apartados 2.5, 8.3 y 8.6):
+#   - El tirador de las barras de desplazamiento, a 3:1 o más sobre el fondo, los campos y los
+#     recuadros (WCAG 1.4.11); antes, 1,35:1 de noche y 1,33:1 de día. Con el ratón encima, un
+#     escalón más, y al arrastrar, el texto tenue.
+#   - BUTTON_HOVER_BORDER, el borde de un botón con el ratón encima, el mismo escalón: el borde de
+#     control (NOCTURNE_CONTROL_BORDER) bajaría de 3:1 sobre el botón con el ratón.
+#   - NOCTURNE_BUTTON_PRESSED, el fondo de un botón pulsado: de noche baja un escalón (el de los
+#     recuadros) y de día se oscurece uno más que con el ratón (el de BORDER).
+#   - NOCTURNE_PRIMARY_PRESSED y NOCTURNE_PRIMARY_RING pasan también a las páginas, para el botón
+#     relleno («Comenzar a estudiar» y «Aceptar» del panel).
 
 # Anki mantiene dos alias de gradiente que deben seguir al color de hover.
 GRADIENT_ALIASES: tuple[str, ...] = ("BUTTON_GRADIENT_START", "BUTTON_GRADIENT_END")
