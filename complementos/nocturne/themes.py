@@ -6,7 +6,7 @@ Cada paleta es un estilo completo para el modo día y el modo noche: sus colores
 «aspecto» (``Look``): letra de los títulos, esquinas, botones, separación de las
 filas de la lista de mazos, contorno del foco y degradado del fondo.
 
-En qué se apoya cada decisión (resúmenes en docs/referencias):
+En qué se apoya cada decisión (resúmenes de diseño que aportó el cliente):
   - Una función fija para cada color, un solo color de acción y neutros del mismo
     matiz que el acento (Webflow, P2-P4; Practical UI, P10 y M2).
   - El radio de las esquinas y la letra dan la «personalidad» (Refactoring UI, P3):

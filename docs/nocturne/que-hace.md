@@ -31,7 +31,7 @@ Desde la 3.5.0 aplica el informe de mejoras del 2026-10-26, salvo lo que trata d
 la meta diaria, que el cliente descartó (no aplica a un tema de colores).
 
 La paleta Nocturne conserva el aspecto de la original que usted subió al taller (la del 28 de julio de
-2026). Las decisiones se apoyan en los resúmenes de docs/referencias: sobre todo «Refactoring UI»,
+2026). Las decisiones se apoyan en los resúmenes de diseño que aportó el cliente: sobre todo «Refactoring UI»,
 «Practical UI», Norman, Tufte y el vídeo de tipografía de Tim Gabe, y en menor medida Webflow, Orbix y
 Weinschenk. La versión 2.0.0, hecha en otra copia del taller, se descartó el 2026-10-21 y no está aquí.
 Las paletas Grafito y Alto contraste existieron en la 3.1.0 y se retiraron en la 3.2.0 a petición del
