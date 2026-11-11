@@ -6424,3 +6424,63 @@ _PROPOSAL_4_15_1: dict[str, str] = {
 }
 for _code, _text in _PROPOSAL_4_15_1.items():
     STRINGS[_code]["goal_proposal_line2"] = _text
+
+
+# Estado vacio de «Fechas clave» (4.16.0, informe 4.15.1, apartado 4.4): en
+# lugar de «0 de 50 fechas», para que sirve una fecha clave. Usa el nombre de
+# la tarjeta «Próxima fecha» de cada idioma.
+_KD_EMPTY_4_16: dict[str, str] = {
+    "en": "Each key date is marked with a diamond on the map. While it is upcoming, the “Next date” card counts the days left.",
+    "es": "Cada fecha clave se marca con un rombo en el mapa. Mientras esté por venir, la tarjeta «Próxima fecha» cuenta los días que faltan.",
+    "de": "Jeder wichtige Termin wird im Kalender mit einer Raute markiert. Solange er bevorsteht, zählt die Karte „Nächster Termin“ die verbleibenden Tage.",
+    "fr": "Chaque date clé est marquée d’un losange sur la carte. Tant qu’elle est à venir, la carte « Prochaine date » compte les jours restants.",
+    "it": "Ogni data chiave è segnata con un rombo sulla mappa. Finché deve ancora arrivare, la scheda «Prossima data» conta i giorni che mancano.",
+    "pt": "Cada data importante é marcada com um losango no mapa. Enquanto estiver por vir, o cartão «Próxima data» conta os dias que faltam.",
+    "nl": "Elke belangrijke datum krijgt een ruitje op de kaart. Zolang hij nog moet komen, telt de kaart ‘Volgende datum’ de resterende dagen.",
+    "ru": "Каждая важная дата отмечается на карте ромбом. Пока она не наступила, карточка «Ближайшая дата» считает оставшиеся дни.",
+    "pl": "Każda ważna data jest oznaczona rombem na mapie. Dopóki nie nadejdzie, karta „Najbliższa data” odlicza pozostałe dni.",
+    "tr": "Her önemli tarih haritada bir eşkenar dörtgenle işaretlenir. Tarih gelene kadar «Sıradaki tarih» kartı kalan günleri sayar.",
+    "ja": "重要な日付はマップにひし形で示されます。その日が来るまで、「次の日付」カードが残りの日数を数えます。",
+    "ko": "중요한 날짜는 지도에 마름모로 표시됩니다. 그날이 오기 전까지 '다음 날짜' 카드가 남은 날을 셉니다.",
+    "zh_CN": "每个重要日期都会在图上以菱形标出。在它到来之前，“下一个日期”卡片会显示还剩几天。",
+    "zh_TW": "每個重要日期都會在圖上以菱形標出。在它到來之前，「下一個日期」卡片會顯示還剩幾天。",
+    "ar": "يُعلَّم كل تاريخ مهم بمعيَّن على الخريطة. وما دام قادمًا، تعدّ بطاقة «التاريخ القادم» الأيام المتبقية.",
+    "el": "Κάθε σημαντική ημερομηνία σημειώνεται με έναν ρόμβο στον χάρτη. Όσο δεν έχει έρθει, η κάρτα «Επόμενη ημερομηνία» μετρά τις μέρες που απομένουν.",
+    "sv": "Varje viktigt datum markeras med en romb på kartan. Så länge det ligger framför dig räknar kortet ”Nästa datum” de dagar som återstår.",
+    "da": "Hver vigtig dato markeres med en rombe på kortet. Så længe den ligger forude, tæller kortet »Næste dato« de resterende dage.",
+    "nb": "Hver viktige dato markeres med en rombe på kartet. Så lenge den ligger foran deg, teller kortet «Neste dato» dagene som er igjen.",
+    "fi": "Jokainen tärkeä päivämäärä merkitään karttaan vinoneliöllä. Kunnes se koittaa, kortti ”Seuraava päivämäärä” laskee jäljellä olevat päivät.",
+    "cs": "Každé důležité datum je na mapě označeno kosočtvercem. Dokud nenastane, karta „Nejbližší datum“ odpočítává zbývající dny.",
+    "sk": "Každý dôležitý dátum je na mape označený kosoštvorcom. Kým nenastane, karta „Najbližší dátum“ odpočítava zostávajúce dni.",
+    "hu": "Minden fontos dátumot rombusz jelöl a térképen. Amíg el nem jön, a „Következő dátum” kártya számolja a hátralévő napokat.",
+    "ro": "Fiecare dată importantă este marcată cu un romb pe hartă. Până sosește, cardul „Următoarea dată” numără zilele rămase.",
+    "uk": "Кожна важлива дата позначається на карті ромбом. Поки вона не настала, картка «Найближча дата» рахує дні, що лишилися.",
+    "vi": "Mỗi ngày quan trọng được đánh dấu bằng một hình thoi trên bản đồ. Trong khi chưa đến, thẻ “Ngày sắp tới” đếm số ngày còn lại.",
+    "th": "วันสำคัญแต่ละวันจะมีรูปข้าวหลามตัดบนแผนที่ ระหว่างที่ยังมาไม่ถึง การ์ด “วันถัดไป” จะนับวันที่เหลือ",
+    "ms": "Setiap tarikh penting ditanda dengan rombus pada peta. Selagi ia belum tiba, kad “Tarikh seterusnya” mengira hari yang tinggal.",
+    "tl": "Bawat mahalagang petsa ay may markang diyamante sa mapa. Habang hindi pa ito dumarating, binibilang ng card na “Susunod na petsa” ang natitirang araw.",
+    "he": "כל תאריך חשוב מסומן במעוין במפה. כל עוד הוא עוד לא הגיע, הכרטיס „התאריך הבא” סופר את הימים שנותרו.",
+    "hr": "Svaki važan datum označen je rombom na karti. Dok ne stigne, kartica „Sljedeći datum” broji preostale dane.",
+    "sr": "Сваки важан датум означен је ромбом на мапи. Док не стигне, картица „Следећи датум” броји преостале дане.",
+    "sl": "Vsak pomemben datum je na zemljevidu označen z rombom. Dokler ne pride, kartica »Naslednji datum« šteje preostale dni.",
+    "bg": "Всяка важна дата се отбелязва с ромб на картата. Докато не е настъпила, картата „Следваща дата“ отброява оставащите дни.",
+    "ca": "Cada data clau es marca amb un rombe al mapa. Mentre no arribi, la targeta «Propera data» compta els dies que falten.",
+    "eu": "Data garrantzitsu bakoitza erronbo batekin markatzen da mapan. Iritsi bitartean, «Hurrengo data» txartelak falta diren egunak zenbatzen ditu.",
+    "gl": "Cada data clave márcase cun rombo no mapa. Mentres estea por vir, a tarxeta «Próxima data» conta os días que faltan.",
+    "et": "Iga oluline kuupäev märgitakse kaardil rombiga. Kuni see pole saabunud, loeb kaart „Järgmine kuupäev” järelejäänud päevi.",
+    "fa": "هر تاریخ مهم روی نقشه با یک لوزی علامت می‌خورد. تا وقتی نرسیده، کارت «تاریخ بعدی» روزهای باقی‌مانده را می‌شمارد.",
+    "mn": "Чухал огноо бүрийг газрын зураг дээр ромбоор тэмдэглэнэ. Тэр өдөр ирэх хүртэл «Дараагийн огноо» карт үлдсэн өдрийг тоолно.",
+    "be": "Кожная важная дата пазначаецца на карце ромбам. Пакуль яна не настала, картка «Бліжэйшая дата» лічыць дні, што засталіся.",
+    "eo": "Ĉiu grava dato estas markita per rombo sur la mapo. Dum ĝi ankoraŭ venos, la karto «Sekva dato» kalkulas la restantajn tagojn.",
+    "af": "Elke belangrike datum word met ’n ruit op die kaart gemerk. Solank dit nog voorlê, tel die kaart “Volgende datum” die oorblywende dae.",
+    "ga": "Marcáiltear gach dáta tábhachtach le rombas ar an léarscáil. Go dtí go dtagann sé, comhaireann an cárta “An chéad dáta eile” na laethanta atá fágtha.",
+    "la": "Quisque dies insignis rhombo in tabula notatur. Dum venturus est, charta «Dies proximus» dies reliquos numerat.",
+    "oc": "Cada data clau es marcada amb un lausange sus la mapa. Tant que deu venir, la carta « Data venenta » compta los jorns que mancan.",
+    "uz": "Har bir muhim sana xaritada romb bilan belgilanadi. U kelgunicha «Keyingi sana» kartasi qolgan kunlarni sanaydi.",
+    "jbo": "ro lo vajni detri cu se tcita lo kurfa poi tanbo vu'i lo cartu .i ca lo nu ri na'o ca'o balvi kei lo kartu po'u la'o gy. lo bavla'i detri gy. cu kancu lo stali djedi",
+    "hy": "Յուրաքանչյուր կարևոր ամսաթիվ քարտեզի վրա նշվում է շեղանկյունով։ Քանի դեռ այն չի եկել, «Հաջորդ ամսաթիվ» քարտը հաշվում է մնացած օրերը։",
+    "ug": "ھەر بىر مۇھىم چېسلا خەرىتىدە رومب بىلەن بەلگىلىنىدۇ. ئۇ كەلگۈچە «كېيىنكى چېسلا» كارتىسى قالغان كۈنلەرنى سانايدۇ.",
+    "or": "ପ୍ରତ୍ୟେକ ମୁଖ୍ୟ ତାରିଖ ମାନଚିତ୍ରରେ ଏକ ରମ୍ବସ ଦ୍ୱାରା ଚିହ୍ନିତ ହୁଏ। ଏହା ନ ଆସିବା ପର୍ଯ୍ୟନ୍ତ, “ପରବର୍ତ୍ତୀ ତାରିଖ” କାର୍ଡ ବାକି ଦିନ ଗଣେ।",
+}
+for _code, _text in _KD_EMPTY_4_16.items():
+    STRINGS[_code]["kd_empty"] = _text

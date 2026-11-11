@@ -443,8 +443,10 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
 ## Reglas de coherencia
 
 * **Haz** que cada elemento nuevo derive su color de un token de esta tabla.
-* **Haz** que el color de acción (botones/enlaces destacados) use el azul
-`BUTTON_PRIMARY_BG` / `HIGHLIGHT_BG`; es el azul de acción del sistema.
+* **Haz** que el color de acción use el azul `BUTTON_PRIMARY_BG` /
+`HIGHLIGHT_BG` en rellenos y bordes; es el azul de acción del sistema. El texto
+que se pulsa (enlaces y botones de texto) usa `FG_LINK`: el azul de acción como
+texto da 3,0 a 1 de noche sobre `CANVAS_ELEVATED`.
 * **Haz** que el texto sobre un fondo de acción use `HIGHLIGHT_FG` (blanco).
 * **Haz** que cualquier color que definas a mano tenga su pareja día **y** noche.
 * **Evita** el negro puro (`#000`) y el blanco puro como fondos: usa `CANVAS` y

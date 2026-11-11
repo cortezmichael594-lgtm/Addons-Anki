@@ -153,12 +153,33 @@ código, no la versión exacta. Se anotaron aquí al traer la 4.11.2 (2026-11-04
 - FIX-031 · 2026-10-27 · serie 4 · Qué pasaba: el ✓ de «✓ hoy» en «Racha» era gris y fino, y el de
   «✓ Meta cumplida» en «Hoy», del color del texto y en seminegrita. Por qué: cada uno se dibujaba de
   una manera. Regla: todo ✓ de las tarjetas se dibuja con la misma pieza y el mismo aspecto.
+- FIX-032 · 2026-11-11 · versión 4.16.0 · Qué pasaba: de noche, en Opciones, «Restaurar apariencia» se
+  leía con 3,0 a 1 de contraste, «‹ Opciones» con 3,7 y el texto de ejemplo de los campos con 3,2 (la
+  norma pide 4,5). Por qué: los textos que se pulsan usaban el azul de los botones, que es un color de
+  relleno, y el texto de ejemplo, el gris de serie del navegador, fuera de la paleta. Regla: el azul de
+  acción es para rellenos y bordes; el texto que se pulsa usa el color de enlace de la paleta, el de
+  ejemplo su gris tenue y lo apagado su gris de apagado (informe 4.15.1).
+- FIX-033 · 2026-11-11 · versión 4.16.0 · Qué pasaba: en «Fechas clave», quien escribía el nombre de una
+  fecha y pulsaba Aceptar sin «Añadir» la perdía sin aviso; Cancelar tampoco preguntaba. Por qué: Aceptar
+  solo guardaba la lista ya añadida y lo escrito no contaba como cambio. Regla: lo escrito en un
+  formulario interior y sin añadir cuenta: Aceptar lo añade (o avisa y no cierra) y Cancelar pregunta
+  antes de perderlo.
 
 ## Así a propósito
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
 
 Serie 4 (lo más reciente primero):
+
+- Versión 4.16.0 (informe 4.15.1, aprobado entero el 2026-11-10): el ✓ de la meta cumplida sigue
+  apareciendo con un leve aumento de 150 ms: es una transformación, que la norma del taller admite
+  («solo opacity o transform y 150 ms como máximo»), así que no se cambia por un fundido. La leyenda no
+  añade paradas al tabulador: cada cuadrito ya es una imagen con su nombre («de 3 a 6 tarjetas») que el
+  lector de pantalla lee en la propia leyenda. Los títulos de las tarjetas ya eran encabezados (comprobado
+  de nuevo en el código). Las tarjetas siguen repartiéndose el ancho del mapa y el panel no lleva índice
+  ni pestañas (apartado 9 y 7.4 del informe). El color de enlace, el gris tenue y el gris de apagado se
+  toman de Anki: con Atelier dan las cifras del informe; sin Atelier, de noche, el gris tenue de Anki es
+  más oscuro (#545454) y el texto de ejemplo contrastaría menos.
 
 - Versión 4.15.0 (informe «textos, hábito y abandono» del cliente, 2026-11-09): «Promedio diario» y
   «Retención» no se muestran sin dato, en lugar de «N/A» con su motivo, para no recibir con un panel

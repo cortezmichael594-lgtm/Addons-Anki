@@ -32,6 +32,13 @@ Se actualiza al terminar cada sesión de un trabajo largo y se lee al retomarlo.
 - 2026-11-09: GritMap 4.15.1: «Propuesta: 5 (el 80 % de su promedio diario).», sin la cifra final,
   en 51 idiomas (petición del cliente).
 
+- 2026-11-11: GritMap 4.16.0 con el informe «GritMap 4.15.1: auditoría y rediseño de la interfaz»
+  (aprobado entero el 2026-11-10): Opciones por orden de uso, borde que se desvanece, colores de enlace,
+  de ejemplo y de apagado, foco solo con el teclado, estado vacío de «Fechas clave» (51 idiomas),
+  propuesta de meta sin redondear a 5, icono de opciones a 16 px. FIX-032 y FIX-033. Regla de los
+  enlaces en la guía de interfaz y en la paleta. 70 pruebas. No aplicado por falta de material:
+  `09-patron-configuracion.md` (no está en el repositorio) y la barra de desplazamiento de Atelier.
+
 ## En curso
 
 - El pull request de la adaptación espera la revisión de la persona. No se fusiona sin ella.

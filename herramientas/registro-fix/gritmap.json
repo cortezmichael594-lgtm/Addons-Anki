@@ -103,6 +103,12 @@
     ],
     "FIX-031": [
       "view.py"
+    ],
+    "FIX-032": [
+      "web/options.css"
+    ],
+    "FIX-033": [
+      "web/options.js"
     ]
   }
 }
