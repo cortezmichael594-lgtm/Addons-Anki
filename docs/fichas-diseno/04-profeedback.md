@@ -1,6 +1,6 @@
 # Ficha de diseño: ProFeedback
 
-Versión 2.3.0 (13 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 2.4.0 (13 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
@@ -34,59 +34,53 @@ de las aplicaciones de idiomas con gamificación. Solo lee la colección; guarda
 
 ## 5. Insignias de la tarjeta
 
-Una píldora centrada encima del contenido de la tarjeta, con icono y texto en mayúsculas. Una sola, por
-prioridad:
+Desde la 2.4.0, como en el ProFeedback original (petición del cliente, con el original delante): un icono
+redondo y un texto en mayúsculas, centrados encima del contenido de la tarjeta, sin píldora. Una sola,
+por prioridad. Colores fijos del original, iguales de día y de noche (no siguen la paleta ni Atelier):
 
-| Insignia | Cuándo | Color (token) | Día | Noche |
-|---|---|---|---|---|
-| «TARJETA NUEVA» | La tarjeta es nueva (también si se reinició) | FLAG_7 (morado, 2.3.0; antes STATE_NEW) | #7048E8 | #9680D6 |
-| «EJERCICIO DIFÍCIL» | Sus tres últimas respuestas fueron «Otra vez» | FLAG_2 (naranja) | #E8590C | #C07F3A |
-| «ERROR ANTERIOR» | Alguna de sus dos últimas respuestas fue «Otra vez» (también hoy) | ACCENT_DANGER | #CA2D2D | #F37777 |
+| Insignia | Cuándo | Color |
+|---|---|---|
+| «TARJETA NUEVA» | La tarjeta es nueva (también si se reinició) | Morado #CE82FF |
+| «EJERCICIO DIFÍCIL» | Sus tres últimas respuestas fueron «Otra vez» | Rojo #FF4B4B |
+| «ERROR ANTERIOR» | Alguna de sus dos últimas respuestas fue «Otra vez» (también hoy) | Naranja #FFAB33 |
 
-Aspecto de la píldora:
-
-- Fondo: el color de la insignia al 12 % sobre transparente. Borde de 1 px: el color al 40 %. Esquinas
-  totalmente redondas.
-- Texto e icono: de día, el color mezclado al 82 % con el color del texto (FG), para oscurecerlo y que
-  se lea; de noche, el color tal cual.
-- Letra: la del sistema (o una propia, apartado 9), 0,78 rem, negrita, interlineado 1, mayúsculas.
-  Icono de 26 px dibujado en el mismo color que el texto; alto de la píldora 1,7 em.
-- Ocupa su sitio encima de la tarjeta (la empuja un poco abajo). Aparece con un fundido de 140 ms
-  (opacidad y un desplazamiento de 2 px hacia abajo). No se puede pulsar ni seleccionar.
+- Texto e icono del mismo color. Letra propia si la hay («Feather», apartado 9) o la del sistema, 1 rem,
+  negrita, interlineado 1 rem, espaciado 0,04 em, mayúsculas. Icono de 32 px, 0,35 em de separación.
+- Ocupa todo el ancho, encima de la tarjeta (la empuja un poco abajo), con 0,5 em de aire debajo.
+  Aparece con un fundido de 160 ms (solo opacidad). No se puede pulsar ni seleccionar.
 - La misma insignia en pregunta y respuesta. Solo cuentan respuestas dadas con un botón.
+- Contraste: de día, el morado y el naranja quedan por debajo de 3 a 1 sobre el fondo claro (como en
+  el original; decisión del cliente).
 
 ## 6. Botones del repaso
 
-Con «Botones de respuesta 3D de colores» (marcada de serie):
+Con «Botones de respuesta 3D de colores» (marcada de serie). Desde la 2.4.0, como en el ProFeedback
+original (petición del cliente), con colores fijos iguales de día y de noche:
 
-| Botón | Color base (token) | Día | Noche |
+| Botón | Relleno | Canto (debajo) | Letra |
 |---|---|---|---|
-| «OTRA VEZ» | ACCENT_DANGER | #CA2D2D | #F37777 |
-| «DIFÍCIL» | FLAG_2 | #E8590C | #C07F3A |
-| «BIEN» | ACCENT_NOTE | #257A35 | #57D06B |
-| «FÁCIL» | ACCENT_CARD | #186CB9 | #7EBFF4 |
-| «MOSTRAR RESPUESTA» | BUTTON_PRIMARY_BG, canto BUTTON_PRIMARY_GRADIENT_END | #3B6FE0 / #2F5BC7 | #4066E6 / #3452C8 |
-| «Editar» y «Más» | BUTTON_BG, borde interior de 1,5 px BORDER, canto BORDER_STRONG, letra FG_SUBTLE | #FBFCFE | #242C3A |
+| «Otra vez» | #FF4B4B | 2 px #E62222 | #131F24 |
+| «Difícil» | #FFAB33 | 2 px #E6951F | #131F24 |
+| «Bien» | #93D333 | 2 px #79B933 | #131F24 |
+| «Fácil» | #49C0F8 | 2 px #1899D6 | #131F24 |
+| «Mostrar respuesta» | #FFD700 | 4 px #E7A601 | #AE6802 |
+| «Editar» y «Más» | Sin relleno; contorno de 2 px y canto de 4 px #C9D1D9 (noche #37464F) | — | #57606A (noche #52656D) |
 
-- Relleno de los cuatro de respuesta: de día, el color mezclado al 82 % con el texto (FG), más oscuro,
-  con letra blanca (HIGHLIGHT_FG); de noche, el color vivo al 100 % con letra oscura (CANVAS, #12161F).
-- Brillo fino arriba (1 px por dentro, HIGHLIGHT_FG al 22 %) y canto inferior de 4 px (2.3.0; antes 3) que da relieve: el color mezclado al 52 % con un tono de sombra (FG de día,
-  CANVAS_INSET de noche).
-- Medidas: 128 × 44 px los de respuesta, 160 px «Mostrar respuesta»; esquina de 14 px; letra de 13,5 px,
-  negrita, interlineado 1,15, mayúsculas. Todos del mismo tamaño en todos los idiomas: si una palabra no
-  cabe, se reduce la letra, nunca el botón. Fila centrada.
-- Ventanas de menos de 760 px: 104 px (130 «Mostrar respuesta»), letra 12 px, márgenes 10/4/14 px.
-  Menos de 560 px: 82 × 40 px (104 «Mostrar respuesta»), letra 11 px, esquina 12 px.
-- «Editar» y «Más»: discretos, con letra gris; al pasar el ratón, como los demás.
-- Tiempos previstos («10 min», «4 d») y recuento de tarjetas encima de los botones, en gris (FG_SUBTLE),
-  11,5 px, peso 500, sin mayúsculas.
-- Al pasar el ratón, se aclaran un poco (brillo 1,06) y se elevan 1 px; nunca se oscurecen (2.3.0). Al
-  pulsar con el ratón, se hunden 3 px sobre su canto (el canto baja a 1 px, 70 ms) y la respuesta llega a Anki 0,1 s después, para que se vea el gesto. Con el
-  teclado, al instante. Un segundo clic en el mismo botón antes de 0,4 s se ignora.
-- Movimiento: solo desplazamiento, 100 ms.
-- Su forma y sus colores mandan aunque Atelier esté instalado (FIX-006, 2.3.0): sin el borde, las
-  esquinas pequeñas, la raya de color ni el oscurecido con el ratón que Atelier pone a los botones
-  de estudio. Con la casilla desmarcada, los botones son los de Anki o Atelier.
+- Medidas: 48 px de alto, 130 px de ancho mínimo (crecen con el texto), 24 px de relleno lateral,
+  esquinas de 18 px. Letra propia («Feather») o la del sistema, 15 px, negrita, espaciado 0,8 px, sin
+  mayúsculas. «Editar» y «Más», separados 40 px a los lados.
+- Raya gris continua de 2 px encima de la barra: #D7DDE2 de día, #37464F de noche.
+- Tiempos previstos y recuento de tarjetas en el color de texto de Anki (FG; el original, negro y
+  blanco puros).
+- Con el ratón encima: brillo 1,08 (se aclaran); nunca se oscurecen.
+- Al pulsar: se hunden (1 a 2 px) sobre su canto, que baja a 1 px, en 90 ms; al soltar vuelven con
+  un pequeño rebote (220 ms). Con el ratón, la respuesta llega a Anki 0,1 s después; con el teclado,
+  al instante. Un segundo clic en el mismo botón antes de 0,4 s se ignora. Con «reducir movimiento»,
+  solo el cambio de brillo.
+- Mandan sobre Atelier (FIX-006): sin el borde, las esquinas, la raya ni el oscurecido que Atelier
+  pone a los botones de estudio. Con la casilla desmarcada, los botones son los de Anki o Atelier.
+- Retoques casi imperceptibles sobre el original: aro de foco azul con el teclado; por debajo de
+  640 px, sin ancho mínimo y con 12 px de relleno; si una palabra no cabe, se reduce la letra.
 
 ## 7. Celebración al terminar
 
@@ -141,8 +135,9 @@ Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recua
 
 - Foco de teclado: contorno de 2 px BORDER_FOCUS (#3B6FE0 / #6390FF) separado 3 px del botón.
 - Atajos de teclado de Anki (1–4, Espacio) intactos y al instante.
-- Contraste de los botones: de día se oscurece el color (82 % con el texto) para que el blanco se lea;
-  de noche, letra oscura sobre el color vivo.
+- Contraste de los botones (2.4.0, colores del original): letra casi negra sobre los cuatro de
+  respuesta, que se lee bien; la letra ámbar de «Mostrar respuesta» sobre el dorado queda por debajo
+  de 4,5 a 1, como en el original (decisión del cliente).
 - Los iconos de las insignias están ocultos al lector de pantalla (el texto basta).
 - Color nunca solo: cada botón y cada insignia llevan su texto.
 - Movimiento reducido del sistema: sin fundido de insignias, sin hundimiento retardado (respuesta al

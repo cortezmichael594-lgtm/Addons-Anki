@@ -1,6 +1,6 @@
 # Qué hace «ProFeedback»
 
-Versión 2.3.0 · 2026-11-13
+Versión 2.4.0 · 2026-11-13
 
 Hace más agradable el repaso: suena un sonido cuando responde «Bien» o «Fácil» y otro cuando
 responde «Otra vez» o «Difícil», pone una
@@ -35,47 +35,52 @@ colección: nunca cambia tarjetas, notas ni repasos. Lo único que guarda son su
 
 ## 3. Insignias de la tarjeta
 
-Encima del contenido de la tarjeta, centrada, aparece una píldora con un icono y un texto en
-mayúsculas, del color de su aviso. Solo una a la vez, por este orden de prioridad:
+Desde la 2.4.0, iguales que en el ProFeedback original (petición del 2026-11-13): encima del
+contenido de la tarjeta, centrados, un icono redondo de 32 px y un texto en mayúsculas y negrita,
+los dos del color de su aviso, sin recuadro ni píldora. Solo una a la vez, por este orden de
+prioridad:
 
-- «TARJETA NUEVA», en morado (desde la 2.3.0; antes, azul): la tarjeta es nueva (también si se reinició y vuelve a ser nueva).
-- «EJERCICIO DIFÍCIL», en naranja: sus tres últimas respuestas fueron «Otra vez».
-- «ERROR ANTERIOR», en rojo: alguna de sus dos últimas respuestas fue «Otra vez» (incluidas las de
-  hoy, por ejemplo una tarjeta que vuelve en el paso de aprendizaje).
+- «TARJETA NUEVA», en morado (#CE82FF): la tarjeta es nueva (también si se reinició y vuelve a ser
+  nueva).
+- «EJERCICIO DIFÍCIL», en rojo (#FF4B4B): sus tres últimas respuestas fueron «Otra vez».
+- «ERROR ANTERIOR», en naranja (#FFAB33): alguna de sus dos últimas respuestas fue «Otra vez»
+  (incluidas las de hoy, por ejemplo una tarjeta que vuelve en el paso de aprendizaje).
 - Si no se cumple nada de esto, no hay insignia.
 
 Solo cuentan las respuestas dadas con un botón; los cambios de fecha hechos a mano no. La misma
 insignia sale en la pregunta y en la respuesta. Ocupa su sitio encima de la tarjeta (la empuja un
-poco hacia abajo) y aparece con un fundido muy breve, de algo más de una décima de segundo; sin
+poco hacia abajo, con medio renglón de aire debajo) y aparece con un fundido de 0,16 segundos; sin
 fundido si el sistema pide reducir las animaciones. No se puede pulsar ni seleccionar. Los colores
-salen del tema de Anki (o de Nocturne), con su versión para el modo noche.
+son los fijos del original, los mismos de día y de noche: no cambian con Atelier.
 
 ## 4. Botones del repaso
 
 Con la opción «Botones de respuesta 3D de colores» (marcada por defecto), los botones de la barra
-inferior del repaso cambian de aspecto:
+inferior del repaso tienen, desde la 2.4.0, el aspecto del ProFeedback original (petición del
+2026-11-13), con sus colores fijos, los mismos de día y de noche:
 
-- «Otra vez» en rojo, «Difícil» en naranja, «Bien» en verde y «Fácil» en azul, con letra en
-  mayúsculas y negrita, esquinas redondeadas de 14 px, un brillo fino en el borde de arriba y un
-  canto inferior de 4 px de su mismo color, más oscuro, que les da relieve. De día el color es algo más oscuro y
-  la letra blanca; de noche, el color vivo con la letra oscura.
-- «Mostrar respuesta», en el azul de acción de Anki, algo más ancho.
-- «Editar» y «Más», discretos: fondo de botón normal, contorno fino y letra gris.
-- Todos tienen el mismo tamaño en todos los idiomas. Si una palabra no cabe, se reduce la letra,
-  nunca el botón. En ventanas estrechas los botones se hacen más pequeños, pero todos iguales.
-- Los tiempos previstos («10 min», «4 d») y el recuento de tarjetas siguen encima de los botones,
-  como en Anki, en gris y sin mayúsculas.
-- Al pasar el ratón se aclaran un poco y se elevan 1 px sobre su canto; nunca se oscurecen (desde
-  la 2.3.0; antes, con Atelier instalado, se volvían oscuros). Con «reducir movimiento», solo se
-  aclaran.
-- Desde la 2.3.0 mandan su forma y sus colores aunque Atelier (Nocturne) esté instalado: antes, Atelier
-  les ponía sus esquinas pequeñas, un borde y una raya de color abajo (FIX-006). Si desmarca
-  «Botones de respuesta 3D de colores», los botones vuelven al aspecto de Anki o de Atelier. Al pulsarlos con el ratón se hunden sobre su canto y la
-  respuesta llega a Anki una décima de segundo después, para que se vea el gesto; con «reducir
-  movimiento» activado en el sistema, al instante. Los atajos de teclado responden siempre al
-  instante. En «Mostrar respuesta» y en los de respuesta, un segundo clic en el mismo botón antes
-  de 0,4 segundos se ignora.
-- Con el teclado, el botón elegido lleva un recuadro de foco.
+- «Otra vez» rojo (#FF4B4B), «Difícil» naranja (#FFAB33), «Bien» verde (#93D333) y «Fácil» azul
+  claro (#49C0F8), con la letra casi negra (#131F24) en negrita de 15 px, sin mayúsculas. Cada uno
+  con un canto de 2 px debajo, de su color más oscuro, que le da relieve.
+- «Mostrar respuesta», dorado (#FFD700) con la letra ámbar (#AE6802) y un canto de 4 px más oscuro.
+- «Editar» y «Más», sin relleno: contorno gris de 2 px con un canto de 4 px abajo y letra gris
+  (de día #C9D1D9 y #57606A; de noche #37464F y #52656D), separados de los demás.
+- Medidas: 48 px de alto, 130 px de ancho como mínimo (crecen con el texto), 24 px de relleno a los
+  lados y esquinas de 18 px.
+- Encima de la barra, una raya gris continua de 2 px (#D7DDE2 de día, #37464F de noche).
+- Los tiempos previstos («10 min», «4 d») y el recuento de tarjetas, en el color de texto de Anki (el
+  original usaba negro y blanco puros: retoque casi imperceptible).
+- Al pasar el ratón se aclaran (brillo 1,08); nunca se oscurecen. Mandan su forma y sus colores
+  aunque Atelier (Nocturne) esté instalado (FIX-006). Si desmarca «Botones de respuesta 3D de
+  colores», los botones vuelven al aspecto de Anki o de Atelier.
+- Al pulsarlos se hunden sobre su canto con un pequeño rebote. Con el ratón, la respuesta llega a
+  Anki una décima de segundo después, para que se vea el gesto; con «reducir movimiento» activado
+  en el sistema, al instante y sin rebote. Los atajos de teclado responden siempre al instante. En
+  «Mostrar respuesta» y en los de respuesta, un segundo clic en el mismo botón antes de 0,4
+  segundos se ignora.
+- Retoques casi imperceptibles sobre el original: con el teclado, el botón elegido lleva un aro de
+  foco azul; en ventanas de menos de 640 px los botones se compactan un poco para no salirse; y si
+  una palabra no cabe, se reduce la letra.
 
 ## 5. Al terminar de repasar: sonido y confeti
 

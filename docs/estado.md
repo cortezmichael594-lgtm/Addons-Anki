@@ -97,6 +97,11 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   oscurecen con el ratón (FIX-006, !important en buttons.css), forma algo mejorada (canto de 4 px,
   brillo arriba, se elevan 1 px) e insignia «TARJETA NUEVA» en morado (FLAG_7). 18 pruebas.
 
+- 2026-11-13: ProFeedback 2.4.0 (petición del cliente, con el original de AnkiWeb 392368329 delante):
+  botones, insignias, «Editar»/«Más» y la raya gris iguales que en el original, con sus colores fijos
+  marcados «colores-ok» y retoques mínimos (foco, ventanas estrechas, color de texto de Anki en los
+  recuentos). FIX-006 se conserva. 19 pruebas.
+
 ## En curso
 
 (Nada.)

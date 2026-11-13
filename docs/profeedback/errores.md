@@ -100,5 +100,11 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 2.2.0 · Los dos sonidos de fallo (grave.mp3 y suave.mp3) los creó el taller para el complemento
   (tonos sintetizados, sin derechos de terceros), porque la persona no aportó ninguno. Se pueden
   sustituir copiando .mp3 propios en «user_files/sonidos/fallo».
-- 2.3.0 · «TARJETA NUEVA» va en el morado de la bandera 7 de la paleta, no en el azul de «nuevas».
-  Lo pidió la persona el 2026-11-13.
+- 2.4.0 · Botones, insignias, «Editar» y «Más» y la raya gris son iguales que en el ProFeedback
+  original, con sus colores fijos, que no cambian con Atelier ni con el modo noche. Lo pidió la
+  persona el 2026-11-13 («lo quiero igual al original»), con el original delante. Es una excepción a
+  la regla de colores de la paleta del taller: cada color lleva su marca. Efectos conocidos: de día,
+  las insignias naranja y morada contrastan poco con el fondo claro (por debajo de 3 a 1) y la letra
+  ámbar de «Mostrar respuesta» sobre el dorado también, como en el original. Con la 2.4.0,
+  «EJERCICIO DIFÍCIL» vuelve a ser rojo y «ERROR ANTERIOR» naranja, como en el original (en la 2.3.0
+  eran al revés).

@@ -119,33 +119,41 @@ class WrongSoundTests(unittest.TestCase):
 
 
 class ButtonStyleTests(unittest.TestCase):
-    """FIX-006: el diseño 3D de los botones gana al tema (Atelier) y nunca se oscurece con el ratón."""
+    """2.4.0: botones e insignias iguales al ProFeedback original; FIX-006: ganan al tema y no se oscurecen."""
 
     def setUp(self) -> None:
         self.css = (ADDON / "web" / "buttons.css").read_text(encoding="utf-8")
+        self.flags = (ADDON / "web" / "flags.css").read_text(encoding="utf-8")
 
-    def test_shape_and_colour_win_over_the_theme(self) -> None:
+    def test_shape_wins_over_the_theme(self) -> None:
         for declaration in (
-            "border: 0 !important",
             "border-radius: var(--profeedback-radius) !important",
             "background-image: none !important",
-            "min-height: var(--profeedback-height) !important",
+            "height: 48px !important",
+            "min-width: 130px !important",
         ):
             self.assertIn(declaration, self.css)
-        for line in self.css.splitlines():
-            if line.strip().startswith("background-color:"):
-                self.assertIn("!important", line)
+        self.assertIn("--profeedback-radius: 18px;", self.css)
+
+    def test_original_colours(self) -> None:
+        for value in ("255, 75, 75", "255, 171, 51", "147, 211, 51", "73, 192, 248", "#ffd700", "#d7dde2"):
+            self.assertIn(value, self.css)
 
     def test_hover_only_brightens(self) -> None:
         hover = self.css.split("button:hover {", 1)[1].split("}", 1)[0]
-        self.assertIn("brightness(1.06)", hover)
+        self.assertIn("filter: var(--profeedback-hover)", hover)
         self.assertNotIn("background", hover)
-        self.assertNotIn(":hover {\n  background", self.css)
+        self.assertIn("--profeedback-hover: brightness(1.08);", self.css)
 
-    def test_new_card_badge_is_purple(self) -> None:
-        flags = (ADDON / "web" / "flags.css").read_text(encoding="utf-8")
-        block = flags.split(".profeedback-badge--new-card {", 1)[1].split("}", 1)[0]
-        self.assertIn("var(--flag-7", block)
+    def test_badges_like_the_original(self) -> None:
+        for modifier, colour in (
+            ("new-card", "#ce82ff"),
+            ("hard-exercise", "#ff4b4b"),
+            ("previous-mistake", "#ffab33"),
+        ):
+            block = self.flags.split(f".profeedback-badge--{modifier} {{", 1)[1].split("}", 1)[0]
+            self.assertIn(colour, block)
+        self.assertNotIn("border-radius: 999px", self.flags)
 
 
 class ConfigFromPageTests(unittest.TestCase):

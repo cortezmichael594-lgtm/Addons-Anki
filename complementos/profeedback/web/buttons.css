@@ -1,18 +1,18 @@
 /* ProFeedback · botones de la barra inferior del repaso.
 
-   Esta hoja solo se carga en la barra inferior del repaso, así que el selector general
-   «button» no alcanza a ninguna otra parte de Anki.
+   Versión 2.4.0 (petición del cliente, 2026-11-13): igual que el ProFeedback original
+   (AnkiWeb 392368329): sus colores, sus formas, su raya gris de arriba y sus botones
+   «Editar» y «Más». Los colores son los fijos del original, a petición expresa del cliente
+   («lo quiero igual al original»); cada línea con un color lleva su marca «colores-ok».
 
-   Colores: solo variables de la paleta de Anki (las redefine Nocturne), cada una con su
-   valor de reserva. De día, el relleno toma el tono de la paleta algo asentado para que el
-   texto blanco se lea bien (contraste AA); de noche, el tono vivo tal cual con texto oscuro.
+   Retoques mínimos sobre el original, casi imperceptibles:
+   - El recuento de tarjetas y los tiempos previstos usan el color de texto de Anki en lugar
+     de negro y blanco puros.
+   - En ventanas muy estrechas los botones se compactan un poco para no salirse.
+   - Con el teclado se ve un aro de foco.
 
-   Forma: los seis botones (Otra vez, Difícil, Bien, Fácil, Editar y Más) comparten las
-   mismas dimensiones en todos los idiomas; si una traducción es larga, se aprieta el
-   texto dentro del botón, nunca se deforma el botón.
-
-   Movimiento: solo se anima transform y 100 ms; con el ratón encima el botón se eleva 1 px
-   y se aclara un poco (nunca se oscurece); al pulsar se hunde sobre su canto. */
+   Esta hoja solo se carga en la barra inferior del repaso y solo con «Botones de respuesta
+   3D de colores» marcado, así que el selector general «button» no alcanza a otra parte. */
 
 /* Historial de correcciones de este archivo:
    * FIX-006 (2026-11-13): con el tema de Atelier, los botones perdían su forma y se oscurecían con el ratón. */
@@ -22,209 +22,250 @@
      raya, y al pasar el ratón por encima se volvían oscuros.
    Causa: Atelier pinta los mismos botones con selectores más fuertes (borde, esquinas, una imagen
      de fondo y un degradado oscuro al pasar el ratón), y ganaba a esta hoja.
-   Regla: las propiedades que dan forma y color a los botones 3D llevan !important; esta hoja solo
-     se carga en la barra inferior del repaso y solo con «Botones de respuesta 3D de colores». */
+   Regla: las propiedades que dan forma y color a los botones 3D llevan !important (también
+     background-image: none); esta hoja solo se carga en la barra inferior del repaso y solo con
+     «Botones de respuesta 3D de colores». */
 
 :root {
-  --profeedback-height: 44px;
-  --profeedback-width: 128px;
-  /* «Mostrar respuesta» nunca convive con los de respuesta, así que puede ser más largo. */
-  --profeedback-show-width: 160px;
-  --profeedback-radius: 14px;
+  --profeedback-snow: 19, 31, 36;
+  --profeedback-cardinal: 255, 75, 75;
+  --profeedback-fire-ant: 230, 34, 34;
+  --profeedback-fox: 255, 171, 51;
+  --profeedback-owl: 147, 211, 51;
+  --profeedback-macaw: 73, 192, 248;
+  --profeedback-whale: 24, 153, 214;
+  --profeedback-radius: 18px;
   --profeedback-lip: 4px;
-  --profeedback-size: 13.5px;
-
-  /* Con qué se asienta el relleno y el canto, cuánto se conserva del tono, y el color
-     del texto sobre el relleno. */
-  --profeedback-shade: var(--fg, #1B2430);
-  --profeedback-keep: 82%;
-  --profeedback-on-fill: var(--highlight-fg, #FFFFFF);
+  --profeedback-font-size: 15px;
+  --profeedback-tracking: 0.8px;
+  --profeedback-line: 1.2;
+  --profeedback-hover: brightness(1.08);
+  --profeedback-ease: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --profeedback-press: cubic-bezier(0.4, 0, 0.2, 1);
+  --profeedback-outer: #d7dde2; /* colores-ok: raya gris del original (día) */
+  --profeedback-edit-border: #c9d1d9; /* colores-ok: borde de Editar y Más del original (día) */
+  --profeedback-edit-text: #57606a; /* colores-ok: texto de Editar y Más del original (día) */
 }
 
-/* Modo noche: tonos vivos de la paleta tal cual, canto más oscuro que el fondo y texto
-   oscuro sobre el relleno. */
-:root.night-mode,
-.night_mode {
-  --profeedback-shade: var(--canvas-inset, #0F131B);
-  --profeedback-keep: 100%;
-  --profeedback-on-fill: var(--canvas, #12161F);
+.night_mode,
+.nightMode {
+  --profeedback-outer: #37464f; /* colores-ok: raya gris del original (noche) */
+  --profeedback-edit-border: #37464f; /* colores-ok: borde de Editar y Más del original (noche) */
+  --profeedback-edit-text: #52656d; /* colores-ok: texto de Editar y Más del original (noche) */
 }
 
-/* La fila central (Mostrar respuesta o los cuatro botones) va centrada. */
-#middle {
+/* La raya gris continua encima de la barra. */
+#outer {
+  border-top: 2px solid var(--profeedback-outer) !important;
+}
+
+.reviewer-container {
   display: flex;
-  justify-content: center;
-  width: 100%;
+  justify-content: center !important;
+  align-items: center !important;
 }
 
-/* ── Aspecto común de los seis botones ───────────────────────────────────── */
+#middle {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+
 button {
-  box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  width: var(--profeedback-width);
-  min-width: var(--profeedback-width) !important;
-  max-width: var(--profeedback-width);
-  height: var(--profeedback-height);
-  /* Aire entre botones y debajo, para el canto: nunca se tocan. */
-  min-height: var(--profeedback-height) !important;
-  margin: 10px 6px 14px !important;
-  padding: 0 10px;
-  border: 0 !important;
+  -webkit-tap-highlight-color: transparent !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  position: relative !important;
+  touch-action: manipulation !important;
+  transform: translateZ(0) !important;
+  -webkit-font-smoothing: antialiased !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  font: 700 var(--profeedback-font-size) / var(--profeedback-line) "ProFeedbackDisplay", "Feather",
+    system-ui, sans-serif !important;
+  letter-spacing: var(--profeedback-tracking) !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  border-style: solid !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  width: auto !important;
+  min-width: 130px !important;
+  padding: 0 24px !important;
+  outline: none !important;
   border-radius: var(--profeedback-radius) !important;
   background-image: none !important;
-  font-family: "ProFeedbackDisplay", system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  font-size: var(--profeedback-size);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-  outline: none;
-  -webkit-font-smoothing: antialiased;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 100ms ease-out;
+  transition: filter 0.2s, transform 0.22s var(--profeedback-ease), box-shadow 0.22s var(--profeedback-ease) !important;
 }
 
-/* Con el ratón encima: se eleva 1 px sobre su canto y se aclara un poco. Nunca se oscurece. */
+/* Con el ratón encima solo se aclara: nunca se oscurece. */
 button:hover {
-  filter: brightness(1.06);
-  transform: translateY(-1px);
+  filter: var(--profeedback-hover) !important;
+  cursor: pointer !important;
 }
 
-/* Aro de foco solo para quien navega con el teclado. */
+/* Aro de foco solo para quien navega con el teclado (retoque sobre el original). */
 button:focus-visible {
-  outline: 2px solid var(--border-focus, #3B6FE0);
-  outline-offset: 3px;
+  outline: 2px solid var(--border-focus, #3B6FE0) !important; /* colores-ok: reserva del token de foco */
+  outline-offset: 3px !important;
 }
 
-/* El intervalo previsto («15 m», «3 d») y el recuento de tarjetas flotan fuera del
-   recuadro del botón: se dejan donde los coloca Anki, con el color normal del texto,
-   sin mayúsculas ni negrita. */
-button .nobold,
-button .stattxt {
-  color: var(--fg-subtle, #5C6675);
-  font-family: inherit;
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-/* ── Botones de respuesta: relleno de la paleta con canto ────────────────── */
-:is(button[data-ease="1"], button[onclick*="ease1"]) {
-  --profeedback-token: var(--accent-danger, #E03131);
-}
-
-:is(button[data-ease="2"], button[onclick*="ease2"]) {
-  --profeedback-token: var(--flag-2, #E8590C);
-}
-
-:is(button[data-ease="3"], button[onclick*="ease3"]) {
-  --profeedback-token: var(--accent-note, #2F9E44);
-}
-
-:is(button[data-ease="4"], button[onclick*="ease4"]) {
-  --profeedback-token: var(--accent-card, #1971C2);
-}
-
-:is(button[data-ease], button[onclick*="ease1"], button[onclick*="ease2"],
-    button[onclick*="ease3"], button[onclick*="ease4"]) {
-  --profeedback-lip-color: color-mix(in srgb, var(--profeedback-token) 52%, var(--profeedback-shade));
-  background-color: color-mix(in srgb, var(--profeedback-token) var(--profeedback-keep), var(--profeedback-shade)) !important;
-  color: var(--profeedback-on-fill) !important;
-  /* Un brillo fino arriba, del color del texto sobre la acción, y el canto de su color. */
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--highlight-fg, #FFFFFF) 22%, transparent),
-    0 var(--profeedback-lip) 0 var(--profeedback-lip-color) !important;
-}
-
-/* ── «Mostrar respuesta»: el azul de acción de Anki ──────────────────────── */
-#ansbut {
-  --profeedback-lip-color: var(--button-primary-gradient-end, #2F5BC7);
-  width: var(--profeedback-show-width);
-  min-width: var(--profeedback-show-width);
-  max-width: var(--profeedback-show-width);
-  min-width: var(--profeedback-show-width) !important;
-  background-color: var(--button-primary-bg, #3B6FE0) !important;
-  color: var(--highlight-fg, #FFFFFF) !important;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--highlight-fg, #FFFFFF) 22%, transparent),
-    0 var(--profeedback-lip) 0 var(--profeedback-lip-color) !important;
-}
-
-/* ── «Editar» y «Más»: discretos, con el contorno de la paleta ───────────── */
-/* Se identifican por la orden que ejecutan, no por su texto: así se ven igual en todos
-   los idiomas de Anki. */
-button[onclick*="edit"],
-button[onclick*="more"] {
-  --profeedback-lip-color: var(--border-strong, #C2C9D2);
-  background-color: var(--button-bg, #FFFFFF) !important;
-  color: var(--fg-subtle, #5C6675) !important;
-  box-shadow:
-    inset 0 0 0 1.5px var(--border, #DCE0E6),
-    0 var(--profeedback-lip) 0 var(--profeedback-lip-color) !important;
-}
-
-/* ── Pulsado: el botón se hunde sobre su canto ───────────────────────────── */
-/* .profeedback-pressed lo pone buttons.js mientras el clic viaja a Anki. */
 button:active,
 button.profeedback-pressed {
-  filter: none;
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 var(--profeedback-lip-color) !important;
-  transition-duration: 70ms;
+  transform: translateY(2px) !important;
+  transition: transform 0.09s var(--profeedback-press), box-shadow 0.09s var(--profeedback-press) !important;
+  box-shadow: 0 1px 0 !important;
+}
+
+/* «Editar» y «Más»: contorno gris con canto, sin relleno. */
+button[onclick*="edit"],
+button[onclick*="more"],
+button[title*="Edit"],
+button[title*="More"],
+.linkb {
+  background: none !important;
+  border: 2px solid var(--profeedback-edit-border) !important;
+  border-bottom: 4px solid var(--profeedback-edit-border) !important;
+  color: var(--profeedback-edit-text) !important;
+  border-radius: var(--profeedback-radius) !important;
+  font-weight: 700 !important;
+  letter-spacing: var(--profeedback-tracking) !important;
+  margin-inline: 40px;
+  transition: filter 0.2s, transform 0.22s var(--profeedback-ease), box-shadow 0.22s var(--profeedback-ease) !important;
+}
+
+button[onclick*="edit"]:hover,
+button[onclick*="more"]:hover,
+button[title*="Edit"]:hover,
+button[title*="More"]:hover,
+.linkb:hover {
+  filter: var(--profeedback-hover) !important;
+  cursor: pointer !important;
 }
 
 button[onclick*="edit"]:active,
 button[onclick*="more"]:active,
-button[onclick*="edit"].profeedback-pressed,
-button[onclick*="more"].profeedback-pressed {
-  box-shadow:
-    inset 0 0 0 1.5px var(--border, #DCE0E6),
-    0 1px 0 var(--profeedback-lip-color) !important;
+button[title*="Edit"]:active,
+button[title*="More"]:active,
+.linkb:active {
+  transform: translateY(2px) !important;
+  border-bottom: 2px solid var(--profeedback-edit-border) !important;
+  box-shadow: 0 1px 0 var(--profeedback-edit-border) !important;
+  transition: transform 0.09s var(--profeedback-press), box-shadow 0.09s var(--profeedback-press) !important;
 }
 
-/* ── Ventanas estrechas: los seis siguen idénticos, solo más compactos ───── */
-@media (max-width: 760px) {
-  :root {
-    --profeedback-width: 104px;
-    --profeedback-show-width: 130px;
-    --profeedback-size: 12px;
-  }
+/* Recuento de tarjetas y tiempos previstos: el color de texto de Anki (retoque: el original
+   usaba negro y blanco puros). */
+.nobold {
+  color: var(--fg, #1B2430); /* colores-ok: reserva del token de texto */
+}
 
+.night_mode .nobold,
+.nightMode .nobold {
+  color: var(--fg, #D6DAE1); /* colores-ok: reserva del token de texto (noche) */
+}
+
+/* Otra vez: rojo. */
+:is(button[onclick*="ease1"], button[data-ease="1"]) {
+  color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
+  background-color: rgb(var(--profeedback-cardinal)) !important; /* colores-ok: color del original */
+  border: none !important;
+  border-bottom: 2px solid rgb(var(--profeedback-fire-ant)) !important; /* colores-ok: color del original */
+  box-shadow: 0 2px 0 rgb(var(--profeedback-fire-ant)) !important; /* colores-ok: color del original */
+}
+
+:is(button[onclick*="ease1"], button[data-ease="1"]):is(:active, .profeedback-pressed) {
+  transform: translateY(1px) !important;
+  border-bottom: 1px solid rgb(var(--profeedback-fire-ant)) !important; /* colores-ok: color del original */
+  box-shadow: 0 1px 0 rgb(var(--profeedback-fire-ant)) !important; /* colores-ok: color del original */
+}
+
+/* Difícil: naranja. */
+:is(button[onclick*="ease2"], button[data-ease="2"]) {
+  color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
+  background-color: rgb(var(--profeedback-fox)) !important; /* colores-ok: color del original */
+  border: none !important;
+  border-bottom: 2px solid #e6951f !important; /* colores-ok: color del original */
+  box-shadow: 0 2px 0 #e6951f !important; /* colores-ok: color del original */
+}
+
+:is(button[onclick*="ease2"], button[data-ease="2"]):is(:active, .profeedback-pressed) {
+  transform: translateY(1px) !important;
+  border-bottom: 1px solid #e6951f !important; /* colores-ok: color del original */
+  box-shadow: 0 1px 0 #e6951f !important; /* colores-ok: color del original */
+}
+
+/* Bien: verde. */
+:is(button[onclick*="ease3"], button[data-ease="3"]) {
+  color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
+  background-color: rgb(var(--profeedback-owl)) !important; /* colores-ok: color del original */
+  border: none !important;
+  border-bottom: 2px solid #79b933 !important; /* colores-ok: color del original */
+  box-shadow: 0 2px 0 #79b933 !important; /* colores-ok: color del original */
+}
+
+:is(button[onclick*="ease3"], button[data-ease="3"]):is(:active, .profeedback-pressed) {
+  transform: translateY(1px) !important;
+  border-bottom: 1px solid #79b933 !important; /* colores-ok: color del original */
+  box-shadow: 0 1px 0 #79b933 !important; /* colores-ok: color del original */
+}
+
+/* Fácil: azul. */
+:is(button[onclick*="ease4"], button[data-ease="4"]) {
+  color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
+  background-color: rgb(var(--profeedback-macaw)) !important; /* colores-ok: color del original */
+  border: none !important;
+  border-bottom: 2px solid rgb(var(--profeedback-whale)) !important; /* colores-ok: color del original */
+  box-shadow: 0 2px 0 rgb(var(--profeedback-whale)) !important; /* colores-ok: color del original */
+}
+
+:is(button[onclick*="ease4"], button[data-ease="4"]):is(:active, .profeedback-pressed) {
+  transform: translateY(1px) !important;
+  border-bottom: 1px solid rgb(var(--profeedback-whale)) !important; /* colores-ok: color del original */
+  box-shadow: 0 1px 0 rgb(var(--profeedback-whale)) !important; /* colores-ok: color del original */
+}
+
+/* Mostrar respuesta: dorado con letra ámbar. */
+#ansbut {
+  color: #ae6802 !important; /* colores-ok: color del original */
+  background-color: #ffd700 !important; /* colores-ok: color del original */
+  border: none !important;
+  border-bottom: var(--profeedback-lip) solid #e7a601 !important; /* colores-ok: color del original */
+  box-shadow: 0 2px 0 #e7a601 !important; /* colores-ok: color del original */
+}
+
+#ansbut:active,
+#ansbut.clicked,
+#ansbut.profeedback-pressed {
+  transform: translateY(1px) !important;
+  border-bottom: 1px solid #e7a601 !important; /* colores-ok: color del original */
+  box-shadow: 0 1px 0 #e7a601 !important; /* colores-ok: color del original */
+}
+
+/* Ventanas muy estrechas: un poco más compactos para que quepan (retoque sobre el original). */
+@media (max-width: 640px) {
   button {
-    margin: 10px 4px 14px !important;
+    min-width: 0 !important;
+    padding: 0 12px !important;
+  }
+
+  button[onclick*="edit"],
+  button[onclick*="more"],
+  button[title*="Edit"],
+  button[title*="More"],
+  .linkb {
+    margin-inline: 12px;
   }
 }
 
-@media (max-width: 560px) {
-  :root {
-    --profeedback-height: 40px;
-    --profeedback-width: 82px;
-    --profeedback-show-width: 104px;
-    --profeedback-size: 11px;
-    --profeedback-radius: 12px;
-  }
-
-  button {
-    margin: 8px 3px 12px !important;
-    padding: 0 5px;
-  }
-}
-
-/* ── Respeto por quien pide menos animación ──────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  button {
-    transition: none;
-  }
-
-  button:hover {
-    transform: none;
+  button,
+  button[onclick*="edit"],
+  button[onclick*="more"],
+  button[title*="Edit"],
+  button[title*="More"],
+  .linkb {
+    transition: filter 0.15s linear !important;
   }
 }

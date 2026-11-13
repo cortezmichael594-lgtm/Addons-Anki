@@ -1,92 +1,70 @@
 /* ProFeedback · insignia que aparece sobre la tarjeta durante el repaso.
 
-   Una píldora con el icono y el texto, teñida con el color de su aviso. El icono hereda el
-   color del texto (currentColor), así que cada aviso se define con un único color.
+   Versión 2.4.0 (petición del cliente, 2026-11-13): igual que en el ProFeedback original
+   (AnkiWeb 392368329): sin píldora, el icono de 32 px y el texto en mayúsculas del color de su
+   aviso, centrados encima de la tarjeta. Colores fijos del original, a petición expresa del
+   cliente: tarjeta nueva en morado, ejercicio difícil en rojo y error anterior en naranja.
+   El icono hereda el color del texto (currentColor).
 
-   Colores: solo variables de la paleta de Anki (las redefine Nocturne) con su valor de
-   reserva. Tarjeta nueva = morado de la bandera 7 (desde la 2.3.0); ejercicio difícil = naranja de la bandera 2
-   (existe en Anki de serie y en Nocturne, a diferencia del color de «aprendiendo», que en
-   Anki de serie es rojo); error anterior = rojo de peligro. De día el texto se asienta un
-   poco hacia el color del texto de Anki para leerse bien; de noche, el tono vivo tal cual.
+   Retoques mínimos sobre el original: un poco de aire debajo para que no toque la tarjeta, y
+   el lector de pantalla no lee el icono.
 
-   Movimiento: un fundido de 140 ms (opacity y transform), y ninguno si el sistema pide
+   Movimiento: el fundido del original (160 ms, solo opacidad), y ninguno si el sistema pide
    menos animación. */
 
-:root {
-  --profeedback-badge-keep: 82%;
-}
-
-:root.night-mode,
-.night_mode {
-  --profeedback-badge-keep: 100%;
-}
-
 .profeedback-badge {
-  --profeedback-badge-token: var(--fg-subtle, #5C6675);
-  --profeedback-badge-color: color-mix(
-    in srgb,
-    var(--profeedback-badge-token) var(--profeedback-badge-keep),
-    var(--fg, #1B2430)
-  );
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 0.45em;
-  width: max-content;
-  max-width: 100%;
+  align-items: center;
+  gap: 0.35em;
+  width: 100%;
   box-sizing: border-box;
-  margin: 0 auto 0.9em;
-  padding: 0.4em 0.9em 0.4em 0.6em;
-  border: 1px solid color-mix(in srgb, var(--profeedback-badge-token) 40%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--profeedback-badge-token) 12%, transparent);
-  color: var(--profeedback-badge-color);
-  font-family: "ProFeedbackDisplay", system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.08em;
+  margin: 0 0 0.5em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1rem;
+  font-family: "ProFeedbackDisplay", "Feather", system-ui, sans-serif;
   -webkit-user-select: none;
   user-select: none;
   pointer-events: none;
-  animation: profeedback-badge-in 140ms ease-out both;
+  opacity: 0;
+  animation: profeedback-badge-in 160ms ease-out forwards;
 }
 
 .profeedback-badge svg {
   flex: 0 0 auto;
-  width: 1.7em;
-  height: 1.7em;
-}
-
-.profeedback-badge--new-card {
-  /* Morado de la bandera 7 (petición del cliente, 2.3.0). */
-  --profeedback-badge-token: var(--flag-7, #7048E8);
+  width: 32px;
+  height: 32px;
+  overflow: visible;
 }
 
 .profeedback-badge--hard-exercise {
-  --profeedback-badge-token: var(--flag-2, #E8590C);
+  color: #ff4b4b; /* colores-ok: color del original */
+}
+
+.profeedback-badge--new-card {
+  color: #ce82ff; /* colores-ok: color del original */
 }
 
 .profeedback-badge--previous-mistake {
-  --profeedback-badge-token: var(--accent-danger, #E03131);
+  color: #ffab33; /* colores-ok: color del original */
 }
 
 @keyframes profeedback-badge-in {
   from {
     opacity: 0;
-    transform: translateY(-2px);
   }
 
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .profeedback-badge {
     animation: none;
+    opacity: 1;
   }
 }
