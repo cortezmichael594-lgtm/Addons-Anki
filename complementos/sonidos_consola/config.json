@@ -1,0 +1,14 @@
+{
+  "volume": 70,
+  "navigation": "hover",
+  "enabled": {
+    "coldboot": true,
+    "gameboot": true,
+    "option": true,
+    "cancel": true,
+    "system_ok": true,
+    "system_ng": true,
+    "trophy": true,
+    "error": true
+  }
+}

@@ -57,6 +57,17 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   aparecía en ningún desplegable. Por qué: la nota no nombraba las subcarpetas. Regla: las
   subcarpetas («correcto», «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo»)
   se crean vacías al abrir los ajustes, y la nota dice que cada sonido va en la suya.
+- FIX-005 · 2026-11-13 · versión 2.2.0 · Qué pasaba: al abrir la configuración se veía un destello:
+  la ventana salía primero vacía, con su fondo, y después aparecía el panel y la ventana cambiaba de
+  alto. Por qué: la ventana se enseñaba en seguida y solo la página esperaba, oculta, a estar
+  dibujada. Regla: la ventana entera es invisible hasta que el panel avisa de que está listo y ya
+  tiene su alto; entonces aparece de una vez.
+- FIX-006 · 2026-11-13 · versión 2.3.0 · Qué pasaba: con Atelier (Nocturne) instalado, los botones
+  de respuesta y «Mostrar respuesta» salían con esquinas pequeñas, borde y una raya abajo, y al
+  pasar el ratón por encima se volvían oscuros. Por qué: Atelier pinta esos mismos botones con
+  reglas más fuertes que las del complemento, y ganaban. Regla: con «Botones de respuesta 3D de
+  colores» marcado, la forma y el color de los botones son siempre los del complemento, y al pasar
+  el ratón solo se aclaran.
 
 ## Así a propósito
 
@@ -86,3 +97,14 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - Muchos idiomas tienen cinco textos de la ventana de opciones en inglés («Volume», «Sound»,
   «Random», la nota de sonidos propios y el aviso de fallo); si a un idioma le falta un texto, sale
   en inglés. Decisión del autor original.
+- 2.2.0 · Los dos sonidos de fallo (grave.mp3 y suave.mp3) los creó el taller para el complemento
+  (tonos sintetizados, sin derechos de terceros), porque la persona no aportó ninguno. Se pueden
+  sustituir copiando .mp3 propios en «user_files/sonidos/fallo».
+- 2.4.0 · Botones, insignias, «Editar» y «Más» y la raya gris son iguales que en el ProFeedback
+  original, con sus colores fijos, que no cambian con Atelier ni con el modo noche. Lo pidió la
+  persona el 2026-11-13 («lo quiero igual al original»), con el original delante. Es una excepción a
+  la regla de colores de la paleta del taller: cada color lleva su marca. Efectos conocidos: de día,
+  las insignias naranja y morada contrastan poco con el fondo claro (por debajo de 3 a 1) y la letra
+  ámbar de «Mostrar respuesta» sobre el dorado también, como en el original. Con la 2.4.0,
+  «EJERCICIO DIFÍCIL» vuelve a ser rojo y «ERROR ANTERIOR» naranja, como en el original (en la 2.3.0
+  eran al revés).

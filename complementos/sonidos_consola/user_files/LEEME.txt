@@ -1,0 +1,8 @@
+Carpeta de sonidos de «Sonidos de consola».
+
+Copie aquí sus ocho archivos de sonido, con estos nombres exactos:
+coldboot_stereo.wav, gameboot_stereo.wav, snd_cancel.wav, snd_error.wav, snd_option.wav,
+snd_system_ng.wav, snd_system_ok.wav y snd_trophy.wav.
+
+Deben ser .wav sin comprimir (los habituales). Lo que haya en esta carpeta se conserva al
+actualizar el complemento. Si falta un archivo, ese sonido simplemente no suena.

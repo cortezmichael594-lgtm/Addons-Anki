@@ -1,8 +1,9 @@
 # Qué hace «ProFeedback»
 
-Versión 2.1.0 · 2026-11-09
+Versión 2.4.0 · 2026-11-13
 
-Hace más agradable el repaso: suena un sonido cuando responde «Bien» o «Fácil», pone una
+Hace más agradable el repaso: suena un sonido cuando responde «Bien» o «Fácil» y otro cuando
+responde «Otra vez» o «Difícil», pone una
 insignia encima de la tarjeta (tarjeta nueva, ejercicio difícil o error anterior), da a los botones
 de la barra inferior del repaso un aspecto de colores con relieve y, al terminar un mazo o todo lo
 del día, toca un sonido de fin y suelta confeti, dorado si no hubo ningún fallo. Solo lee su
@@ -19,53 +20,67 @@ colección: nunca cambia tarjetas, notas ni repasos. Lo único que guarda son su
 - No añade menús ni atajos de teclado. No aparece en la lista de mazos, en Explorar, en el editor,
   en las vistas previas de tarjetas ni en las estadísticas.
 
-## 2. Sonido al acertar
+## 2. Sonidos al acertar y al fallar
 
-- Al responder «Bien» o «Fácil», con el ratón o con el teclado, suena un sonido corto. Con «Otra
-  vez» y «Difícil» no suena nada.
-- El complemento trae tres sonidos para esto. Por defecto está en «Aleatorio»: cada vez suena uno de
-  ellos, procurando no repetir el anterior. En las opciones se puede fijar uno concreto.
+- Al responder «Bien» o «Fácil», con el ratón o con el teclado, suena un sonido corto de acierto.
+- Desde la 2.2.0, al responder «Otra vez» o «Difícil» suena un sonido corto de fallo, si su casilla
+  está marcada (lo está por defecto). Trae dos sonidos de fallo propios del complemento, breves y
+  suaves (suave.mp3, dos notas que bajan, y grave.mp3, una nota grave), creados para él; por defecto
+  está en «Aleatorio». Se puede fijar uno o desmarcar la casilla para no oír nada al fallar.
+- Los sonidos de acierto: el complemento trae tres.
+  Por defecto está en «Aleatorio»: cada vez suena uno de
+  ellos, procurando no repetir el anterior (igual con los de fallo). En las opciones se puede fijar uno concreto.
 - Usa un reproductor propio, aparte del de Anki, para que el audio de la tarjeta siguiente no lo
   corte a medias.
 
 ## 3. Insignias de la tarjeta
 
-Encima del contenido de la tarjeta, centrada, aparece una píldora con un icono y un texto en
-mayúsculas, del color de su aviso. Solo una a la vez, por este orden de prioridad:
+Desde la 2.4.0, iguales que en el ProFeedback original (petición del 2026-11-13): encima del
+contenido de la tarjeta, centrados, un icono redondo de 32 px y un texto en mayúsculas y negrita,
+los dos del color de su aviso, sin recuadro ni píldora. Solo una a la vez, por este orden de
+prioridad:
 
-- «TARJETA NUEVA», en azul: la tarjeta es nueva (también si se reinició y vuelve a ser nueva).
-- «EJERCICIO DIFÍCIL», en naranja: sus tres últimas respuestas fueron «Otra vez».
-- «ERROR ANTERIOR», en rojo: alguna de sus dos últimas respuestas fue «Otra vez» (incluidas las de
-  hoy, por ejemplo una tarjeta que vuelve en el paso de aprendizaje).
+- «TARJETA NUEVA», en morado (#CE82FF): la tarjeta es nueva (también si se reinició y vuelve a ser
+  nueva).
+- «EJERCICIO DIFÍCIL», en rojo (#FF4B4B): sus tres últimas respuestas fueron «Otra vez».
+- «ERROR ANTERIOR», en naranja (#FFAB33): alguna de sus dos últimas respuestas fue «Otra vez»
+  (incluidas las de hoy, por ejemplo una tarjeta que vuelve en el paso de aprendizaje).
 - Si no se cumple nada de esto, no hay insignia.
 
 Solo cuentan las respuestas dadas con un botón; los cambios de fecha hechos a mano no. La misma
 insignia sale en la pregunta y en la respuesta. Ocupa su sitio encima de la tarjeta (la empuja un
-poco hacia abajo) y aparece con un fundido muy breve, de algo más de una décima de segundo; sin
+poco hacia abajo, con medio renglón de aire debajo) y aparece con un fundido de 0,16 segundos; sin
 fundido si el sistema pide reducir las animaciones. No se puede pulsar ni seleccionar. Los colores
-salen del tema de Anki (o de Nocturne), con su versión para el modo noche.
+son los fijos del original, los mismos de día y de noche: no cambian con Atelier.
 
 ## 4. Botones del repaso
 
 Con la opción «Botones de respuesta 3D de colores» (marcada por defecto), los botones de la barra
-inferior del repaso cambian de aspecto:
+inferior del repaso tienen, desde la 2.4.0, el aspecto del ProFeedback original (petición del
+2026-11-13), con sus colores fijos, los mismos de día y de noche:
 
-- «Otra vez» en rojo, «Difícil» en naranja, «Bien» en verde y «Fácil» en azul, con letra en
-  mayúsculas y negrita y un canto inferior que les da relieve. De día el color es algo más oscuro y
-  la letra blanca; de noche, el color vivo con la letra oscura.
-- «Mostrar respuesta», en el azul de acción de Anki, algo más ancho.
-- «Editar» y «Más», discretos: fondo de botón normal, contorno fino y letra gris, que se oscurece
-  al pasar el ratón.
-- Todos tienen el mismo tamaño en todos los idiomas. Si una palabra no cabe, se reduce la letra,
-  nunca el botón. En ventanas estrechas los botones se hacen más pequeños, pero todos iguales.
-- Los tiempos previstos («10 min», «4 d») y el recuento de tarjetas siguen encima de los botones,
-  como en Anki, en gris y sin mayúsculas.
-- Al pasar el ratón se aclaran un poco. Al pulsarlos con el ratón se hunden sobre su canto y la
-  respuesta llega a Anki una décima de segundo después, para que se vea el gesto; con «reducir
-  movimiento» activado en el sistema, al instante. Los atajos de teclado responden siempre al
-  instante. En «Mostrar respuesta» y en los de respuesta, un segundo clic en el mismo botón antes
-  de 0,4 segundos se ignora.
-- Con el teclado, el botón elegido lleva un recuadro de foco.
+- «Otra vez» rojo (#FF4B4B), «Difícil» naranja (#FFAB33), «Bien» verde (#93D333) y «Fácil» azul
+  claro (#49C0F8), con la letra casi negra (#131F24) en negrita de 15 px, sin mayúsculas. Cada uno
+  con un canto de 2 px debajo, de su color más oscuro, que le da relieve.
+- «Mostrar respuesta», dorado (#FFD700) con la letra ámbar (#AE6802) y un canto de 4 px más oscuro.
+- «Editar» y «Más», sin relleno: contorno gris de 2 px con un canto de 4 px abajo y letra gris
+  (de día #C9D1D9 y #57606A; de noche #37464F y #52656D), separados de los demás.
+- Medidas: 48 px de alto, 130 px de ancho como mínimo (crecen con el texto), 24 px de relleno a los
+  lados y esquinas de 18 px.
+- Encima de la barra, una raya gris continua de 2 px (#D7DDE2 de día, #37464F de noche).
+- Los tiempos previstos («10 min», «4 d») y el recuento de tarjetas, en el color de texto de Anki (el
+  original usaba negro y blanco puros: retoque casi imperceptible).
+- Al pasar el ratón se aclaran (brillo 1,08); nunca se oscurecen. Mandan su forma y sus colores
+  aunque Atelier (Nocturne) esté instalado (FIX-006). Si desmarca «Botones de respuesta 3D de
+  colores», los botones vuelven al aspecto de Anki o de Atelier.
+- Al pulsarlos se hunden sobre su canto con un pequeño rebote. Con el ratón, la respuesta llega a
+  Anki una décima de segundo después, para que se vea el gesto; con «reducir movimiento» activado
+  en el sistema, al instante y sin rebote. Los atajos de teclado responden siempre al instante. En
+  «Mostrar respuesta» y en los de respuesta, un segundo clic en el mismo botón antes de 0,4
+  segundos se ignora.
+- Retoques casi imperceptibles sobre el original: con el teclado, el botón elegido lleva un aro de
+  foco azul; en ventanas de menos de 640 px los botones se compactan un poco para no salirse; y si
+  una palabra no cabe, se reduce la letra.
 
 ## 5. Al terminar de repasar: sonido y confeti
 
@@ -112,7 +127,9 @@ un mínimo de repaso:
 Título «ProFeedback». Desde la 2.1.0 sigue el modelo de ventana de opciones del taller, el panel de GritMap (regla
 PROP-012, petición del 2026-11-09): un panel de 560 px de ancho y el alto justo para su contenido,
 hecho de recuadros sobre el fondo de Anki, con los colores de la paleta (también con Atelier) y
-Aceptar y Cancelar abajo (en Windows, Aceptar primero). No se enseña hasta estar dibujado, recuerda
+Aceptar y Cancelar abajo (en Windows, Aceptar primero). Desde la 2.2.0, la ventana entera es
+invisible hasta que el panel está dibujado y con su alto definitivo, y entonces aparece de una vez:
+sin destello, sin fondo vacío previo y sin cambiar de tamaño ante sus ojos (FIX-005). Recuerda
 su tamaño y su posición, y si ya está abierto se trae al frente. Esc cancela y Ctrl+Intro acepta.
 Nada se guarda hasta pulsar Aceptar. Aceptar, Cancelar, Restaurar, Sí y No llevan el texto de Qt en
 el idioma de Anki. Con el teclado: el tabulador recorre los controles, cada uno con su contorno de
@@ -125,6 +142,8 @@ Cuatro recuadros, de arriba abajo (sin «Restaurar», como antes):
 | — | Volumen | Deslizador de 0 a 100 con la cifra al lado («100 %»), con el carril relleno del color de acción hasta el valor. Vale para todos los sonidos. La mitad suena a la mitad, no casi igual de fuerte | 100 % |
 | Sonidos al responder | «Reproducir sonido al acertar (Bien/Fácil)» | Casilla | Marcada |
 | | Sonido (colgando de la casilla) | Lista desplegable con «Aleatorio» o uno de los sonidos de acierto (de serie: good.mp3, magic.mp3 y soft.mp3), y el botón «Probar» al lado | Aleatorio |
+| | «Reproducir sonido al fallar (Otra vez/Difícil)» (2.2.0) | Casilla, debajo de la de acierto | Marcada |
+| | Sonido (colgando de la casilla) | Lista con «Aleatorio» o uno de los sonidos de fallo (de serie: grave.mp3 y suave.mp3) y «Probar» | Aleatorio |
 | Sonidos al finalizar | «Reproducir sonido al terminar de repasar» | Casilla | Marcada |
 | | «Al terminar un mazo» | Lista + «Probar» (duolingo.mp3, khan.mp3 y winners.mp3) | Aleatorio |
 | | «Al terminar todos los mazos» | Lista + «Probar» (duolingo.mp3 y mario bros.mp3) | Aleatorio |
@@ -135,14 +154,15 @@ Cuatro recuadros, de arriba abajo (sin «Restaurar», como antes):
 | | «Insignias en la tarjeta (Nueva/Difícil/Error anterior)» | Casilla | Marcada |
 
 - Al pie del recuadro de aspecto, la nota gris «Para añadir sonidos propios, copie archivos .mp3 en
-  la subcarpeta de «user_files/sonidos» del complemento que corresponda: «correcto»,
+  la subcarpeta de «user_files/sonidos» del complemento que corresponda: «correcto», «fallo»,
   «finalizado/mazo», «finalizado/todo», «perfecto-mazo» o «perfecto-todo».» (desde la 2.1.0, en los
   nueve idiomas completos; en los demás, en inglés). Al abrir la ventana se crean esas subcarpetas
   vacías si faltan (FIX-004).
 - Lo que cuelga de una casilla se ve atenuado y no responde si la casilla está desmarcada. Una lista y
   su «Probar» se ven apagados también si no hay ningún sonido de ese tipo.
 - Si no hay ningún sonido de acierto, en su recuadro aparece «No se encontraron archivos .mp3 en
-  «sonidos/correcto».»; si no hay ninguno de fin, «No se encontraron archivos .mp3 en
+  «sonidos/correcto».»; si no hay ninguno de fallo, «No se encontraron archivos .mp3 en
+  «sonidos/fallo».»; si no hay ninguno de fin, «No se encontraron archivos .mp3 en
   «sonidos/finalizado».».
 - «Probar» toca el sonido elegido (o uno al azar con «Aleatorio») con el volumen que marca el
   deslizador, sin guardar nada. Al cerrar la ventana, el volumen vuelve al guardado si no acepta.
@@ -160,7 +180,7 @@ Cuatro recuadros, de arriba abajo (sin «Restaurar», como antes):
 - Los propios van en la carpeta «user_files» del complemento (Herramientas > Complementos,
   seleccionarlo y pulsar «Ver archivos»), que Anki conserva al instalar versiones nuevas. Dentro,
   en «sonidos» y en una subcarpeta con el mismo nombre que la del complemento para cada tipo:
-  «correcto» (acierto), «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo».
+  «correcto» (acierto), «fallo» (fallo, desde la 2.2.0), «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo».
   Desde la 2.1.0 se crean vacías al abrir la ventana de opciones. Un archivo propio con el mismo nombre que uno de serie lo
   sustituye.
 - La lista de sonidos se vuelve a leer al abrir la ventana de opciones y al abrir un perfil.

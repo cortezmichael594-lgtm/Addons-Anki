@@ -15,7 +15,7 @@ from .strings import FlagKey, flag_label
 # web/flags.css para que icono y texto vayan a juego.
 _ICONS: Final[dict[FlagKey, str]] = {
     "previous_mistake": (
-        '<svg viewBox="0 0 33 32" width="26" height="26" aria-hidden="true" focusable="false">'
+        '<svg viewBox="0 0 33 32" width="32" height="32" aria-hidden="true" focusable="false">'
         '<path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M16.4988 27.9976C23.1255 27.9976 28.4976 '
         "22.6255 28.4976 15.9988C28.4976 9.37204 23.1255 4 16.4988 4C9.87204 4 4.5 9.37204 4.5 "
         "15.9988C4.5 22.6255 9.87204 27.9976 16.4988 27.9976ZM18.7016 8.57097C19.0921 8.18045 "
@@ -35,7 +35,7 @@ _ICONS: Final[dict[FlagKey, str]] = {
         '21.7368 15.2632Z"/></svg>'
     ),
     "hard_exercise": (
-        '<svg viewBox="0 0 33 32" width="26" height="26" aria-hidden="true" focusable="false">'
+        '<svg viewBox="0 0 33 32" width="32" height="32" aria-hidden="true" focusable="false">'
         '<path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M16.5 28C23.1274 28 28.5 22.6274 28.5 '
         "16C28.5 9.37258 23.1274 4 16.5 4C9.87258 4 4.5 9.37258 4.5 16C4.5 22.6274 9.87258 28 "
         "16.5 28ZM19.7384 8.863C20.1567 8.44476 20.8348 8.44476 21.253 8.863L23.6992 "
@@ -54,7 +54,7 @@ _ICONS: Final[dict[FlagKey, str]] = {
         '23.1369C13.8045 22.7187 13.8045 22.0406 13.3862 21.6223L10.9401 19.1762Z"/></svg>'
     ),
     "new_card": (
-        '<svg viewBox="0 0 33 32" width="26" height="26" aria-hidden="true" focusable="false">'
+        '<svg viewBox="0 0 33 32" width="32" height="32" aria-hidden="true" focusable="false">'
         '<path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M16.5 28C23.1274 28 28.5 22.6274 28.5 '
         "16C28.5 9.37258 23.1274 4 16.5 4C9.87258 4 4.5 9.37258 4.5 16C4.5 22.6274 9.87258 28 "
         "16.5 28ZM11.8184 14.0055C11.3302 13.5173 11.3302 12.7259 11.8184 12.2377L14.1165 "

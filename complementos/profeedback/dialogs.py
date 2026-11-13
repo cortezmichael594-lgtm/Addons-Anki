@@ -37,6 +37,7 @@ _FINISH_ROWS: tuple[tuple[SoundKind, strings.UIKey], ...] = (
 # Clave de la página para cada ajuste de sonido elegido.
 SOUND_FIELDS: dict[SoundKind, str] = {
     "correct": "answerSound",
+    "wrong": "wrongSound",
     "deck_finish": "deckFinishSound",
     "all_finish": "allDoneSound",
     "deck_perfect": "deckPerfectSound",
@@ -45,6 +46,7 @@ SOUND_FIELDS: dict[SoundKind, str] = {
 
 _CHECKS: tuple[str, ...] = (
     "answerSoundEnabled",
+    "wrongSoundEnabled",
     "sessionSoundsEnabled",
     "confettiEnabled",
     "styledButtonsEnabled",
@@ -92,6 +94,10 @@ def page(config: AddonConfig, sounds: Mapping[SoundKind, Sequence[str]]) -> dict
     if not sounds.get("correct"):
         answer_children.append({"type": "note", "text": strings.ui("no_answer_sounds")})
     answer_children.append(_sound_select("correct", _label("label_sound"), sounds))
+    wrong_children: list[dict[str, Any]] = []
+    if not sounds.get("wrong"):
+        wrong_children.append({"type": "note", "text": strings.ui("no_wrong_sounds")})
+    wrong_children.append(_sound_select("wrong", _label("label_sound"), sounds))
     finish_children: list[dict[str, Any]] = []
     if not any(sounds.get(kind) for kind, _ in _FINISH_ROWS):
         finish_children.append({"type": "note", "text": strings.ui("no_finish_sounds")})
@@ -118,7 +124,13 @@ def page(config: AddonConfig, sounds: Mapping[SoundKind, Sequence[str]]) -> dict
                     "key": "answerSoundEnabled",
                     "label": strings.ui("enable_answer_sound"),
                     "children": answer_children,
-                }
+                },
+                {
+                    "type": "check",
+                    "key": "wrongSoundEnabled",
+                    "label": strings.ui("enable_wrong_sound"),
+                    "children": wrong_children,
+                },
             ],
         },
         {

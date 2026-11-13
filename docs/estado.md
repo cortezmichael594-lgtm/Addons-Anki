@@ -82,6 +82,26 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   a OpenGL en Preferencias y, si sigue, probar Anki sin complementos. Se quitaron las menciones a
   docs/referencias que la fusión del pull request #19 había devuelto a CLAUDE.md y docs/LEEME.txt.
 
+- 2026-11-13: Sonidos de consola 1.0.0, nuevo (plan aprobado en docs/sonidos_consola/encargo.md):
+  los siete sonidos de la persona, que ella copia en user_files (no van en el repositorio). Excepción
+  aprobada: PyQt6.QtMultimedia en empaquetar.py (ALLOWED_DIRECT_QT). 1.2.0: trofeo al terminar un mazo, sin «Nunca», sin entrada en Herramientas y sin destello al abrir la configuración (FIX-002). 1.1.0: snd_system_ok solo al aceptar algo (sin sincronización). 1.0.1: opciones con el panel
+  modelo (PROP-012, llegó a main a la vez; FIX-001). 39 pruebas. Falta que la persona
+  lo pruebe en Windows con audio.
+
+- 2026-11-13: ProFeedback 2.2.0 (petición del cliente): sonido al fallar («Otra vez»/«Difícil») con
+  casilla, lista y «Probar» en «Sonidos al responder», dos sonidos de fallo creados en el taller
+  (grave.mp3 y suave.mp3) y textos en los 54 idiomas; FIX-005, ventana de opciones sin destello (el
+  mismo arreglo que FIX-002 de Sonidos de consola). 15 pruebas. Va en el pull request #21.
+
+- 2026-11-13: ProFeedback 2.3.0 (petición del cliente): los botones 3D mandan sobre Atelier y no se
+  oscurecen con el ratón (FIX-006, !important en buttons.css), forma algo mejorada (canto de 4 px,
+  brillo arriba, se elevan 1 px) e insignia «TARJETA NUEVA» en morado (FLAG_7). 18 pruebas.
+
+- 2026-11-13: ProFeedback 2.4.0 (petición del cliente, con el original de AnkiWeb 392368329 delante):
+  botones, insignias, «Editar»/«Más» y la raya gris iguales que en el original, con sus colores fijos
+  marcados «colores-ok» y retoques mínimos (foco, ventanas estrechas, color de texto de Anki en los
+  recuentos). FIX-006 se conserva. 19 pruebas.
+
 ## En curso
 
 (Nada.)

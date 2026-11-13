@@ -20,6 +20,7 @@ from profeedback.config import AddonConfig
 ADDON = Path(dialogs.__file__).parent
 SOUNDS = {
     "correct": ["good.mp3", "soft.mp3"],
+    "wrong": ["suave.mp3", "grave.mp3"],
     "deck_finish": ["khan.mp3"],
     "all_finish": [],
     "deck_perfect": [],
@@ -58,6 +59,101 @@ class PanelPageTests(unittest.TestCase):
     def test_missing_saved_sound_shows_random(self) -> None:
         page = dialogs.page(AddonConfig(answerSound="gone.mp3"), SOUNDS)
         self.assertEqual(page["values"]["answerSound"], "")
+
+
+class WrongSoundTests(unittest.TestCase):
+    """2.2.0: sonido al fallar («Otra vez» y «Difícil»)."""
+
+    def _wrong_check(self, sounds: dict) -> dict:
+        page = dialogs.page(AddonConfig(), sounds)
+        answer_card = page["cards"][1]
+        return next(item for item in answer_card["items"] if item.get("key") == "wrongSoundEnabled")
+
+    def test_wrong_check_sits_under_answer_sounds_with_its_select(self) -> None:
+        check = self._wrong_check(SOUNDS)
+        self.assertEqual(check["children"][-1]["key"], "wrongSound")
+        self.assertEqual(check["children"][-1]["test"]["action"], "wrong")
+        self.assertEqual(check["children"][-1]["options"][0]["value"], "")
+
+    def test_without_wrong_sounds_there_is_a_note(self) -> None:
+        check = self._wrong_check({**SOUNDS, "wrong": []})
+        self.assertEqual(check["children"][0]["type"], "note")
+        self.assertTrue(check["children"][-1]["unavailable"])
+
+    def test_round_trip_and_test_request(self) -> None:
+        values = dialogs.page(AddonConfig(), SOUNDS)["values"]
+        values.update(wrongSoundEnabled=False, wrongSound="grave.mp3")
+        cfg = dialogs.config_from_page(values, AddonConfig(), SOUNDS)
+        self.assertFalse(cfg.wrongSoundEnabled)
+        self.assertEqual(cfg.wrongSound, "grave.mp3")
+        self.assertEqual(dialogs.test_request({"name": "wrong", "values": values}, SOUNDS), ("wrong", "grave.mp3", 100))
+
+    def test_old_config_gets_wrong_sound_on(self) -> None:
+        cfg = AddonConfig.from_stored({"answerSoundEnabled": True})
+        self.assertTrue(cfg.wrongSoundEnabled)
+        self.assertEqual(cfg.wrongSound, "")
+
+    def test_bundled_wrong_sounds_exist(self) -> None:
+        folder = ADDON / "sonidos" / paths.SOUND_SUBFOLDERS["wrong"]
+        self.assertEqual(sorted(p.name for p in folder.glob("*.mp3")), ["grave.mp3", "suave.mp3"])
+
+    def test_answer_dispatch(self) -> None:
+        from profeedback import feedback
+
+        with mock.patch.object(feedback.audio, "play") as play:
+            for ease in (1, 2, 3, 4):
+                feedback._on_did_answer(None, None, ease)  # type: ignore[arg-type]
+        kinds = [call.args[0] for call in play.call_args_list]
+        self.assertEqual(kinds, ["wrong", "wrong", "correct", "correct"])
+
+    def test_texts_exist_in_spanish_and_english(self) -> None:
+        from profeedback import strings
+
+        with mock.patch.object(strings, "current_lang", return_value="es"):
+            strings._cache.clear()
+            self.assertEqual(strings.ui("enable_wrong_sound"), "Reproducir sonido al fallar (Otra vez/Difícil)")
+        strings._cache.clear()
+        for lang, texts in strings._UI_STRINGS.items():
+            self.assertTrue(texts.get("enable_wrong_sound"), lang)
+            self.assertIn("sonidos/fallo", texts.get("no_wrong_sounds", ""), lang)
+
+
+class ButtonStyleTests(unittest.TestCase):
+    """2.4.0: botones e insignias iguales al ProFeedback original; FIX-006: ganan al tema y no se oscurecen."""
+
+    def setUp(self) -> None:
+        self.css = (ADDON / "web" / "buttons.css").read_text(encoding="utf-8")
+        self.flags = (ADDON / "web" / "flags.css").read_text(encoding="utf-8")
+
+    def test_shape_wins_over_the_theme(self) -> None:
+        for declaration in (
+            "border-radius: var(--profeedback-radius) !important",
+            "background-image: none !important",
+            "height: 48px !important",
+            "min-width: 130px !important",
+        ):
+            self.assertIn(declaration, self.css)
+        self.assertIn("--profeedback-radius: 18px;", self.css)
+
+    def test_original_colours(self) -> None:
+        for value in ("255, 75, 75", "255, 171, 51", "147, 211, 51", "73, 192, 248", "#ffd700", "#d7dde2"):
+            self.assertIn(value, self.css)
+
+    def test_hover_only_brightens(self) -> None:
+        hover = self.css.split("button:hover {", 1)[1].split("}", 1)[0]
+        self.assertIn("filter: var(--profeedback-hover)", hover)
+        self.assertNotIn("background", hover)
+        self.assertIn("--profeedback-hover: brightness(1.08);", self.css)
+
+    def test_badges_like_the_original(self) -> None:
+        for modifier, colour in (
+            ("new-card", "#ce82ff"),
+            ("hard-exercise", "#ff4b4b"),
+            ("previous-mistake", "#ffab33"),
+        ):
+            block = self.flags.split(f".profeedback-badge--{modifier} {{", 1)[1].split("}", 1)[0]
+            self.assertIn(colour, block)
+        self.assertNotIn("border-radius: 999px", self.flags)
 
 
 class ConfigFromPageTests(unittest.TestCase):

@@ -1,0 +1,11 @@
+{
+  "complemento": "sonidos_consola",
+  "fix": {
+    "FIX-001": [
+      "dialogs.py"
+    ],
+    "FIX-002": [
+      "panel.py"
+    ]
+  }
+}

@@ -31,6 +31,8 @@ AGAIN: Final[int] = 1
 HARD: Final[int] = 2
 # Las que cuentan como acierto: «Bien» y «Fácil». «Difícil» ya no es sesión perfecta.
 CORRECT_EASES: Final[frozenset[int]] = frozenset({3, 4})
+# Las que suenan como fallo: «Otra vez» y «Difícil» (2.2.0, petición del cliente).
+WRONG_EASES: Final[frozenset[int]] = frozenset({1, 2})
 
 # Cuántas respuestas (mazo) o tarjetas distintas (todo el día) hacen falta para que el
 # confeti y el brillo dorado tengan sentido. El sonido de fin suena siempre.

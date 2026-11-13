@@ -37,11 +37,13 @@ class AddonConfig:
     """
 
     answerSoundEnabled: bool = True
+    wrongSoundEnabled: bool = True
     sessionSoundsEnabled: bool = True
     confettiEnabled: bool = True
     styledButtonsEnabled: bool = True
     flagsEnabled: bool = True
     answerSound: str = ""
+    wrongSound: str = ""
     deckFinishSound: str = ""
     allDoneSound: str = ""
     deckPerfectSound: str = ""

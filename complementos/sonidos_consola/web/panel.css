@@ -1,0 +1,837 @@
+/* Panel de opciones con el modelo de GritMap
+ * (docs/fichas-diseno/09-patron-configuracion.md).
+ *
+ * El mismo material que el panel de GritMap: fondo de Anki, recuadros de capa
+ * elevada con borde suave y esquinas de 10 px, la letra de Anki y la escala de
+ * espacios 4, 8, 16, 24 y 32. Un solo azul (el de accion de Anki) para lo que
+ * se pulsa, lo elegido y el foco. Todo sale de la paleta Nocturne; el borde de
+ * los controles es NOCTURNE_CONTROL_BORDER (3:1 o mas), que no tiene variable
+ * CSS. Sin animaciones, salvo el hundimiento de 1 px al pulsar.
+ *
+ * Todo lleva el prefijo «sonidos_consola-» (nombre del paquete).
+ */
+
+#sonidos_consola-app {
+    --sonidos_consola-canvas: var(--canvas, #F7F8FA);
+    --sonidos_consola-card: var(--canvas-elevated, #FBFCFE);
+    --sonidos_consola-overlay: var(--canvas-overlay, #FBFCFE);
+    --sonidos_consola-inset: var(--canvas-inset, #EEF0F4);
+    --sonidos_consola-fg: var(--fg, #1B2430);
+    --sonidos_consola-muted: var(--fg-subtle, #4E576A);
+    --sonidos_consola-card-border: var(--border-subtle, #E8EAF0);
+    --sonidos_consola-line: var(--border, #DADEE7);
+    --sonidos_consola-control: #878C97; /* colores-ok: NOCTURNE_CONTROL_BORDER (día), sin variable CSS en Anki */
+    --sonidos_consola-accent: var(--button-primary-bg, #3B6FE0);
+    --sonidos_consola-on-accent: var(--highlight-fg, #FFFFFF);
+    --sonidos_consola-focus: var(--border-focus, #3B6FE0);
+    --sonidos_consola-selected: var(--nocturne-row-highlight, #EAEEF8);
+    --sonidos_consola-hover: var(--button-gradient-start, #EDF0F5);
+    --sonidos_consola-danger: var(--accent-danger, #CA2D2D);
+    --sonidos_consola-shadow: var(--shadow-subtle, #1B243012);
+    --sonidos_consola-shadow-float: var(--shadow, #1B243026);
+}
+
+html.night-mode #sonidos_consola-app {
+    --sonidos_consola-canvas: var(--canvas, #12161F);
+    --sonidos_consola-card: var(--canvas-elevated, #212836);
+    --sonidos_consola-overlay: var(--canvas-overlay, #293040);
+    --sonidos_consola-inset: var(--canvas-inset, #0F131B);
+    --sonidos_consola-fg: var(--fg, #D6DAE1);
+    --sonidos_consola-muted: var(--fg-subtle, #B7BECC);
+    --sonidos_consola-card-border: var(--border-subtle, #1F2635);
+    --sonidos_consola-line: var(--border, #2C3444);
+    --sonidos_consola-control: #727B8C; /* colores-ok: NOCTURNE_CONTROL_BORDER (noche), sin variable CSS en Anki */
+    --sonidos_consola-accent: var(--button-primary-bg, #4066E6);
+    --sonidos_consola-on-accent: var(--highlight-fg, #FFFFFF);
+    --sonidos_consola-focus: var(--border-focus, #6390FF);
+    --sonidos_consola-selected: var(--nocturne-row-highlight, #19233F);
+    --sonidos_consola-hover: var(--button-gradient-start, #2E3747);
+    --sonidos_consola-danger: var(--accent-danger, #F37777);
+    /* De noche no hay sombras: la profundidad la dan los fondos. */
+    --sonidos_consola-shadow: transparent;
+    --sonidos_consola-shadow-float: transparent;
+}
+
+/* La pagina entera nunca se desplaza: solo el cuerpo del panel (regla de
+ * FIX-028 de GritMap). overflow: clip y no hidden: hidden aun deja desplazar
+ * con el foco. */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: clip;
+    background: var(--canvas, #F7F8FA);
+}
+
+html.night-mode body {
+    background: var(--canvas, #12161F);
+}
+
+#sonidos_consola-app,
+#sonidos_consola-app * {
+    box-sizing: border-box;
+}
+
+#sonidos_consola-app {
+    height: 100%;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--sonidos_consola-fg);
+    background: var(--sonidos_consola-canvas);
+    font-variant-numeric: tabular-nums;
+    /* Ningun texto se selecciona, salvo lo que se escribe en los campos. */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#sonidos_consola-app input[type="search"] {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+#sonidos_consola-app [hidden] {
+    display: none !important;
+}
+
+/* Cabecera y pie fijos; el cuerpo se desplaza si no cabe. */
+#sonidos_consola-app .sonidos_consola-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#sonidos_consola-app .sonidos_consola-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 24px;
+}
+
+#sonidos_consola-app .sonidos_consola-head h1 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+}
+
+#sonidos_consola-app .sonidos_consola-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    /* 4 px arriba: el contorno de foco del primer control no se corta. */
+    padding: 4px 12px 12px 12px;
+    scroll-padding: 16px 0;
+}
+
+#sonidos_consola-app .sonidos_consola-scrolled .sonidos_consola-head {
+    border-bottom: 1px solid var(--sonidos_consola-line);
+}
+
+#sonidos_consola-app .sonidos_consola-foot {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    min-height: 52px;
+    align-items: center;
+    padding: 0 24px;
+}
+
+#sonidos_consola-app .sonidos_consola-overflow .sonidos_consola-foot {
+    border-top: 1px solid var(--sonidos_consola-line);
+}
+
+/* En Windows, Aceptar va primero, como en sus ventanas; en macOS y Linux, a
+ * la derecha. */
+body.isWin #sonidos_consola-app .sonidos_consola-foot .sonidos_consola-primary {
+    order: -1;
+}
+
+/* Recuadros */
+#sonidos_consola-app .sonidos_consola-card {
+    background: var(--sonidos_consola-card);
+    border: 1px solid var(--sonidos_consola-card-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px var(--sonidos_consola-shadow);
+}
+
+#sonidos_consola-app .sonidos_consola-card + .sonidos_consola-card {
+    margin-top: 12px;
+}
+
+#sonidos_consola-app .sonidos_consola-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-height: 28px;
+}
+
+#sonidos_consola-app .sonidos_consola-card-head h2 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#sonidos_consola-app .sonidos_consola-card-actions {
+    display: flex;
+    gap: 4px;
+    margin-inline-start: auto;
+}
+
+#sonidos_consola-app .sonidos_consola-card-note {
+    margin: 4px 0 0 0;
+    color: var(--sonidos_consola-muted);
+}
+
+/* La primera opcion de un recuadro sin titulo no deja hueco arriba. */
+#sonidos_consola-app .sonidos_consola-card > .sonidos_consola-option:first-child {
+    margin-top: 0;
+}
+
+#sonidos_consola-app .sonidos_consola-option {
+    margin-top: 16px;
+}
+
+#sonidos_consola-app .sonidos_consola-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+#sonidos_consola-app .sonidos_consola-rule {
+    margin: 8px 0 0 0;
+    color: var(--sonidos_consola-muted);
+}
+
+/* Ayuda bajo una casilla: alineada con su texto (18 px de cuadro y 8 de hueco). */
+#sonidos_consola-app .sonidos_consola-check + .sonidos_consola-rule {
+    margin: 0 0 0 26px;
+}
+
+/* Aviso: franja hundida con icono de informacion, nunca en rojo. */
+#sonidos_consola-app .sonidos_consola-notice {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--sonidos_consola-inset);
+}
+
+#sonidos_consola-app .sonidos_consola-notice svg {
+    flex: none;
+    margin-top: 2px;
+    color: var(--sonidos_consola-muted);
+}
+
+/* Botones */
+#sonidos_consola-app button {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+    cursor: pointer;
+}
+
+#sonidos_consola-app .sonidos_consola-btn {
+    min-height: 32px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid var(--sonidos_consola-control);
+    background: var(--sonidos_consola-card);
+    color: var(--sonidos_consola-fg);
+    white-space: nowrap;
+}
+
+#sonidos_consola-app .sonidos_consola-btn:hover:not(:disabled) {
+    background: var(--sonidos_consola-hover);
+}
+
+#sonidos_consola-app .sonidos_consola-btn:active:not(:disabled),
+#sonidos_consola-app .sonidos_consola-step button:active:not(:disabled),
+#sonidos_consola-app .sonidos_consola-row:active,
+#sonidos_consola-app .sonidos_consola-link:active {
+    transform: translateY(1px);
+}
+
+#sonidos_consola-app .sonidos_consola-primary {
+    border-color: var(--sonidos_consola-accent);
+    background: var(--sonidos_consola-accent);
+    color: var(--sonidos_consola-on-accent);
+    font-weight: 600;
+}
+
+#sonidos_consola-app .sonidos_consola-primary:hover:not(:disabled) {
+    background: var(--sonidos_consola-accent);
+    filter: brightness(1.06);
+}
+
+/* Boton terciario: texto azul sin fondo («Restaurar», «Deshacer»). */
+#sonidos_consola-app .sonidos_consola-link {
+    min-height: 28px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--sonidos_consola-accent);
+    font-weight: 600;
+}
+
+#sonidos_consola-app .sonidos_consola-link:hover {
+    background: var(--sonidos_consola-hover);
+}
+
+#sonidos_consola-app .sonidos_consola-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--sonidos_consola-muted);
+}
+
+#sonidos_consola-app .sonidos_consola-icon-btn:hover:not(:disabled) {
+    background: var(--sonidos_consola-hover);
+    color: var(--sonidos_consola-fg);
+}
+
+#sonidos_consola-app .sonidos_consola-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 28px;
+    padding: 0 8px 0 4px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--sonidos_consola-accent);
+    font-weight: 600;
+}
+
+#sonidos_consola-app .sonidos_consola-back:hover {
+    background: var(--sonidos_consola-hover);
+}
+
+/* Foco del teclado: contorno azul de 2 px separado 2 px. Anki quita el
+ * contorno de todos sus botones; por eso !important. */
+#sonidos_consola-app button:focus-visible,
+#sonidos_consola-app input:focus-visible,
+#sonidos_consola-app select:focus-visible,
+#sonidos_consola-app .sonidos_consola-chip:has(input:focus-visible),
+#sonidos_consola-app .sonidos_consola-check:has(input:focus-visible) .sonidos_consola-box {
+    outline: 2px solid var(--sonidos_consola-focus) !important;
+    outline-offset: 2px;
+}
+
+/* Fichas: botones de opcion de verdad, con su teclado. */
+#sonidos_consola-app .sonidos_consola-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#sonidos_consola-app .sonidos_consola-chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--sonidos_consola-control);
+    border-radius: 8px;
+    background: var(--sonidos_consola-card);
+    cursor: pointer;
+}
+
+#sonidos_consola-app .sonidos_consola-chip:hover {
+    background: var(--sonidos_consola-hover);
+}
+
+#sonidos_consola-app .sonidos_consola-chip:has(input:checked) {
+    border: 2px solid var(--sonidos_consola-accent);
+    padding: 0 11px;
+    background: var(--sonidos_consola-selected);
+}
+
+#sonidos_consola-app .sonidos_consola-chip input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
+
+#sonidos_consola-app .sonidos_consola-swatch {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+#sonidos_consola-app .sonidos_consola-chip-name {
+    flex: 1;
+    min-width: 0;
+}
+
+#sonidos_consola-app .sonidos_consola-tick {
+    flex: none;
+    visibility: hidden;
+    color: var(--sonidos_consola-accent);
+}
+
+#sonidos_consola-app .sonidos_consola-chip:has(input:checked) .sonidos_consola-tick {
+    visibility: visible;
+}
+
+/* Campo numerico con − y + */
+#sonidos_consola-app .sonidos_consola-step-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#sonidos_consola-app .sonidos_consola-step {
+    display: inline-flex;
+    align-items: stretch;
+    height: 32px;
+    border: 1px solid var(--sonidos_consola-control);
+    border-radius: 8px;
+    background: var(--sonidos_consola-card);
+    overflow: hidden;
+}
+
+#sonidos_consola-app .sonidos_consola-step button {
+    width: 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 16px;
+}
+
+#sonidos_consola-app .sonidos_consola-step button:hover:not(:disabled) {
+    background: var(--sonidos_consola-hover);
+}
+
+#sonidos_consola-app .sonidos_consola-step button:focus-visible {
+    outline-offset: -2px;
+}
+
+#sonidos_consola-app .sonidos_consola-step button:disabled {
+    opacity: 0.35;
+}
+
+#sonidos_consola-app .sonidos_consola-step input {
+    width: calc(4ch + 16px);
+    padding: 0 8px;
+    border: 0;
+    border-inline: 1px solid var(--sonidos_consola-line);
+    background: none;
+    color: var(--sonidos_consola-fg);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+#sonidos_consola-app .sonidos_consola-step input:focus-visible {
+    outline-offset: 0;
+}
+
+#sonidos_consola-app .sonidos_consola-unit {
+    color: var(--sonidos_consola-muted);
+}
+
+/* Deslizador: carril hundido, tramo lleno del color de accion y tirador de
+ * capa elevada con el borde de los controles. */
+#sonidos_consola-app .sonidos_consola-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#sonidos_consola-app .sonidos_consola-slider {
+    --sonidos_consola-fill: 50%;
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    margin: 0;
+    background: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#sonidos_consola-app .sonidos_consola-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(
+        to right,
+        var(--sonidos_consola-accent) 0,
+        var(--sonidos_consola-accent) var(--sonidos_consola-fill),
+        var(--sonidos_consola-inset) var(--sonidos_consola-fill),
+        var(--sonidos_consola-inset) 100%
+    );
+    box-shadow: inset 0 0 0 1px var(--sonidos_consola-line);
+}
+
+#sonidos_consola-app .sonidos_consola-slider::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    margin-top: -6px;
+    border: 1px solid var(--sonidos_consola-control);
+    border-radius: 50%;
+    background: var(--sonidos_consola-card);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#sonidos_consola-app .sonidos_consola-slider:hover::-webkit-slider-thumb {
+    background: var(--sonidos_consola-hover);
+}
+
+#sonidos_consola-app .sonidos_consola-slider:focus-visible {
+    outline-offset: 4px;
+}
+
+#sonidos_consola-app .sonidos_consola-slider-value {
+    flex: none;
+    min-width: 5ch;
+    text-align: end;
+    font-weight: 600;
+}
+
+/* Lista desplegable: un <select> de verdad con el aspecto de los campos. */
+#sonidos_consola-app .sonidos_consola-select-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#sonidos_consola-app .sonidos_consola-select-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+#sonidos_consola-app .sonidos_consola-select {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 32px 0 12px;
+    border: 1px solid var(--sonidos_consola-control);
+    border-radius: 8px;
+    background: var(--sonidos_consola-card);
+    color: var(--sonidos_consola-fg);
+    font: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#sonidos_consola-app .sonidos_consola-select:hover:not(:disabled) {
+    background: var(--sonidos_consola-hover);
+}
+
+#sonidos_consola-app .sonidos_consola-select option {
+    background: var(--sonidos_consola-overlay);
+    color: var(--sonidos_consola-fg);
+}
+
+#sonidos_consola-app .sonidos_consola-select-wrap svg {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    margin-top: -6px;
+    color: var(--sonidos_consola-muted);
+    pointer-events: none;
+}
+
+/* Campo grabador de atajos */
+#sonidos_consola-app .sonidos_consola-key-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#sonidos_consola-app .sonidos_consola-key {
+    flex: 1;
+    min-width: 0;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--sonidos_consola-control);
+    border-radius: 8px;
+    background: var(--sonidos_consola-card);
+    color: var(--sonidos_consola-fg);
+    font: inherit;
+    font-weight: 600;
+    caret-color: transparent;
+    cursor: pointer;
+}
+
+#sonidos_consola-app .sonidos_consola-key::placeholder {
+    color: var(--sonidos_consola-muted);
+    font-weight: 400;
+}
+
+#sonidos_consola-app .sonidos_consola-key:focus-visible {
+    border-color: var(--sonidos_consola-accent);
+}
+
+/* Casillas: un <input type="checkbox"> de verdad, dibujado a medida. El
+ * control invisible va dentro de su fila (regla de FIX-030 de GritMap). */
+#sonidos_consola-app .sonidos_consola-check {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 28px;
+    padding: 4px 0;
+    cursor: pointer;
+}
+
+#sonidos_consola-app .sonidos_consola-check input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+
+#sonidos_consola-app .sonidos_consola-box {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-top: 0;
+    border: 1px solid var(--sonidos_consola-control);
+    border-radius: 4px;
+    background: var(--sonidos_consola-card);
+    color: transparent;
+}
+
+#sonidos_consola-app .sonidos_consola-check input:checked + .sonidos_consola-box {
+    border-color: var(--sonidos_consola-accent);
+    background: var(--sonidos_consola-accent);
+    color: var(--sonidos_consola-on-accent);
+}
+
+#sonidos_consola-app .sonidos_consola-check-text {
+    font-weight: 600;
+}
+
+/* Lo que depende de una casilla, agrupado por una linea a la izquierda. */
+#sonidos_consola-app .sonidos_consola-group {
+    margin-top: 8px;
+    padding-inline-start: 16px;
+    border-inline-start: 2px solid var(--sonidos_consola-line);
+}
+
+#sonidos_consola-app .sonidos_consola-group > .sonidos_consola-option:first-child {
+    margin-top: 8px;
+}
+
+/* Apagado: atenuado. */
+#sonidos_consola-app .sonidos_consola-off {
+    opacity: 0.45;
+}
+
+#sonidos_consola-app .sonidos_consola-off * {
+    cursor: default !important;
+}
+
+#sonidos_consola-app :disabled {
+    cursor: default;
+}
+
+/* Linea de dato con accion («Su récord actual: 7 seguidas!  Restablecer»). */
+#sonidos_consola-app .sonidos_consola-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#sonidos_consola-app .sonidos_consola-stat-text strong {
+    font-weight: 700;
+}
+
+/* Fila de resumen: toda la fila es un boton que abre su subpagina. */
+#sonidos_consola-app .sonidos_consola-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 6px 16px;
+    border: 1px solid var(--sonidos_consola-control);
+    border-radius: 8px;
+    background: var(--sonidos_consola-card);
+    text-align: start;
+}
+
+#sonidos_consola-app .sonidos_consola-row:hover {
+    background: var(--sonidos_consola-hover);
+}
+
+#sonidos_consola-app .sonidos_consola-row-text {
+    flex: 1;
+    min-width: 0;
+}
+
+#sonidos_consola-app .sonidos_consola-row-title {
+    display: block;
+    font-weight: 600;
+}
+
+#sonidos_consola-app .sonidos_consola-row-summary {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    color: var(--sonidos_consola-muted);
+}
+
+#sonidos_consola-app .sonidos_consola-chevron {
+    flex: none;
+    color: var(--sonidos_consola-muted);
+}
+
+/* Hueco gris mientras llega un dato que tarda. */
+#sonidos_consola-app .sonidos_consola-bone {
+    display: inline-block;
+    width: 160px;
+    height: 12px;
+    border-radius: 6px;
+    background: var(--sonidos_consola-inset);
+    vertical-align: middle;
+}
+
+/* Subpagina con buscador y lista de casillas */
+#sonidos_consola-app .sonidos_consola-search {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--sonidos_consola-control);
+    border-radius: 8px;
+    background: var(--sonidos_consola-card);
+    color: var(--sonidos_consola-fg);
+    font: inherit;
+}
+
+#sonidos_consola-app .sonidos_consola-list {
+    list-style: none;
+    margin: 12px 0 0 0;
+    padding: 0;
+}
+
+#sonidos_consola-app .sonidos_consola-list li {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+}
+
+#sonidos_consola-app .sonidos_consola-list .sonidos_consola-check {
+    flex: 1;
+    min-width: 0;
+}
+
+#sonidos_consola-app .sonidos_consola-list .sonidos_consola-check-text {
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+/* Error: encima del campo, con icono, y el campo con borde rojo. */
+#sonidos_consola-app .sonidos_consola-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    color: var(--sonidos_consola-danger);
+}
+
+#sonidos_consola-app .sonidos_consola-invalid,
+#sonidos_consola-app .sonidos_consola-invalid:focus-visible {
+    border-color: var(--sonidos_consola-danger) !important;
+}
+
+/* Pregunta antes de perder algo: un <dialog> de verdad. */
+#sonidos_consola-app dialog {
+    max-width: 400px;
+    padding: 24px;
+    border: 1px solid var(--sonidos_consola-card-border);
+    border-radius: 10px;
+    background: var(--sonidos_consola-overlay);
+    color: var(--sonidos_consola-fg);
+    box-shadow: 0 8px 24px var(--sonidos_consola-shadow-float);
+}
+
+#sonidos_consola-app dialog::backdrop {
+    background: var(--shadow, #1B243026);
+}
+
+#sonidos_consola-app dialog h2 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#sonidos_consola-app dialog p {
+    margin: 0;
+    color: var(--sonidos_consola-muted);
+}
+
+#sonidos_consola-app .sonidos_consola-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+body.isWin #sonidos_consola-app .sonidos_consola-dialog-actions .sonidos_consola-primary {
+    order: -1;
+}
+
+/* Zona invisible para los avisos hablados del lector de pantalla. */
+#sonidos_consola-app .sonidos_consola-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Colores forzados (alto contraste de Windows): todo control tiene borde
+ * real; lo elegido se marca con borde y ✓; el foco, con el resaltado del
+ * sistema. Solo las muestras de color conservan su color. */
+@media (forced-colors: active) {
+    #sonidos_consola-app .sonidos_consola-chip:has(input:checked) {
+        border-color: Highlight;
+    }
+
+    #sonidos_consola-app .sonidos_consola-swatch {
+        forced-color-adjust: none;
+    }
+
+    #sonidos_consola-app button:focus-visible,
+    #sonidos_consola-app input:focus-visible,
+    #sonidos_consola-app select:focus-visible {
+        outline-color: Highlight !important;
+    }
+
+    #sonidos_consola-app .sonidos_consola-slider::-webkit-slider-runnable-track {
+        background: CanvasText;
+    }
+}

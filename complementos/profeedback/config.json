@@ -1,10 +1,12 @@
 {
   "answerSoundEnabled": true,
+  "wrongSoundEnabled": true,
   "sessionSoundsEnabled": true,
   "confettiEnabled": true,
   "styledButtonsEnabled": true,
   "flagsEnabled": true,
   "answerSound": "",
+  "wrongSound": "",
   "deckFinishSound": "",
   "allDoneSound": "",
   "deckPerfectSound": "",

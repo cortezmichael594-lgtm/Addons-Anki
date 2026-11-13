@@ -17,6 +17,9 @@ controles) y atiende los mensajes de la pagina con un manejador:
 Nada se guarda antes de Aceptar.
 """
 
+# Historial de correcciones de este archivo:
+# FIX-005 (2026-11-13): al abrir la configuración se veía un destello antes del panel.
+
 from __future__ import annotations
 
 import json
@@ -143,8 +146,13 @@ class PanelDialog(QDialog):
 
         self._web = AnkiWebView(self, title=f"{package} options")
         self._web.set_bridge_command(self._on_bridge, self)
-        # La pagina no se ensena hasta que esta dibujada entera: sin parpadeos.
-        self._web.hide()
+        # --- FIX-005 (2026-11-13) ---
+        # Síntoma: al abrir la configuración, la ventana salía vacía (su fondo de Qt), luego aparecía el
+        #   panel y la ventana cambiaba de alto: un destello.
+        # Causa: la ventana se enseñaba en seguida y solo la página esperaba, oculta, a estar dibujada.
+        # Regla: la ventana entera es invisible (opacidad 0) hasta que la página avisa de que está lista
+        #   y ya tiene su alto; la página se dibuja detrás, sin ocultarla.
+        self.setWindowOpacity(0.0)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._web)
@@ -169,7 +177,11 @@ class PanelDialog(QDialog):
         if sip.isdeleted(self) or self._ready:
             return
         self._ready = True
-        self._web.show()
+        self.setWindowOpacity(1.0)
+
+    def _reveal(self) -> None:
+        if not sip.isdeleted(self):
+            self.setWindowOpacity(1.0)
 
     def _on_bridge(self, cmd: str) -> Any:
         if not cmd.startswith(BRIDGE_PREFIX):
@@ -186,8 +198,9 @@ class PanelDialog(QDialog):
         if action == "ready":
             self._ready = True
             self._fit_height(arg)
-            self._web.show()
             self._web.setFocus()
+            # Se enseña en la vuelta siguiente del bucle de Qt, cuando el alto nuevo ya está aplicado.
+            mw.progress.single_shot(0, self._reveal, False)
             return None
         if action == "keytext":
             return key_text(str(arg)) if arg else ""
