@@ -170,45 +170,34 @@ class InterfaceWatcher(QObject):
 
     def _handle_message_box(self, box: QMessageBox, event: QEvent) -> None:
         kind = event.type()
+        warning = box.icon() in (QMessageBox.Icon.Warning, QMessageBox.Icon.Critical)
         if kind == QEvent.Type.Show:
-            if box.icon() in (QMessageBox.Icon.Warning, QMessageBox.Icon.Critical):
+            if warning:
                 bank.play("error")
-                _sync_tracker.error_seen = True
         elif kind == QEvent.Type.Close and event.spontaneous():
             bank.play("cancel")
-        elif kind == QEvent.Type.Hide and not event.spontaneous() and len(box.buttons()) > 1:
+        elif kind == QEvent.Type.Hide and not event.spontaneous():
             if not self._user_closed(box):
                 return
             clicked = box.clickedButton()
             role = box.buttonRole(clicked) if clicked is not None else None
             if role in (QMessageBox.ButtonRole.YesRole, QMessageBox.ButtonRole.AcceptRole):
-                bank.play("system_ok")
-            elif role is None or role in (QMessageBox.ButtonRole.NoRole, QMessageBox.ButtonRole.RejectRole):
+                # Aceptar un error o un aviso no es «aceptar algo»: ya sonó snd_error.
+                if not warning:
+                    bank.play("system_ok")
+            elif len(box.buttons()) > 1 and (
+                role is None or role in (QMessageBox.ButtonRole.NoRole, QMessageBox.ButtonRole.RejectRole)
+            ):
                 bank.play("cancel")
 
     def _handle_dialog(self, dialog: QDialog, event: QEvent) -> None:
         kind = event.type()
         if kind == QEvent.Type.Hide and not event.spontaneous():
-            if dialog.result() == QDialog.DialogCode.Rejected and self._user_closed(dialog):
+            if not self._user_closed(dialog):
+                return
+            if dialog.result() == QDialog.DialogCode.Accepted:
+                bank.play("system_ok")
+            else:
                 bank.play("cancel")
         elif kind == QEvent.Type.Close and event.spontaneous():
             bank.play("cancel")
-
-
-class _SyncTracker:
-    """Recuerda si durante la sincronización Anki mostró un aviso de error."""
-
-    def __init__(self) -> None:
-        self.error_seen = False
-
-
-_sync_tracker = _SyncTracker()
-
-
-def on_sync_will_start() -> None:
-    _sync_tracker.error_seen = False
-
-
-def on_sync_did_finish() -> None:
-    if not _sync_tracker.error_seen:
-        bank.play("system_ok")

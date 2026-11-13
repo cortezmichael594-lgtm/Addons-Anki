@@ -87,13 +87,45 @@ class MenuTest(_QtTest):
 
 
 class WindowTest(_QtTest):
-    def test_warning_box_plays_error_and_marks_sync(self) -> None:
-        watcher.on_sync_will_start()
+    def test_warning_box_plays_error(self) -> None:
         box = QMessageBox(QMessageBox.Icon.Warning, "Anki", "Fallo")
         box.show()
         self.assertEqual(self.recorder.played, ["error"])
-        self.assertTrue(watcher._sync_tracker.error_seen)
         box.close()
+
+    def _press(self, box: QMessageBox, button: QMessageBox.StandardButton) -> None:
+        widget = box.button(button)
+        assert widget is not None
+        QApplication.sendEvent(box, QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Space, Qt.KeyboardModifier.NoModifier))
+        widget.click()
+
+    def test_yes_in_a_question_plays_ok(self) -> None:
+        box = QMessageBox(QMessageBox.Icon.Question, "Anki", "¿Seguro?")
+        box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        box.show()
+        self._press(box, QMessageBox.StandardButton.Yes)
+        self.assertEqual(self.recorder.played, ["system_ok"])
+
+    def test_no_in_a_question_plays_cancel(self) -> None:
+        box = QMessageBox(QMessageBox.Icon.Question, "Anki", "¿Seguro?")
+        box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        box.show()
+        self._press(box, QMessageBox.StandardButton.No)
+        self.assertEqual(self.recorder.played, ["cancel"])
+
+    def test_ok_on_information_plays_ok(self) -> None:
+        box = QMessageBox(QMessageBox.Icon.Information, "Anki", "Hecho")
+        box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        box.show()
+        self._press(box, QMessageBox.StandardButton.Ok)
+        self.assertEqual(self.recorder.played, ["system_ok"])
+
+    def test_ok_on_a_warning_only_plays_error(self) -> None:
+        box = QMessageBox(QMessageBox.Icon.Warning, "Anki", "Fallo")
+        box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        box.show()
+        self._press(box, QMessageBox.StandardButton.Ok)
+        self.assertEqual(self.recorder.played, ["error"])
 
     def test_info_box_is_silent_on_show(self) -> None:
         box = QMessageBox(QMessageBox.Icon.Information, "Anki", "Hola")
@@ -115,34 +147,19 @@ class WindowTest(_QtTest):
         dialog.reject()  # como una ventana de progreso que Anki cierra sola
         self.assertEqual(self.recorder.played, [])
 
-    def test_dialog_accepted_is_silent(self) -> None:
+    def test_dialog_accepted_by_person_plays_ok(self) -> None:
         dialog = QDialog()
         dialog.show()
         QApplication.sendEvent(
             dialog, QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Return, Qt.KeyboardModifier.NoModifier)
         )
         dialog.accept()
-        self.assertEqual(self.recorder.played, [])
-
-
-class SyncTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.recorder = _Recorder()
-        self._original_bank = watcher.bank
-        watcher.bank = self.recorder  # type: ignore[assignment]
-
-    def tearDown(self) -> None:
-        watcher.bank = self._original_bank
-
-    def test_sync_without_error_plays_ok(self) -> None:
-        watcher.on_sync_will_start()
-        watcher.on_sync_did_finish()
         self.assertEqual(self.recorder.played, ["system_ok"])
 
-    def test_sync_with_error_does_not_play_ok(self) -> None:
-        watcher.on_sync_will_start()
-        watcher._sync_tracker.error_seen = True
-        watcher.on_sync_did_finish()
+    def test_dialog_accepted_by_anki_is_silent(self) -> None:
+        dialog = QDialog()
+        dialog.show()
+        dialog.accept()
         self.assertEqual(self.recorder.played, [])
 
 

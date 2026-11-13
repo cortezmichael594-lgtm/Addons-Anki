@@ -23,7 +23,7 @@ SOUND_LABELS = {
     "gameboot": "Globo de notificación",
     "option": "Navegación por los menús",
     "cancel": "Cancelar, cerrar o salir del estudio",
-    "system_ok": "Sincronización correcta o «Sí» en una pregunta",
+    "system_ok": "Al aceptar algo («Aceptar» o «Sí»)",
     "system_ng": "Al comenzar a estudiar",
     "error": "Error o aviso de Anki",
 }

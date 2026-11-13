@@ -10,7 +10,7 @@ persona y una barra de volumen.
 1. coldboot_stereo al abrir Anki; gameboot_stereo con cada globo de notificación; snd_option al navegar
    por los menús (pasar el ratón o las flechas; opción de solo al hacer clic o nunca); snd_cancel al
    cancelar, cerrar un menú sin elegir, pulsar la X, Esc o «Cancelar» y al salir del estudio a mitad;
-   snd_system_ok al sincronizar bien y al pulsar «Sí» o «Aceptar» en una pregunta; snd_system_ng al
+   snd_system_ok solo al aceptar algo («Aceptar» o «Sí»; cambio pedido el 2026-11-13, sin sincronización); snd_system_ng al
    comenzar a estudiar; snd_error con los avisos y errores de Anki.
 2. Sin solaparse: un altavoz por sonido que se reinicia, navegación con un mínimo de 60 ms entre tics
    y prioridad de cancelar, error, ok y ng sobre la navegación y el globo.

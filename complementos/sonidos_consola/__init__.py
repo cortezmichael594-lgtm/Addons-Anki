@@ -1,4 +1,4 @@
-"""Sonidos de consola: sonidos al abrir Anki, al navegar por los menús, al cancelar, etc.
+"""Sonidos de consola: sonidos al abrir Anki, al navegar por los menús, al cancelar, al aceptar, etc.
 
 Este módulo solo registra: la entrada de menú, la acción de configuración, los ganchos y el
 vigilante de la interfaz. Las reglas están en logic.py; el reproductor, en player.py; la
@@ -44,16 +44,6 @@ def _on_reviewer_will_end() -> None:
         player.bank.play("cancel")
 
 
-@guarded
-def _on_sync_will_start() -> None:
-    watcher.on_sync_will_start()
-
-
-@guarded
-def _on_sync_did_finish() -> None:
-    watcher.on_sync_did_finish()
-
-
 def _register() -> None:
     global _watcher
     # Fuera de Anki (pruebas, comprobaciones) no hay ventana principal: no se registra nada.
@@ -69,8 +59,6 @@ def _register() -> None:
     gui_hooks.profile_will_close.append(_on_profile_will_close)
     gui_hooks.state_did_change.append(_on_state_did_change)
     gui_hooks.reviewer_will_end.append(_on_reviewer_will_end)
-    gui_hooks.sync_will_start.append(_on_sync_will_start)
-    gui_hooks.sync_did_finish.append(_on_sync_did_finish)
 
     if player.audio_available():
         _watcher = watcher.InterfaceWatcher()

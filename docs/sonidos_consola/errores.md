@@ -37,3 +37,5 @@ tiene aquí su línea con el mismo número.
 - 1.0.1 · El botón suelto «Abrir carpeta de sonidos» es el botón secundario del catálogo del panel
   modelo, añadido a la copia de este complemento como pieza «button»; el modelo no lo tenía como
   opción suelta. Los «Probar» de cada sonido se reúnen en una lista con su botón, como en ProFeedback.
+- 1.1.0 · snd_system_ok suena solo al aceptar algo y ya no con la sincronización. Lo pidió la persona
+  el 2026-11-13. Aceptar un error o un aviso no lo hace sonar, para no oír dos sonidos seguidos.

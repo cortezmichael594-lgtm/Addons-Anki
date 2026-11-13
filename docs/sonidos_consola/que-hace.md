@@ -1,9 +1,9 @@
 # Qué hace «Sonidos de consola»
 
-Versión 1.0.1 · 2026-11-13
+Versión 1.1.0 · 2026-11-13
 
 Pone sonidos de consola, al estilo de la PS3, a lo que usted hace en Anki: abrirlo, moverse por los
-menús, cancelar o cerrar, recibir un globo de notificación, comenzar a estudiar, sincronizar y ver un
+menús, cancelar o cerrar, aceptar, recibir un globo de notificación, comenzar a estudiar y ver un
 error. Usa solo los siete sonidos que usted copia en su carpeta de sonidos. El complemento no trae
 sonidos propios. No toca su colección: no lee ni cambia tarjetas, notas ni mazos.
 
@@ -22,7 +22,7 @@ sonidos propios. No toca su colección: no lee ni cambia tarjetas, notas ni mazo
 | gameboot_stereo.wav | Cada vez que aparece un globo de notificación de Anki (el recuadro breve abajo de la ventana), por ejemplo «Sincronización completa», el aviso al añadir una tarjeta o «Sonidos de consola: opciones guardadas.». |
 | snd_option.wav | Navegación por los menús: al pasar de una opción a otra en cualquier menú de Anki (barra de menús Archivo, Editar, Herramientas, Ayuda; menús de Explorar y de otras ventanas; menús del botón derecho), con el ratón o con las flechas del teclado. También al pasar el ratón por los títulos de la barra de menús. Según la opción elegida, puede sonar solo al hacer clic, o nunca (apartado 4). |
 | snd_cancel.wav | Al cancelar o cerrar: cerrar un menú sin elegir nada (con Esc o haciendo clic fuera, o pulsando otra vez su título en la barra); pulsar Esc, «Cancelar», «Cerrar» o «No» en una ventana; pulsar la X (o Alt+F4) de cualquier ventana salvo la principal; y salir del estudio a mitad (volver a Mazos, pulsar otro mazo, etc.). |
-| snd_system_ok.wav | Al terminar bien una sincronización pulsada a mano (botón Sincronizar) y al pulsar «Sí» o «Aceptar» en una pregunta de Anki que tenga más de un botón. |
+| snd_system_ok.wav | Solo al aceptar algo: pulsar «Aceptar», «Sí» u otro botón que confirma en cualquier ventana de Anki o de un complemento (también con Intro), incluidas las ventanas que solo informan. La sincronización no lo hace sonar. |
 | snd_system_ng.wav | Al comenzar a estudiar: «Comenzar a estudiar» en la pantalla de un mazo, o su atajo de teclado. Volver al estudio tras un refresco de Anki no cuenta. |
 | snd_error.wav | Cuando Anki muestra una ventana de error o de aviso (las del triángulo amarillo o el círculo rojo), incluida la de una sincronización fallida. |
 
@@ -31,14 +31,14 @@ Lo que no suena, a propósito:
   cada tarjeta.
 - Terminar todas las tarjetas del mazo: Anki le lleva a la pantalla de felicitación sin sonido de
   cancelar, porque no ha cancelado nada.
-- Aceptar una ventana con «Aceptar» cuando es solo informativa (un único botón).
+- Pulsar «Aceptar» en una ventana de error o de aviso: ya sonó snd_error al aparecer.
+- Las ventanas que Anki da por aceptadas sin que usted las toque.
+- Terminar una sincronización, bien o mal (si falla, suena snd_error con su aviso).
 - Las ventanas que Anki abre y cierra por su cuenta, como las de progreso («Sincronizando…»,
   «Comprobando…»): solo cuenta como cancelar lo que usted cierra con el teclado o el ratón.
 - Cerrar Anki con la X de la ventana principal.
 - La lista de mazos, la pantalla de un mazo y la de estudio por dentro: no son menús, sino páginas, y
   pasar el ratón por ellas no suena.
-- La sincronización automática al abrir o cerrar Anki no hace sonar snd_system_ok; si falla y Anki
-  muestra el aviso, sí suena snd_error.
 
 ## 3. Para que los sonidos no se pisen
 
@@ -75,7 +75,7 @@ estar dibujada entera, así que no parpadea. De arriba abajo:
 2. Recuadro «Cuándo suena cada sonido», también con «Restaurar valores predeterminados». Nota gris:
    «Debajo de cada casilla, el archivo que usa. Desmarcada, ese sonido no suena.». Siete casillas, todas
    marcadas por defecto: «Al abrir Anki», «Globo de notificación», «Navegación por los menús»,
-   «Cancelar, cerrar o salir del estudio», «Sincronización correcta o «Sí» en una pregunta», «Al
+   «Cancelar, cerrar o salir del estudio», «Al aceptar algo («Aceptar» o «Sí»)», «Al
    comenzar a estudiar» y «Error o aviso de Anki». Debajo de cada una, en gris, el archivo que usa
    («snd_cancel.wav») o, si no está en la carpeta, «Falta snd_cancel.wav: no sonará.».
    - De «Navegación por los menús» cuelga, con una raya vertical a la izquierda, la lista desplegable
@@ -154,8 +154,7 @@ instalado, con Atelier. Nada de colores inventados:
 - Con el contraste alto de Windows, cada control conserva un borde real y el foco usa el resaltado del
   sistema.
 - Ninguna información depende solo del color: lo que falta se dice con texto («Falta…»).
-- Ninguna información depende solo del sonido: todo lo que suena (un error, un aviso, el fin de una
-  sincronización) Anki lo sigue mostrando en pantalla igual que sin el complemento. Quien no oiga, o
+- Ninguna información depende solo del sonido: todo lo que suena (un error, un aviso, una confirmación) Anki lo sigue mostrando en pantalla igual que sin el complemento. Quien no oiga, o
   tenga los sonidos apagados, no pierde nada.
 - Para quien prefiera menos estímulos: cada sonido se apaga por separado, la navegación tiene la opción
   «Nunca» y el volumen puede bajar a 0.
@@ -190,7 +189,7 @@ Cancelar) salen en el idioma de Anki.
   muestra durante 5 segundos «Sonidos de consola tuvo un problema. Anki sigue funcionando; el detalle
   quedó en su registro.», una sola vez por función y sesión.
 - Si falla la vigilancia de menús y ventanas, se desactiva sola hasta reiniciar Anki: dejan de sonar la
-  navegación, cancelar, los globos, los avisos y el «Sí», sin aviso en pantalla; el resto sigue. El
+  navegación, cancelar, los globos, los avisos y el aceptar, sin aviso en pantalla; el resto sigue. El
   detalle queda en el registro.
 - Si el ordenador no ofrece a Anki la función de sonido que usa el complemento, la ventana lo dice:
   «Este ordenador no ofrece a Anki la función de sonido que usa el complemento: no sonará nada.»
