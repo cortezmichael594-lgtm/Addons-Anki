@@ -177,8 +177,11 @@ class WebStyleTest(unittest.TestCase):
             self.assertIn("background: var(--nocturne-button-pressed);", css)
             # Ningún botón en píldora: los de respuesta y «Comenzar a estudiar», con la de botones.
             self.assertIn("button:is(:not([class]), .but) { border-radius: var(--nocturne-control-radius); }", css)
-            self.assertIn("min-height: 36px; min-width: 96px; margin-inline: 8px; font-size: 1rem;", css)
-            self.assertIn("button#study { box-sizing: border-box; min-height: 36px;", css)
+            # Versión 3.9.1 (petición del cliente): los de respuesta, casi a su tamaño de Anki y
+            # con su letra; «Comenzar a estudiar», algo menor que en la 3.9.0.
+            self.assertIn("min-height: 30px; min-width: 84px; margin-inline: 8px; background-origin", css)
+            self.assertIn("button#study { box-sizing: border-box; min-height: 34px;", css)
+            self.assertIn("font-size: calc(1rem * 14 / 15);", css)
             self.assertIn(f"{page}[data-ease] {{ border-bottom-color: transparent; }}", css)
             self.assertIn("center > h3 { font-size: calc(1rem * 4 / 3); }", css)
             self.assertIn(".zero-count { color: var(--fg-faint); }", css)

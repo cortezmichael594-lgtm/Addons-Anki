@@ -432,9 +432,12 @@ def _redesign_css() -> str:
     - Una sola familia de esquinas (8.4): ningún botón en píldora. «Comenzar a estudiar» y los
       botones de respuesta llevan la esquina de los botones, como los demás; la raya de color
       de las respuestas se ve entera, de lado a lado.
-    - Botones de estudio a 36 px de alto (8.6): los de respuesta, con 96 px de ancho mínimo y
-      16 px entre ellos; «Comenzar a estudiar», con 24 px a los lados. Su rótulo, del tamaño
-      del texto de la página, y el título de la pantalla de un mazo, un tercio mayor (8.11,
+    - Botones de estudio (8.6): los de respuesta, con 16 px entre ellos. Versión 3.9.1
+      (petición del cliente, 2026-11-13): vuelven casi a su tamaño de Anki, solo un poco más
+      grandes (30 px de alto en vez de 28, 84 de ancho mínimo en vez de 80, y su letra de
+      12 px), porque a 36 px y con letra de 15 se veían grandes. «Comenzar a estudiar», algo
+      menor que en la 3.9.0: 34 px de alto, 20 a los lados y su rótulo a 14/15 del texto de la
+      página. El título de la pantalla de un mazo sigue un tercio mayor que el texto (8.11,
       decisión 2): son proporciones, así que siguen la letra que se elija en Anki.
     - Un gris para todos los iconos (8.2, regla 4): el engranaje de la lista de mazos y los
       iconos de la barra del editor, en el texto secundario; el engranaje, con 24 px de zona
@@ -458,16 +461,17 @@ def _redesign_css() -> str:
         # borde inferior y de lado a lado: ocupa el sitio del borde de abajo, que queda
         # transparente en todos los estados (FIX-010: la raya no se repite).
         (
-            f"{study} {{ box-sizing: border-box; min-height: 36px; min-width: 96px;"
-            " margin-inline: 8px; font-size: 1rem; background-origin: border-box; }"
+            f"{study} {{ box-sizing: border-box; min-height: 30px; min-width: 84px;"
+            " margin-inline: 8px; background-origin: border-box; }"
         ),
         f"{page_button}[data-ease] {{ border-bottom-color: transparent; }}",
         f"{page_button}[data-ease]:is(:hover, :active) {{ border-bottom-color: transparent; }}",
-        # «Comenzar a estudiar»: el botón relleno, con la esquina de botones y 36 px de alto.
+        # «Comenzar a estudiar»: el botón relleno, con la esquina de botones y 34 px de alto.
         # Con el ratón, más oscuro; pulsado, más aún; con el teclado, el anillo (8.5).
         (
-            f"html {_SURFACE} button#study {{ box-sizing: border-box; min-height: 36px;"
-            " padding-inline: 24px; font-size: 1rem; border-radius: var(--nocturne-control-radius); }"
+            f"html {_SURFACE} button#study {{ box-sizing: border-box; min-height: 34px;"
+            " padding-inline: 20px; font-size: calc(1rem * 14 / 15);"
+            " border-radius: var(--nocturne-control-radius); }"
         ),
         f"html {_SURFACE} button#study:hover {{ background: var(--button-primary-gradient-end); }}",
         (

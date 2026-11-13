@@ -75,6 +75,13 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   Hider, Restart, Always on Top y Edit field during review aún usan el azul de acción en sus enlaces, y
   la barra de desplazamiento de Atelier contrasta 1,35 a 1.
 
+- 2026-11-13: Atelier 3.9.1 (petición del cliente): botones de respuesta casi a su tamaño de Anki
+  (30 px de alto, 84 de ancho, letra de 12) y «Comenzar a estudiar» algo menor (34 px, letra a
+  14/15 del texto). La imagen congelada al empezar a estudiar coincide con un fallo conocido de Anki
+  en Windows con el controlador de vídeo Direct3D (pistas del foro oficial): se le propuso cambiarlo
+  a OpenGL en Preferencias y, si sigue, probar Anki sin complementos. Se quitaron las menciones a
+  docs/referencias que la fusión del pull request #19 había devuelto a CLAUDE.md y docs/LEEME.txt.
+
 ## En curso
 
 (Nada.)

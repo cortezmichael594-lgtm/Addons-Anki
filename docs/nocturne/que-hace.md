@@ -1,6 +1,6 @@
 # Qué hace «Atelier»
 
-Versión 3.9.0 · 2026-11-11
+Versión 3.9.1 · 2026-11-13
 
 Temas de color para Anki, en modo día y en modo noche. Trae cinco paletas (Nocturne, Papel, Bosque,
 Lavanda y Atardecer), y Nocturne está elegida de serie. Hasta la 3.5.0 el complemento se llamaba
@@ -297,12 +297,15 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
   al borde inferior y de lado a lado (antes la curva de la píldora la recortaba), y ocupa el sitio del
   borde de abajo.
 - Botones de estudio (desde la 3.9.0): los cuatro de respuesta, «Mostrar respuesta» y «Comenzar a
-  estudiar» miden 36 px de alto (antes 28 y 32), con la esquina de los botones en lugar de la
-  píldora (decisión 1 del informe, aprobada). Los de respuesta, 96 px de ancho como mínimo y 16 px
-  entre ellos (antes 80 y 20); «Comenzar a estudiar», 24 px a los lados. Su rótulo va al tamaño del
-  texto de la página (15 px de serie; antes 12) y el título de la pantalla de un mazo, un tercio
-  mayor que ese texto (20 px de serie; antes 17): son proporciones, así que suben con la letra que
-  elija en Anki (decisión 2, aprobada). Los intervalos de encima no cambian.
+  estudiar» llevan la esquina de los botones en lugar de la píldora (decisión 1 del informe,
+  aprobada). Desde la 3.9.1 (petición del cliente, 2026-11-13), los de respuesta y «Mostrar
+  respuesta» tienen casi su tamaño de Anki, solo un poco mayores: 30 px de alto como mínimo (antes
+  28), 84 px de ancho como mínimo (antes 80), su letra de 12 px y 16 px entre ellos (en la 3.9.0
+  medían 36 por 96, con letra de 15). «Comenzar a estudiar» mide 34 px de alto, con 20 px a los
+  lados y su rótulo a 14 px de serie (en la 3.9.0, 36 px, 24 y 15). El título de la pantalla de un
+  mazo es un tercio mayor que el texto de la página (20 px de serie; antes 17). El título y el
+  rótulo de «Comenzar a estudiar» son proporciones, así que suben con la letra que elija en Anki
+  (decisión 2, aprobada). Los intervalos de encima no cambian.
 - Botones de las páginas (barras inferiores de la lista de mazos y de la pantalla de un mazo,
   botones de respuesta y los del editor clásico; desde la 3.9.0): con el borde de los campos, a 3 a 1
   o más sobre el fondo y los recuadros (antes, 1,29 y 1,05 a 1). Con el ratón encima, el borde se
@@ -363,9 +366,10 @@ paletas, «Aprendiendo» va en el rojo de la paleta (en Nocturne, desde la 3.5.0
 - Letra del texto de las páginas: la de interfaz del sistema (en Windows, Segoe UI Variable o Segoe
   UI), con la que Anki elige para su idioma como reserva (por ejemplo, para japonés o chino).
 - No cambia el tamaño de la letra (manda el que tenga elegido en Anki) ni la letra de las ventanas,
-  que Anki elige según el idioma, salvo tres textos de estudio desde la 3.9.0, que crecen en
-  proporción a esa letra: el título de la pantalla de un mazo (un tercio mayor) y los rótulos de
-  «Comenzar a estudiar» y de los botones de respuesta (del tamaño del texto de la página).
+  que Anki elige según el idioma, salvo dos textos de estudio, que siguen en proporción a esa letra:
+  el título de la pantalla de un mazo (un tercio mayor, desde la 3.9.0) y el rótulo de «Comenzar a
+  estudiar» (14/15 del texto de la página, desde la 3.9.1). Los botones de respuesta, desde la
+  3.9.1, vuelven a la letra de Anki.
 
 ## 5. Alto contraste del sistema (desde la 3.5.0)
 
