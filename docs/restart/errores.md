@@ -59,6 +59,7 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - Si vacía el campo del atajo y pulsa Aceptar, se conserva el atajo guardado; para quitar el atajo
   se desmarca la casilla. Decisión del autor original.
 - Las opciones se cambian en una ventana propia con casilla y campo, en lugar del editor de texto de
-  Anki, y sin colores propios, para que siga el tema de Anki. Decisión del autor original.
+  Anki. Decisión del autor original. Desde la 2.1.0 esa ventana es el panel modelo de GritMap, con los
+  colores de la paleta (regla PROP-012, petición del cliente del 2026-11-09).
 - Si Anki está ocupado con una tarea con barra de progreso, el atajo no reinicia y lo dice, para no
   interrumpir esa tarea. Decisión del autor original.

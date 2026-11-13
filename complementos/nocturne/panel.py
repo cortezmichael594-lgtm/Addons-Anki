@@ -47,6 +47,7 @@ _THUMB_TOKENS = {
     "canvas": "CANVAS",
     "card": "CANVAS_ELEVATED",
     "line": "BORDER_SUBTLE",
+    "edge": "BORDER_STRONG",  # versión 3.9.0: el borde de la miniatura, que se vea en la fila elegida
     "faint": "FG_FAINT",
     "fg": "FG",
     "subtle": "FG_SUBTLE",
@@ -71,6 +72,14 @@ def thumb_colors(theme_id: str, night: bool) -> dict[str, str]:
     return colors
 
 
+def description_lines(theme_id: str) -> str:
+    """La descripción en dos líneas, partida por el punto: colores y botones, y la forma
+    (versión 3.9.0, informe del 2026-11-11, apartado 8.12). Antes ocupaba dos líneas
+    cortadas a media frase («…Letra y esquinas como / Nocturne.»)."""
+    first, _sep, second = strings.THEME_DESCRIPTIONS[theme_id].partition(". ")
+    return f"{first}.\n{second}" if second else first
+
+
 def payload(current: str, night: bool, failures: bool, stepped_aside: bool) -> dict[str, Any]:
     """Todo lo que la página necesita para dibujarse."""
     entries = []
@@ -81,7 +90,7 @@ def payload(current: str, night: bool, failures: bool, stepped_aside: bool) -> d
                 "id": theme_id,
                 "name": strings.THEME_NAMES[theme_id],
                 "isDefault": theme_id == themes.DEFAULT_THEME,
-                "description": strings.THEME_DESCRIPTIONS[theme_id],
+                "description": description_lines(theme_id),
                 "headingFont": look["heading_family"] or "",
                 "radius": look["button_radius"],
                 "day": thumb_colors(theme_id, False),

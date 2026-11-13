@@ -3,6 +3,8 @@
  *                        de la ventana y el pie a media altura.
  * FIX-030 (2026-10-26) — Al marcar «Pausar la racha», la cabecera quedaba fuera
  *                        de la ventana y el pie a media altura.
+ * FIX-033 (2026-11-11) — Una fecha clave escrita y sin «Añadir» se perdia sin
+ *                        aviso al pulsar Aceptar.
  */
 
 /* GritMap - panel de opciones a medida (4.9.0).
@@ -576,7 +578,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         });
         S.nodes.radiusRule = el("p", { class: "gritmap-o-rule" });
 
-        page.appendChild(el("section", { class: "gritmap-o-card", "aria-labelledby": "gritmap-o-h-look" }, [
+        var lookCard = el("section", { class: "gritmap-o-card", "aria-labelledby": "gritmap-o-h-look" }, [
             el("div", { class: "gritmap-o-card-head" }, [
                 el("h2", { id: "gritmap-o-h-look", text: t.grp_look }),
                 el("span", {}, [undo, restore]),
@@ -599,7 +601,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
                     S.nodes.radiusRule,
                 ]),
             ]),
-        ]));
+        ]);
 
         // Que se cuenta (4.10.0: sin «El color mide»; solo hay tarjetas)
         S.nodes.window = segmented("window", S.p.windows, c.window, "gritmap-o-l-window", function (value) {
@@ -610,7 +612,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         });
         S.nodes.decksRow = decksRow;
 
-        page.appendChild(el("section", { class: "gritmap-o-card", "aria-labelledby": "gritmap-o-h-count" }, [
+        var countCard = el("section", { class: "gritmap-o-card", "aria-labelledby": "gritmap-o-h-count" }, [
             el("div", { class: "gritmap-o-card-head" }, [el("h2", { id: "gritmap-o-h-count", text: t.grp_count })]),
             el("p", { class: "gritmap-o-card-note", text: t.applied_on_ok }),
             el("div", { class: "gritmap-o-option" }, [
@@ -619,7 +621,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
                 el("p", { class: "gritmap-o-rule", text: t.window_help }),
             ]),
             el("div", { class: "gritmap-o-option" }, [decksRow.node]),
-        ]));
+        ]);
 
         // Metas y fechas
         var streak = checkbox(t.opt_show_streak, c.show_streak, function (on) {
@@ -732,11 +734,18 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         });
         S.nodes.datesRow = datesRow;
 
-        page.appendChild(el("section", { class: "gritmap-o-card", "aria-labelledby": "gritmap-o-h-goals" }, [
+        var goalsCard = el("section", { class: "gritmap-o-card", "aria-labelledby": "gritmap-o-h-goals" }, [
             el("div", { class: "gritmap-o-card-head" }, [el("h2", { id: "gritmap-o-h-goals", text: t.grp_goals })]),
             el("div", { class: "gritmap-o-option" }, [streak.node, S.nodes.streakNote, S.nodes.group]),
             el("div", { class: "gritmap-o-option" }, [datesRow.node]),
-        ]));
+        ]);
+
+        // Orden por uso (4.16.0, informe 4.15.1, apartado 4.1): lo que se
+        // vuelve a cambiar durante el curso, arriba; la apariencia, que se
+        // elige una vez, al final.
+        page.appendChild(goalsCard);
+        page.appendChild(countCard);
+        page.appendChild(lookCard);
         return page;
     }
 
@@ -1073,6 +1082,10 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         S.nodes.kdList = el("ul", { class: "gritmap-o-dates" });
         S.nodes.kdListCard = el("section", { class: "gritmap-o-card", "aria-label": t.opt_key_dates }, [S.nodes.kdList]);
         page.appendChild(S.nodes.kdListCard);
+        // Sin fechas, una linea que dice para que sirven en lugar de «0 de 50
+        // fechas» (4.16.0); con la primera fecha vuelve el contador.
+        S.nodes.kdEmpty = el("p", { class: "gritmap-o-count gritmap-o-empty", text: t.kd_empty });
+        page.appendChild(S.nodes.kdEmpty);
         S.nodes.kdCount = el("p", { class: "gritmap-o-count" });
         page.appendChild(S.nodes.kdCount);
         return page;
@@ -1307,6 +1320,8 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
             list.appendChild(row);
         });
         S.nodes.kdListCard.hidden = !S.cfg.key_dates.length && !S.undoDate;
+        S.nodes.kdEmpty.hidden = S.cfg.key_dates.length > 0 || !!S.undoDate;
+        S.nodes.kdCount.hidden = !S.cfg.key_dates.length;
         S.nodes.kdCount.textContent = fill(S.t.kd_count, {
             count: S.cfg.key_dates.length,
             max: S.p.limits.max_key_dates,
@@ -1497,7 +1512,7 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
     /* Solo se pregunta antes de perder lo que se escribio a mano: las fechas
      * clave. Todo lo demas se vuelve a elegir en un clic. */
     function requestCancel() {
-        if (datesDirty()) {
+        if (datesDirty() || pendingDate()) {
             S.nodes.confirm.showModal();
             S.nodes.keepEditing.focus();
             return;
@@ -1505,10 +1520,35 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         send("cancel");
     }
 
+    // --- FIX-033 (2026-11-11) ---
+    // Sintoma: al escribir el nombre de una fecha clave y pulsar Aceptar sin
+    //          «Añadir», la ventana se cerraba y la fecha se perdia sin aviso.
+    // Causa: Aceptar solo guardaba la lista, y Cancelar no contaba lo escrito
+    //        como cambio.
+    // Regla: lo escrito en un formulario interior y sin anadir cuenta: Aceptar
+    //        lo anade (o avisa y no cierra) y Cancelar pregunta antes de
+    //        perderlo (informe 4.15.1, apartado 4.2).
+    function pendingDate() {
+        return !!(S.nodes.kdName && cleanLabel(S.nodes.kdName.value));
+    }
+
     function accept() {
         // El ultimo numero escrito cuenta aunque no se haya salido del campo.
         if (document.activeElement && document.activeElement.blur) {
             document.activeElement.blur();
+        }
+        // Aceptar con una fecha escrita y sin anadir la anade, y si no se
+        // puede (repetida o sin sitio), la ventana no se cierra: sale el
+        // aviso de siempre encima del campo.
+        if (pendingDate()) {
+            var before = S.cfg.key_dates.length;
+            if (S.page !== "dates") {
+                openPage("dates", S.nodes.datesRow.node);
+            }
+            addDate();
+            if (S.cfg.key_dates.length === before) {
+                return;
+            }
         }
         send("accept", selection());
     }
@@ -1581,6 +1621,9 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         var overflow = body.scrollHeight > body.clientHeight + 1;
         S.nodes.shell.classList.toggle("gritmap-o-overflow", overflow);
         S.nodes.shell.classList.toggle("gritmap-o-scrolled", overflow && body.scrollTop > 0);
+        // Mientras quede contenido debajo, el borde inferior se desvanece
+        // (4.16.0): la misma senal que el mapa cuando el ano no cabe.
+        S.nodes.shell.classList.toggle("gritmap-o-more", body.scrollTop + body.clientHeight < body.scrollHeight - 1);
     }
 
     // --- FIX-028 (2026-10-26) ---
@@ -1609,6 +1652,17 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         }
         app.setAttribute("data-gritmap-ready", "1");
         S.p = payload;
+        // Abierta con el raton, el contorno de foco no se ve hasta que se use
+        // el teclado (4.16.0, informe 4.15.1, apartado 2.2).
+        if (!payload.keyboard) {
+            app.classList.add("gritmap-o-quiet");
+            window.addEventListener("keydown", function wake(event) {
+                if (["Shift", "Control", "Alt", "Meta"].indexOf(event.key) === -1) {
+                    app.classList.remove("gritmap-o-quiet");
+                    window.removeEventListener("keydown", wake, true);
+                }
+            }, true);
+        }
         S.t = payload.texts;
         var c = payload.cfg;
         var today = payload.today;
@@ -1648,12 +1702,14 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         n.content = el("div", {}, [n.pages.main, n.pages.decks, n.pages.dates]);
         n.body = el("main", { class: "gritmap-o-body" }, [n.content]);
         n.body.addEventListener("scroll", updateScrollState);
+        n.fade = el("div", { class: "gritmap-o-fade", "aria-hidden": "true" });
+        n.bodyWrap = el("div", { class: "gritmap-o-body-wrap" }, [n.body, n.fade]);
         var cancel = el("button", { type: "button", class: "gritmap-o-btn", onclick: requestCancel, text: S.t.opt_cancel });
         var ok = el("button", { type: "button", class: "gritmap-o-btn gritmap-o-primary", onclick: accept, text: S.t.opt_save });
         n.foot = el("footer", { class: "gritmap-o-foot" }, [cancel, ok]);
         n.live = el("div", { class: "gritmap-o-live", "aria-live": "polite" });
         n.confirm = buildConfirm();
-        n.shell = el("div", { class: "gritmap-o-shell" }, [n.head, n.body, n.foot]);
+        n.shell = el("div", { class: "gritmap-o-shell" }, [n.head, n.bodyWrap, n.foot]);
         app.appendChild(n.shell);
         app.appendChild(n.live);
         app.appendChild(n.confirm);
@@ -1697,10 +1753,8 @@ var GritMapOptions = (typeof GritMapOptions !== "undefined" && GritMapOptions) |
         } else if (payload.start === "keydates") {
             openPage("dates", n.datesRow.node);
         } else {
-            var chosen = n.chips.querySelector("input:checked");
-            if (chosen) {
-                chosen.focus({ preventScroll: true });
-            }
+            // El primer control del primer grupo (4.16.0).
+            n.streak.focus({ preventScroll: true });
         }
         sendRaw("ready", naturalHeight());
         updateScrollState();

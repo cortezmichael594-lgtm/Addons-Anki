@@ -1,115 +1,119 @@
 """Panel de opciones del complemento.
 
-Los botones Aceptar, Cancelar y Restaurar los valores predeterminados no
-llevan texto propio: son los botones estandar, con el texto que ya trae
-traducido el propio Anki. Los widgets son los normales de Qt, de modo que el
-modo dia y el modo noche los adapta la hoja de estilos de Anki.
+Version 1.3 (peticion del cliente, 2026-11-09): la ventana sigue el panel
+modelo de GritMap (docs/fichas-diseno/09-patron-configuracion.md, regla del
+taller desde PROP-012): un recuadro con el campo que graba el atajo. Aceptar,
+Cancelar y Restaurar llevan el texto de Qt, ya traducido por Anki.
 
 Regla: aqui no se guarda un atajo que Anki ya use, ni uno sin Ctrl ni Alt. Si
 dos atajos se pelean por la misma tecla el resultado es impredecible, asi que
-se avisa a la persona y no se cierra el panel hasta que elija otro.
+el aviso sale encima del campo y el panel no se cierra hasta que elija otro.
 """
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 from aqt import mw
-from aqt.qt import (
-    QDialog,
-    QDialogButtonBox,
-    QHBoxLayout,
-    QKeySequence,
-    QKeySequenceEdit,
-    QLabel,
-    QLineEdit,
-    QVBoxLayout,
-    QWidget,
-    qconnect,
-)
-from aqt.utils import disable_help_button, showWarning, tooltip
-from aqt.utils import tr as anki_tr
+from aqt.qt import QKeySequence
 
 from . import config, constants, shortcuts
-from .errors import guarded
-from .logic import AlwaysOnTopManager
+from .errors import guarded, logger
+from .panel import PanelDialog, parent_window
 from .strings import tr
 
+if TYPE_CHECKING:
+    from .logic import AlwaysOnTopManager
 
-class ConfigDialog(QDialog):
-    def __init__(self, manager: AlwaysOnTopManager, parent: QWidget) -> None:
-        super().__init__(parent)
+_KEY = "shortcut"
+
+
+def _anki_text(attribute: str, fallback: str) -> str:
+    try:
+        from aqt.utils import tr as anki_tr
+
+        value = getattr(anki_tr, attribute)()
+        return value if isinstance(value, str) and value else fallback
+    except Exception:
+        return fallback
+
+
+def page(saved: str) -> dict[str, Any]:
+    """Descripcion del panel: un recuadro con el campo del atajo."""
+    return {
+        "title": constants.ADDON_DISPLAY_NAME,
+        "values": {_KEY: saved},
+        "defaults": {_KEY: constants.DEFAULT_SHORTCUT},
+        "cards": [
+            {
+                "restore": True,
+                "items": [
+                    {
+                        "type": "shortcut",
+                        "key": _KEY,
+                        "label": tr("shortcut_prefix").rstrip().rstrip(":：").rstrip(),
+                        "placeholder": tr("placeholder"),
+                        "clear": _anki_text("actions_delete", "Delete"),
+                    }
+                ],
+            }
+        ],
+        "focus": _KEY,
+    }
+
+
+def chosen_shortcut(values: Any) -> str:
+    """El atajo elegido, en la forma estable de Qt. Vacio: el de serie (no hay
+    manera de dejar el complemento sin atajo)."""
+    raw = values.get(_KEY) if isinstance(values, dict) else None
+    if not isinstance(raw, str) or not raw.strip():
+        return constants.DEFAULT_SHORTCUT
+    return shortcuts.normalize(raw.strip()) or constants.DEFAULT_SHORTCUT
+
+
+class _Panel:
+    """Lo que el panel necesita del gestor del complemento."""
+
+    def __init__(self, manager: AlwaysOnTopManager) -> None:
         self._manager = manager
-        self._saved_shortcut = config.load().shortcut
 
-        self.setWindowTitle(constants.ADDON_DISPLAY_NAME)
-        disable_help_button(self)
-        self.setModal(True)
-
-        self._prefix = QLabel(tr("shortcut_prefix"), self)
-        self._edit = QKeySequenceEdit(QKeySequence(self._saved_shortcut), self)
-        self._edit.setMaximumSequenceLength(1)
-        self._edit.setClearButtonEnabled(True)
-        # QKeySequenceEdit no expone texto de ayuda: se aplica a su campo interno.
-        inner_field = self._edit.findChild(QLineEdit)
-        if inner_field is not None:
-            inner_field.setPlaceholderText(tr("placeholder"))
-        self._prefix.setBuddy(self._edit)
-
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok
-            | QDialogButtonBox.StandardButton.Cancel
-            | QDialogButtonBox.StandardButton.RestoreDefaults,
-            self,
-        )
-        restore_button = buttons.button(QDialogButtonBox.StandardButton.RestoreDefaults)
-        if restore_button is not None:
-            restore_button.setAutoDefault(False)
-            qconnect(restore_button.clicked, self._on_restore_defaults)
-        qconnect(buttons.accepted, self._on_accept)
-        qconnect(buttons.rejected, self.reject)
-
-        layout = QVBoxLayout(self)
-        shortcut_line = QHBoxLayout()
-        shortcut_line.addWidget(self._prefix)
-        shortcut_line.addWidget(self._edit, stretch=1)
-        layout.addLayout(shortcut_line)
-        layout.addSpacing(6)
-        layout.addWidget(buttons)
-
-        self.setMinimumWidth(420)
-        self._edit.setFocus()
-
-    @guarded
-    def _on_restore_defaults(self) -> None:
-        self._edit.setKeySequence(QKeySequence(constants.DEFAULT_SHORTCUT))
-        tooltip(anki_tr.addons_restored_defaults(), parent=self)
-
-    @guarded
-    def _on_accept(self) -> None:
-        sequence = self._edit.keySequence()
-        chosen = sequence.toString(QKeySequence.SequenceFormat.PortableText)
-
-        if not chosen:
-            chosen = constants.DEFAULT_SHORTCUT
-        elif not shortcuts.is_usable(chosen):
+    def handle(self, action: str, arg: Any) -> Any:
+        if action != "accept":
+            return None
+        chosen = chosen_shortcut(arg)
+        if not shortcuts.is_usable(chosen):
             # El nombre se muestra tal como lo ve la persona en su teclado.
-            showWarning(
-                tr("conflict", shortcut=sequence.toString()),
-                parent=self,
-                title=constants.ADDON_DISPLAY_NAME,
-            )
-            self._edit.setFocus()
-            return
-
-        if chosen != self._saved_shortcut:
+            text = QKeySequence(chosen).toString(QKeySequence.SequenceFormat.NativeText)
+            return {"error": tr("conflict", shortcut=text or chosen), "field": _KEY}
+        if chosen != config.load().shortcut:
             config.save(config.Settings(shortcut=chosen))
             self._manager.apply_shortcut(chosen, notify=False)
-            self._saved_shortcut = chosen
-        self.accept()
+        return None
+
+
+def _log(where: str, exc: BaseException) -> None:
+    try:
+        logger().error("fallo en %s", where, exc_info=exc)
+    except Exception:
+        pass
+
+
+# Se conserva una referencia mientras la ventana existe: sin ella Python podria
+# destruirla y la ventana desapareceria sola.
+_dialog: PanelDialog | None = None
 
 
 @guarded
 def open_config_dialog(manager: AlwaysOnTopManager) -> None:
-    # El panel se cuelga de la ventana que este activa -normalmente la lista de
-    # complementos- para que aparezca centrado sobre ella y nunca por detras.
-    parent = mw.app.activeWindow() or mw
-    ConfigDialog(manager, parent).exec()
+    global _dialog
+    if _dialog is not None and _dialog.isVisible():
+        _dialog.raise_()
+        _dialog.activateWindow()
+        return
+    package = mw.addonManager.addon_from_module(__name__)
+    panel = _Panel(manager)
+    dialog = PanelDialog(
+        parent_window(), package, page(config.load().shortcut), panel.handle, _log, "alwaysOnTopPanel"
+    )
+    _dialog = dialog
+    dialog.open()

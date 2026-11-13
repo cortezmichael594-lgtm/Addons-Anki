@@ -1,0 +1,18 @@
+{
+  "complemento": "restart",
+  "fix": {
+    "FIX-001": [
+      "shortcuts.py",
+      "ui.py"
+    ],
+    "FIX-002": [
+      "logic.py"
+    ],
+    "FIX-003": [
+      "constants.py",
+      "logic.py",
+      "settings.py",
+      "ui.py"
+    ]
+  }
+}

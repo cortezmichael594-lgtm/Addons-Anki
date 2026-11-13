@@ -4,13 +4,35 @@ Detalle de las normas de `CLAUDE.md`. No se lee entero: cada apartado, cuando `C
 
 ## Ejemplos de trato
 
-Pregunta, cuando falta un dato que cambia el resultado (imita la forma, no el contenido):
+Imita la forma de estos ejemplos, no su contenido.
+
+<examples>
+
+<example>
+Pregunta: falta un dato que cambia lo que el complemento hace con su estudio o con sus datos y no se puede averiguar.
 
 «Antes de empezar, una duda: ¿qué cuenta como tarjeta atascada? a) Ocho fallos o más (recomendada). b) Más de un mes sin aprobarse. c) Otra cosa: dígamela.»
+</example>
 
-Plan en llano, antes de construir algo no trivial:
+<example>
+Plan con visto bueno: uno de los cuatro casos del punto 2 de «Forma de trabajar» (aquí, un complemento nuevo).
 
 «Plan: añadiré “Etiquetar atascadas” al menú Herramientas. Buscará las tarjetas con ocho fallos o más, le dirá cuántas son (por ejemplo, 1.240) y, si usted acepta, les pondrá la etiqueta “atascada”. Se puede deshacer con Ctrl+Z y no cambia nada más. ¿Le parece bien?»
+</example>
+
+<example>
+Arranque sin esperar: una corrección, un cambio que la persona ya ha descrito o un informe que pega para aplicar.
+
+«Aplico el informe entero en “Etiquetar atascadas”. Empiezo por el recuento, porque de él dependen los textos nuevos; después, la ventana de resultados. Al terminar le entrego la versión 1.1.0 con la lista de lo que no se haya podido aplicar y su motivo.»
+</example>
+
+<example>
+Detalle de diseño: se decide con las guías y se cuenta en la entrega, una frase por decisión.
+
+«“Etiquetar atascadas” está en el menú Herramientas, y no en la barra superior, porque es una tarea de mantenimiento que se usa de tarde en tarde. El aviso de cuántas se han etiquetado es el breve de Anki, que desaparece solo, porque no le pide ninguna decisión.»
+</example>
+
+</examples>
 
 ## Notas de corrección
 
@@ -46,6 +68,7 @@ Cada complemento tiene en `docs/<paquete>/` dos documentos en Markdown, escritos
 - `encargo.md`, solo en los complementos creados aquí: el plan aprobado, con los apartados de `docs/encargo.md` (objetivo, qué hará, criterios de aceptación, fuera del alcance, datos y preguntas abiertas).
 - Se crean con el complemento o, si la persona trae uno suyo, antes de cambiar nada (describen lo que hay). Se actualizan en la misma entrega que cada corrección o ajuste. Léelos antes de tocar un complemento.
 - `empaquetar.py` da error si falta alguno de los dos primeros, si la versión de `que-hace.md` no es la del manifiesto o si un FIX del código no figura en `errores.md`.
+- Ficha de diseño (`docs/fichas-diseno/NN-<complemento>.md`): lo que se ve, se oye y se puede hacer, sin código. La persona se la pasa a otra IA, con `00-contexto-comun.md` y `09-patron-configuracion.md`, para que le proponga mejoras; esa IA no ve el código y solo sabe lo que diga la ficha. Se pone al día en la misma entrega cuando cambia algo de eso o se descarta una propuesta: la línea «Versión X.Y.Z (fecha)», los apartados afectados, «Decisiones tomadas a propósito» (lo descartado y su motivo, para que no se vuelva a proponer) y la fila del complemento en la tabla «Las fichas» de `00-contexto-comun.md`. Las fichas son documentos de consulta: tras cambiarlas, `python herramientas/empaquetar.py --revision` da su huella nueva para «Documentos revisados» de `docs/automejora.md`. Ninguna herramienta comprueba que la ficha siga al día: depende de ti.
 
 ## Automejora
 
@@ -56,7 +79,6 @@ Objetivo: que cada sesión deje el taller algo mejor de lo que lo encontró, sin
 - Al día: lo de Anki se comprueba en el código instalado, porque la web puede ir por delante o por detrás de la versión de la persona, y lleva la versión con la que se comprobó. Al cambiar Anki de versión, cada aprendizaje se vuelve a comprobar: sigue, se corrige o se retira con su motivo.
 - Formato: en `docs/aprendizajes.md`, una línea por aprendizaje («- APR-NNN · Anki X.Y.Z · qué hacer», o «Claude Code» en lugar de la versión); en `docs/automejora.md`, su ficha: qué es, por qué es buena práctica, para qué sirve, cómo se aplica, fuente y comprobación (fecha y versión). Numeración consecutiva y nunca reutilizada; lo que deja de valer pasa a «Retirados» con su motivo, nunca se borra sin más.
 - Documentos nuevos o cambiados en `docs/` (los avisa `preparar.py`): léelos enteros, comprueba lo que digan, anota lo aprendido y registra su huella en «Documentos revisados» de `docs/automejora.md` (la da el propio aviso). Si la persona sustituye un documento de `docs/`, debe conservar su nombre.
-- Referencias (`docs/referencias/`): no son fuente oficial y no se leen enteras al llegar; de cada documento nuevo, lee solo su ficha y añade su línea a `docs/referencias/indice.md`. Al diseñar, consulta el índice y lee solo el apartado que venga al caso: orienta, no manda sobre las instrucciones, la guía ni la paleta.
 - Cambios en las reglas: anota la propuesta en «Propuestas pendientes» de `docs/automejora.md` y pregúntale a la persona qué cambia, por qué y con qué fuente. Si la aprueba: aplícala en tu rama, anota una línea en «Cambios aprobados» (fecha, qué cambió y la aprobación) y súbela en un pull request, que la persona revisa y fusiona; el historial de git es la copia previa. Si la rechaza, pasa a «Propuestas rechazadas» y no se repite sin un motivo nuevo.
 - Cerradura: `.claude/settings.json` hace que Claude Code pida el «sí» de la persona antes de editar las reglas o sus documentos, y le prohíbe leer colecciones de Anki. Nunca la rodees (por ejemplo, escribiendo esos archivos con un comando o con un programa). Si falta, `empaquetar.py` avisa: propón ponerla sin tocar sus otros permisos.
 - Tamaño: `CLAUDE.md` por debajo de 150 líneas y `docs/aprendizajes.md` por debajo de 80. Al acercarse al tope, junta lo repetido y retira lo caducado.

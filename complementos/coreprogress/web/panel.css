@@ -1,0 +1,837 @@
+/* Panel de opciones con el modelo de GritMap
+ * (docs/fichas-diseno/09-patron-configuracion.md).
+ *
+ * El mismo material que el panel de GritMap: fondo de Anki, recuadros de capa
+ * elevada con borde suave y esquinas de 10 px, la letra de Anki y la escala de
+ * espacios 4, 8, 16, 24 y 32. Un solo azul (el de accion de Anki) para lo que
+ * se pulsa, lo elegido y el foco. Todo sale de la paleta Nocturne; el borde de
+ * los controles es NOCTURNE_CONTROL_BORDER (3:1 o mas), que no tiene variable
+ * CSS. Sin animaciones, salvo el hundimiento de 1 px al pulsar.
+ *
+ * Todo lleva el prefijo «coreprogress-» (nombre del paquete).
+ */
+
+#coreprogress-app {
+    --coreprogress-canvas: var(--canvas, #F7F8FA);
+    --coreprogress-card: var(--canvas-elevated, #FBFCFE);
+    --coreprogress-overlay: var(--canvas-overlay, #FBFCFE);
+    --coreprogress-inset: var(--canvas-inset, #EEF0F4);
+    --coreprogress-fg: var(--fg, #1B2430);
+    --coreprogress-muted: var(--fg-subtle, #4E576A);
+    --coreprogress-card-border: var(--border-subtle, #E8EAF0);
+    --coreprogress-line: var(--border, #DADEE7);
+    --coreprogress-control: #878C97; /* colores-ok: NOCTURNE_CONTROL_BORDER (día), sin variable CSS en Anki */
+    --coreprogress-accent: var(--button-primary-bg, #3B6FE0);
+    --coreprogress-on-accent: var(--highlight-fg, #FFFFFF);
+    --coreprogress-focus: var(--border-focus, #3B6FE0);
+    --coreprogress-selected: var(--nocturne-row-highlight, #EAEEF8);
+    --coreprogress-hover: var(--button-gradient-start, #EDF0F5);
+    --coreprogress-danger: var(--accent-danger, #CA2D2D);
+    --coreprogress-shadow: var(--shadow-subtle, #1B243012);
+    --coreprogress-shadow-float: var(--shadow, #1B243026);
+}
+
+html.night-mode #coreprogress-app {
+    --coreprogress-canvas: var(--canvas, #12161F);
+    --coreprogress-card: var(--canvas-elevated, #212836);
+    --coreprogress-overlay: var(--canvas-overlay, #293040);
+    --coreprogress-inset: var(--canvas-inset, #0F131B);
+    --coreprogress-fg: var(--fg, #D6DAE1);
+    --coreprogress-muted: var(--fg-subtle, #B7BECC);
+    --coreprogress-card-border: var(--border-subtle, #1F2635);
+    --coreprogress-line: var(--border, #2C3444);
+    --coreprogress-control: #727B8C; /* colores-ok: NOCTURNE_CONTROL_BORDER (noche), sin variable CSS en Anki */
+    --coreprogress-accent: var(--button-primary-bg, #4066E6);
+    --coreprogress-on-accent: var(--highlight-fg, #FFFFFF);
+    --coreprogress-focus: var(--border-focus, #6390FF);
+    --coreprogress-selected: var(--nocturne-row-highlight, #19233F);
+    --coreprogress-hover: var(--button-gradient-start, #2E3747);
+    --coreprogress-danger: var(--accent-danger, #F37777);
+    /* De noche no hay sombras: la profundidad la dan los fondos. */
+    --coreprogress-shadow: transparent;
+    --coreprogress-shadow-float: transparent;
+}
+
+/* La pagina entera nunca se desplaza: solo el cuerpo del panel (regla de
+ * FIX-028 de GritMap). overflow: clip y no hidden: hidden aun deja desplazar
+ * con el foco. */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: clip;
+    background: var(--canvas, #F7F8FA);
+}
+
+html.night-mode body {
+    background: var(--canvas, #12161F);
+}
+
+#coreprogress-app,
+#coreprogress-app * {
+    box-sizing: border-box;
+}
+
+#coreprogress-app {
+    height: 100%;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--coreprogress-fg);
+    background: var(--coreprogress-canvas);
+    font-variant-numeric: tabular-nums;
+    /* Ningun texto se selecciona, salvo lo que se escribe en los campos. */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#coreprogress-app input[type="search"] {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+#coreprogress-app [hidden] {
+    display: none !important;
+}
+
+/* Cabecera y pie fijos; el cuerpo se desplaza si no cabe. */
+#coreprogress-app .coreprogress-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#coreprogress-app .coreprogress-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 24px;
+}
+
+#coreprogress-app .coreprogress-head h1 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+}
+
+#coreprogress-app .coreprogress-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    /* 4 px arriba: el contorno de foco del primer control no se corta. */
+    padding: 4px 12px 12px 12px;
+    scroll-padding: 16px 0;
+}
+
+#coreprogress-app .coreprogress-scrolled .coreprogress-head {
+    border-bottom: 1px solid var(--coreprogress-line);
+}
+
+#coreprogress-app .coreprogress-foot {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    min-height: 52px;
+    align-items: center;
+    padding: 0 24px;
+}
+
+#coreprogress-app .coreprogress-overflow .coreprogress-foot {
+    border-top: 1px solid var(--coreprogress-line);
+}
+
+/* En Windows, Aceptar va primero, como en sus ventanas; en macOS y Linux, a
+ * la derecha. */
+body.isWin #coreprogress-app .coreprogress-foot .coreprogress-primary {
+    order: -1;
+}
+
+/* Recuadros */
+#coreprogress-app .coreprogress-card {
+    background: var(--coreprogress-card);
+    border: 1px solid var(--coreprogress-card-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px var(--coreprogress-shadow);
+}
+
+#coreprogress-app .coreprogress-card + .coreprogress-card {
+    margin-top: 12px;
+}
+
+#coreprogress-app .coreprogress-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-height: 28px;
+}
+
+#coreprogress-app .coreprogress-card-head h2 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#coreprogress-app .coreprogress-card-actions {
+    display: flex;
+    gap: 4px;
+    margin-inline-start: auto;
+}
+
+#coreprogress-app .coreprogress-card-note {
+    margin: 4px 0 0 0;
+    color: var(--coreprogress-muted);
+}
+
+/* La primera opcion de un recuadro sin titulo no deja hueco arriba. */
+#coreprogress-app .coreprogress-card > .coreprogress-option:first-child {
+    margin-top: 0;
+}
+
+#coreprogress-app .coreprogress-option {
+    margin-top: 16px;
+}
+
+#coreprogress-app .coreprogress-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+#coreprogress-app .coreprogress-rule {
+    margin: 8px 0 0 0;
+    color: var(--coreprogress-muted);
+}
+
+/* Ayuda bajo una casilla: alineada con su texto (18 px de cuadro y 8 de hueco). */
+#coreprogress-app .coreprogress-check + .coreprogress-rule {
+    margin: 0 0 0 26px;
+}
+
+/* Aviso: franja hundida con icono de informacion, nunca en rojo. */
+#coreprogress-app .coreprogress-notice {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--coreprogress-inset);
+}
+
+#coreprogress-app .coreprogress-notice svg {
+    flex: none;
+    margin-top: 2px;
+    color: var(--coreprogress-muted);
+}
+
+/* Botones */
+#coreprogress-app button {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+    cursor: pointer;
+}
+
+#coreprogress-app .coreprogress-btn {
+    min-height: 32px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid var(--coreprogress-control);
+    background: var(--coreprogress-card);
+    color: var(--coreprogress-fg);
+    white-space: nowrap;
+}
+
+#coreprogress-app .coreprogress-btn:hover:not(:disabled) {
+    background: var(--coreprogress-hover);
+}
+
+#coreprogress-app .coreprogress-btn:active:not(:disabled),
+#coreprogress-app .coreprogress-step button:active:not(:disabled),
+#coreprogress-app .coreprogress-row:active,
+#coreprogress-app .coreprogress-link:active {
+    transform: translateY(1px);
+}
+
+#coreprogress-app .coreprogress-primary {
+    border-color: var(--coreprogress-accent);
+    background: var(--coreprogress-accent);
+    color: var(--coreprogress-on-accent);
+    font-weight: 600;
+}
+
+#coreprogress-app .coreprogress-primary:hover:not(:disabled) {
+    background: var(--coreprogress-accent);
+    filter: brightness(1.06);
+}
+
+/* Boton terciario: texto azul sin fondo («Restaurar», «Deshacer»). */
+#coreprogress-app .coreprogress-link {
+    min-height: 28px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--coreprogress-accent);
+    font-weight: 600;
+}
+
+#coreprogress-app .coreprogress-link:hover {
+    background: var(--coreprogress-hover);
+}
+
+#coreprogress-app .coreprogress-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--coreprogress-muted);
+}
+
+#coreprogress-app .coreprogress-icon-btn:hover:not(:disabled) {
+    background: var(--coreprogress-hover);
+    color: var(--coreprogress-fg);
+}
+
+#coreprogress-app .coreprogress-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 28px;
+    padding: 0 8px 0 4px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--coreprogress-accent);
+    font-weight: 600;
+}
+
+#coreprogress-app .coreprogress-back:hover {
+    background: var(--coreprogress-hover);
+}
+
+/* Foco del teclado: contorno azul de 2 px separado 2 px. Anki quita el
+ * contorno de todos sus botones; por eso !important. */
+#coreprogress-app button:focus-visible,
+#coreprogress-app input:focus-visible,
+#coreprogress-app select:focus-visible,
+#coreprogress-app .coreprogress-chip:has(input:focus-visible),
+#coreprogress-app .coreprogress-check:has(input:focus-visible) .coreprogress-box {
+    outline: 2px solid var(--coreprogress-focus) !important;
+    outline-offset: 2px;
+}
+
+/* Fichas: botones de opcion de verdad, con su teclado. */
+#coreprogress-app .coreprogress-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#coreprogress-app .coreprogress-chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--coreprogress-control);
+    border-radius: 8px;
+    background: var(--coreprogress-card);
+    cursor: pointer;
+}
+
+#coreprogress-app .coreprogress-chip:hover {
+    background: var(--coreprogress-hover);
+}
+
+#coreprogress-app .coreprogress-chip:has(input:checked) {
+    border: 2px solid var(--coreprogress-accent);
+    padding: 0 11px;
+    background: var(--coreprogress-selected);
+}
+
+#coreprogress-app .coreprogress-chip input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
+
+#coreprogress-app .coreprogress-swatch {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+#coreprogress-app .coreprogress-chip-name {
+    flex: 1;
+    min-width: 0;
+}
+
+#coreprogress-app .coreprogress-tick {
+    flex: none;
+    visibility: hidden;
+    color: var(--coreprogress-accent);
+}
+
+#coreprogress-app .coreprogress-chip:has(input:checked) .coreprogress-tick {
+    visibility: visible;
+}
+
+/* Campo numerico con − y + */
+#coreprogress-app .coreprogress-step-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#coreprogress-app .coreprogress-step {
+    display: inline-flex;
+    align-items: stretch;
+    height: 32px;
+    border: 1px solid var(--coreprogress-control);
+    border-radius: 8px;
+    background: var(--coreprogress-card);
+    overflow: hidden;
+}
+
+#coreprogress-app .coreprogress-step button {
+    width: 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 16px;
+}
+
+#coreprogress-app .coreprogress-step button:hover:not(:disabled) {
+    background: var(--coreprogress-hover);
+}
+
+#coreprogress-app .coreprogress-step button:focus-visible {
+    outline-offset: -2px;
+}
+
+#coreprogress-app .coreprogress-step button:disabled {
+    opacity: 0.35;
+}
+
+#coreprogress-app .coreprogress-step input {
+    width: calc(4ch + 16px);
+    padding: 0 8px;
+    border: 0;
+    border-inline: 1px solid var(--coreprogress-line);
+    background: none;
+    color: var(--coreprogress-fg);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+#coreprogress-app .coreprogress-step input:focus-visible {
+    outline-offset: 0;
+}
+
+#coreprogress-app .coreprogress-unit {
+    color: var(--coreprogress-muted);
+}
+
+/* Deslizador: carril hundido, tramo lleno del color de accion y tirador de
+ * capa elevada con el borde de los controles. */
+#coreprogress-app .coreprogress-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#coreprogress-app .coreprogress-slider {
+    --coreprogress-fill: 50%;
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    margin: 0;
+    background: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#coreprogress-app .coreprogress-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(
+        to right,
+        var(--coreprogress-accent) 0,
+        var(--coreprogress-accent) var(--coreprogress-fill),
+        var(--coreprogress-inset) var(--coreprogress-fill),
+        var(--coreprogress-inset) 100%
+    );
+    box-shadow: inset 0 0 0 1px var(--coreprogress-line);
+}
+
+#coreprogress-app .coreprogress-slider::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    margin-top: -6px;
+    border: 1px solid var(--coreprogress-control);
+    border-radius: 50%;
+    background: var(--coreprogress-card);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#coreprogress-app .coreprogress-slider:hover::-webkit-slider-thumb {
+    background: var(--coreprogress-hover);
+}
+
+#coreprogress-app .coreprogress-slider:focus-visible {
+    outline-offset: 4px;
+}
+
+#coreprogress-app .coreprogress-slider-value {
+    flex: none;
+    min-width: 5ch;
+    text-align: end;
+    font-weight: 600;
+}
+
+/* Lista desplegable: un <select> de verdad con el aspecto de los campos. */
+#coreprogress-app .coreprogress-select-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#coreprogress-app .coreprogress-select-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+#coreprogress-app .coreprogress-select {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 32px 0 12px;
+    border: 1px solid var(--coreprogress-control);
+    border-radius: 8px;
+    background: var(--coreprogress-card);
+    color: var(--coreprogress-fg);
+    font: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#coreprogress-app .coreprogress-select:hover:not(:disabled) {
+    background: var(--coreprogress-hover);
+}
+
+#coreprogress-app .coreprogress-select option {
+    background: var(--coreprogress-overlay);
+    color: var(--coreprogress-fg);
+}
+
+#coreprogress-app .coreprogress-select-wrap svg {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    margin-top: -6px;
+    color: var(--coreprogress-muted);
+    pointer-events: none;
+}
+
+/* Campo grabador de atajos */
+#coreprogress-app .coreprogress-key-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#coreprogress-app .coreprogress-key {
+    flex: 1;
+    min-width: 0;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--coreprogress-control);
+    border-radius: 8px;
+    background: var(--coreprogress-card);
+    color: var(--coreprogress-fg);
+    font: inherit;
+    font-weight: 600;
+    caret-color: transparent;
+    cursor: pointer;
+}
+
+#coreprogress-app .coreprogress-key::placeholder {
+    color: var(--coreprogress-muted);
+    font-weight: 400;
+}
+
+#coreprogress-app .coreprogress-key:focus-visible {
+    border-color: var(--coreprogress-accent);
+}
+
+/* Casillas: un <input type="checkbox"> de verdad, dibujado a medida. El
+ * control invisible va dentro de su fila (regla de FIX-030 de GritMap). */
+#coreprogress-app .coreprogress-check {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 28px;
+    padding: 4px 0;
+    cursor: pointer;
+}
+
+#coreprogress-app .coreprogress-check input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+
+#coreprogress-app .coreprogress-box {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-top: 0;
+    border: 1px solid var(--coreprogress-control);
+    border-radius: 4px;
+    background: var(--coreprogress-card);
+    color: transparent;
+}
+
+#coreprogress-app .coreprogress-check input:checked + .coreprogress-box {
+    border-color: var(--coreprogress-accent);
+    background: var(--coreprogress-accent);
+    color: var(--coreprogress-on-accent);
+}
+
+#coreprogress-app .coreprogress-check-text {
+    font-weight: 600;
+}
+
+/* Lo que depende de una casilla, agrupado por una linea a la izquierda. */
+#coreprogress-app .coreprogress-group {
+    margin-top: 8px;
+    padding-inline-start: 16px;
+    border-inline-start: 2px solid var(--coreprogress-line);
+}
+
+#coreprogress-app .coreprogress-group > .coreprogress-option:first-child {
+    margin-top: 8px;
+}
+
+/* Apagado: atenuado. */
+#coreprogress-app .coreprogress-off {
+    opacity: 0.45;
+}
+
+#coreprogress-app .coreprogress-off * {
+    cursor: default !important;
+}
+
+#coreprogress-app :disabled {
+    cursor: default;
+}
+
+/* Linea de dato con accion («Su récord actual: 7 seguidas!  Restablecer»). */
+#coreprogress-app .coreprogress-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#coreprogress-app .coreprogress-stat-text strong {
+    font-weight: 700;
+}
+
+/* Fila de resumen: toda la fila es un boton que abre su subpagina. */
+#coreprogress-app .coreprogress-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 6px 16px;
+    border: 1px solid var(--coreprogress-control);
+    border-radius: 8px;
+    background: var(--coreprogress-card);
+    text-align: start;
+}
+
+#coreprogress-app .coreprogress-row:hover {
+    background: var(--coreprogress-hover);
+}
+
+#coreprogress-app .coreprogress-row-text {
+    flex: 1;
+    min-width: 0;
+}
+
+#coreprogress-app .coreprogress-row-title {
+    display: block;
+    font-weight: 600;
+}
+
+#coreprogress-app .coreprogress-row-summary {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    color: var(--coreprogress-muted);
+}
+
+#coreprogress-app .coreprogress-chevron {
+    flex: none;
+    color: var(--coreprogress-muted);
+}
+
+/* Hueco gris mientras llega un dato que tarda. */
+#coreprogress-app .coreprogress-bone {
+    display: inline-block;
+    width: 160px;
+    height: 12px;
+    border-radius: 6px;
+    background: var(--coreprogress-inset);
+    vertical-align: middle;
+}
+
+/* Subpagina con buscador y lista de casillas */
+#coreprogress-app .coreprogress-search {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--coreprogress-control);
+    border-radius: 8px;
+    background: var(--coreprogress-card);
+    color: var(--coreprogress-fg);
+    font: inherit;
+}
+
+#coreprogress-app .coreprogress-list {
+    list-style: none;
+    margin: 12px 0 0 0;
+    padding: 0;
+}
+
+#coreprogress-app .coreprogress-list li {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+}
+
+#coreprogress-app .coreprogress-list .coreprogress-check {
+    flex: 1;
+    min-width: 0;
+}
+
+#coreprogress-app .coreprogress-list .coreprogress-check-text {
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+/* Error: encima del campo, con icono, y el campo con borde rojo. */
+#coreprogress-app .coreprogress-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    color: var(--coreprogress-danger);
+}
+
+#coreprogress-app .coreprogress-invalid,
+#coreprogress-app .coreprogress-invalid:focus-visible {
+    border-color: var(--coreprogress-danger) !important;
+}
+
+/* Pregunta antes de perder algo: un <dialog> de verdad. */
+#coreprogress-app dialog {
+    max-width: 400px;
+    padding: 24px;
+    border: 1px solid var(--coreprogress-card-border);
+    border-radius: 10px;
+    background: var(--coreprogress-overlay);
+    color: var(--coreprogress-fg);
+    box-shadow: 0 8px 24px var(--coreprogress-shadow-float);
+}
+
+#coreprogress-app dialog::backdrop {
+    background: var(--shadow, #1B243026);
+}
+
+#coreprogress-app dialog h2 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#coreprogress-app dialog p {
+    margin: 0;
+    color: var(--coreprogress-muted);
+}
+
+#coreprogress-app .coreprogress-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+body.isWin #coreprogress-app .coreprogress-dialog-actions .coreprogress-primary {
+    order: -1;
+}
+
+/* Zona invisible para los avisos hablados del lector de pantalla. */
+#coreprogress-app .coreprogress-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Colores forzados (alto contraste de Windows): todo control tiene borde
+ * real; lo elegido se marca con borde y ✓; el foco, con el resaltado del
+ * sistema. Solo las muestras de color conservan su color. */
+@media (forced-colors: active) {
+    #coreprogress-app .coreprogress-chip:has(input:checked) {
+        border-color: Highlight;
+    }
+
+    #coreprogress-app .coreprogress-swatch {
+        forced-color-adjust: none;
+    }
+
+    #coreprogress-app button:focus-visible,
+    #coreprogress-app input:focus-visible,
+    #coreprogress-app select:focus-visible {
+        outline-color: Highlight !important;
+    }
+
+    #coreprogress-app .coreprogress-slider::-webkit-slider-runnable-track {
+        background: CanvasText;
+    }
+}

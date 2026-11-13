@@ -58,6 +58,8 @@ def _setup() -> None:
     # 2) Registrar los enganches del canal web.
     #    - Páginas internas de Anki: estilo en el HTML inicial.
     gui_hooks.webview_will_set_content.append(webview_style.on_will_set_content)
+    #    - Pantalla de un mazo: las cifras a cero, en el texto tenue (versión 3.9.0).
+    gui_hooks.overview_will_render_content.append(webview_style.on_overview_content)
     #    - Páginas externas (gráficas, felicitación): estilo en cuanto cargan.
     gui_hooks.webview_did_inject_style_into_page.append(webview_style.on_did_inject_style)
     #    - Cambio de perfil: reafirmar colores.
@@ -67,6 +69,8 @@ def _setup() -> None:
     gui_hooks.style_did_init.append(theming.on_style_did_init)
     #    - Interruptor Tarjetas/Notas de Explorar en el color de acción (versión 3.8.0).
     gui_hooks.browser_will_show.append(theming.on_browser_will_show)
+    #    - Iconos de Anki en el texto secundario (versión 3.9.0).
+    theming.install_icon_tint()
     #    - Barra de título de las ventanas del color de la paleta (solo Windows 11).
     titlebar.install()
 

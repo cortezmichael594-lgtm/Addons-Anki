@@ -1,0 +1,837 @@
+/* Panel de opciones con el modelo de GritMap
+ * (docs/fichas-diseno/09-patron-configuracion.md).
+ *
+ * El mismo material que el panel de GritMap: fondo de Anki, recuadros de capa
+ * elevada con borde suave y esquinas de 10 px, la letra de Anki y la escala de
+ * espacios 4, 8, 16, 24 y 32. Un solo azul (el de accion de Anki) para lo que
+ * se pulsa, lo elegido y el foco. Todo sale de la paleta Nocturne; el borde de
+ * los controles es NOCTURNE_CONTROL_BORDER (3:1 o mas), que no tiene variable
+ * CSS. Sin animaciones, salvo el hundimiento de 1 px al pulsar.
+ *
+ * Todo lleva el prefijo «hider-» (nombre del paquete).
+ */
+
+#hider-app {
+    --hider-canvas: var(--canvas, #F7F8FA);
+    --hider-card: var(--canvas-elevated, #FBFCFE);
+    --hider-overlay: var(--canvas-overlay, #FBFCFE);
+    --hider-inset: var(--canvas-inset, #EEF0F4);
+    --hider-fg: var(--fg, #1B2430);
+    --hider-muted: var(--fg-subtle, #4E576A);
+    --hider-card-border: var(--border-subtle, #E8EAF0);
+    --hider-line: var(--border, #DADEE7);
+    --hider-control: #878C97; /* colores-ok: NOCTURNE_CONTROL_BORDER (día), sin variable CSS en Anki */
+    --hider-accent: var(--button-primary-bg, #3B6FE0);
+    --hider-on-accent: var(--highlight-fg, #FFFFFF);
+    --hider-focus: var(--border-focus, #3B6FE0);
+    --hider-selected: var(--nocturne-row-highlight, #EAEEF8);
+    --hider-hover: var(--button-gradient-start, #EDF0F5);
+    --hider-danger: var(--accent-danger, #CA2D2D);
+    --hider-shadow: var(--shadow-subtle, #1B243012);
+    --hider-shadow-float: var(--shadow, #1B243026);
+}
+
+html.night-mode #hider-app {
+    --hider-canvas: var(--canvas, #12161F);
+    --hider-card: var(--canvas-elevated, #212836);
+    --hider-overlay: var(--canvas-overlay, #293040);
+    --hider-inset: var(--canvas-inset, #0F131B);
+    --hider-fg: var(--fg, #D6DAE1);
+    --hider-muted: var(--fg-subtle, #B7BECC);
+    --hider-card-border: var(--border-subtle, #1F2635);
+    --hider-line: var(--border, #2C3444);
+    --hider-control: #727B8C; /* colores-ok: NOCTURNE_CONTROL_BORDER (noche), sin variable CSS en Anki */
+    --hider-accent: var(--button-primary-bg, #4066E6);
+    --hider-on-accent: var(--highlight-fg, #FFFFFF);
+    --hider-focus: var(--border-focus, #6390FF);
+    --hider-selected: var(--nocturne-row-highlight, #19233F);
+    --hider-hover: var(--button-gradient-start, #2E3747);
+    --hider-danger: var(--accent-danger, #F37777);
+    /* De noche no hay sombras: la profundidad la dan los fondos. */
+    --hider-shadow: transparent;
+    --hider-shadow-float: transparent;
+}
+
+/* La pagina entera nunca se desplaza: solo el cuerpo del panel (regla de
+ * FIX-028 de GritMap). overflow: clip y no hidden: hidden aun deja desplazar
+ * con el foco. */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: clip;
+    background: var(--canvas, #F7F8FA);
+}
+
+html.night-mode body {
+    background: var(--canvas, #12161F);
+}
+
+#hider-app,
+#hider-app * {
+    box-sizing: border-box;
+}
+
+#hider-app {
+    height: 100%;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--hider-fg);
+    background: var(--hider-canvas);
+    font-variant-numeric: tabular-nums;
+    /* Ningun texto se selecciona, salvo lo que se escribe en los campos. */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#hider-app input[type="search"] {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+#hider-app [hidden] {
+    display: none !important;
+}
+
+/* Cabecera y pie fijos; el cuerpo se desplaza si no cabe. */
+#hider-app .hider-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#hider-app .hider-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 24px;
+}
+
+#hider-app .hider-head h1 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+}
+
+#hider-app .hider-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    /* 4 px arriba: el contorno de foco del primer control no se corta. */
+    padding: 4px 12px 12px 12px;
+    scroll-padding: 16px 0;
+}
+
+#hider-app .hider-scrolled .hider-head {
+    border-bottom: 1px solid var(--hider-line);
+}
+
+#hider-app .hider-foot {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    min-height: 52px;
+    align-items: center;
+    padding: 0 24px;
+}
+
+#hider-app .hider-overflow .hider-foot {
+    border-top: 1px solid var(--hider-line);
+}
+
+/* En Windows, Aceptar va primero, como en sus ventanas; en macOS y Linux, a
+ * la derecha. */
+body.isWin #hider-app .hider-foot .hider-primary {
+    order: -1;
+}
+
+/* Recuadros */
+#hider-app .hider-card {
+    background: var(--hider-card);
+    border: 1px solid var(--hider-card-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px var(--hider-shadow);
+}
+
+#hider-app .hider-card + .hider-card {
+    margin-top: 12px;
+}
+
+#hider-app .hider-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-height: 28px;
+}
+
+#hider-app .hider-card-head h2 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#hider-app .hider-card-actions {
+    display: flex;
+    gap: 4px;
+    margin-inline-start: auto;
+}
+
+#hider-app .hider-card-note {
+    margin: 4px 0 0 0;
+    color: var(--hider-muted);
+}
+
+/* La primera opcion de un recuadro sin titulo no deja hueco arriba. */
+#hider-app .hider-card > .hider-option:first-child {
+    margin-top: 0;
+}
+
+#hider-app .hider-option {
+    margin-top: 16px;
+}
+
+#hider-app .hider-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+#hider-app .hider-rule {
+    margin: 8px 0 0 0;
+    color: var(--hider-muted);
+}
+
+/* Ayuda bajo una casilla: alineada con su texto (18 px de cuadro y 8 de hueco). */
+#hider-app .hider-check + .hider-rule {
+    margin: 0 0 0 26px;
+}
+
+/* Aviso: franja hundida con icono de informacion, nunca en rojo. */
+#hider-app .hider-notice {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--hider-inset);
+}
+
+#hider-app .hider-notice svg {
+    flex: none;
+    margin-top: 2px;
+    color: var(--hider-muted);
+}
+
+/* Botones */
+#hider-app button {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+    cursor: pointer;
+}
+
+#hider-app .hider-btn {
+    min-height: 32px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid var(--hider-control);
+    background: var(--hider-card);
+    color: var(--hider-fg);
+    white-space: nowrap;
+}
+
+#hider-app .hider-btn:hover:not(:disabled) {
+    background: var(--hider-hover);
+}
+
+#hider-app .hider-btn:active:not(:disabled),
+#hider-app .hider-step button:active:not(:disabled),
+#hider-app .hider-row:active,
+#hider-app .hider-link:active {
+    transform: translateY(1px);
+}
+
+#hider-app .hider-primary {
+    border-color: var(--hider-accent);
+    background: var(--hider-accent);
+    color: var(--hider-on-accent);
+    font-weight: 600;
+}
+
+#hider-app .hider-primary:hover:not(:disabled) {
+    background: var(--hider-accent);
+    filter: brightness(1.06);
+}
+
+/* Boton terciario: texto azul sin fondo («Restaurar», «Deshacer»). */
+#hider-app .hider-link {
+    min-height: 28px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--hider-accent);
+    font-weight: 600;
+}
+
+#hider-app .hider-link:hover {
+    background: var(--hider-hover);
+}
+
+#hider-app .hider-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--hider-muted);
+}
+
+#hider-app .hider-icon-btn:hover:not(:disabled) {
+    background: var(--hider-hover);
+    color: var(--hider-fg);
+}
+
+#hider-app .hider-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 28px;
+    padding: 0 8px 0 4px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--hider-accent);
+    font-weight: 600;
+}
+
+#hider-app .hider-back:hover {
+    background: var(--hider-hover);
+}
+
+/* Foco del teclado: contorno azul de 2 px separado 2 px. Anki quita el
+ * contorno de todos sus botones; por eso !important. */
+#hider-app button:focus-visible,
+#hider-app input:focus-visible,
+#hider-app select:focus-visible,
+#hider-app .hider-chip:has(input:focus-visible),
+#hider-app .hider-check:has(input:focus-visible) .hider-box {
+    outline: 2px solid var(--hider-focus) !important;
+    outline-offset: 2px;
+}
+
+/* Fichas: botones de opcion de verdad, con su teclado. */
+#hider-app .hider-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#hider-app .hider-chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--hider-control);
+    border-radius: 8px;
+    background: var(--hider-card);
+    cursor: pointer;
+}
+
+#hider-app .hider-chip:hover {
+    background: var(--hider-hover);
+}
+
+#hider-app .hider-chip:has(input:checked) {
+    border: 2px solid var(--hider-accent);
+    padding: 0 11px;
+    background: var(--hider-selected);
+}
+
+#hider-app .hider-chip input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
+
+#hider-app .hider-swatch {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+#hider-app .hider-chip-name {
+    flex: 1;
+    min-width: 0;
+}
+
+#hider-app .hider-tick {
+    flex: none;
+    visibility: hidden;
+    color: var(--hider-accent);
+}
+
+#hider-app .hider-chip:has(input:checked) .hider-tick {
+    visibility: visible;
+}
+
+/* Campo numerico con − y + */
+#hider-app .hider-step-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#hider-app .hider-step {
+    display: inline-flex;
+    align-items: stretch;
+    height: 32px;
+    border: 1px solid var(--hider-control);
+    border-radius: 8px;
+    background: var(--hider-card);
+    overflow: hidden;
+}
+
+#hider-app .hider-step button {
+    width: 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 16px;
+}
+
+#hider-app .hider-step button:hover:not(:disabled) {
+    background: var(--hider-hover);
+}
+
+#hider-app .hider-step button:focus-visible {
+    outline-offset: -2px;
+}
+
+#hider-app .hider-step button:disabled {
+    opacity: 0.35;
+}
+
+#hider-app .hider-step input {
+    width: calc(4ch + 16px);
+    padding: 0 8px;
+    border: 0;
+    border-inline: 1px solid var(--hider-line);
+    background: none;
+    color: var(--hider-fg);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+#hider-app .hider-step input:focus-visible {
+    outline-offset: 0;
+}
+
+#hider-app .hider-unit {
+    color: var(--hider-muted);
+}
+
+/* Deslizador: carril hundido, tramo lleno del color de accion y tirador de
+ * capa elevada con el borde de los controles. */
+#hider-app .hider-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#hider-app .hider-slider {
+    --hider-fill: 50%;
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    margin: 0;
+    background: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#hider-app .hider-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(
+        to right,
+        var(--hider-accent) 0,
+        var(--hider-accent) var(--hider-fill),
+        var(--hider-inset) var(--hider-fill),
+        var(--hider-inset) 100%
+    );
+    box-shadow: inset 0 0 0 1px var(--hider-line);
+}
+
+#hider-app .hider-slider::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    margin-top: -6px;
+    border: 1px solid var(--hider-control);
+    border-radius: 50%;
+    background: var(--hider-card);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#hider-app .hider-slider:hover::-webkit-slider-thumb {
+    background: var(--hider-hover);
+}
+
+#hider-app .hider-slider:focus-visible {
+    outline-offset: 4px;
+}
+
+#hider-app .hider-slider-value {
+    flex: none;
+    min-width: 5ch;
+    text-align: end;
+    font-weight: 600;
+}
+
+/* Lista desplegable: un <select> de verdad con el aspecto de los campos. */
+#hider-app .hider-select-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#hider-app .hider-select-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+#hider-app .hider-select {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 32px 0 12px;
+    border: 1px solid var(--hider-control);
+    border-radius: 8px;
+    background: var(--hider-card);
+    color: var(--hider-fg);
+    font: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#hider-app .hider-select:hover:not(:disabled) {
+    background: var(--hider-hover);
+}
+
+#hider-app .hider-select option {
+    background: var(--hider-overlay);
+    color: var(--hider-fg);
+}
+
+#hider-app .hider-select-wrap svg {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    margin-top: -6px;
+    color: var(--hider-muted);
+    pointer-events: none;
+}
+
+/* Campo grabador de atajos */
+#hider-app .hider-key-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#hider-app .hider-key {
+    flex: 1;
+    min-width: 0;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--hider-control);
+    border-radius: 8px;
+    background: var(--hider-card);
+    color: var(--hider-fg);
+    font: inherit;
+    font-weight: 600;
+    caret-color: transparent;
+    cursor: pointer;
+}
+
+#hider-app .hider-key::placeholder {
+    color: var(--hider-muted);
+    font-weight: 400;
+}
+
+#hider-app .hider-key:focus-visible {
+    border-color: var(--hider-accent);
+}
+
+/* Casillas: un <input type="checkbox"> de verdad, dibujado a medida. El
+ * control invisible va dentro de su fila (regla de FIX-030 de GritMap). */
+#hider-app .hider-check {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 28px;
+    padding: 4px 0;
+    cursor: pointer;
+}
+
+#hider-app .hider-check input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+
+#hider-app .hider-box {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-top: 0;
+    border: 1px solid var(--hider-control);
+    border-radius: 4px;
+    background: var(--hider-card);
+    color: transparent;
+}
+
+#hider-app .hider-check input:checked + .hider-box {
+    border-color: var(--hider-accent);
+    background: var(--hider-accent);
+    color: var(--hider-on-accent);
+}
+
+#hider-app .hider-check-text {
+    font-weight: 600;
+}
+
+/* Lo que depende de una casilla, agrupado por una linea a la izquierda. */
+#hider-app .hider-group {
+    margin-top: 8px;
+    padding-inline-start: 16px;
+    border-inline-start: 2px solid var(--hider-line);
+}
+
+#hider-app .hider-group > .hider-option:first-child {
+    margin-top: 8px;
+}
+
+/* Apagado: atenuado. */
+#hider-app .hider-off {
+    opacity: 0.45;
+}
+
+#hider-app .hider-off * {
+    cursor: default !important;
+}
+
+#hider-app :disabled {
+    cursor: default;
+}
+
+/* Linea de dato con accion («Su récord actual: 7 seguidas!  Restablecer»). */
+#hider-app .hider-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+#hider-app .hider-stat-text strong {
+    font-weight: 700;
+}
+
+/* Fila de resumen: toda la fila es un boton que abre su subpagina. */
+#hider-app .hider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 6px 16px;
+    border: 1px solid var(--hider-control);
+    border-radius: 8px;
+    background: var(--hider-card);
+    text-align: start;
+}
+
+#hider-app .hider-row:hover {
+    background: var(--hider-hover);
+}
+
+#hider-app .hider-row-text {
+    flex: 1;
+    min-width: 0;
+}
+
+#hider-app .hider-row-title {
+    display: block;
+    font-weight: 600;
+}
+
+#hider-app .hider-row-summary {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    color: var(--hider-muted);
+}
+
+#hider-app .hider-chevron {
+    flex: none;
+    color: var(--hider-muted);
+}
+
+/* Hueco gris mientras llega un dato que tarda. */
+#hider-app .hider-bone {
+    display: inline-block;
+    width: 160px;
+    height: 12px;
+    border-radius: 6px;
+    background: var(--hider-inset);
+    vertical-align: middle;
+}
+
+/* Subpagina con buscador y lista de casillas */
+#hider-app .hider-search {
+    width: 100%;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--hider-control);
+    border-radius: 8px;
+    background: var(--hider-card);
+    color: var(--hider-fg);
+    font: inherit;
+}
+
+#hider-app .hider-list {
+    list-style: none;
+    margin: 12px 0 0 0;
+    padding: 0;
+}
+
+#hider-app .hider-list li {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+}
+
+#hider-app .hider-list .hider-check {
+    flex: 1;
+    min-width: 0;
+}
+
+#hider-app .hider-list .hider-check-text {
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+/* Error: encima del campo, con icono, y el campo con borde rojo. */
+#hider-app .hider-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    color: var(--hider-danger);
+}
+
+#hider-app .hider-invalid,
+#hider-app .hider-invalid:focus-visible {
+    border-color: var(--hider-danger) !important;
+}
+
+/* Pregunta antes de perder algo: un <dialog> de verdad. */
+#hider-app dialog {
+    max-width: 400px;
+    padding: 24px;
+    border: 1px solid var(--hider-card-border);
+    border-radius: 10px;
+    background: var(--hider-overlay);
+    color: var(--hider-fg);
+    box-shadow: 0 8px 24px var(--hider-shadow-float);
+}
+
+#hider-app dialog::backdrop {
+    background: var(--shadow, #1B243026);
+}
+
+#hider-app dialog h2 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+}
+
+#hider-app dialog p {
+    margin: 0;
+    color: var(--hider-muted);
+}
+
+#hider-app .hider-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+body.isWin #hider-app .hider-dialog-actions .hider-primary {
+    order: -1;
+}
+
+/* Zona invisible para los avisos hablados del lector de pantalla. */
+#hider-app .hider-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Colores forzados (alto contraste de Windows): todo control tiene borde
+ * real; lo elegido se marca con borde y ✓; el foco, con el resaltado del
+ * sistema. Solo las muestras de color conservan su color. */
+@media (forced-colors: active) {
+    #hider-app .hider-chip:has(input:checked) {
+        border-color: Highlight;
+    }
+
+    #hider-app .hider-swatch {
+        forced-color-adjust: none;
+    }
+
+    #hider-app button:focus-visible,
+    #hider-app input:focus-visible,
+    #hider-app select:focus-visible {
+        outline-color: Highlight !important;
+    }
+
+    #hider-app .hider-slider::-webkit-slider-runnable-track {
+        background: CanvasText;
+    }
+}

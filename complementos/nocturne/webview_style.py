@@ -33,10 +33,14 @@ así que la paleta se respeta siempre, llegue nuestro estilo antes o después.
 #                        al pasar el ratón, como si fueran una fila de la lista de mazos.
 # FIX-010 (2026-10-28) — Al pasar el ratón por un botón de respuesta salía una raya de
 #                        color arriba, además de la de abajo.
+# FIX-015 (2026-11-11) — Lo que se escribe en el editor salía en blanco puro de noche (y en
+#                        negro puro de día), y no en el color del texto.
 
 from __future__ import annotations
 
 import json
+import re
+from typing import Any
 
 from anki.utils import is_mac, is_win
 from aqt import mw
@@ -69,6 +73,12 @@ _DARK_SELECTOR = ":root.night-mode, :root.night-mode body, body.night_mode"
 # igual que el original.
 _SURFACE = "body:not(.card)"
 _DARK_SURFACE = "body.night_mode:not(.card)"
+# Versión 3.9.0 (informe del 2026-11-11, apartado 8.7): el degradado, solo en el fondo de las
+# páginas, nunca en las barras: la superior (.toolbar) y las inferiores de la lista de mazos, de
+# la pantalla de un mazo y del repaso (#outer). Dentro de la barra inferior dejaba un corte
+# horizontal y, durante el repaso, un adorno donde se estudia.
+_GLOW = "body:not(.card):not(:has(#outer, .toolbar))"
+_DARK_GLOW = "body.night_mode:not(.card):not(:has(#outer, .toolbar))"
 
 # Pila tipográfica: en cada sistema recae en su letra de interfaz nativa, de modo
 # que Anki se ve integrado en Windows, macOS y Linux sin instalar nada. La letra
@@ -199,11 +209,11 @@ def _surface_css() -> str:
     if gradient is not None:
         light, dark = gradient
         rules.append(
-            f"{_SURFACE} {{"
+            f"{_GLOW} {{"
             f" background-image: radial-gradient(1100px 700px at 82% -8%, {light}, transparent 60%);"
             " background-attachment: fixed;"
             "}"
-            f"{_DARK_SURFACE} {{"
+            f"{_DARK_GLOW} {{"
             f" background-image: radial-gradient(1100px 700px at 82% -8%, {dark}, transparent 60%);"
             "}"
         )
@@ -403,6 +413,107 @@ def _answer_marks() -> list[str]:
     return rules
 
 
+# Botones de las páginas clásicas de Anki (barras inferiores, repaso y el editor clásico): los
+# que no llevan clase, los de mw.button («but») y los del editor clásico («linkb»). Fuera, el
+# botón relleno («Comenzar a estudiar», #study) y «Editar» y «Más» del repaso, que van sin borde.
+_PAGE_BUTTON = "button:is(:not([class]), .but, .linkb):not([id=study], td.stat > button)"
+_STUDY_BUTTONS = "button:is([data-ease], #ansbut)"
+
+
+def _redesign_css() -> str:
+    """Versión 3.9.0 (informe del 2026-11-11, apartado 8): las reglas del rediseño en las
+    páginas. Todo sale de las variables de la paleta; nada cambia de sitio.
+
+    - Un borde para todo lo que se pulsa o se rellena (8.6): los botones, el de control, a
+      3:1 o más sobre el fondo y los recuadros (antes, 1,29 y 1,05:1). Con el ratón encima,
+      el borde de botón con el ratón; pulsado, un escalón más hundido y sin la sombra interior
+      de Anki; desactivado, el borde suave. Los campos del editor y el de etiquetas, el mismo
+      borde que los campos de las ventanas (antes, 1,18:1: WCAG 1.4.11).
+    - Una sola familia de esquinas (8.4): ningún botón en píldora. «Comenzar a estudiar» y los
+      botones de respuesta llevan la esquina de los botones, como los demás; la raya de color
+      de las respuestas se ve entera, de lado a lado.
+    - Botones de estudio (8.6): los de respuesta, con 16 px entre ellos. Versión 3.9.1
+      (petición del cliente, 2026-11-13): vuelven casi a su tamaño de Anki, solo un poco más
+      grandes (30 px de alto en vez de 28, 84 de ancho mínimo en vez de 80, y su letra de
+      12 px), porque a 36 px y con letra de 15 se veían grandes. «Comenzar a estudiar», algo
+      menor que en la 3.9.0: 34 px de alto, 20 a los lados y su rótulo a 14/15 del texto de la
+      página. El título de la pantalla de un mazo sigue un tercio mayor que el texto (8.11,
+      decisión 2): son proporciones, así que siguen la letra que se elija en Anki.
+    - Un gris para todos los iconos (8.2, regla 4): el engranaje de la lista de mazos y los
+      iconos de la barra del editor, en el texto secundario; el engranaje, con 24 px de zona
+      pulsable y el dibujo del mismo tamaño.
+    - Barra de desplazamiento con el tirador de 8 px, centrado y redondo, en un carril de 12.
+    """
+    page_button = f"html {_SURFACE} {_PAGE_BUTTON}"
+    study = f"html {_SURFACE} {_STUDY_BUTTONS}"
+    rules = [
+        f"{page_button} {{ border-color: var(--nocturne-control-border); }}",
+        f"{page_button}:hover {{ border-color: var(--button-hover-border); }}",
+        (
+            f"{page_button}:active {{ background: var(--nocturne-button-pressed);"
+            " border-color: var(--button-hover-border); box-shadow: none; }"
+        ),
+        f"{page_button}[disabled] {{ border-color: var(--border); }}",
+        # Esquinas: la de botones también en las páginas con aspecto «fancy», que las hace
+        # píldoras. Los del editor clásico («linkb») van en grupos con sus propias esquinas.
+        f"html {_SURFACE} button:is(:not([class]), .but) {{ border-radius: var(--nocturne-control-radius); }}",
+        # Botones de respuesta y «Mostrar respuesta». La raya de color va por dentro, pegada al
+        # borde inferior y de lado a lado: ocupa el sitio del borde de abajo, que queda
+        # transparente en todos los estados (FIX-010: la raya no se repite).
+        (
+            f"{study} {{ box-sizing: border-box; min-height: 30px; min-width: 84px;"
+            " margin-inline: 8px; background-origin: border-box; }"
+        ),
+        f"{page_button}[data-ease] {{ border-bottom-color: transparent; }}",
+        f"{page_button}[data-ease]:is(:hover, :active) {{ border-bottom-color: transparent; }}",
+        # «Comenzar a estudiar»: el botón relleno, con la esquina de botones y 34 px de alto.
+        # Con el ratón, más oscuro; pulsado, más aún; con el teclado, el anillo (8.5).
+        (
+            f"html {_SURFACE} button#study {{ box-sizing: border-box; min-height: 34px;"
+            " padding-inline: 20px; font-size: calc(1rem * 14 / 15);"
+            " border-radius: var(--nocturne-control-radius); }"
+        ),
+        f"html {_SURFACE} button#study:hover {{ background: var(--button-primary-gradient-end); }}",
+        (
+            f"html {_SURFACE} button#study:active"
+            " { background: var(--nocturne-primary-pressed); box-shadow: none; }"
+        ),
+        f"html {_SURFACE} button#study:focus-visible {{ outline-color: var(--nocturne-primary-ring) !important; }}",
+        # Título de la pantalla de un mazo, un tercio mayor que el texto (antes, un 13 %).
+        f"html {_SURFACE}:has(#study) center > h3 {{ font-size: calc(1rem * 4 / 3); }}",
+        # Los ceros de la pantalla de un mazo, en el texto tenue, como en la lista de mazos
+        # (la clase la pone on_overview_content).
+        f"html {_SURFACE} .zero-count {{ color: var(--fg-faint); }}",
+        # Barras inferiores de la lista de mazos y de la pantalla de un mazo: 16 px entre
+        # botones (antes, 14), contando el espacio que Anki deja entre ellos.
+        f"html {_SURFACE} center#outer > table#header button {{ margin-inline: 5.5px; }}",
+        # Editor: campos y etiquetas con el borde de control; el foco ya lo marca Anki con el
+        # trazo de acción, por dentro. Los iconos de su barra, en el texto secundario.
+        f"html {_SURFACE} :is(.editor-field, .tag-editor) {{ border-color: var(--nocturne-control-border); }}",
+        f"html {_SURFACE} .icon-button:not(.active, .primary, [disabled]) {{ color: var(--fg-subtle); }}",
+        # Engranaje de la lista de mazos: Anki pinta su dibujo oscuro, invertido de noche y a
+        # media opacidad (un gris que no es de la paleta). Se pinta con la máscara del mismo
+        # dibujo en el texto secundario y se aparta el de Anki; 24 px de zona pulsable sin
+        # mover nada (el margen negativo devuelve el relleno).
+        (
+            f"html {_SURFACE} img.gears {{ opacity: 1; filter: none; object-position: -9999px 0;"
+            " background: var(--fg-subtle);"
+            " -webkit-mask: url(/_anki/imgs/gears.svg) center / 1em 1em no-repeat content-box;"
+            " mask: url(/_anki/imgs/gears.svg) center / 1em 1em no-repeat content-box;"
+            " padding: calc((24px - 1em) / 2);"
+            " margin: calc((1em - 24px) / 2 + 0.2em) calc((1em - 24px) / 2) calc((1em - 24px) / 2); }"
+        ),
+        # Tirador de las barras de desplazamiento: 8 px dentro del carril de 12 (un borde
+        # transparente de 2 px), redondo. Los colores ya llegan a 3:1.
+        (
+            "html:root body:not(.isMac)::-webkit-scrollbar-thumb,"
+            " html:root body:not(.isMac) *::-webkit-scrollbar-thumb"
+            " { border: 2px solid transparent; background-clip: padding-box; border-radius: 6px; }"
+        ),
+    ]
+    return "\n".join(rules)
+
+
 def _css_text() -> str:
     """CSS completo (sin la etiqueta ``<style>``), armado una vez por paleta."""
     global _css_cache
@@ -412,6 +523,7 @@ def _css_text() -> str:
                 _var_block(_LIGHT_SELECTOR, "light"),
                 _var_block(_DARK_SELECTOR, "dark"),
                 _surface_css(),
+                _redesign_css(),
             ]
         )
     return _css_cache
@@ -470,9 +582,45 @@ def _install_js(style_id: str, guard_existing: bool) -> str:
         # cualquier caso raro en el que aún no estuviera.
         "if (document.documentElement) { install(); }"
         "else { document.addEventListener('DOMContentLoaded', install, {once: true}); }"
+        f"{_EDITABLE_JS}"
         "} catch (e) {}"
         "})();"
     )
+
+
+# --- FIX-015 (2026-11-11) ---
+# Síntoma: de noche, lo que se escribe en los campos del editor salía en blanco puro (14,8:1, por
+#          encima del techo de 13,5) y de día en negro puro; la descripción decía «en el color del
+#          texto».
+# Causa: Anki fija ese color dentro de cada campo, en una zona aislada de la página (shadow DOM)
+#        a la que no llega el estilo de fuera: «anki-editable { color: white }» o «black».
+# Regla: lo que Anki pinta dentro de una zona aislada se cambia dentro de ella, con una regla más
+#        específica y var(--fg), que sigue la paleta y el modo; y se mide en la página dibujada,
+#        no solo en el CSS de fuera.
+# Las zonas nuevas reciben la regla al crearse (se envuelve attachShadow una vez por página,
+# antes de que el editor cree sus campos) y las que ya existían, al instalarse el estilo. La
+# regla solo afecta a anki-editable: en cualquier otra zona aislada no hace nada.
+_EDITABLE_JS = (
+    "if (!window.nocturneEditable && window.CSSStyleSheet && Element.prototype.attachShadow) {"
+    "const sheet = new CSSStyleSheet();"
+    "sheet.replaceSync(':host anki-editable { color: var(--fg); }');"
+    "window.nocturneEditable = sheet;"
+    "const adopt = (root) => {"
+    "if (root && !root.adoptedStyleSheets.includes(sheet)) {"
+    "root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet]; } };"
+    "const original = Element.prototype.attachShadow;"
+    "Element.prototype.attachShadow = function (init) {"
+    "const root = original.call(this, init);"
+    "try { adopt(root); } catch (e) {}"
+    "return root; };"
+    "}"
+    "if (window.nocturneEditable && document.querySelectorAll) {"
+    "document.querySelectorAll('.rich-text-editable').forEach((host) => {"
+    "const root = host.shadowRoot;"
+    "if (root && !root.adoptedStyleSheets.includes(window.nocturneEditable)) {"
+    "root.adoptedStyleSheets = [...root.adoptedStyleSheets, window.nocturneEditable]; } });"
+    "}"
+)
 
 
 def _inject_js() -> str:
@@ -577,6 +725,22 @@ def on_will_set_content(web_content: WebContent, context: object) -> None:
     webview = getattr(context, "web", None)
     if isinstance(webview, AnkiWebView):
         ensure_early_style(webview)
+
+
+# Versión 3.9.0 (informe del 2026-11-11, apartado 4.4): en la pantalla de un mazo, una cifra a
+# cero no lleva color. Anki pinta «Aprendiendo: 0» en rojo, al nivel de las cifras que piden
+# algo, mientras que en la lista de mazos ya pone los ceros en el texto tenue (zero-count).
+# Aquí se añade esa misma clase a las cifras a cero; la de su tipo se queda, para que su
+# etiqueta siga en el texto secundario.
+_ZERO_COUNT = re.compile(r"<span class=(new-count|learn-count|review-count)>0</span>")
+
+
+@guard
+def on_overview_content(overview: object, content: Any) -> None:
+    """Marca las cifras a cero de la pantalla de un mazo con la clase de Anki para los ceros."""
+    table = getattr(content, "table", None)
+    if isinstance(table, str):
+        content.table = _ZERO_COUNT.sub(r'<span class="\1 zero-count">0</span>', table)
 
 
 @guard

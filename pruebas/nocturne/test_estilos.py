@@ -166,6 +166,62 @@ class WebStyleTest(unittest.TestCase):
             # La barra del repaso (botones de respuesta) no lleva esa esquina.
             self.assertNotIn("#innertable", css, theme_id)
 
+    def test_report_3_8_pages(self) -> None:
+        # Versión 3.9.0 (informe del 2026-11-11, apartado 8): bordes, esquinas y alturas de los
+        # botones de las páginas, ceros sin color, editor, engranaje y degradado fuera de las barras.
+        for theme_id in themes.THEMES:
+            css = self.css_for(theme_id)
+            page = f"html body:not(.card) {webview_style._PAGE_BUTTON}"
+            self.assertIn(f"{page} {{ border-color: var(--nocturne-control-border); }}", css)
+            self.assertIn(f"{page}:hover {{ border-color: var(--button-hover-border); }}", css)
+            self.assertIn("background: var(--nocturne-button-pressed);", css)
+            # Ningún botón en píldora: los de respuesta y «Comenzar a estudiar», con la de botones.
+            self.assertIn("button:is(:not([class]), .but) { border-radius: var(--nocturne-control-radius); }", css)
+            # Versión 3.9.1 (petición del cliente): los de respuesta, casi a su tamaño de Anki y
+            # con su letra; «Comenzar a estudiar», algo menor que en la 3.9.0.
+            self.assertIn("min-height: 30px; min-width: 84px; margin-inline: 8px; background-origin", css)
+            self.assertIn("button#study { box-sizing: border-box; min-height: 34px;", css)
+            self.assertIn("font-size: calc(1rem * 14 / 15);", css)
+            self.assertIn(f"{page}[data-ease] {{ border-bottom-color: transparent; }}", css)
+            self.assertIn("center > h3 { font-size: calc(1rem * 4 / 3); }", css)
+            self.assertIn(".zero-count { color: var(--fg-faint); }", css)
+            self.assertIn(":is(.editor-field, .tag-editor) { border-color: var(--nocturne-control-border); }", css)
+            self.assertIn("img.gears { opacity: 1; filter: none;", css)
+            self.assertIn("background: var(--fg-subtle);", css)
+            # El selector de los botones no lleva un id: pesaría más que las reglas de cada estado.
+            self.assertNotIn("#", webview_style._PAGE_BUTTON)
+
+    def test_glow_only_on_page_backgrounds(self) -> None:
+        # Versión 3.9.0 (informe, apartado 8.7): el degradado no entra en las barras ni en el
+        # repaso, y sigue anclado a la ventana (FIX-001).
+        css = self.css_for("nocturne")
+        glow = css[css.index("radial-gradient") - 120 : css.index("radial-gradient")]
+        self.assertIn(":not(:has(#outer, .toolbar))", glow)
+        self.assertIn("background-attachment: fixed", css)
+
+    def test_zero_counts_on_the_deck_screen(self) -> None:
+        # Versión 3.9.0 (informe, apartado 4.4): «Aprendiendo: 0» iba en rojo.
+        table = (
+            "<span class=new-count>2</span><span class=learn-count>0</span>"
+            "<span class=review-count>10</span><span class=review-count>0</span>"
+        )
+        content = types.SimpleNamespace(table=table)
+        webview_style.on_overview_content(None, content)
+        self.assertEqual(
+            content.table,
+            '<span class=new-count>2</span><span class="learn-count zero-count">0</span>'
+            '<span class=review-count>10</span><span class="review-count zero-count">0</span>',
+        )
+
+    def test_editor_text_in_the_text_color(self) -> None:
+        # Regresión de FIX-015: Anki fija «anki-editable { color: white }» dentro de cada campo;
+        # la regla de la paleta entra en esa zona aislada, con más peso y var(--fg).
+        script = webview_style._install_js("x", guard_existing=False)
+        self.assertIn(":host anki-editable { color: var(--fg); }", script)
+        self.assertIn("Element.prototype.attachShadow = function", script)
+        self.assertIn("querySelectorAll('.rich-text-editable')", script)
+        self.assertIn("if (!window.nocturneEditable", script)  # una sola vez por página
+
     def test_switching_changes_the_css(self) -> None:
         first = self.css_for("papel")
         second = self.css_for("nocturne")
@@ -231,7 +287,10 @@ class QtStyleTest(unittest.TestCase):
                 tooltip = sheet[sheet.index("QToolTip {") :]
                 colors = data["colors"]
                 self.assertIn(f"background-color: {to_css_rgba(colors['CANVAS_OVERLAY'][mode])};", tooltip, theme_id)
-                self.assertIn(f"border: 1px solid {to_css_rgba(colors['BORDER_SUBTLE'][mode])};", tooltip, theme_id)
+                # Versión 3.9.0 (informe del 2026-11-11, apartado 2.4): el borde fuerte; el
+                # suave no se distinguía del propio globo (1,06:1).
+                self.assertIn(f"border: 1px solid {to_css_rgba(colors['BORDER_STRONG'][mode])};", tooltip, theme_id)
+                self.assertIn("padding: 6px 8px;", tooltip, theme_id)
 
     def test_same_corner_for_buttons_and_fields(self) -> None:
         # Versión 3.5.0: botones y campos con la misma esquina; casillas, 4 px.
@@ -281,6 +340,43 @@ class QtStyleTest(unittest.TestCase):
                 self.assertIn(f"selection-background-color: {selected};", sheet, theme_id)
                 checked = sheet[sheet.index("QCheckBox::indicator:checked:!disabled {") :]
                 self.assertIn(f"background: {to_css_rgba(colors['BUTTON_PRIMARY_BG'][mode])};", checked)
+
+    def test_report_3_8_window_controls(self) -> None:
+        # Versión 3.9.0 (informe del 2026-11-11, apartado 8.6): botones con el borde de control,
+        # pestañas inactivas sin relleno, el anillo del botón principal solo con el foco y el
+        # tirador de la barra de desplazamiento de 8 px.
+        for theme_id, data in themes.THEMES.items():
+            for night, mode in ((False, "light"), (True, "dark")):
+                sheet = self.qss(theme_id, night)
+                colors = data["colors"]
+
+                def rule(selector: str, sheet: str = sheet) -> str:
+                    start = sheet.index(selector + " {")
+                    return sheet[start : sheet.index("}", start)]
+
+                values = {name: to_css_rgba(entry[mode]) for name, entry in colors.items()}
+
+                def pick(name: str, values: dict[str, str] = values) -> str:
+                    return values[name]
+
+                self.assertIn(
+                    f"QPushButton {{\n        border-color: {pick('NOCTURNE_CONTROL_BORDER')};\n        min-height: 22px;",
+                    sheet,
+                )
+                self.assertIn(
+                    f"border-color: {pick('BUTTON_HOVER_BORDER')};", rule("QPushButton:hover:!focus:!default")
+                )
+                self.assertIn(f"background: {pick('NOCTURNE_BUTTON_PRESSED')};", rule("QPushButton:pressed:!default"))
+                self.assertIn(f"border-color: {pick('BORDER')};", rule("QPushButton:disabled"))
+                inactive = rule("QTabBar::tab:!selected")
+                self.assertIn("background: transparent;", inactive)
+                self.assertIn(f"color: {pick('FG_SUBTLE')};", inactive)
+                hover = rule("QDialogButtonBox QPushButton:default:hover")
+                self.assertNotIn(pick("NOCTURNE_PRIMARY_RING"), hover, theme_id)
+                self.assertIn(pick("NOCTURNE_PRIMARY_RING"), rule("QDialogButtonBox QPushButton:default:focus"))
+                self.assertIn(f"placeholder-text-color: {pick('FG_FAINT')};", sheet)
+                self.assertIn(f"border-color: {pick('BORDER_STRONG')};", rule("QMenu"))
+                self.assertIn("padding: 0px 2px;", rule("QScrollBar:vertical"))
 
     def test_other_widget_styles_untouched(self) -> None:
         theming.mw = types.SimpleNamespace(  # type: ignore[assignment]

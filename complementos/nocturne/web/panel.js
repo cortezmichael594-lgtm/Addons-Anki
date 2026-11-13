@@ -8,7 +8,7 @@
 // botones de opción del W3C: el tabulador entra en la elegida; las flechas mueven y
 // eligen a la vez, y de la última pasan a la primera; la barra espaciadora o un clic
 // eligen. Un clic aplica al momento («pick»); las flechas, cuando la elección lleva
-// 200 ms quieta («move», lo decide Python). Ctrl+Intro acepta y Esc cancela.
+// 200 ms quieta («move», lo decide Python). Intro (o Ctrl+Intro) acepta y Esc cancela.
 //
 // Todo lleva el prefijo «nocturne» (nombre del paquete).
 
@@ -185,6 +185,11 @@
         }
     }
 
+    function inList() {
+        var focused = document.activeElement;
+        return !!(focused && focused.dataset && focused.dataset.id);
+    }
+
     function updateEdges(shell, body) {
         shell.classList.toggle("nocturne-p-scrolled", body.scrollTop > 0);
         shell.classList.toggle("nocturne-p-overflow", body.scrollHeight > body.clientHeight + 1);
@@ -276,7 +281,10 @@
             if (event.key === "Escape") {
                 send("cancel");
                 event.preventDefault();
-            } else if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+            } else if (event.key === "Enter" && (event.ctrlKey || event.metaKey || inList())) {
+                // Versión 3.9.0 (informe del 2026-11-11, apartado 3.1): Intro acepta también
+                // sin Ctrl cuando el foco está en la lista, como promete el botón relleno; en
+                // un botón, Intro pulsa ese botón (lo hace el propio navegador).
                 send("accept");
                 event.preventDefault();
             }

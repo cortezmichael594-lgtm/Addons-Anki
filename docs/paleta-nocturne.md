@@ -23,6 +23,10 @@ pruebas del taller:
   `CANVAS_ELEVATED` < `BUTTON_BG` < `CANVAS_OVERLAY` < `BUTTON_HOVER`.
 * Bordes de casillas (`NOCTURNE_CONTROL_BORDER`) e iconos de bandera, 3:1 o más.
   La bandera roja y la verde se distinguen además por su claridad.
+* Todo lo que se pulsa o se rellena (botones, campos, listas desplegables y casillas)
+  lleva el borde de control (`NOCTURNE_CONTROL_BORDER`), y el tirador de las barras de
+  desplazamiento (`SCROLLBAR_BG`) llega también a 3:1 sobre el fondo, los campos y los
+  recuadros (Atelier 3.9.0, informe del 2026-11-11, aprobado por el cliente).
 * Nocturne es una de las tres paletas del complemento (con Papel y Bosque); este
   documento describe solo Nocturne, la de serie. Las otras están en
   `complementos/nocturne/themes.py`.
@@ -111,7 +115,7 @@ seguirá encajando aunque la paleta se ajuste en el futuro.
 |-|-|-|-|
 |`BUTTON_BG`|`--button-bg`|`#FBFCFE`|`#242C3A`|
 |`BUTTON_HOVER`|`--button-gradient-start`, `--button-gradient-end`|`#EDF0F5`|`#2E3747`|
-|`BUTTON_HOVER_BORDER`|`--button-hover-border`|`#C0C6D3`|`#3D475C`|
+|`BUTTON_HOVER_BORDER`|`--button-hover-border`|`#6F7682`|`#8590A3`|
 |`BUTTON_DISABLED`|`--button-disabled`|`#FBFCFE80`|`#242C3A80`|
 |`BUTTON_PRIMARY_BG`|`--button-primary-bg`|`#3B6FE0`|`#4066E6`|
 |`BUTTON_PRIMARY_GRADIENT_START`|`--button-primary-gradient-start`|`#3B6FE0`|`#4066E6`|
@@ -141,9 +145,9 @@ seguirá encajando aunque la paleta se ajuste en el futuro.
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`SCROLLBAR_BG`|`--scrollbar-bg`|`#D5D9E2`|`#272F3F`|
-|`SCROLLBAR_BG_HOVER`|`--scrollbar-bg-hover`|`#C0C6D3`|`#353E50`|
-|`SCROLLBAR_BG_ACTIVE`|`--scrollbar-bg-active`|`#AAB1C0`|`#3D475C`|
+|`SCROLLBAR_BG`|`--scrollbar-bg`|`#828893`|`#6C7587`|
+|`SCROLLBAR_BG_HOVER`|`--scrollbar-bg-hover`|`#6F7682`|`#8590A3`|
+|`SCROLLBAR_BG_ACTIVE`|`--scrollbar-bg-active`|`#646C7D`|`#9AA3B4`|
 
 ### Sombras
 
@@ -166,15 +170,21 @@ seguirá encajando aunque la paleta se ajuste en el futuro.
 |`FLAG_6`|`--flag-6`|`#099268`|`#439C81`|
 |`FLAG_7`|`--flag-7`|`#7048E8`|`#9680D6`|
 
-### Propios de Nocturne (sin variable CSS; solo los usa el complemento en las ventanas)
+### Propios de Nocturne (no existen en Anki; los usa el complemento en las ventanas y, los que tienen variable CSS, también en las páginas)
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`NOCTURNE_CONTROL_BORDER`|—|`#878C97`|`#727B8C`|
-|`NOCTURNE_PRIMARY_PRESSED`|—|`#284EAA`|`#2B45AA`|
-|`NOCTURNE_PRIMARY_RING`|—|`#1C3A8A`|`#A9C4FF`|
+|`NOCTURNE_CONTROL_BORDER`|`--nocturne-control-border`|`#878C97`|`#727B8C`|
+|`NOCTURNE_PRIMARY_PRESSED`|`--nocturne-primary-pressed`|`#284EAA`|`#2B45AA`|
+|`NOCTURNE_PRIMARY_RING`|`--nocturne-primary-ring`|`#1C3A8A`|`#A9C4FF`|
 |`NOCTURNE_ROW_HIGHLIGHT`|`--nocturne-row-highlight`|`#EAEEF8`|`#19233F`|
 |`NOCTURNE_TITLEBAR`|— (barra de título, solo Windows 11)|`#FAFBFE`|`#070C16`|
+|`NOCTURNE_TABLE_SELECTED`|— (fila seleccionada de las tablas, opaca)|`#92AEEB`|`#3D5696`|
+|`NOCTURNE_BUTTON_PRESSED`|`--nocturne-button-pressed`|`#DADEE7`|`#212836`|
+
+Color derivado, sin token propio: la raya de «Difícil» de los botones de respuesta es
+`color-mix(in srgb, var(--flag-2) 85%, var(--fg))`, que da `#C95111` de día y `#C38D53` de
+noche (3:1 o más sobre el botón).
 
 ## Bloque para pegar como contexto
 
@@ -234,8 +244,8 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
   },
   "BUTTON_HOVER_BORDER": {
     "css": "--button-hover-border",
-    "light": "#C0C6D3",
-    "dark": "#3D475C"
+    "light": "#6F7682",
+    "dark": "#8590A3"
   },
   "BUTTON_PRIMARY_BG": {
     "css": "--button-primary-bg",
@@ -364,18 +374,18 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
   },
   "SCROLLBAR_BG": {
     "css": "--scrollbar-bg",
-    "light": "#D5D9E2",
-    "dark": "#272F3F"
+    "light": "#828893",
+    "dark": "#6C7587"
   },
   "SCROLLBAR_BG_ACTIVE": {
     "css": "--scrollbar-bg-active",
-    "light": "#AAB1C0",
-    "dark": "#3D475C"
+    "light": "#646C7D",
+    "dark": "#9AA3B4"
   },
   "SCROLLBAR_BG_HOVER": {
     "css": "--scrollbar-bg-hover",
-    "light": "#C0C6D3",
-    "dark": "#353E50"
+    "light": "#6F7682",
+    "dark": "#8590A3"
   },
   "SELECTED_BG": {
     "css": "--selected-bg",
@@ -443,8 +453,10 @@ Mismo contenido en JSON, cómodo para incluir como referencia rápida:
 ## Reglas de coherencia
 
 * **Haz** que cada elemento nuevo derive su color de un token de esta tabla.
-* **Haz** que el color de acción (botones/enlaces destacados) use el azul
-`BUTTON_PRIMARY_BG` / `HIGHLIGHT_BG`; es el azul de acción del sistema.
+* **Haz** que el color de acción use el azul `BUTTON_PRIMARY_BG` /
+`HIGHLIGHT_BG` en rellenos y bordes; es el azul de acción del sistema. El texto
+que se pulsa (enlaces y botones de texto) usa `FG_LINK`: el azul de acción como
+texto da 3,0 a 1 de noche sobre `CANVAS_ELEVATED`.
 * **Haz** que el texto sobre un fondo de acción use `HIGHLIGHT_FG` (blanco).
 * **Haz** que cualquier color que definas a mano tenga su pareja día **y** noche.
 * **Evita** el negro puro (`#000`) y el blanco puro como fondos: usa `CANVAS` y

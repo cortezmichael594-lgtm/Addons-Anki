@@ -8,12 +8,15 @@ ninguna.
 
 Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa y propuesta.
 
-- 2026-11-04 · versión 3.7.2 · Qué pasa: de noche, el informe midió el texto de los campos del editor
-  en blanco puro (14,8 a 1), por encima del techo de 13,5 de las paletas, que piden #D6DAE1 en
-  Nocturne. No se ha podido averiguar desde aquí de dónde sale: Atelier no pinta el interior de los
-  campos, y puede venir del estilo de las tarjetas de su tipo de nota (el de serie, «Básico», pide
-  texto negro). Propuesta: con Atelier desactivado en Herramientas > «Complementos», abrir Añadir de
-  noche y ver si el texto sigue en blanco; si sigue, no es de Atelier y no se toca.
+- 2026-11-11 · versión 3.9.0 · Por comprobar (informe del 2026-11-11, apartado 2.2): la descripción
+  dice que el contorno de «Comenzar a estudiar» se ve desde que se abre la pantalla de un mazo, y en
+  la captura del informe no está. Lo más probable es que solo salga cuando se llega con el teclado.
+  Propuesta: abrir un mazo con el ratón y mirar si el botón lleva el anillo claro; si no lo lleva,
+  se corrige la frase de la descripción, no el botón.
+- 2026-11-11 · versión 3.9.0 · Por comprobar (informe, apartado 1.3): si alguna columna de Explorar
+  usa el texto secundario sobre la fila seleccionada, se leería a 3,79 a 1. En la captura solo hay
+  texto principal (5,04). Propuesta: si se ve un texto gris sobre la fila seleccionada, pasar ese
+  fondo a #344A86 de noche (4,56 el secundario y 6,06 el principal).
 
 ## Corregidos
 
@@ -98,6 +101,20 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   de acción es solo para el botón principal de la fila de botones del pie; un botón del cuerpo nunca
   se rellena. Prueba: «PrimaryButtonRowTest», que dibuja la ventana; falló antes del arreglo y pasa
   después.
+- FIX-014 · 2026-11-11 · versión 3.9.0 · Qué pasaba: en el panel, de noche, la paleta elegida llevaba
+  un borde de 1 px, y la descripción decía 2 (lo midió el informe del 2026-11-11). Por qué: la
+  segunda línea del borde es una sombra por dentro, y la regla que quita la sombra de las filas de
+  noche pesaba más que la de la elegida y la borraba también. Regla: una regla general nunca pisa la
+  de un estado (elegida, foco): se limita a las filas que no lo tienen. Prueba:
+  «test_chosen_border_survives_night», y dibujada en Chromium: 1 px de borde más 1 por dentro.
+- FIX-015 · 2026-11-11 · versión 3.9.0 · Qué pasaba: lo que se escribe en los campos del editor salía
+  en blanco puro de noche (14,8 a 1, por encima del techo de 13,5) y en negro puro de día; la
+  descripción decía «en el color del texto». Estaba en «Pendientes» desde la 3.7.2 sin saber de
+  dónde salía. Por qué: Anki fija ese color dentro de cada campo, en una zona aislada de la página a
+  la que no llega el estilo de fuera. Regla: lo que Anki pinta dentro de una zona aislada se cambia
+  dentro de ella, y se comprueba en la página dibujada. Prueba: «test_editor_text_in_the_text_color»,
+  y dibujada en Chromium: de rgb(255, 255, 255) a rgb(214, 218, 225).
+
 ## Así a propósito
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
@@ -118,7 +135,11 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   versión original; las pruebas lo vigilan. Es la identidad que el cliente quiere conservar.
 - 3.0.0 · No se cambia el tamaño de la letra: manda el que el cliente tenga elegido en Anki. Decisión
   del taller. (En 3.0.0 tampoco se tocaban las esquinas ni el botón por defecto; desde 3.1.0 sí, porque
-  el cliente lo pidió.)
+  el cliente lo pidió.) Desde la 3.9.0, el título de la pantalla de un mazo y el rótulo de
+  «Comenzar a estudiar» siguen en proporción a esa letra (decisión 2 del informe del 2026-11-11,
+  aprobada por el cliente); si sube la letra en Anki, suben con ella. Los rótulos de los botones de
+  respuesta también lo hacían en la 3.9.0; desde la 3.9.1 vuelven a la letra de Anki, a petición
+  del cliente (2026-11-13), junto con un tamaño casi como el de Anki.
 - 3.1.0 · En Nocturne, la bandera rosa pasa de un rosa frambuesa a un rosa de verdad (tono 310°), porque
   se confundía con la roja. Es el único cambio de tono respecto al aspecto original; lo vigilan las
   pruebas.
@@ -214,8 +235,8 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 3.8.0 · Las flechas de las listas desplegables y de los campos numéricos y la marca de las
   casillas se repintan copiando los iconos de Anki con los colores de la paleta, en la carpeta de
   datos del complemento. Anki los trae ya pintados en un blanco casi puro (de noche) o casi negro (de
-  día). Los iconos de la barra lateral de Explorar y del editor no se tocan: los dibuja Anki con su
-  propio color en cada sitio. Decisión del taller.
+  día). Decisión del taller. Hasta la 3.8.0, los iconos de la barra lateral de Explorar y los del
+  editor no se tocaban; desde la 3.9.0 sí (informe del 2026-11-11, regla 4): ver la línea siguiente.
 - 3.8.0 · La fila vacía bajo la cabecera de la lista de mazos, donde se suelta un mazo para sacarlo al
   nivel superior, mide 10 px en lugar de una línea entera (el informe proponía 8). Se puede seguir
   soltando ahí un mazo, con algo más de puntería; no crece al arrastrar, para que la lista no salte.
@@ -223,3 +244,28 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 3.8.0 · El verde de «A repasar» y el tono 3 de Verde clásico de GritMap son casi el mismo verde. No
   se cambia: los colores de estado de Anki son una convención conocida (informe, apartado 1.6).
   Decisión del taller.
+- 3.9.0 · Los iconos sin color propio de las ventanas (barra lateral de Explorar y sus herramientas)
+  se tiñen del texto secundario envolviendo la función de Anki que los prepara, porque Anki no ofrece
+  un gancho para ello (APR-015). Si una versión futura de Anki la cambia o algo falla, quedan los
+  iconos de Anki y el fallo va al registro, sin ventana de error. Los que tienen color propio
+  (banderas, estados de tarjeta) no cambian. Decisión del taller, dentro del informe aprobado.
+- 3.9.0 · El color de lo que se escribe en el editor se cambia añadiendo una regla dentro de cada
+  campo, que es una zona aislada de la página: para llegar a los campos nuevos, la página envuelve
+  una función del navegador (attachShadow) una sola vez, antes de que el editor los cree (FIX-015,
+  APR-070). Si una versión futura del editor deja de usar esa zona, la regla no hace nada y el texto
+  queda como lo pinte Anki. Decisión del taller.
+- 3.9.0 · Los botones de respuesta y «Comenzar a estudiar» ya no son píldoras: llevan la esquina de
+  los botones (6 u 8 px). Cambia el rasgo más reconocible de la Nocturne original; lo aprobó el
+  cliente el 2026-11-11 (decisión 1 del informe, opción A).
+- 3.9.0 · Los controles de las ventanas miden 28 px de alto (antes, entre 21 y 27), y las opciones de
+  los menús, 28: las ventanas y los menús crecen un poco (Preferencias, unos 35 px). Lo pide el
+  informe del 2026-11-11 (apartado 8.6), aprobado; el informe pide mirar Preferencias con la interfaz
+  al 150 % antes de darlo por bueno (está en «Pendiente de probar» de la entrega).
+- 3.9.0 · La separación de 16 px entre los botones de las barras inferiores cuenta el espacio que
+  Anki deja entre ellos (unos 5 px con la letra de serie): con otra letra puede quedar en 15 o 17.
+  Decisión del taller, para no tocar cómo Anki coloca esos botones.
+- 3.9.0 · El anillo del botón principal de las ventanas sale con el foco, que en Qt también llega
+  con un clic; en las páginas, solo con el teclado. Qt no distingue cómo llegó el foco. Decisión del
+  taller.
+- 3.9.0 · No se aplica la frase que faltaba al aviso «Alguna parte de Anki no se pudo pintar…»: el
+  informe no la propone porque no se sabe qué lo arregla (apartado 3.1). Queda como está.

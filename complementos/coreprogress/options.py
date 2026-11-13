@@ -1,10 +1,16 @@
 """El panel de opciones.
 
-Lo ESTRUCTURAL del panel (los botones Guardar, Cancelar, Aceptar y Restaurar
-valores predeterminados) no se traduce aqui: son los botones estandar de Qt,
-que Anki localiza al fijar el idioma de la aplicacion (QLocale y el traductor
-qtbase, en qt/aqt/__init__.py). Asi esos textos son siempre correctos y no hay
-nada inventado.
+Version 1.1.0 (peticion del cliente, 2026-11-09): la ventana sigue el panel
+modelo de GritMap (docs/fichas-diseno/09-patron-configuracion.md, regla del
+taller desde PROP-012). Las mismas opciones, en tres recuadros: el record con
+«Restablecer»; el aspecto de la barra (tema en fichas con su muestra, altura y
+espacio con «−» y «+», y las dos casillas), con «Restaurar»; y la fila de los
+mazos excluidos, que abre su lista con buscador dentro de la misma ventana.
+
+Lo ESTRUCTURAL del panel (Aceptar, Cancelar, Restaurar, Si, No) no se traduce
+aqui: son los textos de los botones estandar de Qt, que Anki localiza al fijar
+el idioma de la aplicacion. Asi esos textos son siempre correctos y no hay nada
+inventado.
 
 El TITULO de la ventana es solo el nombre del complemento, tal como lo declara
 manifest.json. Es un nombre propio: no se traduce y no lleva ninguna formula
@@ -14,36 +20,22 @@ La tabla propia de i18n.py se reserva para lo exclusivo del complemento (los
 nombres de los temas de color, el record, los mazos excluidos).
 """
 
+# Historial de correcciones de este archivo:
+# FIX-003 (2026-11-09) — «Restablecer» borraba el récord sin vuelta atrás con un Intro de más.
+
 from __future__ import annotations
 
-from html import escape
+import re
+from typing import Any
 
 from aqt import mw
-from aqt.qt import (
-    QCheckBox,
-    QColor,
-    QComboBox,
-    QDialog,
-    QDialogButtonBox,
-    QFormLayout,
-    QHBoxLayout,
-    QIcon,
-    QLabel,
-    QListWidget,
-    QListWidgetItem,
-    QPixmap,
-    QPushButton,
-    QSpinBox,
-    Qt,
-    QVBoxLayout,
-    QWidget,
-    qconnect,
-)
-from aqt.utils import askUser
+from aqt.qt import QDialogButtonBox
+from aqt.theme import theme_manager
 
 from .errors import report
 from .i18n import record_value_label, t
-from .palettes import DEFAULT_THEME, THEME_KEYS, swatch
+from .palettes import DEFAULT_THEME, RETIRED_THEMES, THEME_KEYS, swatch
+from .panel import PanelDialog, button_text, parent_window
 from .settings import (
     BAR_HEIGHT_MAX,
     BAR_HEIGHT_MIN,
@@ -51,14 +43,17 @@ from .settings import (
     PUSH_MAX,
     PUSH_MIN,
     Config,
-    load_best_streak,
     load_config,
     reset_best_streak,
     save_config,
 )
 
+_RESET_KEY = "reset_record"
+_EXCLUDE_KEY = "excluded_decks"
+_VISUAL_KEYS: tuple[str, ...] = ("theme", "bar_height", "push_down", "effects_enabled", "checkpoints_enabled")
 
-def _log(exc: Exception) -> None:
+
+def _log(exc: BaseException) -> None:
     report(exc, "options")
 
 
@@ -80,245 +75,213 @@ def _addon_title() -> str:
     return name
 
 
-def _amp(text: str) -> str:
-    """Escape ``&`` so Qt does not read it as a keyboard shortcut.
+def _without_px(text: str) -> str:
+    """«Altura de la barra (px)» → «Altura de la barra»: la unidad va al lado
+    del campo, como en GritMap."""
+    return re.sub(r"\s*\(px\)\s*$", "", text)
 
-    HISTORIAL: el texto ingles de la casilla se guardaba ya escapado
-    ("Streak && record effects"). Los textos deben guardarse tal como se leen;
-    el escape pertenece al punto en que se entregan a Qt, que es aqui.
+
+def _record_parts(record: int) -> dict[str, str]:
+    """«Récord: 7 aciertos seguidos», con la cifra en negrita, o «Sin récord
+    todavía».
+
+    1.2.0 (informe del 2026-11-09, aprobado por el cliente sabiendo que antes
+    pidió «Tu récord actual: 7 seguidas!» y el guion): forma impersonal, el
+    plural de cada idioma y sin el «!» suelto.
     """
-    return text.replace("&", "&&")
+    if record <= 0:
+        return {"before": t("record_none")}
+    return {"before": f"{t('opt_record')}: ", "strong": record_value_label(record)}
 
 
-def _no_elide(widget: QWidget) -> None:
-    """Reserve the width the full text needs.
-
-    HISTORIAL: con traducciones largas, Qt recortaba el texto de los botones y
-    lo remataba con puntos suspensivos ("Seleccionar mazos..."), que parecian
-    parte de la traduccion. Fijando el ancho minimo al que pide el propio
-    texto, el dialogo crece en lugar de recortar, en los 59 idiomas.
-    """
-    widget.setMinimumWidth(widget.sizeHint().width())
+def sorted_themes() -> list[str]:
+    """Los temas por orden alfabético de su nombre en el idioma de Anki, como en
+    GritMap (1.2.0)."""
+    return sorted(THEME_KEYS, key=lambda key: t(f"theme_{key}").casefold())
 
 
-def _standard_button(
-    box: QDialogButtonBox, role: QDialogButtonBox.StandardButton
-) -> QPushButton | None:
-    """Devuelve un boton estandar SIN tocarle el texto.
-
-    HISTORIAL: aqui se les escribia encima el texto de la tabla propia del
-    complemento ("Aceptar", "Cancelar", "Restaurar los valores
-    predeterminados"). Qt ya trae esos textos traducidos y Anki fija el idioma
-    de la aplicacion al arrancar, asi que pisarlos solo podia empeorarlos.
-    Regla: los botones estandar de un dialogo se dejan con su texto de Qt; la
-    tabla propia es solo para lo que Anki no tiene.
-    """
-    button = box.button(role)
-    if button is not None:
-        _no_elide(button)
-    return button
+def _visual_values(cfg: Config) -> dict[str, Any]:
+    return {
+        "theme": cfg.theme,
+        "bar_height": cfg.bar_height,
+        "push_down": cfg.push_down,
+        "effects_enabled": cfg.effects_enabled,
+        "checkpoints_enabled": cfg.checkpoints_enabled,
+    }
 
 
-def _color_icon(color_hex: str) -> QIcon:
-    pixmap = QPixmap(16, 16)
-    pixmap.fill(QColor(color_hex))
-    return QIcon(pixmap)
+def page(cfg: Config, record: int, title: str = "CoreProgress") -> dict[str, Any]:
+    """Descripcion del panel: el record, el aspecto de la barra y los mazos."""
+    dark = bool(theme_manager.night_mode)
+    values = {**_visual_values(cfg), _EXCLUDE_KEY: list(cfg.excluded_decks), _RESET_KEY: False}
+    defaults = {**_visual_values(DEFAULT_CONFIG), _EXCLUDE_KEY: [], _RESET_KEY: False}
+    # --- FIX-003 (2026-11-09) ---
+    # Síntoma: al pulsar «Restablecer», la pregunta traía «Sí» marcado de
+    #          antemano y el récord se borraba en el acto, aunque después se
+    #          pulsara Cancelar.
+    # Causa: se usaba la pregunta de Anki sin «No» por defecto y el borrado se
+    #        aplicaba antes de guardar.
+    # Regla: lo que borra sin vuelta atrás pregunta con el foco en «No» y solo
+    #        se aplica al pulsar Aceptar; Cancelar lo deja como estaba.
+    record_card = {
+        "items": [
+            {
+                "type": "stat",
+                "key": _RESET_KEY,
+                "parts": _record_parts(record),
+                "done": _record_parts(0),
+                "action": {
+                    "label": t("opt_record_reset"),
+                    "disabled": record <= 0,
+                    "confirm": {
+                        "title": t("opt_record_reset_confirm"),
+                        # 1.2.0: botones con verbo, no «Sí» y «No».
+                        "yes": t("opt_record_reset"),
+                        "no": button_text(QDialogButtonBox.StandardButton.Cancel) or "Cancel",
+                    },
+                },
+            }
+        ]
+    }
+    look_card: dict[str, Any] = {
+        "restore": True,
+        "items": [
+            {
+                "type": "chips",
+                "key": "theme",
+                "label": t("opt_theme"),
+                "options": [
+                    {"value": key, "label": t(f"theme_{key}"), "swatch": swatch(key, dark)}
+                    for key in sorted_themes()
+                ],
+            },
+            {
+                "type": "stepper",
+                "key": "bar_height",
+                "label": _without_px(t("opt_bar_height")),
+                "min": BAR_HEIGHT_MIN,
+                "max": BAR_HEIGHT_MAX,
+                "unit": "px",
+            },
+            {
+                "type": "stepper",
+                "key": "push_down",
+                "label": _without_px(t("opt_push")),
+                "min": PUSH_MIN,
+                "max": PUSH_MAX,
+                "step": 4,
+                "unit": "px",
+            },
+            {"type": "check", "key": "effects_enabled", "label": t("opt_effects")},
+            {"type": "check", "key": "checkpoints_enabled", "label": t("opt_checkpoints")},
+        ],
+    }
+    # HISTORIAL: la lista de excluir mazos tuvo una frase explicativa que el
+    # cliente retiro. En la 1.2.0 (informe del 2026-11-09) aprobo una linea
+    # breve que dice para que sirve, sabiendo que antes la habia retirado.
+    decks_card = {
+        "items": [
+            {"type": "row", "key": _EXCLUDE_KEY, "label": t("opt_exclude"), "note": t("opt_exclude_note")}
+        ]
+    }
+    if cfg.retired_theme in RETIRED_THEMES:
+        old = t(f"theme_{cfg.retired_theme}")
+        new = t(f"theme_{RETIRED_THEMES[cfg.retired_theme]}")
+        look_card["items"].insert(0, {"type": "notice", "text": t("theme_retired").format(old=old, new=new)})
+    return {
+        "title": title,
+        "values": values,
+        "defaults": defaults,
+        "cards": [record_card, look_card, decks_card],
+        "focus": "theme",
+    }
 
 
-def _record_html(record: int) -> str:
-    # HISTORIAL: hubo un malentendido con guiones y signos: el estado "sin
-    # record" lleva guion CORTO "-" (neutro en cualquier idioma), y el valor
-    # con record lleva "!" al final ("7 seguidas!"), todo en negrita igual que
-    # el resto (ahora cada idioma trae su forma en i18n.opt_record_value).
-    # El texto se escapa: viaja como HTML dentro de la etiqueta.
-    value = "-" if record <= 0 else record_value_label(record)
-    return f"{escape(t('opt_record'))}: <b>{escape(value)}</b>"
+def _int(value: object, fallback: int, low: int, high: int) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        return fallback
+    return max(low, min(high, value))
 
 
-class ExcludeDecksDialog(QDialog):
-    """Sub-window with the deck list; the parent keeps the chosen ids."""
-
-    def __init__(self, parent: QWidget, excluded: set[int]) -> None:
-        super().__init__(parent)
-        self.setWindowTitle(t("opt_exclude"))
-        self.setMinimumWidth(340)
-
-        self._decks = QListWidget()
-        self._decks.setMinimumHeight(180)
-        try:
-            if mw and mw.col:
-                for entry in mw.col.decks.all_names_and_ids():
-                    deck_id = int(entry.id)
-                    item = QListWidgetItem(entry.name)
-                    item.setData(Qt.ItemDataRole.UserRole, deck_id)
-                    item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-                    state = (
-                        Qt.CheckState.Checked if deck_id in excluded else Qt.CheckState.Unchecked
-                    )
-                    item.setCheckState(state)
-                    self._decks.addItem(item)
-        except Exception as exc:
-            _log(exc)
-
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
-        )
-        qconnect(buttons.accepted, self.accept)
-        qconnect(buttons.rejected, self.reject)
-        _standard_button(buttons, QDialogButtonBox.StandardButton.Ok)
-        _standard_button(buttons, QDialogButtonBox.StandardButton.Cancel)
-
-        # HISTORIAL: aqui hubo una frase explicativa ("Los mazos marcados no
-        # cuentan para el record"). El cliente la retiro: la ventana ya se
-        # titula "Excluir mazos (record)" y la lista se explica sola.
-        # Regla: en esta ventana no se anaden textos de ayuda, en ningun idioma.
-        layout = QVBoxLayout()
-        layout.addWidget(self._decks)
-        layout.addWidget(buttons)
-        self.setLayout(layout)
-        self.setMinimumWidth(max(360, self.sizeHint().width()))
-
-    def selected_ids(self) -> tuple[int, ...]:
-        ids: list[int] = []
-        for row in range(self._decks.count()):
-            item = self._decks.item(row)
-            if item is not None and item.checkState() == Qt.CheckState.Checked:
-                deck_id = item.data(Qt.ItemDataRole.UserRole)
-                if isinstance(deck_id, int):
-                    ids.append(deck_id)
-        return tuple(ids)
+def config_from_page(values: Any, existing: set[int] | None = None) -> Config:
+    """Lo elegido en la pagina, con cada valor comprobado. Los mazos que ya no
+    existen dejan de guardarse."""
+    raw = values if isinstance(values, dict) else {}
+    theme = raw.get("theme")
+    decks: list[int] = []
+    for value in raw.get(_EXCLUDE_KEY) or []:
+        if isinstance(value, int) and not isinstance(value, bool) and value not in decks:
+            if existing is None or value in existing:
+                decks.append(value)
+    effects = raw.get("effects_enabled")
+    checkpoints = raw.get("checkpoints_enabled")
+    return Config(
+        theme=theme if isinstance(theme, str) and theme in THEME_KEYS else DEFAULT_THEME,
+        effects_enabled=effects if isinstance(effects, bool) else DEFAULT_CONFIG.effects_enabled,
+        checkpoints_enabled=checkpoints if isinstance(checkpoints, bool) else DEFAULT_CONFIG.checkpoints_enabled,
+        bar_height=_int(raw.get("bar_height"), DEFAULT_CONFIG.bar_height, BAR_HEIGHT_MIN, BAR_HEIGHT_MAX),
+        push_down=_int(raw.get("push_down"), DEFAULT_CONFIG.push_down, PUSH_MIN, PUSH_MAX),
+        excluded_decks=tuple(decks),
+    )
 
 
-class OptionsDialog(QDialog):
-    def __init__(self, parent: QWidget) -> None:
-        super().__init__(parent)
-        self.setWindowTitle(_addon_title())
-        self.setMinimumWidth(380)
+def _deck_list() -> list[dict[str, Any]]:
+    """Todos los mazos, con su nombre completo (los submazos, con «::»),
+    incluidos los filtrados y el predeterminado."""
+    if mw is None or mw.col is None:
+        return []
+    return [{"value": int(entry.id), "label": entry.name} for entry in mw.col.decks.all_names_and_ids()]
 
-        cfg = load_config()
-        self._excluded: tuple[int, ...] = cfg.excluded_decks
 
-        # El record va primero y en negrita, con su boton de restablecer.
-        # HISTORIAL: setFlat(True) se veia "artificial" junto a los botones
-        # estandar de Anki; los widgets Qt se dejan con su aspecto por defecto.
-        self._record_label = QLabel(_record_html(load_best_streak()))
-        self._record_label.setTextFormat(Qt.TextFormat.RichText)
-        self._reset_button = QPushButton(_amp(t("opt_record_reset")))
-        _no_elide(self._reset_button)
-        qconnect(self._reset_button.clicked, self._reset_record)
-        record_row = QHBoxLayout()
-        record_row.addWidget(self._record_label)
-        record_row.addStretch(1)
-        record_row.addWidget(self._reset_button)
+def _summary(values: Any) -> str:
+    """Los mazos excluidos, por su nombre; «-» si no hay ninguno."""
+    chosen = values.get(_EXCLUDE_KEY) if isinstance(values, dict) else None
+    ids = {value for value in chosen or [] if isinstance(value, int)}
+    names = [entry["label"] for entry in _deck_list() if entry["value"] in ids]
+    return ", ".join(names) if names else "-"
 
-        self._theme = QComboBox()
-        for key in THEME_KEYS:
-            self._theme.addItem(_color_icon(swatch(key)), t(f"theme_{key}"), key)
 
-        self._bar_height = QSpinBox()
-        self._bar_height.setRange(BAR_HEIGHT_MIN, BAR_HEIGHT_MAX)
-        self._bar_height.setSingleStep(1)
-        self._bar_height.setSuffix(" px")
+def _handle(action: str, arg: Any) -> Any:
+    if action == "options":
+        return _deck_list()
+    if action == "summary":
+        return _summary(arg.get("values") if isinstance(arg, dict) else None)
+    if action != "accept":
+        return None
+    from .controller import notify_config_changed, notify_record_reset
 
-        self._push_down = QSpinBox()
-        # Mismo rango que valida settings.py: un solo sitio donde cambiarlo.
-        self._push_down.setRange(PUSH_MIN, PUSH_MAX)
-        self._push_down.setSingleStep(4)
-        self._push_down.setSuffix(" px")
+    existing = {entry["value"] for entry in _deck_list()} if mw is not None and mw.col is not None else None
+    if isinstance(arg, dict) and arg.get(_RESET_KEY) is True:
+        reset_best_streak()
+        notify_record_reset()
+    save_config(config_from_page(arg, existing))
+    notify_config_changed()
+    return None
 
-        self._effects = QCheckBox(_amp(t("opt_effects")))
-        self._checkpoints = QCheckBox(_amp(t("opt_checkpoints")))
 
-        self._exclude_button = QPushButton(_amp(t("opt_exclude_pick")))
-        _no_elide(self._exclude_button)
-        qconnect(self._exclude_button.clicked, self._pick_decks)
+def _log_panel(where: str, exc: BaseException) -> None:
+    _log(exc)
 
-        form = QFormLayout()
-        form.addRow(_amp(t("opt_theme")), self._theme)
-        form.addRow(_amp(t("opt_bar_height")), self._bar_height)
-        form.addRow(_amp(t("opt_push")), self._push_down)
-        form.addRow(_amp(t("opt_exclude")), self._exclude_button)
 
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Save
-            | QDialogButtonBox.StandardButton.Cancel
-            | QDialogButtonBox.StandardButton.RestoreDefaults
-        )
-        qconnect(buttons.accepted, self.accept)
-        qconnect(buttons.rejected, self.reject)
-        _standard_button(buttons, QDialogButtonBox.StandardButton.Save)
-        _standard_button(buttons, QDialogButtonBox.StandardButton.Cancel)
-        restore_button = _standard_button(
-            buttons, QDialogButtonBox.StandardButton.RestoreDefaults
-        )
-        if restore_button is not None:
-            qconnect(restore_button.clicked, self._restore_defaults)
-
-        layout = QVBoxLayout()
-        layout.addLayout(record_row)
-        layout.addSpacing(6)
-        layout.addLayout(form)
-        layout.addWidget(self._effects)
-        layout.addWidget(self._checkpoints)
-        layout.addSpacing(4)
-        layout.addWidget(buttons)
-        self.setLayout(layout)
-        self._apply_visual(cfg)
-        # Que la ventana se ajuste al idioma mas largo en vez de recortar texto.
-        self.setMinimumWidth(max(400, self.sizeHint().width()))
-
-    def _reset_record(self) -> None:
-        try:
-            if not askUser(t("opt_record_reset_confirm"), parent=self):
-                return
-            reset_best_streak()
-            self._record_label.setText(_record_html(0))
-            from .controller import notify_record_reset
-
-            notify_record_reset()
-        except Exception as exc:
-            _log(exc)
-
-    def _pick_decks(self) -> None:
-        try:
-            dialog = ExcludeDecksDialog(self, set(self._excluded))
-            if dialog.exec() == QDialog.DialogCode.Accepted:
-                self._excluded = dialog.selected_ids()
-        except Exception as exc:
-            _log(exc)
-
-    def _apply_visual(self, cfg: Config) -> None:
-        self._theme.setCurrentIndex(max(self._theme.findData(cfg.theme), 0))
-        self._bar_height.setValue(cfg.bar_height)
-        self._push_down.setValue(cfg.push_down)
-        self._effects.setChecked(cfg.effects_enabled)
-        self._checkpoints.setChecked(cfg.checkpoints_enabled)
-
-    def _restore_defaults(self) -> None:
-        # Visual settings only; the record and the excluded decks stay as they are.
-        self._apply_visual(DEFAULT_CONFIG)
-
-    def selected_config(self) -> Config:
-        theme_data = self._theme.currentData()
-        theme = theme_data if isinstance(theme_data, str) and theme_data in THEME_KEYS else DEFAULT_THEME
-        return Config(
-            theme=theme,
-            effects_enabled=self._effects.isChecked(),
-            checkpoints_enabled=self._checkpoints.isChecked(),
-            bar_height=self._bar_height.value(),
-            push_down=self._push_down.value(),
-            excluded_decks=self._excluded,
-        )
+# Se conserva una referencia mientras la ventana existe: sin ella Python podria
+# destruirla y la ventana desapareceria sola.
+_dialog: PanelDialog | None = None
 
 
 def open_options() -> None:
+    global _dialog
     try:
-        from .controller import notify_config_changed
+        if _dialog is not None and _dialog.isVisible():
+            _dialog.raise_()
+            _dialog.activateWindow()
+            return
+        package = mw.addonManager.addon_from_module(__name__)
+        from .controller import current_best
 
-        dialog = OptionsDialog(mw)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            save_config(dialog.selected_config())
-            notify_config_changed()
+        content = page(load_config(), current_best(), _addon_title())
+        dialog = PanelDialog(parent_window(), package, content, _handle, _log_panel, "coreprogressPanel")
+        _dialog = dialog
+        dialog.open()
     except Exception as exc:
         _log(exc)
 

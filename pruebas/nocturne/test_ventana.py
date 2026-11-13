@@ -265,6 +265,37 @@ class PanelTest(unittest.TestCase):
         for note in (strings.MODE_NOTE_DAY, strings.MODE_NOTE_NIGHT):
             self.assertIn("en Preferencias de Anki, en «Tema».", note)
 
+    def test_report_3_8_panel(self) -> None:
+        # Versión 3.9.0 (informe del 2026-11-11, apartado 8.9): Intro acepta desde la lista,
+        # miniaturas con el borde fuerte, un solo contorno con el foco y botones de 88 px.
+        from pathlib import Path
+
+        web = Path(panel.__file__).parent / "web"
+        js = (web / "panel.js").read_text(encoding="utf-8")
+        css = (web / "panel.css").read_text(encoding="utf-8")
+        self.assertIn('event.key === "Enter" && (event.ctrlKey || event.metaKey || inList())', js)
+        data = panel.payload("nocturne", night=True, failures=False, stepped_aside=False)
+        for entry in data["palettes"]:
+            colors = themes.THEMES[entry["id"]]["colors"]
+            self.assertEqual(entry["night"]["edge"], colors["BORDER_STRONG"]["dark"][:7])
+        self.assertIn("border: 1px solid var(--t-edge);", css)
+        focus = css[css.index(".nocturne-p-row:focus-visible {") :]
+        self.assertIn("outline-offset: 0;", focus[: focus.index("}")])
+        self.assertIn("min-width: 88px;", css)
+
+    def test_chosen_border_survives_night(self) -> None:
+        # Regresión de FIX-014: de noche, la regla que quita la sombra de las filas borraba la
+        # segunda línea del borde de la elegida (1 px en vez de 2).
+        import re
+        from pathlib import Path
+
+        css = (Path(panel.__file__).parent / "web" / "panel.css").read_text(encoding="utf-8")
+        for selector, body in re.findall(r"([^{}]*?)\{([^{}]*)\}", css):
+            if "night-mode" in selector and ".nocturne-p-row" in selector and "box-shadow: none" in body:
+                self.assertIn(':not([aria-checked="true"])', selector)
+        chosen = css[css.index('.nocturne-p-row[aria-checked="true"] {') :]
+        self.assertIn("box-shadow: inset 0 0 0 1px var(--border-focus);", chosen[: chosen.index("}")])
+
     def test_bridge_orders(self) -> None:
         # Las órdenes de la página, sin ventana: elegir, vista previa y aceptar.
         dialog = panel.PanelDialog.__new__(panel.PanelDialog)
@@ -320,10 +351,18 @@ class PrimaryButtonRowTest(unittest.TestCase):
 
 
 class DescriptionTest(unittest.TestCase):
-    """Petición del cliente (2026-10-21): una sola línea por paleta y las tres con la
-    misma estructura: colores y acento, y después su forma."""
+    """Petición del cliente (2026-10-21): la misma estructura en todas: colores y botones, y
+    después su forma. Versión 3.9.0 (informe del 2026-11-11, apartado 8.12): en el panel, dos
+    líneas partidas por el punto, en lugar de cortadas a media frase."""
 
-    def test_one_line_same_structure(self) -> None:
+    def test_two_lines_split_at_the_period(self) -> None:
+        for theme_id in themes.THEMES:
+            first, second = panel.description_lines(theme_id).split("\n")
+            self.assertTrue(first.endswith(".") and second.endswith("."), theme_id)
+            self.assertIn("botones", first, theme_id)
+            self.assertEqual(f"{first} {second}", strings.THEME_DESCRIPTIONS[theme_id])
+
+    def test_same_structure(self) -> None:
         for theme_id in themes.THEMES:
             text = strings.THEME_DESCRIPTIONS[theme_id]
             self.assertLessEqual(len(text), 80, theme_id)
@@ -333,6 +372,94 @@ class DescriptionTest(unittest.TestCase):
             self.assertNotIn("acento", text, theme_id)
             for word in ("noche", "día"):
                 self.assertNotIn(word, text.casefold(), theme_id)
+
+
+class ControlSizeTest(unittest.TestCase):
+    """Versión 3.9.0 (informe del 2026-11-11, apartado 8.6): en las ventanas, botones, listas,
+    campos y pestañas de 28 px de alto (antes 21, 23, 26 y 27) y los botones del pie de 88 px
+    de ancho. Dibujados de verdad con la hoja de Anki y la del complemento encima."""
+
+    def setUp(self) -> None:
+        self._mw, self._tm = theming.mw, theming.theme_manager
+        theming.mw = types.SimpleNamespace(  # type: ignore[assignment]
+            pm=types.SimpleNamespace(get_widget_style=lambda: WidgetStyle.ANKI)
+        )
+        self._icons, self._tmp = theming._ICON_DIR, tempfile.TemporaryDirectory()
+        theming._ICON_DIR = Path(self._tmp.name) / "iconos"
+
+    def tearDown(self) -> None:
+        theming.mw, theming.theme_manager = self._mw, self._tm  # type: ignore[assignment]
+        theming._ICON_DIR = self._icons
+        self._tmp.cleanup()
+
+    def test_one_height_for_window_controls(self) -> None:
+        from aqt.qt import QLineEdit, QSpinBox, QTabWidget
+        from aqt.stylesheets import CustomStyles
+        from aqt.theme import theme_manager
+
+        styles = CustomStyles()
+        parts = ("general", "button", "checkbox", "menu", "combobox", "tabwidget", "table", "spinbox", "scrollbar")
+        anki_sheet = "".join(getattr(styles, name)(theme_manager) for name in parts)  # el orden de Anki
+        theming.theme_manager = types.SimpleNamespace(night_mode=True)  # type: ignore[assignment]
+        window = QWidget()
+        window.setStyleSheet(anki_sheet + theming.on_style_did_init(""))
+        layout = QVBoxLayout(window)
+        button, combo, spin, line = QPushButton("Cerrar"), QComboBox(), QSpinBox(), QLineEdit()
+        combo.addItem("Español")
+        editable = QComboBox()
+        editable.setEditable(True)
+        tabs = QTabWidget()
+        tabs.addTab(QWidget(), "Apariencia")
+        tabs.addTab(QWidget(), "Repasar")
+        box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        for widget in (button, combo, editable, spin, line, tabs, box):
+            layout.addWidget(widget)
+        window.show()
+        QApplication.processEvents()
+        # Los botones llevan 1 px de margen arriba y abajo (Anki): 28 a la vista.
+        self.assertEqual(button.height() - 2, 28)
+        for widget in (combo, editable, spin, line):
+            self.assertEqual(widget.height(), 28, type(widget).__name__)
+        bar = tabs.tabBar()
+        assert bar is not None
+        self.assertEqual(bar.tabRect(0).height(), 28)
+        for footer in box.buttons():
+            self.assertGreaterEqual(footer.width() - 2, 88, footer.text())
+        window.close()
+
+
+class IconTintTest(unittest.TestCase):
+    """Versión 3.9.0 (informe del 2026-11-11, apartado 1.4): los iconos sin color propio de
+    Anki (la barra lateral de Explorar) salían en blanco puro de noche; van en el texto
+    secundario de la paleta."""
+
+    def test_plain_icons_take_the_subtle_text(self) -> None:
+        from aqt.qt import QIcon
+        from aqt.theme import ColoredIcon
+        from aqt.utils import aqt_data_folder
+
+        svg = str(Path(aqt_data_folder()) / "qt" / "icons" / "chevron-down-dark.svg")
+        calls: list[object] = []
+
+        def old(_self: object, path: object) -> QIcon:
+            calls.append(path)
+            return QIcon()
+
+        for night, mode in ((True, "dark"), (False, "light")):
+            manager = types.SimpleNamespace(night_mode=night, themed_icon=lambda path: path)
+            icon = theming._icon_from_resources(manager, svg, old)  # type: ignore[arg-type]
+            image = icon.pixmap(32, 32).toImage()
+            painted = {
+                QColor(image.pixel(x, y)).name().upper()
+                for x in range(image.width())
+                for y in range(image.height())
+                if QColor.fromRgba(image.pixel(x, y)).alpha() == 255
+            }
+            self.assertEqual(painted, {themes.colors()["FG_SUBTLE"][mode]})
+        # Los iconos con su propio color (banderas, estados) siguen como los pinta Anki.
+        colored = ColoredIcon(path=svg, color={"light": "#123456", "dark": "#123456"})  # colores-ok: prueba
+        theming._icon_from_resources(types.SimpleNamespace(night_mode=True), colored, old)  # type: ignore[arg-type]
+        self.assertEqual(calls, [colored])
 
 
 class TitleBarTest(unittest.TestCase):

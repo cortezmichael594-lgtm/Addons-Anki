@@ -17,12 +17,6 @@ Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa
   Editar > Deshacer. Propuesta: reconocer cada campo por su sitio en la plantilla y no solo por su
   texto; mientras tanto, si dos campos coinciden, no dejar editar ninguno de los dos antes que
   guardar en el equivocado.
-- 2026-10-21 · versión 1.0.0 · Qué pasa: una tarjeta preparada a propósito (por ejemplo, de un mazo
-  compartido descargado) podría hacer que la pantalla de repaso cargue, a través de este complemento,
-  archivos de estilo o de código de otros complementos que usted tenga instalados. La regla con que
-  el complemento comparte sus dos archivos con la pantalla de repaso es demasiado abierta: es el
-  mismo fallo que ya se corrigió en el complemento de ejemplo y en GritMap. Propuesta: una regla
-  cerrada que solo deje pasar sus dos archivos.
 - 2026-10-21 · versión 1.0.0 · Qué pasa: si edita un campo que contiene una fórmula (MathJax) y
   guarda, en su sitio queda el código de la fórmula (por ejemplo, «\(x^2\)») en lugar de la fórmula
   dibujada, hasta que pasa a la otra cara o a otra tarjeta. Lo guardado es correcto; solo falla lo
@@ -62,6 +56,15 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   el guardado termina un poco después de la pulsación y, para entonces, en pantalla ya podía haber
   otra tarjeta. Regla: al terminar un trabajo en segundo plano, se comprueba que lo que hay en
   pantalla sigue siendo la nota editada antes de tocar nada.
+- FIX-004 · 2026-11-09 · versión 1.1.0 · Qué pasaba: una tarjeta preparada a propósito (por ejemplo,
+  de un mazo compartido descargado) podía hacer que la pantalla de repaso cargara, a través de este
+  complemento, archivos de estilo o de código de otros complementos instalados. Por qué: la regla con
+  que el complemento comparte sus archivos con el repaso dejaba pasar cualquier ruta. Regla: solo se
+  comparten sus dos archivos, con una regla cerrada, como en GritMap.
+- FIX-005 · 2026-11-09 · versión 1.1.0 · Qué pasaba: el recuadro azul de edición tenía dos azules
+  propios, fuera de la paleta, así que con Atelier en Bosque, Lavanda, Atardecer o Papel seguía azul
+  aunque el color de acción fuera otro. Por qué: los colores estaban escritos a mano. Regla: el
+  recuadro usa el color de foco de la paleta, de día y de noche.
 
 ## Así a propósito
 

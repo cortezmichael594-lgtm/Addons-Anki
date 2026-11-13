@@ -8,6 +8,8 @@ recurre al reproductor de Anki, que siempre está.
 
 from __future__ import annotations
 
+import importlib
+
 import random
 from dataclasses import dataclass
 from pathlib import Path
@@ -38,11 +40,11 @@ def _load_multimedia() -> tuple[Any, Any] | None:
     if not _multimedia_tried:
         _multimedia_tried = True
         try:
-            # aqt.qt no reexporta QtMultimedia (el propio Anki lo importa directo en
-            # aqt/sound.py). Es la única excepción a «Qt solo desde aqt.qt» del taller.
-            from PyQt6.QtMultimedia import QAudioOutput, QMediaPlayer  # qt-ok: aqt.qt no reexporta QtMultimedia
-
-            _multimedia = (QMediaPlayer, QAudioOutput)
+            # aqt.qt no reexporta QtMultimedia: el propio Anki 26.09.3 lo carga
+            # directamente en aqt/sound.py. Se carga el mismo módulo de la misma
+            # instalación de Qt de Anki, por su nombre, porque no hay otra vía.
+            module = importlib.import_module("PyQt6.QtMultimedia")
+            _multimedia = (module.QMediaPlayer, module.QAudioOutput)
         except Exception as error:
             # Algunas instalaciones de Linux traen PyQt6 sin el módulo de multimedia.
             log_error("audio.multimedia", error)

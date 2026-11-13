@@ -6,7 +6,7 @@ Cada paleta es un estilo completo para el modo día y el modo noche: sus colores
 «aspecto» (``Look``): letra de los títulos, esquinas, botones, separación de las
 filas de la lista de mazos, contorno del foco y degradado del fondo.
 
-En qué se apoya cada decisión (resúmenes en docs/referencias):
+En qué se apoya cada decisión (resúmenes de diseño que aportó el cliente):
   - Una función fija para cada color, un solo color de acción y neutros del mismo
     matiz que el acento (Webflow, P2-P4; Practical UI, P10 y M2).
   - El radio de las esquinas y la letra dan la «personalidad» (Refactoring UI, P3):
@@ -114,7 +114,7 @@ PAPEL: dict[str, Token] = _colors(
         "BUTTON_BG": ("#FEFCF8", "#1C2930"),  # colores-ok: paleta del tema
         "BUTTON_DISABLED": ("#FEFCF880", "#1C293080"),  # colores-ok: paleta del tema
         "BUTTON_HOVER": ("#F0EADF", "#28363F"),  # colores-ok: paleta del tema
-        "BUTTON_HOVER_BORDER": ("#C9BEAA", "#34454F"),  # colores-ok: paleta del tema
+        "BUTTON_HOVER_BORDER": ("#807667", "#8899A1"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_BG": ("#1F6A80", "#1F6E85"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_DISABLED": ("#1F6A8059", "#1F6E8559"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_GRADIENT_END": ("#1A5A6D", "#1A5E72"),  # colores-ok: paleta del tema
@@ -139,9 +139,9 @@ PAPEL: dict[str, Token] = _colors(
         "FLAG_7": ("#A868E4", "#A47BD9"),  # colores-ok: paleta del tema
         "HIGHLIGHT_BG": ("#1F6A80", "#1F6E85"),  # colores-ok: paleta del tema
         "HIGHLIGHT_FG": ("#FFFFFF", "#FFFFFF"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG": ("#DED5C5", "#1F2C33"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG_ACTIVE": ("#B2A68F", "#34454F"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG_HOVER": ("#C9BEAA", "#2B3B44"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG": ("#918777", "#71858F"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG_ACTIVE": ("#6E6557", "#9FACB3"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG_HOVER": ("#807667", "#8899A1"),  # colores-ok: paleta del tema
         "SELECTED_BG": ("#1F6A8033", "#5FB6CE40"),  # colores-ok: paleta del tema
         "SELECTED_FG": ("#2A2520", "#E3DAC9"),  # colores-ok: paleta del tema
         "SHADOW": ("#2A252026", "#04070866"),  # colores-ok: paleta del tema
@@ -160,6 +160,7 @@ PAPEL: dict[str, Token] = _colors(
         "NOCTURNE_PRIMARY_RING": ("#0E3440", "#9FD6E4"),  # colores-ok: paleta del tema
         "NOCTURNE_TITLEBAR": ("#FFFCF7", "#070F12"),  # colores-ok: paleta del tema
         "NOCTURNE_TABLE_SELECTED": ("#8CAFB5", "#335F6C"),  # colores-ok: paleta del tema
+        "NOCTURNE_BUTTON_PRESSED": ("#DFD6C6", "#18232A"),  # colores-ok: paleta del tema
     }
 )
 
@@ -175,7 +176,7 @@ BOSQUE: dict[str, Token] = _colors(
         "BUTTON_BG": ("#F9FCFA", "#1F2922"),  # colores-ok: paleta del tema
         "BUTTON_DISABLED": ("#F9FCFA80", "#1F292280"),  # colores-ok: paleta del tema
         "BUTTON_HOVER": ("#E6EDE7", "#2D3931"),  # colores-ok: paleta del tema
-        "BUTTON_HOVER_BORDER": ("#B1C0B5", "#3B4A3F"),  # colores-ok: paleta del tema
+        "BUTTON_HOVER_BORDER": ("#6E7E72", "#7D8E82"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_BG": ("#0F766E", "#0E7068"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_DISABLED": ("#0F766E59", "#0E706859"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_GRADIENT_END": ("#0D635C", "#0C5F58"),  # colores-ok: paleta del tema
@@ -200,9 +201,9 @@ BOSQUE: dict[str, Token] = _colors(
         "FLAG_7": ("#9F6FDD", "#A67EDA"),  # colores-ok: paleta del tema
         "HIGHLIGHT_BG": ("#0F766E", "#0E7068"),  # colores-ok: paleta del tema
         "HIGHLIGHT_FG": ("#FFFFFF", "#FFFFFF"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG": ("#CCD7CF", "#28332B"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG_ACTIVE": ("#98A99D", "#3B4A3F"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG_HOVER": ("#B1C0B5", "#35423A"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG": ("#7E8D82", "#627267"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG_ACTIVE": ("#5E6E63", "#98A99E"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG_HOVER": ("#6E7E72", "#7D8E82"),  # colores-ok: paleta del tema
         "SELECTED_BG": ("#0F766E33", "#3FB3A540"),  # colores-ok: paleta del tema
         "SELECTED_FG": ("#17251C", "#D5E0D8"),  # colores-ok: paleta del tema
         "SHADOW": ("#17251C26", "#05080666"),  # colores-ok: paleta del tema
@@ -221,6 +222,7 @@ BOSQUE: dict[str, Token] = _colors(
         "NOCTURNE_PRIMARY_RING": ("#063A36", "#7FD6C9"),  # colores-ok: paleta del tema
         "NOCTURNE_TITLEBAR": ("#F8FEFA", "#08100C"),  # colores-ok: paleta del tema
         "NOCTURNE_TABLE_SELECTED": ("#81B6B0", "#27635B"),  # colores-ok: paleta del tema
+        "NOCTURNE_BUTTON_PRESSED": ("#CED9D1", "#1B241E"),  # colores-ok: paleta del tema
     }
 )
 
@@ -274,7 +276,7 @@ LAVANDA: dict[str, Token] = _colors(
         "BUTTON_BG": ("#FCFBFE", "#2C243A"),  # colores-ok: paleta del tema
         "BUTTON_DISABLED": ("#FCFBFE80", "#2C243A80"),  # colores-ok: paleta del tema
         "BUTTON_HOVER": ("#F0EDF5", "#372E47"),  # colores-ok: paleta del tema
-        "BUTTON_HOVER_BORDER": ("#C7C0D3", "#483D5C"),  # colores-ok: paleta del tema
+        "BUTTON_HOVER_BORDER": ("#7E758D", "#8D839E"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_BG": ("#7B47D4", "#804CDA"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_DISABLED": ("#7B47D459", "#804CDA59"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_GRADIENT_END": ("#6A3ABC", "#6D3FBD"),  # colores-ok: paleta del tema
@@ -305,9 +307,10 @@ LAVANDA: dict[str, Token] = _colors(
         "NOCTURNE_ROW_HIGHLIGHT": ("#EFEBF7", "#281C3C"),  # colores-ok: paleta del tema
         "NOCTURNE_TITLEBAR": ("#FBFAFE", "#0C0716"),  # colores-ok: paleta del tema
         "NOCTURNE_TABLE_SELECTED": ("#B598E5", "#654799"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG": ("#DAD5E2", "#30273F"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG_ACTIVE": ("#B2AAC0", "#483D5C"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG_HOVER": ("#C7C0D3", "#3F3550"),  # colores-ok: paleta del tema
+        "NOCTURNE_BUTTON_PRESSED": ("#DFDAE7", "#292136"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG": ("#8E869D", "#766C88"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG_ACTIVE": ("#6D647D", "#A49AB4"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG_HOVER": ("#7E758D", "#8D839E"),  # colores-ok: paleta del tema
         "SELECTED_BG": ("#7B47D438", "#9F6FF340"),  # colores-ok: paleta del tema
         "SELECTED_FG": ("#231B30", "#DAD6E1"),  # colores-ok: paleta del tema
         "SHADOW": ("#231B3026", "#09050F66"),  # colores-ok: paleta del tema
@@ -335,7 +338,7 @@ ATARDECER: dict[str, Token] = _colors(
         "BUTTON_BG": ("#FFFCFA", "#3A2D24"),  # colores-ok: paleta del tema
         "BUTTON_DISABLED": ("#FEFCFB80", "#3A2D2480"),  # colores-ok: paleta del tema
         "BUTTON_HOVER": ("#F9F0E9", "#47382E"),  # colores-ok: paleta del tema
-        "BUTTON_HOVER_BORDER": ("#E0C5B3", "#5C493D"),  # colores-ok: paleta del tema
+        "BUTTON_HOVER_BORDER": ("#88786C", "#9C8C82"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_BG": ("#845727", "#8F5D27"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_DISABLED": ("#84572759", "#8F5D2759"),  # colores-ok: paleta del tema
         "BUTTON_PRIMARY_GRADIENT_END": ("#624424", "#654727"),  # colores-ok: paleta del tema
@@ -366,9 +369,10 @@ ATARDECER: dict[str, Token] = _colors(
         "NOCTURNE_ROW_HIGHLIGHT": ("#F6F1EC", "#3A2C1E"),  # colores-ok: paleta del tema
         "NOCTURNE_TITLEBAR": ("#FFFBF9", "#160D07"),  # colores-ok: paleta del tema
         "NOCTURNE_TABLE_SELECTED": ("#E1BF9C", "#6F5438"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG": ("#E2DAD5", "#3F3127"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG_ACTIVE": ("#C0B3AA", "#5C493D"),  # colores-ok: paleta del tema
-        "SCROLLBAR_BG_HOVER": ("#D3C8C0", "#504035"),  # colores-ok: paleta del tema
+        "NOCTURNE_BUTTON_PRESSED": ("#EFDED2", "#362921"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG": ("#99877A", "#857469"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG_ACTIVE": ("#76685E", "#B4A49A"),  # colores-ok: paleta del tema
+        "SCROLLBAR_BG_HOVER": ("#88786C", "#9C8C82"),  # colores-ok: paleta del tema
         "SELECTED_BG": ("#CB905038", "#ECB37640"),  # colores-ok: paleta del tema
         "SELECTED_FG": ("#261C15", "#E1DAD6"),  # colores-ok: paleta del tema
         "SHADOW": ("#30231B26", "#0F090566"),  # colores-ok: paleta del tema

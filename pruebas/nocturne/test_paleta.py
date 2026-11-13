@@ -733,5 +733,67 @@ class ExplorerSwitchTest(unittest.TestCase):
                 self.assertGreaterEqual(ratio, 4.5, f"{theme} ({mode}): {ratio:.2f}")
 
 
+class ScrollbarTest(unittest.TestCase):
+    """Versión 3.9.0 (informe del 2026-11-11, apartado 2.5): el tirador de las barras de
+    desplazamiento se veía a 1,35:1 de noche y 1,33:1 de día. Ahora llega a 3:1 en reposo
+    sobre el fondo, los campos y los recuadros (WCAG 1.4.11), y cada estado se marca más."""
+
+    def test_thumb_is_visible(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                thumb = color("SCROLLBAR_BG", mode, theme)
+                for surface in ("CANVAS", "CANVAS_CODE", "CANVAS_ELEVATED"):
+                    ratio = contrast(thumb, color(surface, mode, theme))
+                    self.assertGreaterEqual(ratio, 3.0, f"{theme}: tirador sobre {surface} ({mode}): {ratio:.2f}")
+
+    def test_each_state_stands_out_more(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                canvas = color("CANVAS", mode, theme)
+                ratios = [
+                    contrast(color(n, mode, theme), canvas)
+                    for n in ("SCROLLBAR_BG", "SCROLLBAR_BG_HOVER", "SCROLLBAR_BG_ACTIVE")
+                ]
+                self.assertEqual(ratios, sorted(ratios), f"{theme} ({mode})")
+                self.assertLess(ratios[0], ratios[1], f"{theme} ({mode})")
+
+
+class ButtonEdgeTest(unittest.TestCase):
+    """Versión 3.9.0 (informe del 2026-11-11, apartados 2.1 y 8.6): un borde para todo lo que
+    se pulsa. Los botones se distinguían del fondo a 1,29:1 y de un recuadro a 1,05:1."""
+
+    def test_button_border_is_visible(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                border = color("NOCTURNE_CONTROL_BORDER", mode, theme)
+                for surface in ("CANVAS", "CANVAS_ELEVATED"):
+                    ratio = contrast(border, color(surface, mode, theme))
+                    self.assertGreaterEqual(ratio, 3.0, f"{theme}: borde sobre {surface} ({mode}): {ratio:.2f}")
+
+    def test_hover_border_is_visible(self) -> None:
+        # Con el ratón encima, el borde de control bajaría de 3:1 sobre el botón: lleva el suyo.
+        for theme in THEMES:
+            for mode in MODES:
+                ratio = contrast(color("BUTTON_HOVER_BORDER", mode, theme), color("BUTTON_HOVER", mode, theme))
+                self.assertGreaterEqual(ratio, 3.0, f"{theme} ({mode}): {ratio:.2f}")
+
+    def test_pressed_is_one_step_and_reads(self) -> None:
+        for theme in THEMES:
+            for mode in MODES:
+                pressed = color("NOCTURNE_BUTTON_PRESSED", mode, theme)
+                ratio = contrast(color("FG", mode, theme), pressed)
+                self.assertGreaterEqual(ratio, 4.5, f"{theme} ({mode}): {ratio:.2f}")
+                rest, hover = (
+                    _luminance(color("BUTTON_BG", mode, theme)),
+                    _luminance(color("BUTTON_HOVER", mode, theme)),
+                )
+                if mode == "dark":
+                    # De noche, pulsado baja un escalón respecto al reposo.
+                    self.assertLess(_luminance(pressed), rest, theme)
+                else:
+                    # De día, se oscurece un escalón más que con el ratón.
+                    self.assertLess(_luminance(pressed), hover, theme)
+
+
 if __name__ == "__main__":
     unittest.main()

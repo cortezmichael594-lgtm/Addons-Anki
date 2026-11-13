@@ -50,6 +50,7 @@
     --gritmap-empty: var(--border-subtle, #E8EAF0);
     --gritmap-fg: var(--fg, #1B2430);
     --gritmap-muted: var(--fg-subtle, #4E576A);
+    --gritmap-disabled: var(--fg-disabled, #A9AFBC);
     --gritmap-card: var(--canvas-elevated, #FBFCFE);
     --gritmap-card-border: var(--border-subtle, #E8EAF0);
     --gritmap-card-shadow: var(--shadow-subtle, #1B243012);
@@ -79,6 +80,7 @@ body.nightMode #gritmap-root {
     --gritmap-empty: var(--canvas-inset, #0F131B);
     --gritmap-fg: var(--fg, #D6DAE1);
     --gritmap-muted: var(--fg-subtle, #B7BECC);
+    --gritmap-disabled: var(--fg-disabled, #7C869A);
     --gritmap-card: var(--canvas-elevated, #212836);
     --gritmap-card-border: var(--border-subtle, #1F2635);
     /* De noche, sin sombra: la tarjeta ya es mas clara que el fondo. */
@@ -441,13 +443,15 @@ body.nightMode #gritmap-root {
     outline-offset: 2px;
 }
 
+/* Flechas apagadas: el gris de apagado de la paleta (FG_DISABLED, 4,0 a 1
+ * de noche) en lugar de una transparencia que las dejaba en 2,2 a 1
+ * (4.16.0, informe 4.15.1, apartado 2.2). */
 #gritmap-root .gritmap-btn[aria-disabled="true"],
 #gritmap-root .gritmap-btn[aria-disabled="true"]:hover {
-    opacity: 0.35;
     cursor: default;
     background: var(--gritmap-btn);
     border-color: var(--gritmap-btnb);
-    color: var(--gritmap-muted);
+    color: var(--gritmap-disabled);
     box-shadow: none;
 }
 
