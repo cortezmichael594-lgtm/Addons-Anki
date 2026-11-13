@@ -6,18 +6,18 @@ from __future__ import annotations
 MENU_OPTIONS = "Sonidos de consola…"
 OPTIONS_TITLE = "Sonidos de consola"
 
-VOLUME_LABEL = "&Volumen:"
-VOLUME_ACCESSIBLE = "Volumen de los sonidos"
-VOLUME_TIP = "Mueva la barra para cambiar el volumen: oirá el tic de navegación con el volumen nuevo al soltarla o con cada paso del teclado."
+VOLUME_LABEL = "Volumen"
+VOLUME_NOTE = "Vale para los siete sonidos. Pruébelo con «Probar», más abajo; se guarda al aceptar."
 
-NAVIGATION_LABEL = "&Navegación en los menús:"
+NAVIGATION_LABEL = "Cuándo suena"
 NAVIGATION_CHOICES = {
     "hover": "Al pasar el ratón o las flechas por las opciones",
     "click": "Solo al hacer clic",
     "off": "Nunca",
 }
 
-SOUNDS_GROUP = "Sonidos"
+SOUNDS_GROUP = "Cuándo suena cada sonido"
+SOUNDS_NOTE = "Debajo de cada casilla, el archivo que usa. Desmarcada, ese sonido no suena."
 SOUND_LABELS = {
     "coldboot": "Al abrir Anki",
     "gameboot": "Globo de notificación",
@@ -27,13 +27,15 @@ SOUND_LABELS = {
     "system_ng": "Al comenzar a estudiar",
     "error": "Error o aviso de Anki",
 }
-TEST_BUTTON = "Probar"
-TEST_ACCESSIBLE = "Probar el sonido «{label}»"
-FILE_MISSING = "Falta {file}"
+FILE_MISSING = "Falta {file}: no sonará."
 FILE_READY = "{file}"
 
-OPEN_FOLDER = "Abrir carpeta de &sonidos"
-OPEN_FOLDER_TIP = "Copie ahí sus siete archivos .wav con su nombre exacto. Se conservan al actualizar el complemento."
+FILES_GROUP = "Archivos de sonido"
+TEST_LABEL = "Probar un sonido"
+TEST_OPTION = "{label} ({file})"
+TEST_BUTTON = "Probar"
+TEST_EMPTY = "Aún no hay ningún sonido en la carpeta."
+OPEN_FOLDER = "Abrir carpeta de sonidos"
 MISSING_SUMMARY_NONE = "Están los siete sonidos."
 MISSING_SUMMARY_ONE = "Falta 1 sonido: cópielo en la carpeta de sonidos."
 MISSING_SUMMARY_MANY = "Faltan {count} sonidos: cópielos en la carpeta de sonidos."

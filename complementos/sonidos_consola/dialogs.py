@@ -1,171 +1,158 @@
-"""Ventana de opciones, solo con controles estándar de Qt.
+"""Ventana de opciones: el panel modelo del taller (docs/fichas-diseno/09-patron-configuracion.md).
 
-Toman solos el aspecto y los colores del tema activo (también Nocturne): no se fija ningún
-color. Cada control tiene su etiqueta asociada, nombre accesible y atajo con Alt, para que
-se maneje entero con el teclado y lo lea un lector de pantalla.
+Aquí solo se describe el panel (recuadros y controles) y se traducen sus valores a la
+configuración y de vuelta. La ventana en sí está en panel.py (pieza común del taller) y lo
+que ocurre al pulsar, en actions.py.
 """
+
+# Historial de correcciones de este archivo:
+# FIX-001 (2026-11-13): la ventana de opciones usaba controles estándar y no el panel modelo del taller.
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Any
-
-from aqt import mw
-from aqt.qt import (
-    QCheckBox,
-    QComboBox,
-    QDialog,
-    QDialogButtonBox,
-    QFormLayout,
-    QGridLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QSlider,
-    Qt,
-    QVBoxLayout,
-    QWidget,
-    qconnect,
-)
-from aqt.utils import disable_help_button, restoreGeom, saveGeom
 
 from . import logic, strings
 
-_GEOMETRY_KEY = "sonidos_consola_options"
+TEST_KEY = "testSound"
+VOLUME_KEY = "volume"
+NAVIGATION_KEY = "navigation"
 
 
-def _can_remember_geometry() -> bool:
-    return mw is not None and mw.pm.profile is not None
+def switch_key(sound: str) -> str:
+    """Clave de la casilla de un sonido en la página («on_cancel»)."""
+    return f"on_{sound}"
 
 
-class OptionsDialog(QDialog):
-    def __init__(
-        self,
-        parent: QWidget | None,
-        values: dict[str, Any],
-        present: set[str],
-        audio_ok: bool,
-        on_test: Callable[[str, int], None],
-        on_open_folder: Callable[[], None],
-    ) -> None:
-        super().__init__(parent)
-        disable_help_button(self)
-        self.setWindowTitle(strings.OPTIONS_TITLE)
-        self._on_test = on_test
+def _values(config: dict[str, Any], present: set[str]) -> dict[str, Any]:
+    values: dict[str, Any] = {
+        VOLUME_KEY: config["volume"],
+        NAVIGATION_KEY: config["navigation"],
+        TEST_KEY: _first_present(present),
+    }
+    for key in logic.SOUND_KEYS:
+        values[switch_key(key)] = bool(config["enabled"].get(key, True))
+    return values
 
-        layout = QVBoxLayout(self)
-        form = QFormLayout()
-        layout.addLayout(form)
 
-        # Volumen: barra estándar de 0 a 100, con la cifra al lado.
-        self.volume = QSlider(Qt.Orientation.Horizontal, self)
-        self.volume.setRange(0, 100)
-        self.volume.setSingleStep(5)
-        self.volume.setPageStep(10)
-        self.volume.setTickPosition(QSlider.TickPosition.TicksBelow)
-        self.volume.setTickInterval(10)
-        self.volume.setValue(int(values["volume"]))
-        self.volume.setAccessibleName(strings.VOLUME_ACCESSIBLE)
-        self.volume.setToolTip(strings.VOLUME_TIP)
-        self.volume_value = QLabel(self)
-        self.volume_value.setMinimumWidth(self.volume_value.fontMetrics().horizontalAdvance("100 %") + 4)
-        self._show_volume(self.volume.value())
-        qconnect(self.volume.valueChanged, self._show_volume)
-        qconnect(self.volume.sliderReleased, self._preview_volume)
-        qconnect(self.volume.valueChanged, self._preview_if_keyboard)
-        volume_row = QHBoxLayout()
-        volume_row.addWidget(self.volume, 1)
-        volume_row.addWidget(self.volume_value)
-        volume_label = QLabel(strings.VOLUME_LABEL, self)
-        volume_label.setBuddy(self.volume)
-        form.addRow(volume_label, volume_row)
+def _first_present(present: set[str]) -> str:
+    for key, file_name in logic.SOUND_FILES.items():
+        if file_name in present:
+            return key
+    return ""
 
-        # Cuándo suena la navegación.
-        self.navigation = QComboBox(self)
-        for mode in logic.NAV_MODES:
-            self.navigation.addItem(strings.NAVIGATION_CHOICES[mode], mode)
-        self.navigation.setCurrentIndex(max(0, self.navigation.findData(values["navigation"])))
-        navigation_label = QLabel(strings.NAVIGATION_LABEL, self)
-        navigation_label.setBuddy(self.navigation)
-        form.addRow(navigation_label, self.navigation)
 
-        # Una fila por sonido: casilla, archivo (o «Falta ...») y botón «Probar».
-        group = QGroupBox(strings.SOUNDS_GROUP, self)
-        grid = QGridLayout(group)
-        self.switches: dict[str, QCheckBox] = {}
-        self.test_buttons: dict[str, QPushButton] = {}
-        for row, (key, file_name) in enumerate(logic.SOUND_FILES.items()):
-            label = strings.SOUND_LABELS[key]
-            switch = QCheckBox(label, group)
-            switch.setChecked(bool(values["enabled"].get(key, True)))
-            exists = file_name in present
-            status = QLabel(
-                strings.FILE_READY.format(file=file_name)
-                if exists
-                else strings.FILE_MISSING.format(file=file_name),
-                group,
-            )
-            status.setEnabled(exists)  # Atenuado si falta: el texto «Falta» lo dice también.
-            test = QPushButton(strings.TEST_BUTTON, group)
-            test.setAutoDefault(False)
-            test.setEnabled(exists and audio_ok)
-            test.setAccessibleName(strings.TEST_ACCESSIBLE.format(label=label))
-            qconnect(test.clicked, lambda _checked=False, k=key: self._on_test(k, self.volume.value()))
-            grid.addWidget(switch, row, 0)
-            grid.addWidget(status, row, 1)
-            grid.addWidget(test, row, 2)
-            self.switches[key] = switch
-            self.test_buttons[key] = test
-        grid.setColumnStretch(1, 1)
-        layout.addWidget(group)
+def _file_note(file_name: str, present: set[str]) -> str:
+    if file_name in present:
+        return strings.FILE_READY.format(file=file_name)
+    return strings.FILE_MISSING.format(file=file_name)
 
-        # Carpeta de sonidos y resumen de lo que falta.
-        missing = logic.missing_files(present)
-        summary = strings.missing_summary(len(missing)) if audio_ok else strings.NO_AUDIO
-        self.summary = QLabel(summary, self)
-        self.summary.setWordWrap(True)
-        layout.addWidget(self.summary)
-        self.open_folder = QPushButton(strings.OPEN_FOLDER, self)
-        self.open_folder.setAutoDefault(False)
-        self.open_folder.setToolTip(strings.OPEN_FOLDER_TIP)
-        qconnect(self.open_folder.clicked, lambda _checked=False: on_open_folder())
-        folder_row = QHBoxLayout()
-        folder_row.addWidget(self.open_folder)
-        folder_row.addStretch(1)
-        layout.addLayout(folder_row)
 
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
-            self,
-        )
-        qconnect(buttons.accepted, self.accept)
-        qconnect(buttons.rejected, self.reject)
-        layout.addWidget(buttons)
+def _sound_check(key: str, present: set[str]) -> dict[str, Any]:
+    item: dict[str, Any] = {
+        "type": "check",
+        "key": switch_key(key),
+        "label": strings.SOUND_LABELS[key],
+        "note": _file_note(logic.SOUND_FILES[key], present),
+    }
+    if key == "option":
+        # Cuándo suena la navegación cuelga de su casilla: desmarcada, se ve apagada.
+        item["children"] = [
+            {
+                "type": "select",
+                "key": NAVIGATION_KEY,
+                "label": strings.NAVIGATION_LABEL,
+                "options": [{"value": mode, "label": strings.NAVIGATION_CHOICES[mode]} for mode in logic.NAV_MODES],
+            }
+        ]
+    return item
 
-        if _can_remember_geometry():
-            restoreGeom(self, _GEOMETRY_KEY)
 
-    def _show_volume(self, value: int) -> None:
-        self.volume_value.setText(f"{value} %")
-
-    def _preview_if_keyboard(self, _value: int) -> None:
-        # Con el teclado (flechas, RePág, Inicio, Fin) se oye cada paso; arrastrando con el
-        # ratón, solo al soltar, para no encadenar decenas de tics.
-        if not self.volume.isSliderDown():
-            self._preview_volume()
-
-    def _preview_volume(self) -> None:
-        self._on_test("option", self.volume.value())
-
-    def done(self, a0: int) -> None:
-        if _can_remember_geometry():
-            saveGeom(self, _GEOMETRY_KEY)
-        super().done(a0)
-
-    def values(self) -> dict[str, Any]:
-        return {
-            "volume": self.volume.value(),
-            "navigation": self.navigation.currentData(),
-            "enabled": {key: switch.isChecked() for key, switch in self.switches.items()},
+# --- FIX-001 (2026-11-13) ---
+# Síntoma: la 1.0.0 abría una ventana de controles estándar, distinta de la de los demás complementos.
+# Causa: se construyó con la guía anterior; la regla del panel modelo (PROP-012) llegó a la rama principal a la vez.
+# Regla: las opciones se describen como página del panel modelo (panel.py y web/), nunca con un QDialog de controles.
+def page(config: dict[str, Any], present: set[str], audio_ok: bool) -> dict[str, Any]:
+    """Descripción del panel."""
+    missing = logic.missing_files(present)
+    test_options = [
+        {"value": key, "label": strings.TEST_OPTION.format(label=strings.SOUND_LABELS[key], file=file_name)}
+        for key, file_name in logic.SOUND_FILES.items()
+        if file_name in present
+    ]
+    files_items: list[dict[str, Any]] = []
+    if not audio_ok:
+        files_items.append({"type": "notice", "text": strings.NO_AUDIO})
+    files_items.append(
+        {
+            "type": "select",
+            "key": TEST_KEY,
+            "label": strings.TEST_LABEL,
+            "options": test_options,
+            "unavailable": not test_options or not audio_ok,
+            "empty": strings.TEST_EMPTY,
+            "test": {"label": strings.TEST_BUTTON, "action": "test"},
         }
+    )
+    files_items.append({"type": "button", "label": strings.OPEN_FOLDER, "action": "folder"})
+
+    defaults = _values(logic.default_config(), present)
+    return {
+        "title": strings.OPTIONS_TITLE,
+        "values": _values(config, present),
+        "defaults": defaults,
+        "cards": [
+            {
+                "restore": True,
+                "items": [
+                    {
+                        "type": "slider",
+                        "key": VOLUME_KEY,
+                        "label": strings.VOLUME_LABEL,
+                        "min": 0,
+                        "max": 100,
+                        "step": 1,
+                        "suffix": " %",
+                        "note": strings.VOLUME_NOTE,
+                    }
+                ],
+            },
+            {
+                "title": strings.SOUNDS_GROUP,
+                "note": strings.SOUNDS_NOTE,
+                "restore": True,
+                "items": [_sound_check(key, present) for key in logic.SOUND_KEYS],
+            },
+            {
+                "title": strings.FILES_GROUP,
+                "note": strings.missing_summary(len(missing)),
+                "items": files_items,
+            },
+        ],
+        "focus": VOLUME_KEY,
+    }
+
+
+def config_from_page(values: Any) -> dict[str, Any]:
+    """La configuración elegida en la página, comprobada (lo que no sirve vuelve al valor de serie)."""
+    raw = values if isinstance(values, dict) else {}
+    return logic.normalize_config(
+        {
+            "volume": raw.get(VOLUME_KEY),
+            "navigation": raw.get(NAVIGATION_KEY),
+            "enabled": {key: raw.get(switch_key(key)) for key in logic.SOUND_KEYS},
+        }
+    )
+
+
+def test_request(arg: Any) -> tuple[str, int] | None:
+    """Qué sonido probar y con qué volumen, al pulsar «Probar»."""
+    if not isinstance(arg, dict) or arg.get("name") != "test":
+        return None
+    values = arg.get("values")
+    if not isinstance(values, dict):
+        return None
+    key = values.get(TEST_KEY)
+    if key not in logic.SOUND_FILES:
+        return None
+    return key, config_from_page(values)["volume"]

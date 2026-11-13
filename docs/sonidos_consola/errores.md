@@ -9,7 +9,10 @@ tiene aquí su línea con el mismo número.
 
 ## Corregidos
 
-(Ninguno.)
+- FIX-001 · 2026-11-13 · versión 1.0.1 · Qué pasaba: la 1.0.0 abría sus opciones en una ventana de
+  controles estándar, distinta del panel que usan sus demás complementos. Por qué: se construyó con la
+  guía anterior y la regla del panel modelo llegó a la rama principal a la vez. Regla: las opciones de
+  todo complemento son una página del panel modelo, nunca una ventana de controles estándar.
 
 ## Así a propósito
 
@@ -31,3 +34,6 @@ tiene aquí su línea con el mismo número.
 - 1.0.0 · Cerrar una ventana cuenta como «cancelar» solo si la persona tocó esa ventana (tecla o clic)
   en las 0,6 segundos anteriores, o pulsó su X: así no suenan las ventanas de progreso que Anki cierra
   solo.
+- 1.0.1 · El botón suelto «Abrir carpeta de sonidos» es el botón secundario del catálogo del panel
+  modelo, añadido a la copia de este complemento como pieza «button»; el modelo no lo tenía como
+  opción suelta. Los «Probar» de cada sonido se reúnen en una lista con su botón, como en ProFeedback.

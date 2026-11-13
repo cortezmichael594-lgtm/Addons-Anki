@@ -1,6 +1,6 @@
 # Qué hace «Sonidos de consola»
 
-Versión 1.0.0 · 2026-11-13
+Versión 1.0.1 · 2026-11-13
 
 Pone sonidos de consola, al estilo de la PS3, a lo que usted hace en Anki: abrirlo, moverse por los
 menús, cancelar o cerrar, recibir un globo de notificación, comenzar a estudiar, sincronizar y ver un
@@ -59,68 +59,101 @@ Lo que no suena, a propósito:
 
 ## 4. Ventana de opciones
 
-Título: «Sonidos de consola». No tiene botón de ayuda. De arriba abajo:
+Es el mismo panel que el resto de sus complementos (el modelo de GritMap): una página dentro de una
+ventana de Anki, con recuadros y los botones Aceptar y Cancelar abajo. Título: «Sonidos de consola»,
+sin botón de ayuda. Ancho de 560 px y alto justo para el contenido (como mucho 720 px o el alto de la
+pantalla menos 80); si no cabe, solo se desplaza el centro y el pie queda fijo. No se enseña hasta
+estar dibujada entera, así que no parpadea. De arriba abajo:
 
-1. «Volumen:»: una barra horizontal de 0 a 100, con marcas cada 10 y la cifra al lado («70 %»). Por
-   defecto, 70 %. El volumen sigue el oído: la mitad de la barra suena como la mitad de fuerte, no casi
-   igual que el máximo. Al soltar la barra suena el tic de navegación con el volumen nuevo; con el
-   teclado, suena en cada paso. El volumen vale para los siete sonidos y se suma al del sistema: con el
-   de Windows en silencio no se oye nada.
-2. «Navegación en los menús:»: una lista desplegable con tres opciones:
-   - «Al pasar el ratón o las flechas por las opciones» (por defecto): el tic suena al resaltarse cada
-     opción, como el cursor de la PS3.
-   - «Solo al hacer clic»: el tic suena al elegir una opción de un menú o al hacer clic en un título de
-     la barra de menús.
-   - «Nunca»: la navegación no suena. Los demás sonidos siguen.
-3. Recuadro «Sonidos», con una fila por sonido:
-   - Una casilla con el momento en que suena: «Al abrir Anki», «Globo de notificación», «Navegación por
-     los menús», «Cancelar, cerrar o salir del estudio», «Sincronización correcta o «Sí» en una
-     pregunta», «Al comenzar a estudiar» y «Error o aviso de Anki». Todas marcadas por defecto.
-     Desmarcada, ese sonido no suena nunca.
-   - El nombre del archivo que usa. Si no está en la carpeta, en su lugar dice «Falta
-     snd_cancel.wav» (con el nombre que corresponda), con el texto atenuado.
-   - Un botón «Probar», que lo hace sonar al momento con el volumen que marque la barra, aunque la
-     casilla esté desmarcada. Atenuado e inactivo si falta el archivo.
-4. Una frase con lo que falta: «Están los siete sonidos.», «Falta 1 sonido: cópielo en la carpeta de
-   sonidos.» o «Faltan 3 sonidos: cópielos en la carpeta de sonidos.».
-5. Botón «Abrir carpeta de sonidos»: abre en el Explorador de Windows la carpeta donde se copian los
-   siete archivos. Si no existía, la crea. Al pasar el ratón explica: «Copie ahí sus siete archivos
-   .wav con su nombre exacto. Se conservan al actualizar el complemento.».
-6. Botones «Aceptar» y «Cancelar». Aceptar guarda y muestra el globo «Sonidos de consola: opciones
-   guardadas.». Cancelar, Esc o la X cierran sin guardar. Los cambios de la barra y de las casillas
-   solo valen desde que se pulsa Aceptar; mientras tanto, solo los usan los botones «Probar».
+1. Recuadro sin título, con el enlace «Restaurar valores predeterminados» (el texto de Anki en su
+   idioma) arriba a la derecha:
+   - «Volumen»: barra deslizante de 0 a 100 con la cifra al lado en seminegrita («70 %»). Por
+     defecto, 70 %. Debajo, en gris: «Vale para los siete sonidos. Pruébelo con «Probar», más abajo;
+     se guarda al aceptar.». El volumen sigue el oído: la mitad de la barra suena como la mitad de
+     fuerte, no casi igual que el máximo. Se suma al volumen de Windows: con Windows en silencio no se
+     oye nada.
+2. Recuadro «Cuándo suena cada sonido», también con «Restaurar valores predeterminados». Nota gris:
+   «Debajo de cada casilla, el archivo que usa. Desmarcada, ese sonido no suena.». Siete casillas, todas
+   marcadas por defecto: «Al abrir Anki», «Globo de notificación», «Navegación por los menús»,
+   «Cancelar, cerrar o salir del estudio», «Sincronización correcta o «Sí» en una pregunta», «Al
+   comenzar a estudiar» y «Error o aviso de Anki». Debajo de cada una, en gris, el archivo que usa
+   («snd_cancel.wav») o, si no está en la carpeta, «Falta snd_cancel.wav: no sonará.».
+   - De «Navegación por los menús» cuelga, con una raya vertical a la izquierda, la lista desplegable
+     «Cuándo suena»: «Al pasar el ratón o las flechas por las opciones» (por defecto, como el cursor
+     de la PS3), «Solo al hacer clic» (al elegir una opción de un menú o hacer clic en un título de la
+     barra) o «Nunca». Si la casilla está desmarcada, la lista se ve apagada y no se puede tocar; su
+     valor se conserva.
+3. Recuadro «Archivos de sonido». Nota gris con lo que falta: «Están los siete sonidos.», «Falta 1
+   sonido: cópielo en la carpeta de sonidos.» o «Faltan 3 sonidos: cópielos en la carpeta de
+   sonidos.».
+   - «Probar un sonido»: lista desplegable con los sonidos que hay en la carpeta, escritos como «Al
+     abrir Anki (coldboot_stereo.wav)», y al lado el botón «Probar». Suena al momento con el volumen
+     que marque la barra en ese instante (aunque aún no haya pulsado Aceptar) y aunque su casilla esté
+     desmarcada. Sin ningún sonido en la carpeta, la lista y el botón se ven apagados y debajo dice
+     «Aún no hay ningún sonido en la carpeta.».
+   - Botón «Abrir carpeta de sonidos»: abre en el Explorador de Windows la carpeta donde se copian los
+     siete archivos (si no existía, la crea).
+   - Si el ordenador no ofrece a Anki la función de sonido que usa el complemento, arriba del recuadro
+     aparece una franja gris con un icono de información: «Este ordenador no ofrece a Anki la función
+     de sonido que usa el complemento: no sonará nada.».
+4. Pie: «Aceptar» (el único botón relleno, del azul de acción) y «Cancelar». Aceptar guarda y muestra
+   el globo «Sonidos de consola: opciones guardadas.». Cancelar, Esc o la X cierran sin guardar.
 
 Además:
+- «Restaurar valores predeterminados» vuelve a lo de serie solo ese recuadro y deja al lado un enlace
+  «Deshacer»; nada se guarda hasta Aceptar.
 - La ventana recuerda su tamaño y su posición.
 - Si ya está abierta y vuelve a pedirla, se trae al frente en lugar de abrir otra.
 - Bloquea solo la ventana desde la que se abrió (la principal o la de Complementos), no todo Anki.
-- Al cerrarla, el complemento vuelve a mirar la carpeta: los archivos copiados con la ventana abierta
-  empiezan a sonar sin reiniciar Anki. Un archivo sustituido por otro con el mismo nombre también se
-  recarga.
+- Al cerrarla (con Aceptar o con Cancelar), el complemento vuelve a mirar la carpeta: los archivos
+  copiados con la ventana abierta empiezan a sonar sin reiniciar Anki. Un archivo sustituido por otro
+  con el mismo nombre también se recarga. La lista de la ventana se pone al día la próxima vez que se
+  abra.
 
 ## 5. Colores y aspecto
 
-- El complemento no define ningún color, tipo de letra ni dibujo propio. La ventana usa solo los
-  controles estándar de Anki (barra, lista desplegable, casillas, botones, recuadro con título) y toma
-  sus colores del tema activo de Anki: claro, oscuro o, si está instalado, Nocturne.
-- El único cambio de aspecto es el atenuado (gris del tema) del nombre de un archivo que falta y de su
-  botón «Probar». No depende solo del color: el texto dice «Falta» y el botón queda inactivo.
-- El globo de notificación es el de Anki, sin cambios.
-- No hay animaciones.
+Todos los colores salen de la paleta de Anki (Nocturne) y cambian con el modo día o noche y, si está
+instalado, con Atelier. Nada de colores inventados:
+
+| Uso | Día | Noche |
+|---|---|---|
+| Fondo de la ventana | #F7F8FA | #12161F |
+| Recuadros y fondo de los controles | #FBFCFE | #212836 |
+| Carril de la barra de volumen, franja de aviso | #EEF0F4 | #0F131B |
+| Texto | #1B2430 | #D6DAE1 |
+| Texto secundario (notas, archivos, «Falta…») | #4E576A | #B7BECC |
+| Borde de los recuadros | #E8EAF0 | #1F2635 |
+| Borde de los controles | #878C97 | #727B8C |
+| Azul de acción: «Aceptar», casillas marcadas, relleno de la barra | #3B6FE0 | #4066E6 |
+| Enlaces («Restaurar valores predeterminados», «Deshacer») | #2F63D8 | #A3C1F7 |
+| Texto apagado (lista de navegación con su casilla desmarcada) | #A9AFBC | #7C869A |
+| Foco del teclado | #3B6FE0 | #6390FF |
+| Fondo al pasar el ratón | #EDF0F5 | #2E3747 |
+
+- Letra de Anki (en Windows, Segoe UI Variable): título de 14 px en negrita, títulos de recuadro de 14
+  px en seminegrita, texto de 12 px, etiquetas y casillas en seminegrita.
+- Recuadros con esquinas de 10 px y borde fino, sombra mínima de día y ninguna de noche; controles de
+  32 px de alto con esquinas de 8 px; casillas de 18 px con esquinas de 4 px.
+- Sin animaciones, salvo un hundimiento de 1 px al pulsar un botón.
+- El globo de notificación es el de Anki, sin cambios. Fuera de su ventana, el complemento no cambia el
+  aspecto de nada.
 
 ## 6. Accesibilidad
 
-- Todo se maneja con el teclado: el tabulador recorre la ventana en orden (volumen, navegación, cada
-  casilla y su botón «Probar», «Abrir carpeta de sonidos», Aceptar, Cancelar). Intro acepta y Esc
-  cancela. Los botones «Probar» y «Abrir carpeta de sonidos» no se activan con Intro por accidente.
-- Atajos con Alt: Alt+V lleva a la barra de volumen, Alt+N a la lista de navegación y Alt+S pulsa
-  «Abrir carpeta de sonidos».
-- La barra de volumen se mueve con las flechas (de 5 en 5), con RePág y AvPág (de 10 en 10) y con
-  Inicio y Fin (0 y 100). Cada paso suena con el volumen nuevo, así que se ajusta de oído.
-- Cada control tiene su etiqueta asociada y un nombre para lectores de pantalla (Narrador de Windows):
-  la barra se lee «Volumen de los sonidos» y cada botón, por ejemplo, «Probar el sonido «Al abrir
-  Anki»».
-- La cifra del volumen se ve escrita junto a la barra, no solo por la posición.
+- Todo se maneja con el teclado: el tabulador recorre la ventana en orden visual (volumen, cada casilla,
+  la lista «Cuándo suena», la lista de prueba, «Probar», «Abrir carpeta de sonidos», Aceptar,
+  Cancelar). Espacio marca o desmarca una casilla; Intro pulsa el botón que tiene el foco y nunca
+  acepta la ventana por su cuenta; Esc cancela. Al abrirse, el foco está en el volumen.
+- La barra de volumen se mueve con las flechas de uno en uno, y con Inicio y Fin.
+- El foco del teclado se ve como un contorno azul de 2 px, solo al usar el teclado.
+- Toda la fila de una casilla se puede pulsar, no solo el cuadro.
+- Lector de pantalla (Narrador de Windows): cada control tiene nombre; la barra anuncia su cifra con
+  la unidad («70 %»); cada recuadro se anuncia con su título; «Restaurar» y «Deshacer» se dicen en voz
+  alta.
+- Contraste: texto a 4,5 a 1 o más, bordes de controles a 3 a 1 o más.
+- Con el contraste alto de Windows, cada control conserva un borde real y el foco usa el resaltado del
+  sistema.
+- Ninguna información depende solo del color: lo que falta se dice con texto («Falta…»).
 - Ninguna información depende solo del sonido: todo lo que suena (un error, un aviso, el fin de una
   sincronización) Anki lo sigue mostrando en pantalla igual que sin el complemento. Quien no oiga, o
   tenga los sonidos apagados, no pierde nada.

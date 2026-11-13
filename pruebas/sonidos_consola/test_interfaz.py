@@ -11,6 +11,7 @@ import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 import unittest
+from pathlib import Path
 
 from aqt.qt import (
     QAction,
@@ -20,7 +21,6 @@ from aqt.qt import (
     QKeyEvent,
     QMenu,
     QMessageBox,
-    QPushButton,
     Qt,
 )
 
@@ -146,67 +146,80 @@ class SyncTest(unittest.TestCase):
         self.assertEqual(self.recorder.played, [])
 
 
-class OptionsDialogTest(unittest.TestCase):
-    app: QApplication
+def _all_items(items: list[dict]) -> list[dict]:
+    found: list[dict] = []
+    for item in items:
+        found.append(item)
+        found.extend(_all_items(item.get("children", [])))
+    return found
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        existing = QApplication.instance()
-        cls.app = existing if isinstance(existing, QApplication) else QApplication([])
 
-    def _dialog(self, present: set[str] | None = None) -> tuple[dialogs.OptionsDialog, list[tuple[str, int]]]:
-        tests: list[tuple[str, int]] = []
-        values = logic.normalize_config({"volume": 40, "navigation": "click", "enabled": {"error": False}})
-        dialog = dialogs.OptionsDialog(
-            None,
-            values,
-            present if present is not None else set(logic.SOUND_FILES.values()),
-            True,
-            on_test=lambda key, volume: tests.append((key, volume)),
-            on_open_folder=lambda: None,
-        )
-        return dialog, tests
+ALL_FILES = set(logic.SOUND_FILES.values())
 
-    def test_values_round_trip(self) -> None:
-        dialog, _tests = self._dialog()
-        self.assertEqual(
-            dialog.values(),
-            logic.normalize_config({"volume": 40, "navigation": "click", "enabled": {"error": False}}),
-        )
 
-    def test_controls_change_values(self) -> None:
-        dialog, _tests = self._dialog()
-        dialog.volume.setValue(85)
-        dialog.navigation.setCurrentIndex(dialog.navigation.findData("off"))
-        dialog.switches["coldboot"].setChecked(False)
-        values = dialog.values()
-        self.assertEqual(values["volume"], 85)
-        self.assertEqual(values["navigation"], "off")
-        self.assertFalse(values["enabled"]["coldboot"])
+class PanelPageTest(unittest.TestCase):
+    """Regla de FIX-001: las opciones son una página del panel modelo."""
 
-    def test_keyboard_volume_change_previews_with_new_volume(self) -> None:
-        dialog, tests = self._dialog()
-        dialog.volume.setValue(55)
-        self.assertEqual(tests[-1], ("option", 55))
-        self.assertEqual(dialog.volume_value.text(), "55 %")
+    def _items(self, page: dict) -> list[dict]:
+        return _all_items([item for card in page["cards"] for item in card["items"]])
 
-    def test_test_button_uses_slider_volume(self) -> None:
-        dialog, tests = self._dialog()
-        dialog.test_buttons["cancel"].click()
-        self.assertEqual(tests[-1], ("cancel", 40))
+    def test_every_control_has_value_and_default(self) -> None:
+        page = dialogs.page(logic.default_config(), ALL_FILES, True)
+        for item in self._items(page):
+            if item.get("key"):
+                self.assertIn(item["key"], page["values"])
+                self.assertIn(item["key"], page["defaults"])
 
-    def test_missing_file_disables_test_and_says_so(self) -> None:
-        present = set(logic.SOUND_FILES.values()) - {"snd_error.wav"}
-        dialog, _tests = self._dialog(present)
-        self.assertFalse(dialog.test_buttons["error"].isEnabled())
-        self.assertTrue(dialog.test_buttons["cancel"].isEnabled())
-        self.assertEqual(dialog.summary.text(), strings.missing_summary(1))
+    def test_seven_switches_and_navigation_hangs_from_its_switch(self) -> None:
+        page = dialogs.page(logic.default_config(), ALL_FILES, True)
+        checks = [i for i in self._items(page) if i["type"] == "check"]
+        self.assertEqual([c["key"] for c in checks], [dialogs.switch_key(k) for k in logic.SOUND_KEYS])
+        option = next(c for c in checks if c["key"] == dialogs.switch_key("option"))
+        self.assertEqual(option["children"][0]["key"], dialogs.NAVIGATION_KEY)
 
-    def test_every_test_button_has_accessible_name(self) -> None:
-        dialog, _tests = self._dialog()
-        for key, button in dialog.test_buttons.items():
-            self.assertIsInstance(button, QPushButton)
-            self.assertIn(strings.SOUND_LABELS[key], button.accessibleName())
+    def test_round_trip(self) -> None:
+        config = logic.normalize_config({"volume": 40, "navigation": "click", "enabled": {"error": False}})
+        page = dialogs.page(config, ALL_FILES, True)
+        self.assertEqual(dialogs.config_from_page(page["values"]), config)
+
+    def test_bad_values_fall_back(self) -> None:
+        values = {"volume": "alto", "navigation": "x", dialogs.switch_key("cancel"): "no"}
+        self.assertEqual(dialogs.config_from_page(values), logic.default_config())
+        self.assertEqual(dialogs.config_from_page(None), logic.default_config())
+
+    def test_missing_file_is_named_and_left_out_of_test_list(self) -> None:
+        present = ALL_FILES - {"snd_error.wav"}
+        page = dialogs.page(logic.default_config(), present, True)
+        items = self._items(page)
+        error_check = next(i for i in items if i.get("key") == dialogs.switch_key("error"))
+        self.assertEqual(error_check["note"], strings.FILE_MISSING.format(file="snd_error.wav"))
+        test = next(i for i in items if i.get("key") == dialogs.TEST_KEY)
+        self.assertNotIn("error", [o["value"] for o in test["options"]])
+        self.assertFalse(test["unavailable"])
+        self.assertEqual(page["cards"][2]["note"], strings.missing_summary(1))
+
+    def test_without_sounds_the_test_list_is_off(self) -> None:
+        page = dialogs.page(logic.default_config(), set(), True)
+        test = next(i for i in self._items(page) if i.get("key") == dialogs.TEST_KEY)
+        self.assertTrue(test["unavailable"])
+        self.assertEqual(page["values"][dialogs.TEST_KEY], "")
+
+    def test_without_audio_there_is_a_notice(self) -> None:
+        page = dialogs.page(logic.default_config(), ALL_FILES, False)
+        self.assertIn(strings.NO_AUDIO, [i.get("text") for i in self._items(page)])
+
+    def test_test_request_uses_panel_volume(self) -> None:
+        values = {dialogs.TEST_KEY: "cancel", dialogs.VOLUME_KEY: 35}
+        self.assertEqual(dialogs.test_request({"name": "test", "values": values}), ("cancel", 35))
+        self.assertIsNone(dialogs.test_request({"name": "folder", "values": values}))
+        self.assertIsNone(dialogs.test_request({"name": "test", "values": {dialogs.TEST_KEY: "otro"}}))
+
+    def test_kit_carries_the_package_prefix(self) -> None:
+        addon = Path(dialogs.__file__).parent
+        for name in ("web/panel.css", "web/panel.js", "panel.py"):
+            text = (addon / name).read_text(encoding="utf-8")
+            self.assertNotIn("restart", text.lower())
+        self.assertIn("var SonidosConsolaPanel", (addon / "web/panel.js").read_text(encoding="utf-8"))
 
 
 class SummaryTextTest(unittest.TestCase):
@@ -219,7 +232,6 @@ class SummaryTextTest(unittest.TestCase):
 class PlayerFilesTest(unittest.TestCase):
     def test_present_files_reads_the_sounds_folder(self) -> None:
         import tempfile
-        from pathlib import Path
 
         original = player.SOUNDS_DIR
         with tempfile.TemporaryDirectory() as folder:
