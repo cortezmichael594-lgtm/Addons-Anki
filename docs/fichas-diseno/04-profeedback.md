@@ -1,10 +1,11 @@
 # Ficha de diseño: ProFeedback
 
-Versión 2.1.0 (9 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 2.2.0 (13 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
-Hace más agradable el repaso: un sonido al responder «Bien» o «Fácil», una insignia encima de la
+Hace más agradable el repaso: un sonido al responder «Bien» o «Fácil» y otro con «Otra vez» o
+«Difícil», una insignia encima de la
 tarjeta (tarjeta nueva, ejercicio difícil o error anterior), botones de respuesta de colores con
 relieve y, al terminar un mazo o todo lo del día, un sonido de fin y confeti, dorado si no hubo
 fallos.
@@ -23,9 +24,11 @@ de las aplicaciones de idiomas con gamificación. Solo lee la colección; guarda
 - No añade menús ni atajos; no aparece en la lista de mazos, Explorar, editor, vistas previas ni
   estadísticas.
 
-## 4. Sonido al acertar
+## 4. Sonidos al acertar y al fallar
 
-- «Bien» o «Fácil» (ratón o teclado): suena un sonido corto. «Otra vez» y «Difícil», nada.
+- «Bien» o «Fácil» (ratón o teclado): suena un sonido corto de acierto.
+- «Otra vez» o «Difícil» (2.2.0): suena un sonido corto de fallo, si su casilla está marcada (de
+  serie, sí). Dos sonidos de serie creados para el complemento (grave, suave); «Aleatorio» por defecto.
 - Tres sonidos de serie (good, magic, soft). De serie, «Aleatorio»: uno distinto del anterior cada vez.
 - Reproductor propio, para que el audio de la tarjeta siguiente no lo corte.
 
@@ -111,19 +114,22 @@ Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recua
   1. Volumen: deslizador de 0 a 100 (carril hundido de 6 px, tramo lleno del color de acción hasta el
      valor, tirador redondo de 18 px con el borde de los controles) y la cifra «100 %» al lado, en
      seminegrita.
-  2. «Sonidos al responder»: casilla y, colgando de ella, la lista desplegable «Sonido» («Aleatorio»
-     primero) con el botón secundario «Probar» al lado.
+  2. «Sonidos al responder»: casilla de acierto y, colgando de ella, la lista desplegable «Sonido»
+     («Aleatorio» primero) con el botón secundario «Probar» al lado; debajo, igual, la casilla
+     «Reproducir sonido al fallar (Otra vez/Difícil)» con su lista y su «Probar» (2.2.0).
   3. «Sonidos al finalizar»: casilla y cuatro listas con su «Probar» (mazo, todos, mazo perfecto,
      todos perfecto).
   4. «Aspecto»: tres casillas (confeti, botones 3D, insignias) y la nota gris sobre sonidos propios,
-     que nombra las cinco subcarpetas.
+     que nombra las seis subcarpetas.
 - Lo que cuelga de una casilla desmarcada se ve atenuado al 45 %; una lista sin sonidos de su tipo,
   también. «Probar» suena con el volumen del deslizador sin guardar; Cancelar devuelve el volumen.
+- La ventana es invisible hasta que el panel está dibujado y con su alto; aparece de una vez, sin
+  destello (2.2.0).
 
 ## 9. Sonidos y letra propios
 
 - Solo .mp3. Los propios, en «user_files/sonidos/» del complemento, en subcarpetas «correcto»,
-  «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo» (no vienen creadas). Uno con
+  «fallo», «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo» (se crean vacías al abrir las opciones). Uno con
   el mismo nombre que uno de serie lo sustituye.
 - Letra: un archivo «ProFeedback.ttf» o «Feather Bold.ttf» (1,5 MB como mucho) en «user_files» hace que
   botones e insignias la usen. Ahora no hay ninguno: letra del sistema.
@@ -172,5 +178,5 @@ en muchos idiomas.
 
 ## 15. Qué no hace
 
-No se conecta a internet, no cambia la colección, no suena con «Otra vez» ni «Difícil», no celebra si
+No se conecta a internet, no cambia la colección, no celebra si
 se sale por otra pantalla, no pone insignias en vistas previas ni editor, no añade menús ni atajos.

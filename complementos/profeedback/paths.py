@@ -20,12 +20,13 @@ WEB_DIR: Final[Path] = ADDON_ROOT / "web"
 BUNDLED_SOUNDS_DIR: Final[Path] = ADDON_ROOT / "sonidos"
 USER_SOUNDS_DIR: Final[Path] = USER_FILES_DIR / "sonidos"
 
-SoundKind = Literal["correct", "deck_finish", "all_finish", "deck_perfect", "all_perfect"]
+SoundKind = Literal["correct", "wrong", "deck_finish", "all_finish", "deck_perfect", "all_perfect"]
 
 # Subcarpeta de cada tipo de sonido. Se mantienen los nombres en español de las
 # versiones anteriores para no obligar a nadie a mover sus archivos.
 SOUND_SUBFOLDERS: Final[dict[SoundKind, str]] = {
     "correct": "correcto",
+    "wrong": "fallo",
     "deck_finish": "finalizado/mazo",
     "all_finish": "finalizado/todo",
     "deck_perfect": "perfecto-mazo",

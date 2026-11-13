@@ -57,6 +57,11 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   aparecía en ningún desplegable. Por qué: la nota no nombraba las subcarpetas. Regla: las
   subcarpetas («correcto», «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo»)
   se crean vacías al abrir los ajustes, y la nota dice que cada sonido va en la suya.
+- FIX-005 · 2026-11-13 · versión 2.2.0 · Qué pasaba: al abrir la configuración se veía un destello:
+  la ventana salía primero vacía, con su fondo, y después aparecía el panel y la ventana cambiaba de
+  alto. Por qué: la ventana se enseñaba en seguida y solo la página esperaba, oculta, a estar
+  dibujada. Regla: la ventana entera es invisible hasta que el panel avisa de que está listo y ya
+  tiene su alto; entonces aparece de una vez.
 
 ## Así a propósito
 
@@ -86,3 +91,6 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - Muchos idiomas tienen cinco textos de la ventana de opciones en inglés («Volume», «Sound»,
   «Random», la nota de sonidos propios y el aviso de fallo); si a un idioma le falta un texto, sale
   en inglés. Decisión del autor original.
+- 2.2.0 · Los dos sonidos de fallo (grave.mp3 y suave.mp3) los creó el taller para el complemento
+  (tonos sintetizados, sin derechos de terceros), porque la persona no aportó ninguno. Se pueden
+  sustituir copiando .mp3 propios en «user_files/sonidos/fallo».

@@ -1,8 +1,9 @@
 # Qué hace «ProFeedback»
 
-Versión 2.1.0 · 2026-11-09
+Versión 2.2.0 · 2026-11-13
 
-Hace más agradable el repaso: suena un sonido cuando responde «Bien» o «Fácil», pone una
+Hace más agradable el repaso: suena un sonido cuando responde «Bien» o «Fácil» y otro cuando
+responde «Otra vez» o «Difícil», pone una
 insignia encima de la tarjeta (tarjeta nueva, ejercicio difícil o error anterior), da a los botones
 de la barra inferior del repaso un aspecto de colores con relieve y, al terminar un mazo o todo lo
 del día, toca un sonido de fin y suelta confeti, dorado si no hubo ningún fallo. Solo lee su
@@ -19,12 +20,16 @@ colección: nunca cambia tarjetas, notas ni repasos. Lo único que guarda son su
 - No añade menús ni atajos de teclado. No aparece en la lista de mazos, en Explorar, en el editor,
   en las vistas previas de tarjetas ni en las estadísticas.
 
-## 2. Sonido al acertar
+## 2. Sonidos al acertar y al fallar
 
-- Al responder «Bien» o «Fácil», con el ratón o con el teclado, suena un sonido corto. Con «Otra
-  vez» y «Difícil» no suena nada.
-- El complemento trae tres sonidos para esto. Por defecto está en «Aleatorio»: cada vez suena uno de
-  ellos, procurando no repetir el anterior. En las opciones se puede fijar uno concreto.
+- Al responder «Bien» o «Fácil», con el ratón o con el teclado, suena un sonido corto de acierto.
+- Desde la 2.2.0, al responder «Otra vez» o «Difícil» suena un sonido corto de fallo, si su casilla
+  está marcada (lo está por defecto). Trae dos sonidos de fallo propios del complemento, breves y
+  suaves (suave.mp3, dos notas que bajan, y grave.mp3, una nota grave), creados para él; por defecto
+  está en «Aleatorio». Se puede fijar uno o desmarcar la casilla para no oír nada al fallar.
+- Los sonidos de acierto: el complemento trae tres.
+  Por defecto está en «Aleatorio»: cada vez suena uno de
+  ellos, procurando no repetir el anterior (igual con los de fallo). En las opciones se puede fijar uno concreto.
 - Usa un reproductor propio, aparte del de Anki, para que el audio de la tarjeta siguiente no lo
   corte a medias.
 
@@ -112,7 +117,9 @@ un mínimo de repaso:
 Título «ProFeedback». Desde la 2.1.0 sigue el modelo de ventana de opciones del taller, el panel de GritMap (regla
 PROP-012, petición del 2026-11-09): un panel de 560 px de ancho y el alto justo para su contenido,
 hecho de recuadros sobre el fondo de Anki, con los colores de la paleta (también con Atelier) y
-Aceptar y Cancelar abajo (en Windows, Aceptar primero). No se enseña hasta estar dibujado, recuerda
+Aceptar y Cancelar abajo (en Windows, Aceptar primero). Desde la 2.2.0, la ventana entera es
+invisible hasta que el panel está dibujado y con su alto definitivo, y entonces aparece de una vez:
+sin destello, sin fondo vacío previo y sin cambiar de tamaño ante sus ojos (FIX-005). Recuerda
 su tamaño y su posición, y si ya está abierto se trae al frente. Esc cancela y Ctrl+Intro acepta.
 Nada se guarda hasta pulsar Aceptar. Aceptar, Cancelar, Restaurar, Sí y No llevan el texto de Qt en
 el idioma de Anki. Con el teclado: el tabulador recorre los controles, cada uno con su contorno de
@@ -125,6 +132,8 @@ Cuatro recuadros, de arriba abajo (sin «Restaurar», como antes):
 | — | Volumen | Deslizador de 0 a 100 con la cifra al lado («100 %»), con el carril relleno del color de acción hasta el valor. Vale para todos los sonidos. La mitad suena a la mitad, no casi igual de fuerte | 100 % |
 | Sonidos al responder | «Reproducir sonido al acertar (Bien/Fácil)» | Casilla | Marcada |
 | | Sonido (colgando de la casilla) | Lista desplegable con «Aleatorio» o uno de los sonidos de acierto (de serie: good.mp3, magic.mp3 y soft.mp3), y el botón «Probar» al lado | Aleatorio |
+| | «Reproducir sonido al fallar (Otra vez/Difícil)» (2.2.0) | Casilla, debajo de la de acierto | Marcada |
+| | Sonido (colgando de la casilla) | Lista con «Aleatorio» o uno de los sonidos de fallo (de serie: grave.mp3 y suave.mp3) y «Probar» | Aleatorio |
 | Sonidos al finalizar | «Reproducir sonido al terminar de repasar» | Casilla | Marcada |
 | | «Al terminar un mazo» | Lista + «Probar» (duolingo.mp3, khan.mp3 y winners.mp3) | Aleatorio |
 | | «Al terminar todos los mazos» | Lista + «Probar» (duolingo.mp3 y mario bros.mp3) | Aleatorio |
@@ -135,14 +144,15 @@ Cuatro recuadros, de arriba abajo (sin «Restaurar», como antes):
 | | «Insignias en la tarjeta (Nueva/Difícil/Error anterior)» | Casilla | Marcada |
 
 - Al pie del recuadro de aspecto, la nota gris «Para añadir sonidos propios, copie archivos .mp3 en
-  la subcarpeta de «user_files/sonidos» del complemento que corresponda: «correcto»,
+  la subcarpeta de «user_files/sonidos» del complemento que corresponda: «correcto», «fallo»,
   «finalizado/mazo», «finalizado/todo», «perfecto-mazo» o «perfecto-todo».» (desde la 2.1.0, en los
   nueve idiomas completos; en los demás, en inglés). Al abrir la ventana se crean esas subcarpetas
   vacías si faltan (FIX-004).
 - Lo que cuelga de una casilla se ve atenuado y no responde si la casilla está desmarcada. Una lista y
   su «Probar» se ven apagados también si no hay ningún sonido de ese tipo.
 - Si no hay ningún sonido de acierto, en su recuadro aparece «No se encontraron archivos .mp3 en
-  «sonidos/correcto».»; si no hay ninguno de fin, «No se encontraron archivos .mp3 en
+  «sonidos/correcto».»; si no hay ninguno de fallo, «No se encontraron archivos .mp3 en
+  «sonidos/fallo».»; si no hay ninguno de fin, «No se encontraron archivos .mp3 en
   «sonidos/finalizado».».
 - «Probar» toca el sonido elegido (o uno al azar con «Aleatorio») con el volumen que marca el
   deslizador, sin guardar nada. Al cerrar la ventana, el volumen vuelve al guardado si no acepta.
@@ -160,7 +170,7 @@ Cuatro recuadros, de arriba abajo (sin «Restaurar», como antes):
 - Los propios van en la carpeta «user_files» del complemento (Herramientas > Complementos,
   seleccionarlo y pulsar «Ver archivos»), que Anki conserva al instalar versiones nuevas. Dentro,
   en «sonidos» y en una subcarpeta con el mismo nombre que la del complemento para cada tipo:
-  «correcto» (acierto), «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo».
+  «correcto» (acierto), «fallo» (fallo, desde la 2.2.0), «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo».
   Desde la 2.1.0 se crean vacías al abrir la ventana de opciones. Un archivo propio con el mismo nombre que uno de serie lo
   sustituye.
 - La lista de sonidos se vuelve a leer al abrir la ventana de opciones y al abrir un perfil.

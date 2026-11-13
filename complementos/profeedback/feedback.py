@@ -1,4 +1,4 @@
-"""Lo que ocurre en la pantalla de repaso: botones, insignias de la tarjeta y sonido de acierto.
+"""Lo que ocurre en la pantalla de repaso: botones, insignias de la tarjeta y sonidos de acierto y de fallo.
 
 El estilo y el código de la web entran por webview_will_set_content, incrustados en la
 página y antes del primer pintado (nada se inyecta después con JavaScript, para que no haya
@@ -81,6 +81,7 @@ def reset() -> None:
     settings = config.reload()
     audio.set_volume(settings.soundVolume)
     audio.preload("correct", settings.answerSound)
+    audio.preload("wrong", settings.wrongSound)
     audio.preload("deck_finish", settings.deckFinishSound)
     audio.preload("all_finish", settings.allDoneSound)
     audio.preload("deck_perfect", settings.deckPerfectSound)
@@ -141,8 +142,11 @@ def _on_did_answer(reviewer: Reviewer, card: Card, ease: int) -> None:
     global _badge_card_id
     # Respondida la tarjeta, su historial cambia: si vuelve a aparecer, se recalcula.
     _badge_card_id = None
-    if config.get().answerSoundEnabled and ease in logic.CORRECT_EASES:
-        audio.play("correct", config.get().answerSound)
+    settings = config.get()
+    if settings.answerSoundEnabled and ease in logic.CORRECT_EASES:
+        audio.play("correct", settings.answerSound)
+    elif settings.wrongSoundEnabled and ease in logic.WRONG_EASES:
+        audio.play("wrong", settings.wrongSound)
 
 
 @guarded_filter

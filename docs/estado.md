@@ -88,6 +88,11 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   modelo (PROP-012, llegó a main a la vez; FIX-001). 39 pruebas. Falta que la persona
   lo pruebe en Windows con audio.
 
+- 2026-11-13: ProFeedback 2.2.0 (petición del cliente): sonido al fallar («Otra vez»/«Difícil») con
+  casilla, lista y «Probar» en «Sonidos al responder», dos sonidos de fallo creados en el taller
+  (grave.mp3 y suave.mp3) y textos en los 54 idiomas; FIX-005, ventana de opciones sin destello (el
+  mismo arreglo que FIX-002 de Sonidos de consola). 15 pruebas. Va en el pull request #21.
+
 ## En curso
 
 (Nada.)
