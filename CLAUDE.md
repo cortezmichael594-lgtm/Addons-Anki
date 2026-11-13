@@ -12,7 +12,7 @@ Taller para crear y mantener complementos de Anki a medida de una persona que no
 - Empieza por el resultado, en frases completas y sobrias: qué ha cambiado, qué verá y qué debe hacer. Sin elogios, emojis ni advertencias genéricas, sin repetir su petición y con poca negrita.
 - Un concepto nuevo se explica una vez, desde cero, con una comparación cotidiana.
 - Habla de lo que verá en Anki (menú, botón, ventana), no de archivos, herramientas ni código.
-- Lo técnico y los detalles de diseño (dónde va cada cosa, qué control usar, medidas, textos de ayuda) los decides tú, con `docs/guia-interfaz.md`, la paleta, la ficha del complemento y, como orientación, `docs/referencias/indice.md`. En la entrega dices qué elegiste y por qué, en una frase por decisión.
+- Lo técnico y los detalles de diseño (dónde va cada cosa, qué control usar, medidas, textos de ayuda) los decides tú, con `docs/guia-interfaz.md`, la paleta y la ficha del complemento. En la entrega dices qué elegiste y por qué, en una frase por decisión.
 - Pregunta solo cuando la respuesta cambia lo que el complemento hace con su estudio o con sus datos y no puedes averiguarla tú: hasta tres preguntas cerradas, con la opción recomendada primero. Si su petición admite dos lecturas que no cambian eso, elige la más probable y dila. Una pregunta no detiene lo demás: haz antes, o mientras esperas, lo que no depende de la respuesta. Modelos de pregunta, de plan, de arranque y de decisión contada: «Ejemplos de trato» en `docs/normas-del-taller.md`.
 - Antes de la primera acción, una o dos frases: qué harás y en qué orden. Después, avisos solo si encuentras algo importante, cambias de rumbo o cierras una parte.
 - Si ves un enfoque mejor o un riesgo para sus datos, díselo en una frase y sigue con lo pedido, salvo que el riesgo impida seguir.
@@ -38,7 +38,7 @@ Si dos chocan, gana la de número menor.
 - `docs/<paquete>/`: `que-hace.md` y `errores.md` de cada complemento. `docs/ejemplo-referencia/`: complemento modelo ya comprobado; copia su estructura (no se instala).
 - `docs/`: guías (`guia-interfaz.md`, `guia-complementos.md`, `paleta-nocturne.md`, `preparar-entorno.md`) y lo aprendido (`aprendizajes.md` y `automejora.md`).
 - `docs/fichas-diseno/`: una ficha por complemento con lo que se ve y se puede hacer, sin código. La persona se la pasa, con `00-contexto-comun.md` y `09-patron-configuracion.md`, a otra IA que le propone mejoras de diseño; sus informes vuelven aquí como encargos.
-- `docs/`: guías (`guia-interfaz.md`, `guia-complementos.md`, `paleta-nocturne.md`, `preparar-entorno.md`), lo aprendido (`aprendizajes.md` y `automejora.md`) y `referencias/` (resúmenes, con `indice.md`).
+- `docs/`: guías (`guia-interfaz.md`, `guia-complementos.md`, `paleta-nocturne.md`, `preparar-entorno.md`) y lo aprendido (`aprendizajes.md` y `automejora.md`).
 - `herramientas/`: `comprobar.py` (todo), `empaquetar.py` (un complemento), `registro-fix/` (notas FIX de cada entrega) y `version-anki.txt`. `paquetes/`: los `.ankiaddon` entregados, con la versión en el nombre; son los puntos de vuelta atrás.
 - Lo que deba conservarse va dentro del repositorio y subido: lo de fuera se pierde cuando se recicla el ordenador de la nube.
 

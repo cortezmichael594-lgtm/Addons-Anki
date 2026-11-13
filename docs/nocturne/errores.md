@@ -135,9 +135,11 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   versión original; las pruebas lo vigilan. Es la identidad que el cliente quiere conservar.
 - 3.0.0 · No se cambia el tamaño de la letra: manda el que el cliente tenga elegido en Anki. Decisión
   del taller. (En 3.0.0 tampoco se tocaban las esquinas ni el botón por defecto; desde 3.1.0 sí, porque
-  el cliente lo pidió.) Desde la 3.9.0, tres textos de estudio crecen en proporción a esa letra (el
-  título de la pantalla de un mazo y los rótulos de los botones de estudio): decisión 2 del informe
-  del 2026-11-11, aprobada por el cliente; si sube la letra en Anki, suben con ella.
+  el cliente lo pidió.) Desde la 3.9.0, el título de la pantalla de un mazo y el rótulo de
+  «Comenzar a estudiar» siguen en proporción a esa letra (decisión 2 del informe del 2026-11-11,
+  aprobada por el cliente); si sube la letra en Anki, suben con ella. Los rótulos de los botones de
+  respuesta también lo hacían en la 3.9.0; desde la 3.9.1 vuelven a la letra de Anki, a petición
+  del cliente (2026-11-13), junto con un tamaño casi como el de Anki.
 - 3.1.0 · En Nocturne, la bandera rosa pasa de un rosa frambuesa a un rosa de verdad (tono 310°), porque
   se confundía con la roja. Es el único cambio de tono respecto al aspecto original; lo vigilan las
   pruebas.
