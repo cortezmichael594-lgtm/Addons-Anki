@@ -1,17 +1,17 @@
 # Qué hace «Sonidos de consola»
 
-Versión 1.1.0 · 2026-11-13
+Versión 1.2.0 · 2026-11-13
 
 Pone sonidos de consola, al estilo de la PS3, a lo que usted hace en Anki: abrirlo, moverse por los
-menús, cancelar o cerrar, aceptar, recibir un globo de notificación, comenzar a estudiar y ver un
-error. Usa solo los siete sonidos que usted copia en su carpeta de sonidos. El complemento no trae
+menús, cancelar o cerrar, aceptar, recibir un globo de notificación, comenzar a estudiar, terminar un
+mazo y ver un error. Usa solo los ocho sonidos que usted copia en su carpeta de sonidos. El complemento no trae
 sonidos propios. No toca su colección: no lee ni cambia tarjetas, notas ni mazos.
 
 ## 1. Dónde aparece
 
-- En el menú Herramientas, al final: «Sonidos de consola…». Abre la ventana de opciones.
-- En Herramientas > Complementos, al seleccionarlo y pulsar «Configuración», se abre la misma ventana,
-  no el editor de texto que Anki muestra con otros complementos.
+- Solo en Herramientas > Complementos: al seleccionarlo y pulsar «Configuración», se abre su ventana de
+  opciones, no el editor de texto que Anki muestra con otros complementos.
+- No añade ninguna entrada al menú Herramientas ni a otros menús.
 - No añade botones, barras ni dibujos a ninguna pantalla de Anki. Todo lo demás es sonido.
 
 ## 2. Cuándo suena cada sonido
@@ -20,17 +20,18 @@ sonidos propios. No toca su colección: no lee ni cambia tarjetas, notas ni mazo
 |---|---|
 | coldboot_stereo.wav | Al abrir Anki, en cuanto se abre su perfil. Si tiene varios perfiles, también al cambiar de perfil. |
 | gameboot_stereo.wav | Cada vez que aparece un globo de notificación de Anki (el recuadro breve abajo de la ventana), por ejemplo «Sincronización completa», el aviso al añadir una tarjeta o «Sonidos de consola: opciones guardadas.». |
-| snd_option.wav | Navegación por los menús: al pasar de una opción a otra en cualquier menú de Anki (barra de menús Archivo, Editar, Herramientas, Ayuda; menús de Explorar y de otras ventanas; menús del botón derecho), con el ratón o con las flechas del teclado. También al pasar el ratón por los títulos de la barra de menús. Según la opción elegida, puede sonar solo al hacer clic, o nunca (apartado 4). |
+| snd_option.wav | Navegación por los menús: al pasar de una opción a otra en cualquier menú de Anki (barra de menús Archivo, Editar, Herramientas, Ayuda; menús de Explorar y de otras ventanas; menús del botón derecho), con el ratón o con las flechas del teclado. También al pasar el ratón por los títulos de la barra de menús. Según la opción elegida, puede sonar solo al hacer clic (apartado 4); para que no suene, se desmarca su casilla. |
 | snd_cancel.wav | Al cancelar o cerrar: cerrar un menú sin elegir nada (con Esc o haciendo clic fuera, o pulsando otra vez su título en la barra); pulsar Esc, «Cancelar», «Cerrar» o «No» en una ventana; pulsar la X (o Alt+F4) de cualquier ventana salvo la principal; y salir del estudio a mitad (volver a Mazos, pulsar otro mazo, etc.). |
 | snd_system_ok.wav | Solo al aceptar algo: pulsar «Aceptar», «Sí» u otro botón que confirma en cualquier ventana de Anki o de un complemento (también con Intro), incluidas las ventanas que solo informan. La sincronización no lo hace sonar. |
 | snd_system_ng.wav | Al comenzar a estudiar: «Comenzar a estudiar» en la pantalla de un mazo, o su atajo de teclado. Volver al estudio tras un refresco de Anki no cuenta. |
+| snd_trophy.wav | Al terminar un mazo: cuando responde la última tarjeta que quedaba y Anki pasa a la pantalla de felicitación, en cualquier mazo o submazo. Solo si en esa sesión de estudio respondió al menos una tarjeta. |
 | snd_error.wav | Cuando Anki muestra una ventana de error o de aviso (las del triángulo amarillo o el círculo rojo), incluida la de una sincronización fallida. |
 
 Lo que no suena, a propósito:
 - Responder una tarjeta («Otra vez», «Difícil», «Bien», «Fácil»): en silencio, para no oír un sonido en
   cada tarjeta.
-- Terminar todas las tarjetas del mazo: Anki le lleva a la pantalla de felicitación sin sonido de
-  cancelar, porque no ha cancelado nada.
+- Salir del estudio a mitad no hace sonar el trofeo (suena cancelar), y terminar el mazo no hace sonar
+  cancelar (suena el trofeo).
 - Pulsar «Aceptar» en una ventana de error o de aviso: ya sonó snd_error al aparecer.
 - Las ventanas que Anki da por aceptadas sin que usted las toque.
 - Terminar una sincronización, bien o mal (si falla, suena snd_error con su aviso).
@@ -62,28 +63,30 @@ Lo que no suena, a propósito:
 Es el mismo panel que el resto de sus complementos (el modelo de GritMap): una página dentro de una
 ventana de Anki, con recuadros y los botones Aceptar y Cancelar abajo. Título: «Sonidos de consola»,
 sin botón de ayuda. Ancho de 560 px y alto justo para el contenido (como mucho 720 px o el alto de la
-pantalla menos 80); si no cabe, solo se desplaza el centro y el pie queda fijo. No se enseña hasta
-estar dibujada entera, así que no parpadea. De arriba abajo:
+pantalla menos 80); si no cabe, solo se desplaza el centro y el pie queda fijo. La ventana es
+invisible hasta que el panel está dibujado entero y con su alto definitivo; entonces aparece de una
+vez, sin destello, sin fondo vacío previo y sin cambiar de tamaño ante sus ojos. Si el panel tardara más
+de 3 segundos, aparece igualmente. De arriba abajo:
 
 1. Recuadro sin título, con el enlace «Restaurar valores predeterminados» (el texto de Anki en su
    idioma) arriba a la derecha:
    - «Volumen»: barra deslizante de 0 a 100 con la cifra al lado en seminegrita («70 %»). Por
-     defecto, 70 %. Debajo, en gris: «Vale para los siete sonidos. Pruébelo con «Probar», más abajo;
+     defecto, 70 %. Debajo, en gris: «Vale para los ocho sonidos. Pruébelo con «Probar», más abajo;
      se guarda al aceptar.». El volumen sigue el oído: la mitad de la barra suena como la mitad de
      fuerte, no casi igual que el máximo. Se suma al volumen de Windows: con Windows en silencio no se
      oye nada.
 2. Recuadro «Cuándo suena cada sonido», también con «Restaurar valores predeterminados». Nota gris:
-   «Debajo de cada casilla, el archivo que usa. Desmarcada, ese sonido no suena.». Siete casillas, todas
+   «Debajo de cada casilla, el archivo que usa. Desmarcada, ese sonido no suena.». Ocho casillas, todas
    marcadas por defecto: «Al abrir Anki», «Globo de notificación», «Navegación por los menús»,
    «Cancelar, cerrar o salir del estudio», «Al aceptar algo («Aceptar» o «Sí»)», «Al
-   comenzar a estudiar» y «Error o aviso de Anki». Debajo de cada una, en gris, el archivo que usa
+   comenzar a estudiar», «Al terminar un mazo» y «Error o aviso de Anki». Debajo de cada una, en gris, el archivo que usa
    («snd_cancel.wav») o, si no está en la carpeta, «Falta snd_cancel.wav: no sonará.».
    - De «Navegación por los menús» cuelga, con una raya vertical a la izquierda, la lista desplegable
      «Cuándo suena»: «Al pasar el ratón o las flechas por las opciones» (por defecto, como el cursor
      de la PS3), «Solo al hacer clic» (al elegir una opción de un menú o hacer clic en un título de la
-     barra) o «Nunca». Si la casilla está desmarcada, la lista se ve apagada y no se puede tocar; su
+     barra). Para que no suene, se desmarca la casilla. Si la casilla está desmarcada, la lista se ve apagada y no se puede tocar; su
      valor se conserva.
-3. Recuadro «Archivos de sonido». Nota gris con lo que falta: «Están los siete sonidos.», «Falta 1
+3. Recuadro «Archivos de sonido». Nota gris con lo que falta: «Están los ocho sonidos.», «Falta 1
    sonido: cópielo en la carpeta de sonidos.» o «Faltan 3 sonidos: cópielos en la carpeta de
    sonidos.».
    - «Probar un sonido»: lista desplegable con los sonidos que hay en la carpeta, escritos como «Al
@@ -92,7 +95,7 @@ estar dibujada entera, así que no parpadea. De arriba abajo:
      desmarcada. Sin ningún sonido en la carpeta, la lista y el botón se ven apagados y debajo dice
      «Aún no hay ningún sonido en la carpeta.».
    - Botón «Abrir carpeta de sonidos»: abre en el Explorador de Windows la carpeta donde se copian los
-     siete archivos (si no existía, la crea).
+     ocho archivos (si no existía, la crea).
    - Si el ordenador no ofrece a Anki la función de sonido que usa el complemento, arriba del recuadro
      aparece una franja gris con un icono de información: «Este ordenador no ofrece a Anki la función
      de sonido que usa el complemento: no sonará nada.».
@@ -156,14 +159,14 @@ instalado, con Atelier. Nada de colores inventados:
 - Ninguna información depende solo del color: lo que falta se dice con texto («Falta…»).
 - Ninguna información depende solo del sonido: todo lo que suena (un error, un aviso, una confirmación) Anki lo sigue mostrando en pantalla igual que sin el complemento. Quien no oiga, o
   tenga los sonidos apagados, no pierde nada.
-- Para quien prefiera menos estímulos: cada sonido se apaga por separado, la navegación tiene la opción
-  «Nunca» y el volumen puede bajar a 0.
+- Para quien prefiera menos estímulos: cada sonido se apaga por separado, y el volumen puede bajar a 0.
 
 ## 7. La carpeta de sonidos
 
 - Es la carpeta «user_files» del complemento (la abre el botón «Abrir carpeta de sonidos»). Ahí se
-  copian los siete archivos con su nombre exacto: coldboot_stereo.wav, gameboot_stereo.wav,
-  snd_cancel.wav, snd_error.wav, snd_option.wav, snd_system_ng.wav y snd_system_ok.wav. Trae un
+  copian los ocho archivos con su nombre exacto: coldboot_stereo.wav, gameboot_stereo.wav,
+  snd_cancel.wav, snd_error.wav, snd_option.wav, snd_system_ng.wav, snd_system_ok.wav y
+  snd_trophy.wav. Trae un
   LEEME.txt que lo explica.
 - Anki conserva esa carpeta al actualizar el complemento: no hay que volver a copiarlos.
 - Los archivos deben ser .wav sin comprimir (los habituales). Si uno no se puede reproducir, ese sonido
@@ -173,8 +176,10 @@ instalado, con Atelier. Nada de colores inventados:
 
 ## 8. Qué guarda y dónde
 
-- El volumen, el modo de navegación y las siete casillas, en la configuración de complementos de Anki
+- El volumen, el modo de navegación y las ocho casillas, en la configuración de complementos de Anki
   de ese ordenador: valen para todos los perfiles y no viajan con la sincronización.
+- Si viene de una versión anterior con la navegación en «Nunca» (opción retirada en la 1.2.0), la
+  casilla de navegación queda desmarcada.
 - Si falta una opción o tiene un valor que no sirve (por ejemplo, de una versión anterior), usa el
   valor por defecto; un volumen fuera de 0-100 se recorta.
 
@@ -196,7 +201,7 @@ Cancelar) salen en el idioma de Anki.
 
 ## 11. Qué no hace
 
-- No incluye sonidos propios ni añade otros que los siete suyos.
+- No incluye sonidos propios ni añade otros que los ocho suyos.
 - No suena al responder tarjetas ni al pasar el ratón por la lista de mazos o las páginas de Anki.
 - No cambia el sonido ni el audio de sus tarjetas.
 - No se conecta a internet.

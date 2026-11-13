@@ -84,7 +84,7 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
 
 - 2026-11-13: Sonidos de consola 1.0.0, nuevo (plan aprobado en docs/sonidos_consola/encargo.md):
   los siete sonidos de la persona, que ella copia en user_files (no van en el repositorio). Excepción
-  aprobada: PyQt6.QtMultimedia en empaquetar.py (ALLOWED_DIRECT_QT). 1.1.0: snd_system_ok solo al aceptar algo (sin sincronización). 1.0.1: opciones con el panel
+  aprobada: PyQt6.QtMultimedia en empaquetar.py (ALLOWED_DIRECT_QT). 1.2.0: trofeo al terminar un mazo, sin «Nunca», sin entrada en Herramientas y sin destello al abrir la configuración (FIX-002). 1.1.0: snd_system_ok solo al aceptar algo (sin sincronización). 1.0.1: opciones con el panel
   modelo (PROP-012, llegó a main a la vez; FIX-001). 39 pruebas. Falta que la persona
   lo pruebe en Windows con audio.
 

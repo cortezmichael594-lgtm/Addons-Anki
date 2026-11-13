@@ -13,6 +13,11 @@ tiene aquí su línea con el mismo número.
   controles estándar, distinta del panel que usan sus demás complementos. Por qué: se construyó con la
   guía anterior y la regla del panel modelo llegó a la rama principal a la vez. Regla: las opciones de
   todo complemento son una página del panel modelo, nunca una ventana de controles estándar.
+- FIX-002 · 2026-11-13 · versión 1.2.0 · Qué pasaba: al abrir la configuración se veía un destello: la
+  ventana salía primero vacía, con su fondo, y después aparecía el panel y la ventana cambiaba de alto.
+  Por qué: la ventana se enseñaba en seguida y solo la página esperaba, oculta, a estar dibujada.
+  Regla: la ventana entera es invisible hasta que el panel avisa de que está listo y ya tiene su alto;
+  entonces aparece de una vez.
 
 ## Así a propósito
 
@@ -39,3 +44,9 @@ tiene aquí su línea con el mismo número.
   opción suelta. Los «Probar» de cada sonido se reúnen en una lista con su botón, como en ProFeedback.
 - 1.1.0 · snd_system_ok suena solo al aceptar algo y ya no con la sincronización. Lo pidió la persona
   el 2026-11-13. Aceptar un error o un aviso no lo hace sonar, para no oír dos sonidos seguidos.
+- 1.2.0 · Sin entrada en el menú Herramientas: la configuración se abre solo desde Complementos. Lo
+  pidió la persona el 2026-11-13.
+- 1.2.0 · La navegación ya no tiene la opción «Nunca»: para silenciarla se desmarca su casilla. Lo
+  pidió la persona el 2026-11-13.
+- 1.2.0 · El trofeo (snd_trophy.wav) suena al terminar un mazo solo si en esa sesión se respondió al
+  menos una tarjeta, para que entrar a un mazo ya terminado no lo haga sonar.

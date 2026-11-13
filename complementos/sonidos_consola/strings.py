@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-# Menú Herramientas y ventana
-MENU_OPTIONS = "Sonidos de consola…"
+# Ventana de opciones (Herramientas > Complementos > Configuración)
 OPTIONS_TITLE = "Sonidos de consola"
 
 VOLUME_LABEL = "Volumen"
-VOLUME_NOTE = "Vale para los siete sonidos. Pruébelo con «Probar», más abajo; se guarda al aceptar."
+VOLUME_NOTE = "Vale para los ocho sonidos. Pruébelo con «Probar», más abajo; se guarda al aceptar."
 
 NAVIGATION_LABEL = "Cuándo suena"
 NAVIGATION_CHOICES = {
     "hover": "Al pasar el ratón o las flechas por las opciones",
     "click": "Solo al hacer clic",
-    "off": "Nunca",
 }
 
 SOUNDS_GROUP = "Cuándo suena cada sonido"
@@ -25,6 +23,7 @@ SOUND_LABELS = {
     "cancel": "Cancelar, cerrar o salir del estudio",
     "system_ok": "Al aceptar algo («Aceptar» o «Sí»)",
     "system_ng": "Al comenzar a estudiar",
+    "trophy": "Al terminar un mazo",
     "error": "Error o aviso de Anki",
 }
 FILE_MISSING = "Falta {file}: no sonará."
@@ -36,7 +35,7 @@ TEST_OPTION = "{label} ({file})"
 TEST_BUTTON = "Probar"
 TEST_EMPTY = "Aún no hay ningún sonido en la carpeta."
 OPEN_FOLDER = "Abrir carpeta de sonidos"
-MISSING_SUMMARY_NONE = "Están los siete sonidos."
+MISSING_SUMMARY_NONE = "Están los ocho sonidos."
 MISSING_SUMMARY_ONE = "Falta 1 sonido: cópielo en la carpeta de sonidos."
 MISSING_SUMMARY_MANY = "Faltan {count} sonidos: cópielos en la carpeta de sonidos."
 NO_AUDIO = "Este ordenador no ofrece a Anki la función de sonido que usa el complemento: no sonará nada."

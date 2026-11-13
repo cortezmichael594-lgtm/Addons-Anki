@@ -18,20 +18,23 @@ SOUND_FILES: dict[str, str] = {
     "cancel": "snd_cancel.wav",
     "system_ok": "snd_system_ok.wav",
     "system_ng": "snd_system_ng.wav",
+    "trophy": "snd_trophy.wav",
     "error": "snd_error.wav",
 }
 SOUND_KEYS: tuple[str, ...] = tuple(SOUND_FILES)
 
 NAV_HOVER = "hover"
 NAV_CLICK = "click"
+# «Nunca» se retiró en la 1.2.0: para no oír la navegación se desmarca su casilla. Un config.json
+# antiguo con este valor se convierte en la casilla desmarcada.
 NAV_OFF = "off"
-NAV_MODES: tuple[str, ...] = (NAV_HOVER, NAV_CLICK, NAV_OFF)
+NAV_MODES: tuple[str, ...] = (NAV_HOVER, NAV_CLICK)
 
 DEFAULT_VOLUME = 70
 
 # Sonidos que tienen prioridad: al empezar, callan la navegación y el globo, y durante un
 # momento no dejan que la navegación los tape.
-PRIORITY_SOUNDS = frozenset({"cancel", "system_ok", "system_ng", "error"})
+PRIORITY_SOUNDS = frozenset({"cancel", "system_ok", "system_ng", "error", "trophy"})
 # Sonidos que se callan cuando empieza uno con prioridad.
 INTERRUPTIBLE_SOUNDS = ("option", "gameboot")
 
@@ -70,6 +73,7 @@ def normalize_config(stored: object) -> dict[str, Any]:
     navigation = stored.get("navigation")
     if navigation in NAV_MODES:
         config["navigation"] = navigation
+    old_navigation_off = navigation == NAV_OFF
 
     enabled = stored.get("enabled")
     if isinstance(enabled, dict):
@@ -77,6 +81,8 @@ def normalize_config(stored: object) -> dict[str, Any]:
             value = enabled.get(key)
             if isinstance(value, bool):
                 config["enabled"][key] = value
+    if old_navigation_off:
+        config["enabled"]["option"] = False
     return config
 
 

@@ -187,12 +187,15 @@ class PanelPageTest(unittest.TestCase):
                 self.assertIn(item["key"], page["values"])
                 self.assertIn(item["key"], page["defaults"])
 
-    def test_seven_switches_and_navigation_hangs_from_its_switch(self) -> None:
+    def test_eight_switches_and_navigation_hangs_from_its_switch(self) -> None:
         page = dialogs.page(logic.default_config(), ALL_FILES, True)
         checks = [i for i in self._items(page) if i["type"] == "check"]
         self.assertEqual([c["key"] for c in checks], [dialogs.switch_key(k) for k in logic.SOUND_KEYS])
         option = next(c for c in checks if c["key"] == dialogs.switch_key("option"))
         self.assertEqual(option["children"][0]["key"], dialogs.NAVIGATION_KEY)
+        self.assertEqual(len(checks), 8)
+        modes = [o["value"] for o in option["children"][0]["options"]]
+        self.assertEqual(modes, ["hover", "click"])
 
     def test_round_trip(self) -> None:
         config = logic.normalize_config({"volume": 40, "navigation": "click", "enabled": {"error": False}})
@@ -241,7 +244,7 @@ class PanelPageTest(unittest.TestCase):
 
 class SummaryTextTest(unittest.TestCase):
     def test_singular_and_plural(self) -> None:
-        self.assertEqual(strings.missing_summary(0), "Están los siete sonidos.")
+        self.assertEqual(strings.missing_summary(0), "Están los ocho sonidos.")
         self.assertIn("Falta 1 sonido", strings.missing_summary(1))
         self.assertIn("Faltan 3 sonidos", strings.missing_summary(3))
 

@@ -11,7 +11,7 @@ class NormalizeConfigTest(unittest.TestCase):
     def test_first_run_gives_defaults(self) -> None:
         self.assertEqual(logic.normalize_config(None), logic.default_config())
 
-    def test_all_seven_sounds_on_by_default(self) -> None:
+    def test_all_eight_sounds_on_by_default(self) -> None:
         enabled = logic.default_config()["enabled"]
         self.assertEqual(set(enabled), set(logic.SOUND_FILES))
         self.assertTrue(all(enabled.values()))
@@ -35,8 +35,15 @@ class NormalizeConfigTest(unittest.TestCase):
         self.assertEqual(config, logic.default_config())
 
     def test_navigation_modes(self) -> None:
+        self.assertEqual(logic.NAV_MODES, ("hover", "click"))
         for mode in logic.NAV_MODES:
             self.assertEqual(logic.normalize_config({"navigation": mode})["navigation"], mode)
+
+    def test_old_never_becomes_navigation_switched_off(self) -> None:
+        config = logic.normalize_config({"navigation": "off", "enabled": {"option": True}})
+        self.assertEqual(config["navigation"], "hover")
+        self.assertFalse(config["enabled"]["option"])
+        self.assertTrue(config["enabled"]["cancel"])
 
 
 class VolumeTest(unittest.TestCase):
@@ -84,14 +91,14 @@ class SoundGateTest(unittest.TestCase):
 
 class StopAndFilesTest(unittest.TestCase):
     def test_priority_sounds_silence_navigation_and_balloon(self) -> None:
-        for key in ("cancel", "error", "system_ok", "system_ng"):
+        for key in ("cancel", "error", "system_ok", "system_ng", "trophy"):
             self.assertEqual(set(logic.sounds_to_stop(key)), {"option", "gameboot"})
 
     def test_other_sounds_silence_nothing(self) -> None:
         for key in ("option", "gameboot", "coldboot"):
             self.assertEqual(logic.sounds_to_stop(key), ())
 
-    def test_only_the_seven_given_files(self) -> None:
+    def test_only_the_eight_given_files(self) -> None:
         self.assertEqual(
             set(logic.SOUND_FILES.values()),
             {
@@ -102,12 +109,20 @@ class StopAndFilesTest(unittest.TestCase):
                 "snd_option.wav",
                 "snd_system_ng.wav",
                 "snd_system_ok.wav",
+                "snd_trophy.wav",
             },
         )
 
     def test_missing_files_in_window_order(self) -> None:
         self.assertEqual(
             logic.missing_files({"snd_option.wav", "coldboot_stereo.wav", "otro.wav"}),
-            ["gameboot_stereo.wav", "snd_cancel.wav", "snd_system_ok.wav", "snd_system_ng.wav", "snd_error.wav"],
+            [
+                "gameboot_stereo.wav",
+                "snd_cancel.wav",
+                "snd_system_ok.wav",
+                "snd_system_ng.wav",
+                "snd_trophy.wav",
+                "snd_error.wav",
+            ],
         )
         self.assertEqual(logic.missing_files(set(logic.SOUND_FILES.values())), [])

@@ -1,4 +1,4 @@
-"""Reproductor de los siete sonidos.
+"""Reproductor de los ocho sonidos.
 
 Cada sonido tiene un único «altavoz» (QSoundEffect) cargado de antemano: suena al momento,
 no espera al disco y, si vuelve a sonar, corta el anterior en lugar de amontonarse. No usa
