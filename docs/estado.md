@@ -32,6 +32,11 @@ Se actualiza al terminar cada sesión de un trabajo largo y se lee al retomarlo.
 - 2026-11-09: GritMap 4.15.1: «Propuesta: 5 (el 80 % de su promedio diario).», sin la cifra final,
   en 51 idiomas (petición del cliente).
 
+- 2026-11-13: Sonidos de consola 1.0.0, nuevo (plan aprobado en docs/sonidos_consola/encargo.md):
+  los siete sonidos de la persona, que ella copia en user_files (no van en el repositorio). Excepción
+  aprobada: PyQt6.QtMultimedia en empaquetar.py (ALLOWED_DIRECT_QT). 36 pruebas. Falta que la persona
+  lo pruebe en Windows con audio.
+
 ## En curso
 
 - El pull request de la adaptación espera la revisión de la persona. No se fusiona sin ella.

@@ -88,6 +88,9 @@ USER_FILES_ALLOWED = {"README.txt", "LEEME.txt"}
 TEXT_SUFFIXES = {".py", ".js", ".css", ".html", ".htm"}
 WEB_SUFFIXES = {".js", ".css", ".html", ".htm"}
 FORBIDDEN_QT = {"PyQt6", "PyQt5", "PySide6", "PySide2"}
+# Módulos de Qt que aqt.qt no reexporta y que Anki trae y usa él mismo (aqt/sound.py): se pueden
+# importar directamente. Excepción aprobada por la persona el 2026-11-13 (sonido de Sonidos de consola).
+ALLOWED_DIRECT_QT = {"PyQt6.QtMultimedia"}
 # Marca que permite un color fijo en una línea concreta (por ejemplo, un valor de reserva).
 COLOR_OK_MARK = "colores-ok"
 COLOR_HINT = f" Si es un valor de reserva legítimo, añada «{COLOR_OK_MARK}: motivo» en esa línea."
@@ -554,12 +557,12 @@ class PythonReviewer(ast.NodeVisitor):
 
     def visit_Import(self, node: ast.Import) -> None:
         for alias in node.names:
-            if alias.name.split(".")[0] in FORBIDDEN_QT:
+            if alias.name.split(".")[0] in FORBIDDEN_QT and alias.name not in ALLOWED_DIRECT_QT:
                 self.error(node, "importe Qt desde aqt.qt, nunca directamente (use la versión que trae Anki).")
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         module = node.module or ""
-        if module.split(".")[0] in FORBIDDEN_QT:
+        if module.split(".")[0] in FORBIDDEN_QT and module not in ALLOWED_DIRECT_QT:
             self.error(node, "importe Qt desde aqt.qt, nunca directamente (use la versión que trae Anki).")
         if module in ("aqt.colors", "_aqt.colors") and not self.color_allowed(node):
             self.error(
