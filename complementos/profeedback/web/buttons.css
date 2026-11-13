@@ -11,7 +11,19 @@
    mismas dimensiones en todos los idiomas; si una traducción es larga, se aprieta el
    texto dentro del botón, nunca se deforma el botón.
 
-   Movimiento: solo se anima transform y 100 ms; el canto se hunde al pulsar. */
+   Movimiento: solo se anima transform y 100 ms; con el ratón encima el botón se eleva 1 px
+   y se aclara un poco (nunca se oscurece); al pulsar se hunde sobre su canto. */
+
+/* Historial de correcciones de este archivo:
+   * FIX-006 (2026-11-13): con el tema de Atelier, los botones perdían su forma y se oscurecían con el ratón. */
+
+/* --- FIX-006 (2026-11-13) ---
+   Síntoma: con Atelier (Nocturne) instalado, los botones salían con esquinas pequeñas, borde y una
+     raya, y al pasar el ratón por encima se volvían oscuros.
+   Causa: Atelier pinta los mismos botones con selectores más fuertes (borde, esquinas, una imagen
+     de fondo y un degradado oscuro al pasar el ratón), y ganaba a esta hoja.
+   Regla: las propiedades que dan forma y color a los botones 3D llevan !important; esta hoja solo
+     se carga en la barra inferior del repaso y solo con «Botones de respuesta 3D de colores». */
 
 :root {
   --profeedback-height: 44px;
@@ -19,7 +31,7 @@
   /* «Mostrar respuesta» nunca convive con los de respuesta, así que puede ser más largo. */
   --profeedback-show-width: 160px;
   --profeedback-radius: 14px;
-  --profeedback-lip: 3px;
+  --profeedback-lip: 4px;
   --profeedback-size: 13.5px;
 
   /* Con qué se asienta el relleno y el canto, cuánto se conserva del tono, y el color
@@ -53,14 +65,16 @@ button {
   justify-content: center;
   position: relative;
   width: var(--profeedback-width);
-  min-width: var(--profeedback-width);
+  min-width: var(--profeedback-width) !important;
   max-width: var(--profeedback-width);
   height: var(--profeedback-height);
   /* Aire entre botones y debajo, para el canto: nunca se tocan. */
-  margin: 10px 6px 13px;
+  min-height: var(--profeedback-height) !important;
+  margin: 10px 6px 14px !important;
   padding: 0 10px;
-  border: 0;
-  border-radius: var(--profeedback-radius);
+  border: 0 !important;
+  border-radius: var(--profeedback-radius) !important;
+  background-image: none !important;
   font-family: "ProFeedbackDisplay", system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
   font-size: var(--profeedback-size);
@@ -77,8 +91,10 @@ button {
   transition: transform 100ms ease-out;
 }
 
+/* Con el ratón encima: se eleva 1 px sobre su canto y se aclara un poco. Nunca se oscurece. */
 button:hover {
-  filter: brightness(1.07);
+  filter: brightness(1.06);
+  transform: translateY(-1px);
 }
 
 /* Aro de foco solo para quien navega con el teclado. */
@@ -120,9 +136,12 @@ button .stattxt {
 :is(button[data-ease], button[onclick*="ease1"], button[onclick*="ease2"],
     button[onclick*="ease3"], button[onclick*="ease4"]) {
   --profeedback-lip-color: color-mix(in srgb, var(--profeedback-token) 52%, var(--profeedback-shade));
-  background: color-mix(in srgb, var(--profeedback-token) var(--profeedback-keep), var(--profeedback-shade));
-  color: var(--profeedback-on-fill);
-  box-shadow: 0 var(--profeedback-lip) 0 var(--profeedback-lip-color);
+  background-color: color-mix(in srgb, var(--profeedback-token) var(--profeedback-keep), var(--profeedback-shade)) !important;
+  color: var(--profeedback-on-fill) !important;
+  /* Un brillo fino arriba, del color del texto sobre la acción, y el canto de su color. */
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--highlight-fg, #FFFFFF) 22%, transparent),
+    0 var(--profeedback-lip) 0 var(--profeedback-lip-color) !important;
 }
 
 /* ── «Mostrar respuesta»: el azul de acción de Anki ──────────────────────── */
@@ -131,9 +150,12 @@ button .stattxt {
   width: var(--profeedback-show-width);
   min-width: var(--profeedback-show-width);
   max-width: var(--profeedback-show-width);
-  background: var(--button-primary-bg, #3B6FE0);
-  color: var(--highlight-fg, #FFFFFF);
-  box-shadow: 0 var(--profeedback-lip) 0 var(--profeedback-lip-color);
+  min-width: var(--profeedback-show-width) !important;
+  background-color: var(--button-primary-bg, #3B6FE0) !important;
+  color: var(--highlight-fg, #FFFFFF) !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--highlight-fg, #FFFFFF) 22%, transparent),
+    0 var(--profeedback-lip) 0 var(--profeedback-lip-color) !important;
 }
 
 /* ── «Editar» y «Más»: discretos, con el contorno de la paleta ───────────── */
@@ -142,34 +164,30 @@ button .stattxt {
 button[onclick*="edit"],
 button[onclick*="more"] {
   --profeedback-lip-color: var(--border-strong, #C2C9D2);
-  background: var(--button-bg, #FFFFFF);
-  color: var(--fg-subtle, #5C6675);
+  background-color: var(--button-bg, #FFFFFF) !important;
+  color: var(--fg-subtle, #5C6675) !important;
   box-shadow:
     inset 0 0 0 1.5px var(--border, #DCE0E6),
-    0 var(--profeedback-lip) 0 var(--profeedback-lip-color);
-}
-
-button[onclick*="edit"]:hover,
-button[onclick*="more"]:hover {
-  background: var(--button-gradient-start, #F0F2F6);
-  color: var(--fg, #1B2430);
-  filter: none;
+    0 var(--profeedback-lip) 0 var(--profeedback-lip-color) !important;
 }
 
 /* ── Pulsado: el botón se hunde sobre su canto ───────────────────────────── */
 /* .profeedback-pressed lo pone buttons.js mientras el clic viaja a Anki. */
 button:active,
 button.profeedback-pressed {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--profeedback-lip-color);
+  filter: none;
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--profeedback-lip-color) !important;
   transition-duration: 70ms;
 }
 
 button[onclick*="edit"]:active,
-button[onclick*="more"]:active {
+button[onclick*="more"]:active,
+button[onclick*="edit"].profeedback-pressed,
+button[onclick*="more"].profeedback-pressed {
   box-shadow:
     inset 0 0 0 1.5px var(--border, #DCE0E6),
-    0 1px 0 var(--profeedback-lip-color);
+    0 1px 0 var(--profeedback-lip-color) !important;
 }
 
 /* ── Ventanas estrechas: los seis siguen idénticos, solo más compactos ───── */
@@ -181,7 +199,7 @@ button[onclick*="more"]:active {
   }
 
   button {
-    margin: 10px 4px 13px;
+    margin: 10px 4px 14px !important;
   }
 }
 
@@ -195,7 +213,7 @@ button[onclick*="more"]:active {
   }
 
   button {
-    margin: 8px 3px 11px;
+    margin: 8px 3px 12px !important;
     padding: 0 5px;
   }
 }
@@ -204,5 +222,9 @@ button[onclick*="more"]:active {
 @media (prefers-reduced-motion: reduce) {
   button {
     transition: none;
+  }
+
+  button:hover {
+    transform: none;
   }
 }

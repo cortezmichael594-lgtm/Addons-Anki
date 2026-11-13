@@ -93,6 +93,10 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   (grave.mp3 y suave.mp3) y textos en los 54 idiomas; FIX-005, ventana de opciones sin destello (el
   mismo arreglo que FIX-002 de Sonidos de consola). 15 pruebas. Va en el pull request #21.
 
+- 2026-11-13: ProFeedback 2.3.0 (petición del cliente): los botones 3D mandan sobre Atelier y no se
+  oscurecen con el ratón (FIX-006, !important en buttons.css), forma algo mejorada (canto de 4 px,
+  brillo arriba, se elevan 1 px) e insignia «TARJETA NUEVA» en morado (FLAG_7). 18 pruebas.
+
 ## En curso
 
 (Nada.)

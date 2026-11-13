@@ -1,6 +1,6 @@
 # Ficha de diseño: ProFeedback
 
-Versión 2.2.0 (13 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 2.3.0 (13 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
@@ -39,7 +39,7 @@ prioridad:
 
 | Insignia | Cuándo | Color (token) | Día | Noche |
 |---|---|---|---|---|
-| «TARJETA NUEVA» | La tarjeta es nueva (también si se reinició) | STATE_NEW | #186CB9 | #7EBFF4 |
+| «TARJETA NUEVA» | La tarjeta es nueva (también si se reinició) | FLAG_7 (morado, 2.3.0; antes STATE_NEW) | #7048E8 | #9680D6 |
 | «EJERCICIO DIFÍCIL» | Sus tres últimas respuestas fueron «Otra vez» | FLAG_2 (naranja) | #E8590C | #C07F3A |
 | «ERROR ANTERIOR» | Alguna de sus dos últimas respuestas fue «Otra vez» (también hoy) | ACCENT_DANGER | #CA2D2D | #F37777 |
 
@@ -70,20 +70,23 @@ Con «Botones de respuesta 3D de colores» (marcada de serie):
 
 - Relleno de los cuatro de respuesta: de día, el color mezclado al 82 % con el texto (FG), más oscuro,
   con letra blanca (HIGHLIGHT_FG); de noche, el color vivo al 100 % con letra oscura (CANVAS, #12161F).
-- Canto inferior de 3 px que da relieve: el color mezclado al 52 % con un tono de sombra (FG de día,
+- Brillo fino arriba (1 px por dentro, HIGHLIGHT_FG al 22 %) y canto inferior de 4 px (2.3.0; antes 3) que da relieve: el color mezclado al 52 % con un tono de sombra (FG de día,
   CANVAS_INSET de noche).
 - Medidas: 128 × 44 px los de respuesta, 160 px «Mostrar respuesta»; esquina de 14 px; letra de 13,5 px,
   negrita, interlineado 1,15, mayúsculas. Todos del mismo tamaño en todos los idiomas: si una palabra no
   cabe, se reduce la letra, nunca el botón. Fila centrada.
-- Ventanas de menos de 760 px: 104 px (130 «Mostrar respuesta»), letra 12 px, márgenes 10/4/13 px.
+- Ventanas de menos de 760 px: 104 px (130 «Mostrar respuesta»), letra 12 px, márgenes 10/4/14 px.
   Menos de 560 px: 82 × 40 px (104 «Mostrar respuesta»), letra 11 px, esquina 12 px.
-- «Editar» y «Más»: discretos, letra gris que se oscurece (FG) con fondo BUTTON_HOVER al pasar el ratón.
+- «Editar» y «Más»: discretos, con letra gris; al pasar el ratón, como los demás.
 - Tiempos previstos («10 min», «4 d») y recuento de tarjetas encima de los botones, en gris (FG_SUBTLE),
   11,5 px, peso 500, sin mayúsculas.
-- Al pasar el ratón, se aclaran un poco. Al pulsar con el ratón, se hunden 2 px sobre su canto (el canto
-  baja a 1 px, 70 ms) y la respuesta llega a Anki 0,1 s después, para que se vea el gesto. Con el
+- Al pasar el ratón, se aclaran un poco (brillo 1,06) y se elevan 1 px; nunca se oscurecen (2.3.0). Al
+  pulsar con el ratón, se hunden 3 px sobre su canto (el canto baja a 1 px, 70 ms) y la respuesta llega a Anki 0,1 s después, para que se vea el gesto. Con el
   teclado, al instante. Un segundo clic en el mismo botón antes de 0,4 s se ignora.
 - Movimiento: solo desplazamiento, 100 ms.
+- Su forma y sus colores mandan aunque Atelier esté instalado (FIX-006, 2.3.0): sin el borde, las
+  esquinas pequeñas, la raya de color ni el oscurecido con el ratón que Atelier pone a los botones
+  de estudio. Con la casilla desmarcada, los botones son los de Anki o Atelier.
 
 ## 7. Celebración al terminar
 

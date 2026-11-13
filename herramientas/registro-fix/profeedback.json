@@ -17,6 +17,9 @@
     ],
     "FIX-005": [
       "panel.py"
+    ],
+    "FIX-006": [
+      "web/buttons.css"
     ]
   }
 }

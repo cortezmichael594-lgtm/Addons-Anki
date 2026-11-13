@@ -4,7 +4,7 @@
    color del texto (currentColor), así que cada aviso se define con un único color.
 
    Colores: solo variables de la paleta de Anki (las redefine Nocturne) con su valor de
-   reserva. Tarjeta nueva = azul de «nuevas»; ejercicio difícil = naranja de la bandera 2
+   reserva. Tarjeta nueva = morado de la bandera 7 (desde la 2.3.0); ejercicio difícil = naranja de la bandera 2
    (existe en Anki de serie y en Nocturne, a diferencia del color de «aprendiendo», que en
    Anki de serie es rojo); error anterior = rojo de peligro. De día el texto se asienta un
    poco hacia el color del texto de Anki para leerse bien; de noche, el tono vivo tal cual.
@@ -61,7 +61,8 @@
 }
 
 .profeedback-badge--new-card {
-  --profeedback-badge-token: var(--state-new, #1971C2);
+  /* Morado de la bandera 7 (petición del cliente, 2.3.0). */
+  --profeedback-badge-token: var(--flag-7, #7048E8);
 }
 
 .profeedback-badge--hard-exercise {

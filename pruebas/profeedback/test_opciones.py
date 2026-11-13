@@ -118,6 +118,36 @@ class WrongSoundTests(unittest.TestCase):
             self.assertIn("sonidos/fallo", texts.get("no_wrong_sounds", ""), lang)
 
 
+class ButtonStyleTests(unittest.TestCase):
+    """FIX-006: el diseño 3D de los botones gana al tema (Atelier) y nunca se oscurece con el ratón."""
+
+    def setUp(self) -> None:
+        self.css = (ADDON / "web" / "buttons.css").read_text(encoding="utf-8")
+
+    def test_shape_and_colour_win_over_the_theme(self) -> None:
+        for declaration in (
+            "border: 0 !important",
+            "border-radius: var(--profeedback-radius) !important",
+            "background-image: none !important",
+            "min-height: var(--profeedback-height) !important",
+        ):
+            self.assertIn(declaration, self.css)
+        for line in self.css.splitlines():
+            if line.strip().startswith("background-color:"):
+                self.assertIn("!important", line)
+
+    def test_hover_only_brightens(self) -> None:
+        hover = self.css.split("button:hover {", 1)[1].split("}", 1)[0]
+        self.assertIn("brightness(1.06)", hover)
+        self.assertNotIn("background", hover)
+        self.assertNotIn(":hover {\n  background", self.css)
+
+    def test_new_card_badge_is_purple(self) -> None:
+        flags = (ADDON / "web" / "flags.css").read_text(encoding="utf-8")
+        block = flags.split(".profeedback-badge--new-card {", 1)[1].split("}", 1)[0]
+        self.assertIn("var(--flag-7", block)
+
+
 class ConfigFromPageTests(unittest.TestCase):
     def test_round_trip(self) -> None:
         values = dialogs.page(AddonConfig(), SOUNDS)["values"]
