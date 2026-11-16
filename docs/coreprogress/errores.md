@@ -65,6 +65,31 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
 
+- 1.3.0 · Informe «Auditoría y rediseño de la interfaz: CoreProgress 1.2.0», aplicado entero a petición
+  del cliente el 2026-11-16, con la opción recomendada en sus cuatro decisiones:
+  - Decisión 1 (B): se celebra la mejor racha de los últimos 30 días («MEJOR RACHA EN 30 DÍAS: 42»),
+    además del récord histórico, que queda como dato y se sigue celebrando si se bate. Se guarda la
+    mejor racha de cada día de los últimos 30 en la colección. «Poner a cero» solo pone a cero el
+    récord histórico.
+  - Decisión 2 (B): hitos en números redondos (paso de 5, 10, 20, 25, 50… con cinco marcas como mucho
+    y ninguna más allá del 92 %) y una marca final con el total. Sustituye a los hitos al 20, 40, 60 y
+    80 %, que el informe 1.1 había dado por buenos.
+  - Decisión 3 (A): relleno plano, sin brillo de cristal ni sombra de color, con un contorno de 1 px en
+    la tinta del tema; el halo dorado queda como única luz.
+  - Decisión 4 (A): sin la cabecera «CoreProgress» dentro de la ventana de opciones.
+  - Una sola celebración por respuesta (récord, 30 días, racha; el hito solo cambia de color si
+    coincide); aviso centrado en la ventana; con «reducir el movimiento», nada se anima.
+- 1.3.0 · Decisiones de diseño del taller al aplicar el informe: los enlaces («Restaurar…», «Poner a
+  cero», «Deshacer») van subrayados además de en FG_LINK, como manda la regla de enlaces del taller
+  (el informe los pedía sin subrayar en reposo); el borde de la ficha elegida es BORDER_FOCUS, como
+  pide el informe, y con el foco del teclado pasa a 4 px; los colores de la vista previa (canal y
+  número del hito sin alcanzar) son los de Nocturne con su marca, porque en la ventana de opciones no
+  hay una tarjeta que medir.
+- 1.3.0 · No aplicado y por qué: Intro sin Ctrl no acepta la ventana (el informe lo deja «por
+  comprobar» y sigue pendiente también en Atelier); la lista de mazos, si los nombres no caben, no
+  lleva globo con la lista entera; las chispas siguen siendo blancas también de día (el informe pide
+  comprobarlo antes con una captura).
+
 - Desde la 1.2.0, «Difícil» mantiene la racha: es un acierto, como dice el manual de Anki. Solo «Otra
   vez» la rompe. Lo aprobó el cliente el 2026-11-09 (informe de CoreProgress, apartado 2.1), sabiendo
   que el autor original lo había decidido al revés. Antes: «Difícil» rompía la racha. Decisión del autor original;
@@ -73,7 +98,8 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   (informe del 2026-11-09, apartado 3.1). Antes: cada vez que entraba a repasar, la barra empezaba vacía y tomaba lo que queda como nuevo total, aunque
   vuelva al mismo mazo. Decisión del autor original.
 - El récord se celebra una sola vez por repaso, en el momento exacto de batirlo; si coincide con un
-  número de racha, gana el aviso de récord. Decisión del autor original.
+  número de racha, gana el aviso de récord. Decisión del autor original; desde la 1.3.0, lo mismo con la
+  mejor racha de 30 días, que va detrás del récord y delante de la racha.
 - El récord se celebra desde 3 seguidas; antes era desde 5. Lo bajó el usuario del complemento, según
   consta en el código (sin fecha).
 - Desde la 1.2.0 los textos son «Nuevo récord: 11», «5 aciertos seguidos» y «Récord: 7 aciertos
@@ -93,7 +119,8 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   mazos muy fáciles.»; lo aprobó el cliente el 2026-11-09 sabiendo que antes la retiró. Antes: la ventana de excluir mazos no llevaba ningún texto de ayuda, en ningún idioma. Lo retiró el usuario,
   según consta en el código.
 - El título de la ventana de opciones es solo el nombre, «CoreProgress», sin traducir. Lo pidió el
-  usuario, según consta en el código.
+  usuario, según consta en el código. Desde la 1.3.0 va solo en la barra de la ventana (decisión 4 del
+  informe del 2026-11-16).
 - Los botones estándar de las ventanas (Guardar, Cancelar, Aceptar, restaurar) llevan el texto de Qt
   en el idioma de Anki, no traducciones propias. Decisión del autor original.
 - El canal de la barra toma su color del fondo real de la tarjeta y no del tema de Anki, para no

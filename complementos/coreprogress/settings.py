@@ -24,6 +24,7 @@ from dataclasses import dataclass
 
 from aqt import mw
 
+from .effects import with_day_best
 from .errors import report
 from .palettes import DEFAULT_THEME, RETIRED_THEMES, THEME_KEYS
 
@@ -39,6 +40,8 @@ from .palettes import DEFAULT_THEME, RETIRED_THEMES, THEME_KEYS
 #   comprueba antes que mw.col exista.
 # ---------------------------------------------------------------
 COL_BEST_STREAK_KEY: str = "coreprogress_best_streak"
+# 1.3.0: la mejor racha de cada día de los últimos 30 (ver load_daily_best).
+COL_DAILY_BEST_KEY: str = "coreprogress_daily_best"
 LEGACY_BEST_STREAK_KEY: str = "best_streak"
 _MAX_STREAK: int = 1_000_000
 
@@ -264,6 +267,57 @@ def rollback_best_streak(value: int) -> None:
     if not _col_available() or load_best_streak() <= target:
         return
     _write_best_streak(target)
+
+
+# --- Mejor racha de cada día (1.3.0, informe del 2026-11-16, decisión 1) -----
+# Para celebrar la mejor racha de los últimos 30 días se guarda, en la colección
+# de cada perfil y junto al récord, la mejor racha de cada día de Anki de esos
+# 30 días (nada más antiguo). Mismas reglas que el récord: set_config, fuera de
+# Editar > Deshacer, y nunca con la colección cerrada (regla de FIX-002).
+def load_daily_best() -> dict[int, int]:
+    try:
+        if _col_available():
+            raw = mw.col.get_config(COL_DAILY_BEST_KEY, {})
+            if isinstance(raw, dict):
+                out: dict[int, int] = {}
+                for day, value in raw.items():
+                    try:
+                        out[int(day)] = _as_int(value, 0, 0, _MAX_STREAK)
+                    except (TypeError, ValueError):
+                        continue
+                return out
+    except Exception as exc:
+        _log(exc)
+    return {}
+
+
+def _write_daily_best(daily: dict[int, int]) -> None:
+    try:
+        if _col_available():
+            mw.col.set_config(COL_DAILY_BEST_KEY, {str(day): value for day, value in daily.items()})
+    except Exception as exc:
+        _log(exc)
+
+
+def save_day_best(today: int, value: int) -> None:
+    """Guarda la racha de hoy si supera la mejor de hoy (y olvida lo que tiene
+    más de 30 días)."""
+    if value <= 0 or not _col_available():
+        return
+    current = load_daily_best()
+    updated = with_day_best(current, today, value)
+    if updated != current:
+        _write_daily_best(updated)
+
+
+def rollback_day_best(today: int, value: int) -> None:
+    """Baja la mejor racha de hoy tras deshacer, con suelo en `value`."""
+    if not _col_available():
+        return
+    current = load_daily_best()
+    if current.get(today, 0) > value:
+        current[today] = max(0, int(value))
+        _write_daily_best({day: best for day, best in current.items() if best > 0})
 
 
 def migrate_best_streak() -> None:

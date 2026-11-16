@@ -33,6 +33,9 @@ diseñar.
 - Ancho: 560 px. Alto: el justo para el contenido de la página principal, como mucho 720 px o el alto
   de la pantalla menos 80 px, y como poco 240 px. El alto se fija una vez al abrir y no cambia al
   entrar en subpáginas.
+- Toda ventana de opciones debe verse entera, sin desplazar, en 672 px de alto (lo que deja una
+  pantalla de 1.080 px al 150 %), contando su barra de título. Si el título ya está en la barra de la
+  ventana, no se repite dentro (informe de CoreProgress del 16 de noviembre de 2026).
 - Recuerda su tamaño y posición entre sesiones.
 - No se enseña hasta estar dibujada entera (sin parpadeo); mientras, se ve el fondo de Anki. Si la
   página no avisa de que está lista en 3 s, se enseña igualmente.

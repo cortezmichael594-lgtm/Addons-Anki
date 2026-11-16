@@ -1,5 +1,14 @@
 """El panel de opciones.
 
+Version 1.3.0 (informe del cliente del 2026-11-16, aplicado entero, 8.8): dos
+recuadros en lugar de tres, con lo que se viene a cambiar primero. El primero,
+el aspecto de la barra: vista previa, tema (con «Restaurar…» en su fila),
+altura y espacio en paralelo con su margen a la vista, hitos y celebraciones.
+El segundo, el récord entero: la mejor racha de 30 días y el récord, «Poner a
+cero» (oculto si no hay récord) y los mazos que no cuentan. Sin la cabecera
+«CoreProgress», que ya está en la barra de título (decisión 4). Cabe entera,
+sin desplazar, en unos 656 px.
+
 Version 1.1.0 (peticion del cliente, 2026-11-09): la ventana sigue el panel
 modelo de GritMap (docs/fichas-diseno/09-patron-configuracion.md, regla del
 taller desde PROP-012). Las mismas opciones, en tres recuadros: el record con
@@ -33,8 +42,9 @@ from aqt.qt import QDialogButtonBox
 from aqt.theme import theme_manager
 
 from .errors import report
+from .effects import round_marks
 from .i18n import record_value_label, t
-from .palettes import DEFAULT_THEME, RETIRED_THEMES, THEME_KEYS, swatch
+from .palettes import DEFAULT_THEME, RETIRED_THEMES, THEME_KEYS, ink, preview_style, swatch
 from .panel import PanelDialog, button_text, parent_window
 from .settings import (
     BAR_HEIGHT_MAX,
@@ -81,16 +91,26 @@ def _without_px(text: str) -> str:
     return re.sub(r"\s*\(px\)\s*$", "", text)
 
 
-def _record_parts(record: int) -> dict[str, str]:
+def _record_parts(record: int, window: int = 0) -> dict[str, str]:
     """«Récord: 7 aciertos seguidos», con la cifra en negrita, o «Sin récord
     todavía».
 
     1.2.0 (informe del 2026-11-09, aprobado por el cliente sabiendo que antes
     pidió «Tu récord actual: 7 seguidas!» y el guion): forma impersonal, el
     plural de cada idioma y sin el «!» suelto.
+
+    1.3.0 (informe del 2026-11-16, decisión 1): con una mejor racha de 30 días
+    por debajo del récord, «Mejor racha en 30 días: 41 · récord: 90».
     """
     if record <= 0:
         return {"before": t("record_none")}
+    if 0 < window < record:
+        before, _sep, after = t("best30").partition("{count}")
+        return {
+            "before": before,
+            "strong": str(window),
+            "after": after + " · " + t("record_inline").format(count=record),
+        }
     return {"before": f"{t('opt_record')}: ", "strong": record_value_label(record)}
 
 
@@ -110,8 +130,12 @@ def _visual_values(cfg: Config) -> dict[str, Any]:
     }
 
 
-def page(cfg: Config, record: int, title: str = "CoreProgress") -> dict[str, Any]:
-    """Descripcion del panel: el record, el aspecto de la barra y los mazos."""
+_PREVIEW_TOTAL = 50
+_PREVIEW_PROGRESS = 60
+
+
+def page(cfg: Config, record: int, title: str = "CoreProgress", window: int = 0) -> dict[str, Any]:
+    """Descripcion del panel: el aspecto de la barra y el record con sus mazos."""
     dark = bool(theme_manager.night_mode)
     values = {**_visual_values(cfg), _EXCLUDE_KEY: list(cfg.excluded_decks), _RESET_KEY: False}
     defaults = {**_visual_values(DEFAULT_CONFIG), _EXCLUDE_KEY: [], _RESET_KEY: False}
@@ -123,12 +147,12 @@ def page(cfg: Config, record: int, title: str = "CoreProgress") -> dict[str, Any
     #        aplicaba antes de guardar.
     # Regla: lo que borra sin vuelta atrás pregunta con el foco en «No» y solo
     #        se aplica al pulsar Aceptar; Cancelar lo deja como estaba.
-    record_card = {
+    record_card: dict[str, Any] = {
         "items": [
             {
                 "type": "stat",
                 "key": _RESET_KEY,
-                "parts": _record_parts(record),
+                "parts": _record_parts(record, window),
                 "done": _record_parts(0),
                 "action": {
                     "label": t("opt_record_reset"),
@@ -145,54 +169,84 @@ def page(cfg: Config, record: int, title: str = "CoreProgress") -> dict[str, Any
     }
     look_card: dict[str, Any] = {
         "restore": True,
+        # «Restaurar…» en la fila de «Tema de color» (1.3.0).
+        "restoreInline": "theme",
         "items": [
+            {
+                "type": "preview",
+                "theme": "theme",
+                "height": "bar_height",
+                "checks": "checkpoints_enabled",
+                "themes": {key: preview_style(key, dark) for key in THEME_KEYS},
+                "reachedText": "#1b2430" if dark else "#ffffff",  # colores-ok: número del hito alcanzado (palettes)
+                "total": _PREVIEW_TOTAL,
+                "progress": _PREVIEW_PROGRESS,
+                "marks": [*round_marks(_PREVIEW_TOTAL), _PREVIEW_TOTAL],
+            },
             {
                 "type": "chips",
                 "key": "theme",
                 "label": t("opt_theme"),
                 "options": [
-                    {"value": key, "label": t(f"theme_{key}"), "swatch": swatch(key, dark)}
+                    {
+                        "value": key,
+                        "label": t(f"theme_{key}"),
+                        "swatch": swatch(key, dark),
+                        "swatchBorder": ink(key, dark),
+                    }
                     for key in sorted_themes()
                 ],
             },
             {
-                "type": "stepper",
-                "key": "bar_height",
-                "label": _without_px(t("opt_bar_height")),
-                "min": BAR_HEIGHT_MIN,
-                "max": BAR_HEIGHT_MAX,
-                "unit": "px",
+                "type": "pair",
+                "children": [
+                    {
+                        "type": "stepper",
+                        "key": "bar_height",
+                        "label": _without_px(t("opt_bar_height")),
+                        "min": BAR_HEIGHT_MIN,
+                        "max": BAR_HEIGHT_MAX,
+                        "unit": f"px · {BAR_HEIGHT_MIN}–{BAR_HEIGHT_MAX}",
+                    },
+                    {
+                        "type": "stepper",
+                        "key": "push_down",
+                        "label": _without_px(t("opt_push")),
+                        "min": PUSH_MIN,
+                        "max": PUSH_MAX,
+                        "step": 4,
+                        "unit": f"px · {PUSH_MIN}–{PUSH_MAX}",
+                    },
+                ],
             },
-            {
-                "type": "stepper",
-                "key": "push_down",
-                "label": _without_px(t("opt_push")),
-                "min": PUSH_MIN,
-                "max": PUSH_MAX,
-                "step": 4,
-                "unit": "px",
-            },
-            {"type": "check", "key": "effects_enabled", "label": t("opt_effects")},
             {"type": "check", "key": "checkpoints_enabled", "label": t("opt_checkpoints")},
+            {"type": "check", "key": "effects_enabled", "label": t("opt_effects")},
         ],
     }
     # HISTORIAL: la lista de excluir mazos tuvo una frase explicativa que el
     # cliente retiro. En la 1.2.0 (informe del 2026-11-09) aprobo una linea
     # breve que dice para que sirve, sabiendo que antes la habia retirado.
-    decks_card = {
-        "items": [
-            {"type": "row", "key": _EXCLUDE_KEY, "label": t("opt_exclude"), "note": t("opt_exclude_note")}
-        ]
+    decks_row = {
+        "type": "row",
+        "key": _EXCLUDE_KEY,
+        "label": t("opt_exclude"),
+        "note": t("opt_exclude_note"),
+        "empty": t("no_match"),
     }
+    # 1.3.0: el récord entero en un recuadro, al final: el dato, su puesta a
+    # cero y los mazos que no cuentan para él.
+    record_card["items"].append(decks_row)
     if cfg.retired_theme in RETIRED_THEMES:
         old = t(f"theme_{cfg.retired_theme}")
         new = t(f"theme_{RETIRED_THEMES[cfg.retired_theme]}")
         look_card["items"].insert(0, {"type": "notice", "text": t("theme_retired").format(old=old, new=new)})
     return {
         "title": title,
+        # El título ya está en la barra de la ventana (decisión 4).
+        "hideTitle": True,
         "values": values,
         "defaults": defaults,
-        "cards": [record_card, look_card, decks_card],
+        "cards": [look_card, record_card],
         "focus": "theme",
     }
 
@@ -234,11 +288,12 @@ def _deck_list() -> list[dict[str, Any]]:
 
 
 def _summary(values: Any) -> str:
-    """Los mazos excluidos, por su nombre; «-» si no hay ninguno."""
+    """Los mazos excluidos, por su nombre; «Ninguno» si no hay ninguno (1.3.0:
+    antes un guion, que no dice nada y el lector de pantalla no lee)."""
     chosen = values.get(_EXCLUDE_KEY) if isinstance(values, dict) else None
     ids = {value for value in chosen or [] if isinstance(value, int)}
     names = [entry["label"] for entry in _deck_list() if entry["value"] in ids]
-    return ", ".join(names) if names else "-"
+    return ", ".join(names) if names else t("none")
 
 
 def _handle(action: str, arg: Any) -> Any:
@@ -276,9 +331,9 @@ def open_options() -> None:
             _dialog.activateWindow()
             return
         package = mw.addonManager.addon_from_module(__name__)
-        from .controller import current_best
+        from .controller import current_best, current_window_best
 
-        content = page(load_config(), current_best(), _addon_title())
+        content = page(load_config(), current_best(), _addon_title(), current_window_best())
         dialog = PanelDialog(parent_window(), package, content, _handle, _log_panel, "coreprogressPanel")
         _dialog = dialog
         dialog.open()

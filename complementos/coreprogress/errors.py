@@ -56,7 +56,9 @@ def _notify_once() -> None:
     try:
         from aqt.utils import tooltip, tr
 
-        tooltip(tr.errors_may_be_addon())
+        # 1.3.0 (informe del 2026-11-16): con el nombre delante, se sabe de qué
+        # complemento es; el texto de Anki ya viene traducido.
+        tooltip("CoreProgress: " + tr.errors_may_be_addon())
     except Exception:
         pass
 

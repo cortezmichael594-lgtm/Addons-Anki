@@ -47,7 +47,6 @@ import json
 
 from aqt import mw
 
-from .effects import STREAK_LABEL_MIN_LEFT_PERCENT
 from .errors import report
 from .palettes import StyleBundle
 
@@ -63,7 +62,15 @@ img#star{top:var(--cprog-mark-top,30px) !important;}
 .cprog-spark{position:absolute;top:50%;width:12px;height:12px;pointer-events:none;color:#fff;
  font-size:12px;line-height:12px;text-align:center;text-shadow:0 0 4px rgba(255,255,255,.9);
  animation:cprogSpark .7s ease-out forwards;}
+@media (forced-colors: active){
+ #_cprogTrack{border:1px solid CanvasText;}
+ #_cprogFill{forced-color-adjust:none;background:Highlight !important;}
+ .cprog-cp>div{forced-color-adjust:none;border:1px solid CanvasText;}
+}
 """
+# 1.3.0 (informe del 2026-11-16, 5.4): en el modo de contraste alto de Windows
+# los fondos y degradados desaparecen; el relleno toma el color de resaltado del
+# sistema y el canal lleva un borde del color del texto, para que la barra se vea.
 # 1.2.0 (informe del 2026-11-09): se retira el destello que cruzaba el relleno
 # cada 9 segundos sin parar. Era movimiento en la periferia de la vista mientras
 # se intenta recordar, sin informar de nada (la barra no habia cambiado), y la
@@ -274,7 +281,7 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
 
   C.build=function(args){
     try{
-      C._args=args; C._minLeft=(args.minLeft||2.8); C._prevP=null; C._last=null;
+      C._args=args; C._prevP=null; C._last=null;
       C._effects=(args.effects!==false); C._labelMs=args.labelMs||1500;
       if(typeof args.dark==='boolean'){ C._forceDark=args.dark; }
       // Si hay un aviso de racha/record visible, sobrevive a la reconstruccion
@@ -298,8 +305,11 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
       // anuncios automaticos: no interrumpe la lectura de la tarjeta.
       wrap.setAttribute('role','progressbar');
       wrap.setAttribute('aria-valuemin','0'); wrap.setAttribute('aria-valuemax','100');
+      // 1.3.0: la barra tiene nombre («Progreso de hoy»), no solo valor.
+      if(args.name){ wrap.setAttribute('aria-label', args.name); }
+      var rm=C.reduceMotion();
       wrap.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;padding:10px 18px;pointer-events:none;'
-        +'opacity:0;transition:opacity .28s ease;';
+        +'opacity:0;'+(rm?'':'transition:opacity .28s ease;');
 
       var track=document.createElement('div'); track.id=C.TRACK;
       // --- FIX-001 (2026-07-23) --------------------------------------
@@ -316,8 +326,10 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
       C._trackPainted=false;
 
       var fill=document.createElement('div'); fill.id=C.FILL;
+      // 1.3.0: con «reducir el movimiento» el relleno cambia al instante.
       fill.style.cssText='position:relative;height:100%;width:0%;border-radius:'+args.fillRadius+'px;overflow:hidden;'
-        +'transition:width .4s cubic-bezier(.5,0,.2,1),box-shadow .5s ease;';
+        +(rm?'':'transition:width .4s cubic-bezier(.5,0,.2,1),box-shadow .5s ease;');
+      C._minFill=args.barHeight;
 
       // HISTORIAL: los degradados NO se pueden transicionar en CSS (saltan en
       // seco mientras la sombra transiciona: se percibe como "lag"). Los
@@ -327,10 +339,8 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
       fill.appendChild(xf);
       C._xf=xf; C._curBg=null;
 
-      var gloss=document.createElement('div');
-      gloss.style.cssText='position:absolute;inset:0;border-radius:inherit;pointer-events:none;'
-        +'background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,0) 55%);';
-      fill.appendChild(gloss);
+      // 1.3.0 (informe del 2026-11-16, decisión 3): relleno plano, sin el
+      // brillo de cristal; el contorno de 1 px en la tinta va en apply().
       track.appendChild(fill);
 
       if(args.showCheckpoints && args.checkpoints){
@@ -356,17 +366,21 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
           // 1.2.0: con la barra por debajo de 14 px los numeros no se leerian:
           // solo queda la marca.
           inner.textContent=args.cpNumbers===false?'':String(Math.round(cp.num));
+          if(cp.final){ el.setAttribute('data-final','1'); }
           el.appendChild(inner);
           track.appendChild(el);
         }
       }
 
+      // 1.3.0 (informe del 2026-11-16, 3.2 y 8.5): el aviso va centrado en la
+      // ventana, en la franja de 24 px bajo la barra, y no se mueve: antes
+      // seguía al relleno y al empezar salía en la esquina, lejos de la vista.
+      // Sin sombra ni resplandor; un poco más de aire entre mayúsculas.
       var label=document.createElement('div'); label.id=C.LABEL;
-      label.style.cssText='position:absolute;top:100%;left:'+C._minLeft+'%;transform:translateX(-50%);'
+      label.style.cssText='position:absolute;top:100%;left:50%;transform:translateX(-50%);'
         +'margin-top:7px;white-space:nowrap;pointer-events:none;opacity:0;'
-        +'font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;'
-        +'font-family:'+C.FONT+';'
-        +'transition:opacity .3s ease,left .4s cubic-bezier(.5,0,.2,1);';
+        +'font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;'
+        +'font-family:'+C.FONT+';';
       label.textContent=''; track.appendChild(label);
 
       wrap.appendChild(track);
@@ -419,9 +433,10 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
     }, 470);
   };
 
-  C.apply=function(p, bundle, aria){
+  C.apply=function(p, bundle, aria, quiet){
     try{
       if(typeof p!=='number'){ p=parseFloat(p)||0; }
+      C._quiet=!!quiet;
       var f=document.getElementById(C.FILL); if(!f) return;
       var w=document.getElementById(C.WRAP);
       if(w){
@@ -430,11 +445,10 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
       }
       var m=C._m(bundle);
       f.style.width=p+'%'; C._setFillBg(f, m.gradient); f.style.boxShadow=m.shadow;
+      // 1.3.0: con algo hecho, el relleno es al menos tan ancho como alto.
+      f.style.minWidth=(p>0 && C._minFill)?(C._minFill+'px'):'0';
       var lbl=document.getElementById(C.LABEL);
-      if(lbl){
-        lbl.style.left=Math.max(C._minLeft||2.8, p/2)+'%';
-        if(lbl.style.opacity!=='0'){ lbl.style.color=m.solid; if(m.glow){ lbl.style.textShadow=m.glow; } }
-      }
+      if(lbl && lbl.style.opacity!=='0'){ lbl.style.color=m.solid; lbl.style.textShadow='none'; }
       C._applyCheckpoints(p, bundle);
       C._last={p:p, b:bundle, a:(aria||C._aria||'')}; C._prevP=p;
     }catch(e){ C._err(e); }
@@ -447,7 +461,8 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
     // FIX-001: ancho y x de cada hito desde la medida cacheada en paintTrack,
     // para no forzar maquetacion en el camino caliente de cada respuesta.
     var tw=C._trackW||tr.offsetWidth||0;
-    var pendFg=dk?'rgba(233,237,244,0.78)':'rgba(20,28,38,0.62)';
+    // 1.3.0: número sin alcanzar en FG_SUBTLE (de día estaba a 4,45 a 1).
+    var pendFg=dk?'#B7BECC':'#4E576A';
     var list=tr.getElementsByClassName(C.CP);
     var prev=(C._prevP==null)?p:C._prevP;
     for(var i=0;i<list.length;i++){
@@ -456,25 +471,19 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
       var cpLeft=(el._cpLeft!==undefined&&el._cpLeft!==null)?el._cpLeft:el.offsetLeft;
       var reached=p>=pos-0.001;
       if(reached){
-        // Pinta el trozo EXACTO del degradado que hay detras de esta bolita:
-        // misma imagen, dimensionada al canal y desplazada por su propia x.
-        inner.style.backgroundImage=m.gradient;
-        if(tw>0){
-          inner.style.backgroundSize=tw+'px 100%';
-          inner.style.backgroundPosition=(-cpLeft)+'px 0';
-        }else{
-          inner.style.backgroundSize='';
-          inner.style.backgroundPosition='';
-        }
-        inner.style.backgroundColor='transparent';
-        inner.style.boxShadow=m.shadow;
-        // 1.2.0: el numero va en blanco o en oscuro segun lo que se lea mejor
-        // sobre el tono del relleno justo detras (el blanco no llegaba a 4,5 a 1
-        // en los tonos claros: verde, turquesa, naranja y dorado).
-        var ink=C._inkFor(m.gradient, pos);
-        inner.style.color=ink;
-        inner.style.textShadow=(ink==='#fff')?'0 1px 2px rgba(0,0,0,.45)':'none';
-        if(prev<pos-0.001 && C._effects){
+        // 1.3.0 (informe del 2026-11-16, 8.4): el disco alcanzado toma la tinta
+        // del tema, sin borde, con el número en blanco de día y oscuro de noche
+        // (5,07 a 1 o más en todos los temas). Antes tomaba el trozo del
+        // degradado de detrás y en Azul, Rosa y Naranja quedaban siete
+        // posiciones por debajo de 4,5 a 1.
+        inner.style.backgroundImage='none';
+        inner.style.backgroundColor=m.solid;
+        inner.style.boxShadow='none';
+        inner.style.color=m.reached||'#fff';
+        inner.style.textShadow='none';
+        // Salto y chispas: solo si esta respuesta no trae ya un aviso (una
+        // celebración por respuesta) y sin «reducir el movimiento».
+        if(prev<pos-0.001 && C._effects && !C._quiet && !C.reduceMotion()){
           inner.style.animation='none'; void inner.offsetWidth;
           inner.style.animation='cprogPop .4s cubic-bezier(.33,1,.68,1)';
           C._sparkleAt(el);
@@ -493,37 +502,6 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
     }
   };
 
-  C._hex=function(h){
-    var m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h||'');
-    return m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:null;
-  };
-  C._relLum=function(c){
-    var f=function(v){ v/=255; return v<=0.04045?v/12.92:Math.pow((v+0.055)/1.055,2.4); };
-    return 0.2126*f(c[0])+0.7152*f(c[1])+0.0722*f(c[2]);
-  };
-  // Color del degradado en una posicion (0-100), con las paradas que escribe
-  // palettes._gradient: «#aaa 0%,#bbb 30%,...».
-  C._colorAt=function(gradient, pos){
-    try{
-      var re=/(#[0-9a-f]{6})\s+([0-9.]+)%/ig, stops=[], m;
-      while((m=re.exec(gradient))){ stops.push({c:C._hex(m[1]), p:parseFloat(m[2])}); }
-      if(!stops.length) return null;
-      for(var i=1;i<stops.length;i++){
-        if(pos<=stops[i].p){
-          var a=stops[i-1], b=stops[i], k=(pos-a.p)/Math.max(0.001,b.p-a.p);
-          return [0,1,2].map(function(j){ return a.c[j]+(b.c[j]-a.c[j])*k; });
-        }
-      }
-      return stops[stops.length-1].c;
-    }catch(e){ return null; }
-  };
-  C._inkFor=function(gradient, pos){
-    var c=C._colorAt(gradient, pos); if(!c) return '#fff';
-    var l=C._relLum(c);
-    var white=1.05/(l+0.05);
-    var dark=(l+0.05)/(C._relLum([27,36,48])+0.05);
-    return dark>white?'#1B2430':'#fff';
-  };
   C._spawnSparks=function(leftPercent, count, spread){
     if(C.reduceMotion()) return;
     var tr=document.getElementById(C.TRACK); if(!tr) return;
@@ -550,22 +528,29 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
   C.celebrate=function(){
     try{
       var f=document.getElementById(C.FILL); if(!f) return;
+      if(C.reduceMotion()) return;
       f.style.animation='none'; void f.offsetWidth; f.style.animation='cprogGlow .6s ease-out';
       var edge=parseFloat(f.style.width)||0;
       C._spawnSparks(edge, 4, 9);
     }catch(e){ C._err(e); }
   };
 
+  // 1.3.0: entrada en 150 ms y salida en 300; sin fundido con «reducir el
+  // movimiento».
+  C._fade=function(lbl, on){
+    lbl.style.transition=C.reduceMotion()?'none':('opacity '+(on?'.15s':'.3s')+' ease');
+    lbl.style.opacity=on?'1':'0';
+  };
   C.showLabel=function(text, bundle){
     try{
       var lbl=document.getElementById(C.LABEL); if(!lbl||!text) return;
       var m=C._m(bundle);
-      lbl.textContent=text; lbl.style.color=m.solid; lbl.style.textShadow=m.glow||'none';
-      lbl.style.opacity='1'; C._labelShownAt=Date.now();
+      lbl.textContent=text; lbl.style.color=m.solid; lbl.style.textShadow='none';
+      C._fade(lbl, true); C._labelShownAt=Date.now();
       // 1.2.0: el aviso dura lo justo (1,5 s) y se apaga solo, pase lo que pase
       // con la tarjeta; uno nuevo sustituye al anterior.
       if(C._hideTimer){ clearTimeout(C._hideTimer); C._hideTimer=null; }
-      C._hideTimer=setTimeout(function(){ var l=document.getElementById(C.LABEL); if(l) l.style.opacity='0'; C._hideTimer=null; }, C._labelMs||1500);
+      C._hideTimer=setTimeout(function(){ var l=document.getElementById(C.LABEL); if(l) C._fade(l, false); C._hideTimer=null; }, C._labelMs||1500);
     }catch(e){ C._err(e); }
   };
   C.hideLabel=function(minMs){
@@ -574,8 +559,8 @@ _BOOTSTRAP_JS = r"""// colores-ok: sombras y textos sobre el relleno de la barra
       if(lbl.style.opacity==='0' || !C._labelShownAt) return;
       var wait=(minMs||0)-(Date.now()-C._labelShownAt);
       if(C._hideTimer){ clearTimeout(C._hideTimer); C._hideTimer=null; }
-      if(wait<=0){ lbl.style.opacity='0'; }
-      else{ C._hideTimer=setTimeout(function(){ var l=document.getElementById(C.LABEL); if(l) l.style.opacity='0'; C._hideTimer=null; }, wait); }
+      if(wait<=0){ C._fade(lbl, false); }
+      else{ C._hideTimer=setTimeout(function(){ var l=document.getElementById(C.LABEL); if(l) C._fade(l, false); C._hideTimer=null; }, wait); }
     }catch(e){ C._err(e); }
   };
 
@@ -647,6 +632,7 @@ def build_enter_js(
     effects: bool = True,
     label_ms: int = 1500,
     aria: str = "",
+    name: str = "",
 ) -> str:
     # 1.2.0: numeros de los hitos de 11 px como minimo; por debajo de 14 px de
     # barra no caben legibles y solo queda la marca.
@@ -655,13 +641,13 @@ def build_enter_js(
         "barHeight": bar_height,
         "radius": bar_height,
         "fillRadius": bar_height / 2,
-        "cpSize": bar_height + 6,
+        "cpSize": bar_height + 4,
         "cpFont": cp_font,
-        "minLeft": STREAK_LABEL_MIN_LEFT_PERCENT,
         "push": push_down,
         "cpNumbers": bar_height >= 14,
         "labelMs": label_ms,
         "aria": aria,
+        "name": name,
         "showCheckpoints": bool(show_checkpoints),
         "checkpoints": marks,
         "progress": round(progress, 3),
@@ -701,10 +687,13 @@ def build_set_dark_js(dark: bool) -> str:
     )
 
 
-def build_apply_js(bundle: StyleBundle, progress: float, aria: str = "") -> str:
+def build_apply_js(bundle: StyleBundle, progress: float, aria: str = "", quiet: bool = False) -> str:
+    """quiet: esta respuesta ya trae un aviso; el hito que se alcance solo
+    cambia de color, sin salto ni chispas (1.3.0)."""
     return (
         "window._cprog&&window._cprog.apply&&window._cprog.apply("
-        + _num(progress) + "," + bundle.to_json() + "," + json.dumps(aria) + ");"
+        + _num(progress) + "," + bundle.to_json() + "," + json.dumps(aria) + ","
+        + ("true" if quiet else "false") + ");"
     )
 
 
@@ -718,6 +707,7 @@ def build_summary_js(bundle: StyleBundle, line: str, aria: str, dark: bool) -> s
     mode = bundle.dark if dark else bundle.light
     data = {
         "gradient": mode.gradient,
+        "shadow": mode.fill_shadow,
         "line": line,
         "aria": aria,
     }
@@ -730,7 +720,7 @@ def build_summary_js(bundle: StyleBundle, line: str, aria: str, dark: bool) -> s
         "bar.setAttribute('role','progressbar'); bar.setAttribute('aria-valuemin','0');"
         "bar.setAttribute('aria-valuemax','100'); bar.setAttribute('aria-valuenow','100');"
         "bar.setAttribute('aria-valuetext', d.aria);"
-        "bar.style.cssText='height:16px;border-radius:16px;background:'+d.gradient+';';"
+        "bar.style.cssText='height:16px;border-radius:16px;background:'+d.gradient+';box-shadow:'+d.shadow+';';"
         "var p=document.createElement('p'); p.textContent=d.line;"
         "p.style.cssText='margin:8px 0 0;text-align:center;font-size:13px;"
         "color:var(--fg-subtle,#4E576A);font-variant-numeric:tabular-nums;';"
