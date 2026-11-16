@@ -1,15 +1,10 @@
 {
-  "answerSoundEnabled": true,
-  "wrongSoundEnabled": true,
-  "sessionSoundsEnabled": true,
   "confettiEnabled": true,
   "styledButtonsEnabled": true,
   "flagsEnabled": true,
-  "answerSound": "",
-  "wrongSound": "",
+  "answerSound": "acierto-1-madera.mp3",
+  "wrongSound": "fallo-1-madera.mp3",
   "deckFinishSound": "",
   "allDoneSound": "",
-  "deckPerfectSound": "",
-  "allPerfectSound": "",
   "soundVolume": 100
 }

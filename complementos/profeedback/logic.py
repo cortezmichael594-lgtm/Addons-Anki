@@ -5,9 +5,12 @@ así se puede probar con una colección temporal, sin abrir Anki y sin tocar jam
 colección real de la persona.
 
 Qué decide:
-- qué insignia lleva una tarjeta (nueva, ejercicio difícil, error anterior);
-- cuándo termina una sesión de repaso y qué celebración toca (de mazo o de todo el día,
-  normal o perfecta).
+- qué insignia lleva una tarjeta (nueva, «se resiste», «otra oportunidad»);
+- cuándo termina una sesión de repaso y qué celebración toca (de mazo o de todo el día).
+
+Desde la 2.5.0 (informe 2.4.0, aprobado entero el 2026-11-16) solo «Otra vez» es distinto:
+«Difícil», «Bien» y «Fácil» son aciertos, como dice el manual de Anki. Y la celebración
+dorada premia terminar el día, no la nota que se pone uno mismo (opción B del apartado 8.10).
 """
 
 # Historial de correcciones de este archivo:
@@ -29,13 +32,13 @@ from .strings import FlagKey
 # Respuestas de Anki: 1 = Otra vez, 2 = Difícil, 3 = Bien, 4 = Fácil.
 AGAIN: Final[int] = 1
 HARD: Final[int] = 2
-# Las que cuentan como acierto: «Bien» y «Fácil». «Difícil» ya no es sesión perfecta.
-CORRECT_EASES: Final[frozenset[int]] = frozenset({3, 4})
-# Las que suenan como fallo: «Otra vez» y «Difícil» (2.2.0, petición del cliente).
-WRONG_EASES: Final[frozenset[int]] = frozenset({1, 2})
+# Aciertos: «Difícil», «Bien» y «Fácil» (manual de Anki: «Hard» es una respuesta correcta).
+CORRECT_EASES: Final[frozenset[int]] = frozenset({HARD, 3, 4})
+# Solo «Otra vez» lleva el otro sonido (2.5.0).
+WRONG_EASES: Final[frozenset[int]] = frozenset({AGAIN})
 
 # Cuántas respuestas (mazo) o tarjetas distintas (todo el día) hacen falta para que el
-# confeti y el brillo dorado tengan sentido. El sonido de fin suena siempre.
+# confeti tenga sentido. El sonido de fin suena siempre.
 DECK_MIN_ANSWERS: Final[int] = 5
 DAY_MIN_CARDS: Final[int] = 20
 
@@ -91,13 +94,11 @@ class ReviewSession:
     """
 
     answers: int = 0
-    perfect: bool = True
     _ended_on_overview: bool = False
 
     def state_changed(self, new_state: str, old_state: str) -> None:
         if new_state == "review":
             self.answers = 0
-            self.perfect = True
             self._ended_on_overview = False
         elif old_state == "review":
             # --- FIX-002 (2026-10-13) ---
@@ -112,8 +113,10 @@ class ReviewSession:
 
     def record(self, ease: int) -> None:
         self.answers += 1
-        if ease not in CORRECT_EASES:
-            self.perfect = False
+
+    def undo_answer(self) -> None:
+        """Una respuesta deshecha deja de contar (2.5.0, informe 2.4.0, apartado 4.2)."""
+        self.answers = max(0, self.answers - 1)
 
     def take_ended(self) -> bool:
         """¿Acaba de terminar una sesión? Devuelve True una sola vez por sesión."""
@@ -123,7 +126,6 @@ class ReviewSession:
 
     def reset(self) -> None:
         self.answers = 0
-        self.perfect = True
         self._ended_on_overview = False
 
 
@@ -141,7 +143,6 @@ class DaySummary:
     """Lo repasado hoy en toda la colección, según el historial de Anki."""
 
     cards: int
-    slips: int  # tarjetas con alguna respuesta «Otra vez» o «Difícil» hoy
 
 
 def remaining_cards(col: Collection) -> Remaining:
@@ -151,7 +152,7 @@ def remaining_cards(col: Collection) -> Remaining:
 
 
 def day_summary(col: Collection) -> DaySummary:
-    """Tarjetas repasadas hoy y cuántas tuvieron algún fallo («Otra vez» o «Difícil»)."""
+    """Tarjetas distintas repasadas hoy en toda la colección."""
     # --- FIX-003 (2026-10-13) ---
     # Síntoma: el «día perfecto» empezaba a medianoche en vez de al cambiar de día Anki,
     #   mezclaba los perfiles, se perdía si Anki se cerraba de golpe y no contaba lo
@@ -161,31 +162,33 @@ def day_summary(col: Collection) -> DaySummary:
     # Regla: lo que ya está en el historial de la colección se lee de ahí (búsqueda rated:1),
     #   que respeta el cambio de día de Anki, es de cada perfil y viaja con la sincronización.
     today = SearchNode.Rated(days=1, rating=SearchNode.RATING_ANY)
-    again = SearchNode.Rated(days=1, rating=SearchNode.RATING_AGAIN)
-    hard = SearchNode.Rated(days=1, rating=SearchNode.RATING_HARD)
     answered = col.build_search_string(SearchNode(rated=today))
-    slipped = col.build_search_string(SearchNode(rated=again), SearchNode(rated=hard), joiner="OR")
-    return DaySummary(cards=len(col.find_cards(answered)), slips=len(col.find_cards(slipped)))
+    return DaySummary(cards=len(col.find_cards(answered)))
 
 
 # ── qué celebración toca ─────────────────────────────────────────────────────
 @dataclass(frozen=True, slots=True)
 class Celebration:
     scope: Literal["deck", "all"]
-    # Sesión sin fallos con repaso suficiente: sonido y brillo dorados.
-    perfect: bool
+    # Confeti y título dorados: el fin del día con repaso suficiente (2.5.0).
+    gold: bool
     # Hay repaso suficiente para el confeti (el sonido de fin suena aunque no).
     confetti: bool
 
 
 def decide(
-    remaining: Remaining, session_answers: int, session_perfect: bool, day: DaySummary
+    remaining: Remaining, session_answers: int, day: DaySummary, day_already_celebrated: bool = False
 ) -> Celebration | None:
-    """Qué celebrar al volver a la pantalla del mazo, o None si aún queda por repasar."""
-    if remaining.total == 0:
+    """Qué celebrar al volver a la pantalla del mazo, o None si aún queda por repasar.
+
+    La celebración grande del día sale una sola vez por día: si vuelven tarjetas de
+    aprendizaje y se terminan otra vez, se celebra como un mazo (informe 2.4.0, 8.11).
+    Ninguna depende de las notas: la dorada premia terminar el día (opción B de 8.10).
+    """
+    if remaining.total == 0 and not day_already_celebrated:
         enough = day.cards >= DAY_MIN_CARDS
-        return Celebration("all", perfect=enough and day.slips == 0, confetti=enough)
+        return Celebration("all", gold=enough, confetti=enough)
     if remaining.deck == 0:
         enough = session_answers >= DECK_MIN_ANSWERS
-        return Celebration("deck", perfect=enough and session_perfect, confetti=enough)
+        return Celebration("deck", gold=False, confetti=enough)
     return None

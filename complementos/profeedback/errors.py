@@ -24,6 +24,15 @@ F = TypeVar("F", bound=Callable[..., Any])
 # no se debe llenar la pantalla de avisos.
 _already_warned: set[str] = set()
 
+# Qué dejó de funcionar, para que el aviso lo diga (2.5.0, informe 2.4.0, apartado 8.12).
+_AREAS: dict[str, strings.UIKey] = {
+    "profeedback.feedback._on_card_will_show": "error_badge",
+    "profeedback.feedback._on_webview_will_set_content": "error_buttons",
+    "profeedback.feedback._on_did_answer": "error_sound",
+    "profeedback.celebration._on_decided": "error_celebration",
+    "profeedback.celebration._on_overview_did_refresh": "error_celebration",
+}
+
 
 def log_error(context: str, error: BaseException) -> None:
     """Anota un tropiezo ya controlado (con su traza) sin avisar a la persona."""
@@ -35,7 +44,7 @@ def _report(name: str) -> None:
     if mw is None or name in _already_warned:
         return
     _already_warned.add(name)
-    tooltip(strings.ui("error_generic"), period=5000)
+    tooltip(strings.ui(_AREAS.get(name, "error_generic")), period=5000)
 
 
 def guarded(func: F) -> F:
@@ -46,7 +55,7 @@ def guarded(func: F) -> F:
         try:
             return func(*args, **kwargs)
         except Exception:
-            _report(func.__name__)
+            _report(f"{func.__module__}.{func.__name__}")
             return None
 
     return cast(F, wrapper)
@@ -65,7 +74,7 @@ def guarded_filter(func: F) -> F:
         try:
             return func(*args, **kwargs)
         except Exception:
-            _report(func.__name__)
+            _report(f"{func.__module__}.{func.__name__}")
             return args[0] if args else None
 
     return cast(F, wrapper)

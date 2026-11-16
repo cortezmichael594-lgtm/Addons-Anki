@@ -10,7 +10,7 @@ from typing import Any
 
 from aqt import mw
 
-from . import audio, celebration, config, dialogs, feedback, paths
+from . import audio, celebration, config, dialogs, feedback, paths, strings
 from .errors import guarded, log_error
 from .paths import SoundKind
 
@@ -44,11 +44,23 @@ def open_settings() -> None:
         kind: audio.list_sound_names(kind) for kind in paths.SOUND_SUBFOLDERS
     }
 
+    def label_for(kind: SoundKind, name: str) -> str:
+        return audio.sound_label(kind, name, strings.voice_label)
+
     def handle(action: str, arg: Any) -> Any:
         if action == "action":
+            folder = dialogs.folder_request(arg)
+            if folder is not None:
+                from aqt.utils import openFolder
+
+                path = paths.user_sound_folder(folder)
+                path.mkdir(parents=True, exist_ok=True)
+                openFolder(str(path))
+                return None
             request = dialogs.test_request(arg, sounds)
-            if request is not None:
-                audio.play(*request)
+            if request is not None and not audio.play(*request):
+                # «Probar» no consiguió sonar: se dice junto a su fila (informe 2.4.0, 8.7).
+                return {"error": strings.ui("play_failed")}
             return None
         if action == "accept":
             config.save(dialogs.config_from_page(arg, config.get(), sounds))
@@ -63,7 +75,7 @@ def open_settings() -> None:
     _dialog = PanelDialog(
         parent_window(),
         package,
-        dialogs.page(config.get(), sounds),
+        dialogs.page(config.get(), sounds, label_for),
         handle,
         lambda where, error: log_error(where, error),
         dialogs.GEOMETRY_KEY,

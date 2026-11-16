@@ -2,10 +2,15 @@
 
 Versión 2.1.0 (petición del cliente, 2026-11-09): la ventana sigue el panel
 modelo de GritMap (docs/fichas-diseno/09-patron-configuracion.md, regla del
-taller desde PROP-012). Los mismos ajustes, en cuatro recuadros: el volumen con
-un deslizador; el sonido al acertar; los sonidos al terminar, cada uno con su
-lista desplegable y su botón «Probar», colgando de su casilla; y el aspecto.
-Aceptar y Cancelar llevan el texto de Qt, ya traducido por Anki.
+taller desde PROP-012). Aceptar y Cancelar llevan el texto de Qt, ya traducido
+por Anki.
+
+Versión 2.5.0 (informe 2.4.0, aprobado entero el 2026-11-16, apartado 8.7):
+dos recuadros, «Sonido» y «Aspecto», sin desplazamiento ni título repetido.
+Cada lista de sonido decide sola si suena y cuál: «Sin sonido», los de serie
+(«1 · Madera»…), los propios, «Aleatorio» y «Abrir la carpeta de estos
+sonidos…». Las casillas de sonido desaparecen. Cada recuadro lleva
+«Restaurar», como pide el modelo de opciones.
 
 Aquí solo se describe el panel y se lee lo elegido; abrirlo y atender sus
 botones está en actions.py.
@@ -16,149 +21,126 @@ botones está en actions.py.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 from . import strings
-from .config import VOLUME_MAX, VOLUME_MIN, AddonConfig
+from .config import SOUND_OFF, VOLUME_MAX, VOLUME_MIN, AddonConfig
 from .paths import SoundKind
 
 WINDOW_TITLE = "ProFeedback"
 GEOMETRY_KEY = "profeedback_settings"
+# Valor de la entrada «Abrir la carpeta de estos sonidos…»: abre la carpeta y la lista vuelve
+# a lo que tenía.
+OPEN_FOLDER = "open-folder"
 
-# Filas de «al terminar de repasar»: tipo de sonido y texto de su etiqueta.
-_FINISH_ROWS: tuple[tuple[SoundKind, strings.UIKey], ...] = (
-    ("deck_finish", "label_deck_finish"),
-    ("all_finish", "label_all_done"),
-    ("deck_perfect", "label_deck_perfect"),
-    ("all_perfect", "label_all_perfect"),
+# Filas de sonido, en orden: tipo, ajuste, etiqueta y nombre de «Probar» para el lector de
+# pantalla. Un hueco de 16 px separa las dos de cada tarjeta de las dos del final.
+SOUND_ROWS: tuple[tuple[SoundKind, str, strings.UIKey, strings.UIKey], ...] = (
+    ("correct", "answerSound", "label_on_correct", "test_correct"),
+    ("wrong", "wrongSound", "label_on_again", "test_again"),
+    ("deck_finish", "deckFinishSound", "label_deck_finish", "test_deck_finish"),
+    ("all_finish", "allDoneSound", "label_day_finish", "test_day_finish"),
+)
+SOUND_FIELDS: dict[SoundKind, str] = {kind: field for kind, field, _, _ in SOUND_ROWS}
+
+_CHECKS: tuple[tuple[str, strings.UIKey], ...] = (
+    ("styledButtonsEnabled", "styled_buttons"),
+    ("flagsEnabled", "flags_option"),
+    ("confettiEnabled", "confetti_option"),
 )
 
-# Clave de la página para cada ajuste de sonido elegido.
-SOUND_FIELDS: dict[SoundKind, str] = {
-    "correct": "answerSound",
-    "wrong": "wrongSound",
-    "deck_finish": "deckFinishSound",
-    "all_finish": "allDoneSound",
-    "deck_perfect": "deckPerfectSound",
-    "all_perfect": "allPerfectSound",
-}
-
-_CHECKS: tuple[str, ...] = (
-    "answerSoundEnabled",
-    "wrongSoundEnabled",
-    "sessionSoundsEnabled",
-    "confettiEnabled",
-    "styledButtonsEnabled",
-    "flagsEnabled",
-)
+LabelFor = Callable[[SoundKind, str], str]
 
 
-def _label(key: strings.UIKey) -> str:
-    """Etiqueta sin los dos puntos finales: en el panel va encima del control."""
-    return strings.ui(key).rstrip().rstrip(":：").rstrip()
+def _plain_label(kind: SoundKind, name: str) -> str:
+    return name
+
+
+def _sound_value(chosen: str, names: Sequence[str]) -> str:
+    """Lo que muestra la lista para un ajuste guardado."""
+    # --- FIX-001 (2026-10-13) ---
+    # Síntoma: al guardar los ajustes, «sonido al azar» (valor vacío) se convertía en el
+    #   primer sonido de la lista y ya no volvía a ser al azar.
+    # Causa: el desplegable no tenía entrada para «al azar»; al no encontrar el valor
+    #   vacío mostraba el primer archivo, y ese era el que se guardaba.
+    # Regla: todo desplegable de sonido lleva una entrada «Aleatorio» (valor vacío) que se
+    #   guarda tal cual. Desde la 2.5.0 (informe 2.4.0, aprobado por la persona) la lista
+    #   empieza por «Sin sonido» y un sonido guardado que ya no existe se muestra como el
+    #   n.º 1 de la lista, no como «Aleatorio».
+    if chosen in ("", SOUND_OFF) or chosen in names:
+        return chosen
+    return names[0] if names else ""
 
 
 def _values(config: AddonConfig, sounds: Mapping[SoundKind, Sequence[str]]) -> dict[str, Any]:
-    values: dict[str, Any] = {name: getattr(config, name) for name in _CHECKS}
+    values: dict[str, Any] = {name: getattr(config, name) for name, _ in _CHECKS}
     values["soundVolume"] = config.soundVolume
     for kind, field in SOUND_FIELDS.items():
-        chosen = getattr(config, field)
-        # --- FIX-001 (2026-10-13) ---
-        # Síntoma: al guardar los ajustes, «sonido al azar» (valor vacío) se convertía en el
-        #   primer sonido de la lista y ya no volvía a ser al azar.
-        # Causa: el desplegable no tenía entrada para «al azar»; al no encontrar el valor
-        #   vacío mostraba el primer archivo, y ese era el que se guardaba.
-        # Regla: todo desplegable de sonido lleva como primera entrada «Aleatorio» (valor
-        #   vacío), y un valor guardado que ya no existe se muestra como esa entrada.
-        values[field] = chosen if chosen in sounds.get(kind, ()) else ""
+        values[field] = _sound_value(getattr(config, field), sounds.get(kind, ()))
     return values
 
 
-def _sound_select(kind: SoundKind, label: str, sounds: Mapping[SoundKind, Sequence[str]]) -> dict[str, Any]:
+def _sound_select(
+    kind: SoundKind,
+    field: str,
+    label: strings.UIKey,
+    test: strings.UIKey,
+    sounds: Mapping[SoundKind, Sequence[str]],
+    label_for: LabelFor,
+    gap: bool = False,
+) -> dict[str, Any]:
     names = list(sounds.get(kind, ()))
+    options: list[dict[str, Any]] = [{"value": SOUND_OFF, "label": strings.ui("sound_off")}]
+    options += [{"value": name, "label": label_for(kind, name)} for name in names]
+    if names:
+        options.append({"value": "", "label": strings.ui("sound_random")})
+    options.append({"separator": True})
+    options.append({"value": OPEN_FOLDER, "label": strings.ui("open_folder"), "action": f"open:{kind}"})
     return {
         "type": "select",
-        "key": SOUND_FIELDS[kind],
-        "label": label,
-        "options": [{"value": "", "label": strings.ui("sound_random")}]
-        + [{"value": name, "label": name} for name in names],
-        "unavailable": not names,
-        "test": {"label": strings.ui("test"), "action": kind},
+        "key": field,
+        "label": strings.ui(label),
+        "inline": True,
+        "gap": gap,
+        "options": options,
+        "off": SOUND_OFF,
+        "test": {"label": strings.ui("test"), "aria": strings.ui(test), "action": kind},
     }
 
 
-def page(config: AddonConfig, sounds: Mapping[SoundKind, Sequence[str]]) -> dict[str, Any]:
+def page(
+    config: AddonConfig, sounds: Mapping[SoundKind, Sequence[str]], label_for: LabelFor = _plain_label
+) -> dict[str, Any]:
     """Descripción del panel."""
-    answer_children: list[dict[str, Any]] = []
-    if not sounds.get("correct"):
-        answer_children.append({"type": "note", "text": strings.ui("no_answer_sounds")})
-    answer_children.append(_sound_select("correct", _label("label_sound"), sounds))
-    wrong_children: list[dict[str, Any]] = []
-    if not sounds.get("wrong"):
-        wrong_children.append({"type": "note", "text": strings.ui("no_wrong_sounds")})
-    wrong_children.append(_sound_select("wrong", _label("label_sound"), sounds))
-    finish_children: list[dict[str, Any]] = []
-    if not any(sounds.get(kind) for kind, _ in _FINISH_ROWS):
-        finish_children.append({"type": "note", "text": strings.ui("no_finish_sounds")})
-    finish_children += [_sound_select(kind, _label(key), sounds) for kind, key in _FINISH_ROWS]
+    sound_items: list[dict[str, Any]] = [
+        {
+            "type": "slider",
+            "key": "soundVolume",
+            "label": strings.ui("label_volume"),
+            "inline": True,
+            "min": VOLUME_MIN,
+            "max": VOLUME_MAX,
+            "step": 1,
+            "suffix": " %",
+        }
+    ]
+    for index, (kind, field, label, test) in enumerate(SOUND_ROWS):
+        sound_items.append(_sound_select(kind, field, label, test, sounds, label_for, gap=index in (0, 2)))
     cards = [
-        {
-            "items": [
-                {
-                    "type": "slider",
-                    "key": "soundVolume",
-                    "label": _label("label_volume"),
-                    "min": VOLUME_MIN,
-                    "max": VOLUME_MAX,
-                    "step": 1,
-                    "suffix": " %",
-                }
-            ]
-        },
-        {
-            "title": strings.ui("group_answer_sounds"),
-            "items": [
-                {
-                    "type": "check",
-                    "key": "answerSoundEnabled",
-                    "label": strings.ui("enable_answer_sound"),
-                    "children": answer_children,
-                },
-                {
-                    "type": "check",
-                    "key": "wrongSoundEnabled",
-                    "label": strings.ui("enable_wrong_sound"),
-                    "children": wrong_children,
-                },
-            ],
-        },
-        {
-            "title": strings.ui("group_finish_sounds"),
-            "items": [
-                {
-                    "type": "check",
-                    "key": "sessionSoundsEnabled",
-                    "label": strings.ui("enable_finish_sound"),
-                    "children": finish_children,
-                }
-            ],
-        },
+        {"title": strings.ui("group_sound"), "restore": True, "items": sound_items},
         {
             "title": strings.ui("group_appearance"),
-            "items": [
-                {"type": "check", "key": "confettiEnabled", "label": strings.ui("confetti_option")},
-                {"type": "check", "key": "styledButtonsEnabled", "label": strings.ui("styled_buttons")},
-                {"type": "check", "key": "flagsEnabled", "label": strings.ui("flags_option")},
-                {"type": "note", "text": strings.ui("hint_own_sounds")},
-            ],
+            "restore": True,
+            "items": [{"type": "check", "key": key, "label": strings.ui(label)} for key, label in _CHECKS],
         },
     ]
-    defaults = _values(AddonConfig(), sounds)
     return {
         "title": WINDOW_TITLE,
+        # El título ya está en la barra de la ventana: no se repite dentro (informe 2.4.0, 2.5).
+        "hideTitle": True,
         "values": _values(config, sounds),
-        "defaults": defaults,
+        "defaults": _values(AddonConfig(), sounds),
         "cards": cards,
         "focus": "soundVolume",
     }
@@ -170,17 +152,23 @@ def _volume(value: object, fallback: int) -> int:
     return max(VOLUME_MIN, min(VOLUME_MAX, value))
 
 
+def _chosen(value: object, names: Sequence[str]) -> str:
+    """Un sonido elegido en la página, comprobado: si no es «Sin sonido», «Aleatorio» ni uno
+    de la lista, pasa a «Aleatorio» (regla de FIX-001)."""
+    if isinstance(value, str) and (value in (SOUND_OFF, "") or value in names):
+        return value
+    return ""
+
+
 def config_from_page(values: Any, saved: AddonConfig, sounds: Mapping[SoundKind, Sequence[str]]) -> AddonConfig:
-    """Los ajustes elegidos en la página, con cada valor comprobado: un sonido
-    que no está en su lista pasa a «Aleatorio» (regla de FIX-001)."""
+    """Los ajustes elegidos en la página, con cada valor comprobado."""
     raw = values if isinstance(values, dict) else {}
     data: dict[str, Any] = {}
-    for name in _CHECKS:
+    for name, _ in _CHECKS:
         value = raw.get(name)
         data[name] = value if isinstance(value, bool) else getattr(saved, name)
     for kind, field in SOUND_FIELDS.items():
-        value = raw.get(field)
-        data[field] = value if isinstance(value, str) and value in sounds.get(kind, ()) else ""
+        data[field] = _chosen(raw.get(field), sounds.get(kind, ()))
     data["soundVolume"] = _volume(raw.get("soundVolume"), saved.soundVolume)
     return AddonConfig(**data)
 
@@ -193,6 +181,18 @@ def test_request(arg: Any, sounds: Mapping[SoundKind, Sequence[str]]) -> tuple[S
     values = arg.get("values")
     if kind not in SOUND_FIELDS or not isinstance(values, dict):
         return None
-    name = values.get(SOUND_FIELDS[kind])
-    chosen = name if isinstance(name, str) and name in sounds.get(kind, ()) else ""
+    chosen = _chosen(values.get(SOUND_FIELDS[kind]), sounds.get(kind, ()))
+    if chosen == SOUND_OFF:
+        return None
     return kind, chosen, _volume(values.get("soundVolume"), VOLUME_MAX)
+
+
+def folder_request(arg: Any) -> SoundKind | None:
+    """Tipo de sonido cuya carpeta propia hay que abrir («open:correct»), o None."""
+    if not isinstance(arg, dict):
+        return None
+    name = arg.get("name")
+    if isinstance(name, str) and name.startswith("open:") and name[5:] in SOUND_FIELDS:
+        kind: SoundKind = name[5:]  # type: ignore[assignment]
+        return kind
+    return None
