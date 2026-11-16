@@ -148,6 +148,9 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
     function changed() {
         refreshDependencies();
         refreshSummaries();
+        (S.previews || []).forEach(function (paint) {
+            paint();
+        });
     }
 
     function errorSlot() {
@@ -155,21 +158,32 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
         return node;
     }
 
+    /* item.inline (ProFeedback 2.5.0): etiqueta a la izquierda, en una columna
+     * de 200 px, y el control a la derecha; cada fila se lee de un vistazo.
+     * item.gap: 16 px mas de aire encima, para separar grupos de filas. */
     function option(item, labelId, control, extra) {
         var parts = [];
-        if (item.label) {
-            parts.push(el("span", { class: "label", id: labelId, text: item.label }));
-        }
         var slot = errorSlot();
-        parts.push(slot);
-        parts.push(control);
+        if (item.inline) {
+            parts.push(slot);
+            parts.push(el("div", { class: "inline" }, [
+                item.label ? el("span", { class: "inline-label", id: labelId, text: item.label }) : null,
+                control,
+            ]));
+        } else {
+            if (item.label) {
+                parts.push(el("span", { class: "label", id: labelId, text: item.label }));
+            }
+            parts.push(slot);
+            parts.push(control);
+        }
         if (item.note) {
             parts.push(el("p", { class: "rule", text: item.note }));
         }
         (extra || []).forEach(function (node) {
             parts.push(node);
         });
-        var node = el("div", { class: "option" }, parts);
+        var node = el("div", { class: "option" + (item.inline ? " option-inline" : "") + (item.gap ? " option-gap" : "") }, parts);
         return { node: node, slot: slot };
     }
 
@@ -352,8 +366,14 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
                 }
             });
             inputs.push(input);
+            // Contorno de 1 px en la tinta del tema (CoreProgress 1.3.0): sin él,
+            // Púrpura de noche quedaba a 1,95 a 1 del recuadro.
             var swatch = opt.swatch
-                ? el("span", { class: "swatch", "aria-hidden": "true", style: "background:" + opt.swatch })
+                ? el("span", {
+                    class: "swatch",
+                    "aria-hidden": "true",
+                    style: "background:" + opt.swatch + (opt.swatchBorder ? ";box-shadow:inset 0 0 0 1px " + opt.swatchBorder : ""),
+                })
                 : null;
             group.appendChild(el("label", { class: "chip" }, [
                 input,
@@ -386,27 +406,64 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
         return built.node;
     }
 
+    /* Opciones de la lista: {value, label}; {separator: true} dibuja una raya;
+     * {value, label, action} es una orden («Abrir la carpeta…»): se envia a
+     * Python y la lista vuelve a lo que tenia. item.off es el valor de «Sin
+     * sonido»: con el, «Probar» se apaga. */
     function buildSelect(item) {
         var labelId = newId("label");
         var select = el("select", { class: "select", "aria-labelledby": item.label ? labelId : null });
+        var actions = {};
         item.options.forEach(function (opt) {
-            var node = el("option", { value: opt.value, text: opt.label });
-            select.appendChild(node);
+            if (opt.separator) {
+                select.appendChild(document.createElement("hr"));
+                return;
+            }
+            if (opt.action) {
+                actions[opt.value] = opt.action;
+            }
+            select.appendChild(el("option", { value: opt.value, text: opt.label }));
         });
         select.value = S.v[item.key];
         if (select.selectedIndex < 0 && item.options.length) {
             select.selectedIndex = 0;
             S.v[item.key] = select.value;
         }
+        var test = null;
+
+        function refreshTest(usable) {
+            if (test) {
+                test.disabled = !usable || (item.off !== undefined && select.value === item.off);
+            }
+        }
+
         select.addEventListener("change", function () {
+            if (actions[select.value]) {
+                send("action", { name: actions[select.value], key: item.key });
+                select.value = S.v[item.key];
+                return;
+            }
             S.v[item.key] = select.value;
+            setError(item.key, "");
+            refreshTest(!select.disabled);
             changed();
         });
-        var test = null;
         if (item.test) {
-            test = el("button", { type: "button", class: "btn", text: item.test.label, onclick: function () {
-                send("action", { name: item.test.action, key: item.key, values: S.v });
-            } });
+            test = el("button", {
+                type: "button",
+                class: "btn",
+                text: item.test.label,
+                "aria-label": item.test.aria || null,
+                onclick: function () {
+                    setError(item.key, "");
+                    send("action", { name: item.test.action, key: item.key, values: S.v }, function (result) {
+                        if (result && result.error) {
+                            setError(item.key, result.error);
+                            announce(result.error);
+                        }
+                    });
+                },
+            });
         }
         var row = el("div", { class: "select-row" }, [
             el("div", { class: "select-wrap" }, [select, svg("down", 12)]),
@@ -430,9 +487,7 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
             enable: function (on) {
                 var usable = on && !empty;
                 select.disabled = !usable;
-                if (test) {
-                    test.disabled = !usable;
-                }
+                refreshTest(usable);
                 row.classList.toggle(P + "-off", !usable);
             },
         };
@@ -639,13 +694,15 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
         var holder = el("span");
         holder.appendChild(statText(S.v[item.key] ? item.done : item.parts));
         var button = el("button", { type: "button", class: "link", text: item.action.label });
-        button.disabled = !!S.v[item.key] || !!item.action.disabled;
+        // CoreProgress 1.3.0: un enlace que no puede hacer nada no se enseña
+        // (antes salía apagado).
+        button.hidden = !!S.v[item.key] || !!item.action.disabled;
         button.addEventListener("click", function () {
             confirmBox(item.action.confirm, function () {
                 S.v[item.key] = true;
                 holder.textContent = "";
                 holder.appendChild(statText(item.done));
-                button.disabled = true;
+                button.hidden = true;
                 announce(holder.textContent);
                 changed();
             }, button);
@@ -659,7 +716,7 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
             set: function (value) {
                 holder.textContent = "";
                 holder.appendChild(statText(value ? item.done : item.parts));
-                button.disabled = !!value || !!item.action.disabled;
+                button.hidden = !!value || !!item.action.disabled;
             },
             enable: function () {},
         };
@@ -706,6 +763,65 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
         return el("p", { class: "rule option", text: item.text });
     }
 
+    /* Dos controles cortos y parientes en paralelo, cada uno con su etiqueta
+     * encima, sobre la rejilla de dos columnas de las fichas (CoreProgress
+     * 1.3.0, informe del 2026-11-16, 8.8). */
+    function buildPair(item) {
+        return el("div", { class: "option pair" }, item.children.map(function (child) {
+            var node = buildItem(child);
+            node.classList.add(P + "-pair-cell");
+            return node;
+        }));
+    }
+
+    /* Vista previa de la barra de CoreProgress (1.3.0): un rectángulo del color
+     * de fondo de las tarjetas con una barra de muestra al 60 %, hitos 10, 20,
+     * 30 y 40 y el total 50. Cambia al instante con el tema, la altura y la
+     * casilla de hitos. Decorativa: no recibe el foco ni la anuncia el lector. */
+    function buildPreview(item) {
+        var box = el("div", { class: "preview", "aria-hidden": "true" });
+        var track = el("div", { class: "preview-track" });
+        var fill = el("div", { class: "preview-fill" });
+        track.appendChild(fill);
+        var marks = [];
+        (item.marks || []).forEach(function (num) {
+            var disc = el("span", { class: "preview-mark", text: String(num) });
+            disc.style.left = (num / item.total * 100) + "%";
+            marks.push({ node: disc, num: num });
+            track.appendChild(disc);
+        });
+        box.appendChild(track);
+
+        function paint() {
+            var theme = item.themes[S.v[item.theme]] || item.themes[Object.keys(item.themes)[0]];
+            var height = Number(S.v[item.height]) || 16;
+            var showMarks = item.checks ? !!S.v[item.checks] : true;
+            track.style.height = height + "px";
+            track.style.borderRadius = (height / 2) + "px";
+            fill.style.width = item.progress + "%";
+            fill.style.background = theme.gradient;
+            fill.style.boxShadow = "inset 0 0 0 1px " + theme.ink;
+            var disc = height + 4;
+            var font = height < 14 ? 0 : Math.max(11, Math.min(13, Math.round(height * 0.62)));
+            marks.forEach(function (mark) {
+                var reached = mark.num / item.total * 100 <= item.progress;
+                var n = mark.node;
+                n.hidden = !showMarks;
+                n.style.height = disc + "px";
+                n.style.minWidth = disc + "px";
+                n.style.fontSize = font + "px";
+                n.style.color = font ? (reached ? item.reachedText : "") : "transparent";
+                n.style.background = reached ? theme.ink : "";
+                n.classList.toggle(P + "-preview-reached", reached);
+            });
+        }
+
+        S.previews = S.previews || [];
+        S.previews.push(paint);
+        paint();
+        return el("div", { class: "option" }, [box]);
+    }
+
     function buildNotice(item) {
         return el("div", { class: "notice" }, [svg("info", 16), el("span", { text: item.text })]);
     }
@@ -730,6 +846,10 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
             return buildRow(item);
         case "notice":
             return buildNotice(item);
+        case "pair":
+            return buildPair(item);
+        case "preview":
+            return buildPreview(item);
         default:
             return buildNote(item);
         }
@@ -861,6 +981,12 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
             head.push(el("div", { class: "card-actions" }, [links.undo, links.restore]));
         }
         var parts = [];
+        var inlineLinks = null;
+        if (card.restoreInline && links && !card.title) {
+            // CoreProgress 1.3.0: «Restaurar…» en la fila de la etiqueta que
+            // se indica, alineado a la derecha, en lugar de una fila propia.
+            inlineLinks = head.pop();
+        }
         if (head.length) {
             parts.push(el("div", { class: "card-head" }, head));
         }
@@ -868,7 +994,15 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
             parts.push(el("p", { class: "card-note", text: card.note }));
         }
         card.items.forEach(function (item) {
-            parts.push(buildItem(item));
+            var built = buildItem(item);
+            if (inlineLinks && item.key === card.restoreInline) {
+                var label = built.querySelector("." + P + "-label");
+                if (label) {
+                    label.parentNode.insertBefore(el("div", { class: "label-row" }, [label, inlineLinks]), built.firstChild);
+                    inlineLinks = null;
+                }
+            }
+            parts.push(built);
         });
         return el("section", {
             class: "card",
@@ -884,6 +1018,7 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
         var n = S.nodes;
         n.title.hidden = true;
         n.back.hidden = false;
+        n.head.hidden = false;
         n.main.hidden = true;
         n.sub.hidden = false;
         n.sub.textContent = "";
@@ -949,6 +1084,7 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
         S.page = "main";
         n.title.hidden = false;
         n.back.hidden = true;
+        n.head.hidden = !!S.p.hideTitle;
         n.sub.hidden = true;
         n.sub.textContent = "";
         n.main.hidden = false;
@@ -1044,6 +1180,18 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
         }
         S.p = payload;
         S.p.keytext = S.p.keytext || {};
+        // CoreProgress 1.3.0: abierta con el ratón, el anillo de foco no se ve
+        // hasta la primera tecla (regla de GritMap 4.16.0).
+        var appNode = document.getElementById(P + "-app");
+        if (appNode && !payload.keyboard) {
+            appNode.classList.add(P + "-quiet");
+            window.addEventListener("keydown", function wake(event) {
+                if (["Shift", "Control", "Alt", "Meta"].indexOf(event.key) === -1) {
+                    appNode.classList.remove(P + "-quiet");
+                    window.removeEventListener("keydown", wake, true);
+                }
+            }, true);
+        }
         S.t = payload.texts;
         S.v = copy(payload.values);
         var app = document.getElementById(P + "-app");
@@ -1055,6 +1203,8 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
             S.t.back || payload.title,
         ]);
         n.head = el("div", { class: "head" }, [n.title, n.back]);
+        // Sin titulo repetido (ProFeedback 2.5.0): el de la barra de la ventana basta.
+        n.head.hidden = !!payload.hideTitle;
         n.main = el("div", {}, payload.cards.map(buildCard));
         n.sub = el("div", { hidden: true });
         n.body = el("div", { class: "body" }, [n.main, n.sub]);

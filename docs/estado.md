@@ -102,6 +102,13 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   marcados «colores-ok» y retoques mínimos (foco, ventanas estrechas, color de texto de Anki en los
   recuentos). FIX-006 se conserva. 19 pruebas.
 
+- 2026-11-16: CoreProgress 1.3.0 con el informe «Auditoría y rediseño de la interfaz: CoreProgress
+  1.2.0» (aplicado entero, recomendaciones en sus cuatro decisiones): mejor racha de 30 días, hitos
+  redondos con marca final, relleno plano con contorno en la tinta del tema, aviso centrado, una
+  celebración por respuesta, movimiento reducido completo, ventana de opciones en dos recuadros con
+  vista previa (panel copiado del de ProFeedback 2.5.0 y ampliado). Regla de 672 px en el modelo de
+  opciones. Pendiente de la persona: probarlo en Anki.
+
 ## En curso
 
 (Nada.)

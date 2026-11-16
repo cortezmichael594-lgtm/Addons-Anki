@@ -91,7 +91,18 @@ DEFAULT_THEME: str = "classic_green"
 # así que el cambio es coherente en toda la barra.
 _FILL_IDX_LIGHT: tuple[int, int, int, int] = (3, 4, 5, 6)
 _FILL_IDX_DARK: tuple[int, int, int, int] = (4, 5, 6, 7)
-_LABEL_BASE_SHADOW: str = "0 1px 3px rgba(0,0,0,.25)"
+
+# 1.3.0 (informe del 2026-11-16, 8.2 y 8.3): cada tema tiene una «tinta», el
+# color de su aviso (el tono 8 de su rampa: oscuro de día y claro de noche).
+# Con ella se pintan el texto del aviso, el contorno del relleno, el disco del
+# hito alcanzado y el contorno de la muestra en las opciones. El dorado de día
+# lleva un dorado profundo nuevo, solo para texto y contorno: el de antes
+# (#BC8D10) daba 2,84 a 1 sobre el fondo claro; este da 5,27.
+GOLD_INK_LIGHT: str = "#856206"  # colores-ok: dorado profundo de día (informe del 2026-11-16)
+GOLD_INK_DARK: str = "#e7c15d"  # colores-ok: tinta dorada de noche, de la rampa dorada
+# Número del hito alcanzado sobre la tinta: blanco de día y FG de noche.
+REACHED_TEXT_LIGHT: str = "#ffffff"  # colores-ok: blanco sobre la tinta oscura de día (5,07 a 1 o más)
+REACHED_TEXT_DARK: str = "#1b2430"  # colores-ok: FG de día de Nocturne sobre la tinta clara de noche
 
 
 @dataclass(frozen=True)
@@ -100,6 +111,7 @@ class ModeStyle:
     fill_shadow: str
     solid: str
     label_glow: str
+    reached_text: str = REACHED_TEXT_LIGHT
 
 
 @dataclass(frozen=True)
@@ -120,6 +132,7 @@ def _mode_dict(mode: ModeStyle) -> dict[str, str]:
         "shadow": mode.fill_shadow,
         "solid": mode.solid,
         "glow": mode.label_glow,
+        "reached": mode.reached_text,
     }
 
 
@@ -156,27 +169,30 @@ def _gold_glow(dark: bool) -> str:
     return f"0 0 6px {_rgba(outer, 0.18)}, 0 0 2px {_rgba(inner, 0.14)}"
 
 
+def ink(theme: str, dark: bool, gold_active: bool = False) -> str:
+    """La tinta del tema (o del dorado) en el modo pedido."""
+    if gold_active:
+        return GOLD_INK_DARK if dark else GOLD_INK_LIGHT
+    return _scale(theme, dark)[8]
+
+
 def _mode_style(theme: str, dark: bool, gold_active: bool) -> ModeStyle:
+    """Relleno plano con contorno (1.3.0, informe del 2026-11-16, decisión 3:
+    sin brillo de cristal ni sombra de color). El contorno de 1 px en la tinta
+    separa el relleno del canal de día (Verde, Turquesa y dorado quedaban entre
+    1,98 y 2,40 a 1). La única luz de la barra es el halo del dorado."""
     tones = _gold_scale(dark) if gold_active else _scale(theme, dark)
     idx = _FILL_IDX_DARK if dark else _FILL_IDX_LIGHT
     picked = (tones[idx[0]], tones[idx[1]], tones[idx[2]], tones[idx[3]])
-    drop_tone = tones[7] if dark else tones[6]
-    base_drop = f"0 2px 8px {_rgba(drop_tone, 0.38)}"
-    fill_shadow = f"{base_drop}, {_gold_glow(dark)}" if gold_active else base_drop
-    # Label color: a deep tone in day mode (contrast on light surfaces), a
-    # bright tone in night mode.
-    solid = tones[8]
-    if gold_active:
-        gold = _gold_scale(dark)
-        label_color = gold[7] if dark else gold[6]
-        label_glow = f"{_LABEL_BASE_SHADOW}, 0 0 8px {_rgba(label_color, 0.45)}"
-    else:
-        label_glow = _LABEL_BASE_SHADOW
+    solid = ink(theme, dark, gold_active)
+    contour = f"inset 0 0 0 1px {solid}"
+    fill_shadow = f"{contour}, {_gold_glow(dark)}" if gold_active else contour
     return ModeStyle(
         gradient=_gradient(picked),
         fill_shadow=fill_shadow,
         solid=solid,
-        label_glow=label_glow,
+        label_glow="none",
+        reached_text=REACHED_TEXT_DARK if dark else REACHED_TEXT_LIGHT,
     )
 
 
@@ -195,3 +211,8 @@ def swatch(theme: str, dark: bool = False) -> str:
     "desaparecía" sobre el diálogo oscuro: se usa la zona media de la rampa.
     """
     return _scale(theme, dark=dark)[5 if dark else 4]
+
+def preview_style(theme: str, dark: bool) -> dict[str, str]:
+    """Degradado y tinta de un tema, para la vista previa de las opciones."""
+    mode = _mode_style(theme, dark, gold_active=False)
+    return {"gradient": mode.gradient, "ink": mode.solid, "reached": mode.reached_text}

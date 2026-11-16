@@ -18,23 +18,35 @@ from aqt.theme import theme_manager
 from .data import checkpoint_marks, done_today, remaining_count
 from .effects import (
     CELEBRATION_SPARKLE_MIN_STREAK,
-    MIN_CARDS_FOR_CHECKPOINTS,
-    RECORD_MIN_STREAK,
+    GOLD_STREAK_THRESHOLD,
     LABEL_VISIBLE_MS,
+    MIN_CARDS_FOR_CHECKPOINTS,
     UPDATE_INTERVAL_MS,
-    is_celebration_milestone,
+    best_in_window,
+    celebration_for,
 )
 from .errors import guard, report
-from .i18n import cards_label, progress_text, record_label, streak_label, t
+from .i18n import (
+    cards_label,
+    progress_text,
+    record_label,
+    record_value_label,
+    streak_label,
+    t,
+    window_label,
+)
 from .palettes import StyleBundle, fill_bundle
 from .settings import (
     Config,
     auto_space,
     load_best_streak,
     load_config,
+    load_daily_best,
     migrate_best_streak,
     rollback_best_streak,
+    rollback_day_best,
     save_best_streak,
+    save_day_best,
 )
 from .state import SessionState
 from .view import (
@@ -153,6 +165,7 @@ class ProgressBarTracker:
     def _on_profile_close(self) -> None:
         if self._state.active and self._state.record_enabled:
             save_best_streak(self._state.session_max)
+            save_day_best(self._state.today, self._state.session_max)
         self._timer.stop()
         self._state.reset()
 
@@ -203,6 +216,16 @@ class ProgressBarTracker:
         self._state.deck_name = deck_name
         self._state.active = True
         self._state.best_at_start = load_best_streak()
+        # 1.3.0 (informe del 2026-11-16, decisión 1): la meta que se renueva es
+        # la mejor racha de los últimos 30 días.
+        try:
+            self._state.today = int(mw.col.sched.today)
+        except Exception as exc:
+            _log(exc)
+            self._state.today = 0
+        daily = load_daily_best()
+        self._state.window_at_start = best_in_window(daily, self._state.today)
+        self._state.day_best_at_start = daily.get(self._state.today, 0)
         self._state.record_enabled = not self._deck_excluded(deck_id, deck_name)
         try:
             counts = mw.col.sched.counts()
@@ -238,6 +261,7 @@ class ProgressBarTracker:
         try:
             if self._state.record_enabled:
                 save_best_streak(self._state.session_max)
+                save_day_best(self._state.today, self._state.session_max)
         except Exception as exc:
             _log(exc)
         self._timer.stop()
@@ -274,6 +298,7 @@ class ProgressBarTracker:
             effects=cfg.effects_enabled,
             label_ms=LABEL_VISIBLE_MS,
             aria=self._aria(progress),
+            name=t("bar_name"),
         )
         reviewer_eval(js)
         self._state.bar_injected = True
@@ -309,24 +334,30 @@ class ProgressBarTracker:
         self._state.register_answer(card.id, was_correct)
         if self._config.effects_enabled and was_correct:
             streak = self._state.correct_streak
-            milestone = is_celebration_milestone(streak)
             # HISTORIAL: el record se celebra UNA sola vez por sesion: en
             # el momento exacto de batirlo (max(best+1, minimo), p. ej. 4
             # si el record era 3). Si ese momento coincide con un hito de
-            # racha, el record PREVALECE; los hitos posteriores vuelven a
-            # mostrar "N seguidas" normal aunque se siga batiendo.
-            first_beat = max(self._state.best_at_start + 1, RECORD_MIN_STREAK)
-            is_record = (
-                self._state.record_enabled
-                and streak > self._state.best_at_start
-                and streak == first_beat
+            # racha, el record PREVALECE.
+            # 1.3.0 (informe del 2026-11-16): una sola celebración por
+            # respuesta, en este orden: récord, mejor racha de 30 días y número
+            # de racha (effects.celebration_for); el hito de la barra solo
+            # cambia de color si coincide con un aviso.
+            kind = celebration_for(
+                streak, self._state.best_at_start, self._state.window_at_start, self._state.record_enabled
             )
-            if milestone or is_record:
+            if kind:
                 self._state.pending_celebration = True
-                self._pending_label = record_label(streak) if is_record else streak_label(streak)
+                if kind == "record":
+                    self._pending_label = record_label(streak)
+                elif kind == "window":
+                    self._pending_label = window_label(streak)
+                else:
+                    self._pending_label = streak_label(streak)
                 self._pending_sparkle = streak >= CELEBRATION_SPARKLE_MIN_STREAK
-                if is_record:
+                if kind == "record":
                     save_best_streak(self._state.session_max)
+                if kind in ("record", "window"):
+                    save_day_best(self._state.today, self._state.session_max)
         self._schedule_flush()
 
     @guard
@@ -361,6 +392,9 @@ class ProgressBarTracker:
             rollback_best_streak(
                 max(self._state.best_at_start, self._state.session_max)
             )
+            rollback_day_best(
+                self._state.today, max(self._state.day_best_at_start, self._state.session_max)
+            )
         if self._state.bar_injected:
             reviewer_eval(build_hide_label_js(0))
         self._schedule_flush()
@@ -375,7 +409,10 @@ class ProgressBarTracker:
             return
         progress = self._state.progress()
         bundle = self._bundle()
-        reviewer_eval(build_apply_js(bundle, progress, self._aria(progress)))
+        # Con un aviso en esta respuesta, el hito que se alcance solo cambia de
+        # color: una celebración por respuesta (1.3.0).
+        quiet = self._state.pending_celebration and bool(self._pending_label)
+        reviewer_eval(build_apply_js(bundle, progress, self._aria(progress), quiet))
         if self._state.pending_celebration:
             self._state.pending_celebration = False
             label = self._pending_label
@@ -389,9 +426,16 @@ class ProgressBarTracker:
                     reviewer_eval(build_show_label_js(label, bundle))
 
     def _aria(self, progress: float) -> str:
+        """El valor de la barra para el lector de pantalla: «15 de 27 tarjetas»
+        y, con 5 aciertos seguidos o más, «; 7 aciertos seguidos» (1.3.0): la
+        racha se puede consultar sin que nada interrumpa la lectura."""
         total = self._state.day_total
         done = min(total, max(0, round(progress / 100 * total)))
-        return progress_text(done, total)
+        text = progress_text(done, total)
+        streak = self._state.correct_streak
+        if streak >= GOLD_STREAK_THRESHOLD:
+            text += "; " + record_value_label(streak)
+        return text
 
     def _prepare_summary(self) -> None:
         """Si se sale del repaso con el mazo terminado, deja preparada la línea
@@ -430,6 +474,14 @@ class ProgressBarTracker:
         """El récord con la racha en curso incluida, si la supera (para la
         ventana de opciones abierta durante un repaso)."""
         best = load_best_streak()
+        if self._state.active and self._state.record_enabled:
+            best = max(best, self._state.session_max)
+        return best
+
+    def current_window_best(self) -> int:
+        """La mejor racha de los últimos 30 días, con la del repaso en curso."""
+        today = self._state.today if self._state.active else _today()
+        best = best_in_window(load_daily_best(), today)
         if self._state.active and self._state.record_enabled:
             best = max(best, self._state.session_max)
         return best
@@ -476,6 +528,22 @@ def current_best() -> int:
     if _tracker is not None:
         return _tracker.current_best()
     return load_best_streak()
+
+
+def current_window_best() -> int:
+    """Mejor racha de 30 días para la ventana de opciones."""
+    if _tracker is not None:
+        return _tracker.current_window_best()
+    return best_in_window(load_daily_best(), _today())
+
+
+def _today() -> int:
+    try:
+        if mw is not None and mw.col is not None:
+            return int(mw.col.sched.today)
+    except Exception as exc:
+        _log(exc)
+    return 0
 
 
 def notify_record_reset() -> None:

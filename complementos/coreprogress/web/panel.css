@@ -27,6 +27,10 @@
     --coreprogress-selected: var(--nocturne-row-highlight, #EAEEF8);
     --coreprogress-hover: var(--button-gradient-start, #EDF0F5);
     --coreprogress-danger: var(--accent-danger, #CA2D2D);
+    /* Regla de los enlaces (guía de interfaz, 2026-11-11): el texto que se pulsa usa
+     * FG_LINK y lo apagado FG_DISABLED; el azul de acción queda para rellenos y bordes. */
+    --coreprogress-link: var(--fg-link, #2F63D8);
+    --coreprogress-disabled: var(--fg-disabled, #A9AFBC);
     --coreprogress-shadow: var(--shadow-subtle, #1B243012);
     --coreprogress-shadow-float: var(--shadow, #1B243026);
 }
@@ -47,6 +51,8 @@ html.night-mode #coreprogress-app {
     --coreprogress-selected: var(--nocturne-row-highlight, #19233F);
     --coreprogress-hover: var(--button-gradient-start, #2E3747);
     --coreprogress-danger: var(--accent-danger, #F37777);
+    --coreprogress-link: var(--fg-link, #A3C1F7);
+    --coreprogress-disabled: var(--fg-disabled, #7C869A);
     /* De noche no hay sombras: la profundidad la dan los fondos. */
     --coreprogress-shadow: transparent;
     --coreprogress-shadow-float: transparent;
@@ -136,7 +142,13 @@ html.night-mode body {
     gap: 8px;
     min-height: 52px;
     align-items: center;
-    padding: 0 24px;
+    /* El borde derecho de «Cancelar» se alinea con el de los recuadros. */
+    padding: 0 12px;
+}
+
+/* Botones del pie: 88 px de ancho mínimo (informe de Atelier 3.8, 8.6). */
+#coreprogress-app .coreprogress-foot .coreprogress-btn {
+    min-width: 88px;
 }
 
 #coreprogress-app .coreprogress-overflow .coreprogress-foot {
@@ -278,12 +290,21 @@ body.isWin #coreprogress-app .coreprogress-foot .coreprogress-primary {
     border: 0;
     border-radius: 6px;
     background: none;
-    color: var(--coreprogress-accent);
+    color: var(--coreprogress-link);
     font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 #coreprogress-app .coreprogress-link:hover {
     background: var(--coreprogress-hover);
+    text-decoration: none;
+}
+
+/* «Probar» con «Sin sonido»: texto apagado y no responde (ProFeedback 2.5.0). */
+#coreprogress-app .coreprogress-btn:disabled {
+    color: var(--coreprogress-disabled);
+    cursor: default;
 }
 
 #coreprogress-app .coreprogress-icon-btn {
@@ -313,7 +334,7 @@ body.isWin #coreprogress-app .coreprogress-foot .coreprogress-primary {
     border: 0;
     border-radius: 6px;
     background: none;
-    color: var(--coreprogress-accent);
+    color: var(--coreprogress-link);
     font-weight: 600;
 }
 
@@ -323,11 +344,11 @@ body.isWin #coreprogress-app .coreprogress-foot .coreprogress-primary {
 
 /* Foco del teclado: contorno azul de 2 px separado 2 px. Anki quita el
  * contorno de todos sus botones; por eso !important. */
-#coreprogress-app button:focus-visible,
+#coreprogress-app:not(.coreprogress-quiet) button:focus-visible,
 #coreprogress-app input:focus-visible,
-#coreprogress-app select:focus-visible,
-#coreprogress-app .coreprogress-chip:has(input:focus-visible),
-#coreprogress-app .coreprogress-check:has(input:focus-visible) .coreprogress-box {
+#coreprogress-app:not(.coreprogress-quiet) select:focus-visible,
+#coreprogress-app:not(.coreprogress-quiet) .coreprogress-chip:has(input:focus-visible),
+#coreprogress-app:not(.coreprogress-quiet) .coreprogress-check:has(input:focus-visible) .coreprogress-box {
     outline: 2px solid var(--coreprogress-focus) !important;
     outline-offset: 2px;
 }
@@ -344,7 +365,7 @@ body.isWin #coreprogress-app .coreprogress-foot .coreprogress-primary {
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 36px;
+    min-height: 32px;
     padding: 0 12px;
     border: 1px solid var(--coreprogress-control);
     border-radius: 8px;
@@ -356,10 +377,18 @@ body.isWin #coreprogress-app .coreprogress-foot .coreprogress-primary {
     background: var(--coreprogress-hover);
 }
 
+/* Elegida: un solo contorno de 2 px (BORDER_FOCUS), el tinte y la ✓
+ * (CoreProgress 1.3.0: antes, borde, hueco y anillo de foco a la vez). Con el
+ * foco del teclado, el mismo borde pasa a 4 px, sin anillo aparte. */
 #coreprogress-app .coreprogress-chip:has(input:checked) {
-    border: 2px solid var(--coreprogress-accent);
+    border: 2px solid var(--coreprogress-focus);
     padding: 0 11px;
     background: var(--coreprogress-selected);
+}
+
+#coreprogress-app:not(.coreprogress-quiet) .coreprogress-chip:has(input:checked):has(input:focus-visible) {
+    outline: none !important;
+    box-shadow: inset 0 0 0 2px var(--coreprogress-focus);
 }
 
 #coreprogress-app .coreprogress-chip input {
@@ -386,7 +415,7 @@ body.isWin #coreprogress-app .coreprogress-foot .coreprogress-primary {
 #coreprogress-app .coreprogress-tick {
     flex: none;
     visibility: hidden;
-    color: var(--coreprogress-accent);
+    color: var(--coreprogress-link);
 }
 
 #coreprogress-app .coreprogress-chip:has(input:checked) .coreprogress-tick {
@@ -426,8 +455,10 @@ body.isWin #coreprogress-app .coreprogress-foot .coreprogress-primary {
     outline-offset: -2px;
 }
 
+/* Signo en su límite: FG_DISABLED (4,0 a 1 de noche), no una transparencia
+ * (CoreProgress 1.3.0). */
 #coreprogress-app .coreprogress-step button:disabled {
-    opacity: 0.35;
+    color: var(--coreprogress-disabled);
 }
 
 #coreprogress-app .coreprogress-step input {
@@ -507,6 +538,41 @@ body.isWin #coreprogress-app .coreprogress-foot .coreprogress-primary {
     min-width: 5ch;
     text-align: end;
     font-weight: 600;
+}
+
+/* Fila con la etiqueta a la izquierda (ProFeedback 2.5.0, informe 2.4.0,
+ * apartado 8.7): columna de 200 px en peso normal y el control a la derecha.
+ * 8 px entre filas; 16 px mas donde empieza otro grupo de filas. */
+#coreprogress-app .coreprogress-option-inline {
+    margin-top: 8px;
+}
+
+#coreprogress-app .coreprogress-option-inline.coreprogress-option-gap {
+    margin-top: 16px;
+}
+
+#coreprogress-app .coreprogress-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#coreprogress-app .coreprogress-inline-label {
+    flex: none;
+    width: 200px;
+}
+
+#coreprogress-app .coreprogress-inline > :last-child {
+    flex: 1;
+    min-width: 0;
+}
+
+#coreprogress-app .coreprogress-select-row .coreprogress-btn {
+    min-width: 76px;
+}
+
+#coreprogress-app .coreprogress-select hr {
+    border-color: var(--coreprogress-line);
 }
 
 /* Lista desplegable: un <select> de verdad con el aspecto de los campos. */
@@ -834,4 +900,91 @@ body.isWin #coreprogress-app .coreprogress-dialog-actions .coreprogress-primary 
     #coreprogress-app .coreprogress-slider::-webkit-slider-runnable-track {
         background: CanvasText;
     }
+}
+
+/* CoreProgress 1.3.0 (informe del 2026-11-16, 8.8) ------------------------ */
+
+/* Casillas seguidas: 12 px entre ellas (antes 26). */
+#coreprogress-app .coreprogress-option:has(> .coreprogress-check) + .coreprogress-option:has(> .coreprogress-check) {
+    margin-top: 4px;
+}
+
+/* Dos campos en paralelo, sobre la rejilla de las fichas. */
+#coreprogress-app .coreprogress-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 20px;
+}
+
+#coreprogress-app .coreprogress-pair > .coreprogress-pair-cell {
+    margin-top: 0;
+}
+
+/* Etiqueta con su enlace a la derecha («Tema de color» · «Restaurar…»). */
+#coreprogress-app .coreprogress-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+#coreprogress-app .coreprogress-label-row .coreprogress-label {
+    margin-bottom: 0;
+}
+
+#coreprogress-app .coreprogress-label-row .coreprogress-card-actions {
+    margin: -8px 0;
+}
+
+/* Vista previa de la barra: el fondo de las tarjetas y una barra de muestra. */
+#coreprogress-app .coreprogress-preview {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background: var(--canvas, #F7F8FA); /* colores-ok: reserva de CANVAS, el fondo de las tarjetas (día) */
+}
+
+html.night-mode #coreprogress-app .coreprogress-preview {
+    background: var(--canvas, #12161F); /* colores-ok: reserva de CANVAS (noche) */
+}
+
+#coreprogress-app .coreprogress-preview-track {
+    position: relative;
+    flex: 1;
+    background: var(--coreprogress-preview-track);
+}
+
+#coreprogress-app {
+    --coreprogress-preview-track: #E4E5E7; /* colores-ok: canal de la barra con Nocturne (día), regla del 7,5 % */
+    --coreprogress-preview-pending: #4E576A; /* colores-ok: FG_SUBTLE (día), número del hito sin alcanzar */
+}
+
+html.night-mode #coreprogress-app {
+    --coreprogress-preview-track: #23262F; /* colores-ok: canal de la barra con Nocturne (noche), regla del 7,5 % */
+    --coreprogress-preview-pending: #B7BECC; /* colores-ok: FG_SUBTLE (noche) */
+}
+
+#coreprogress-app .coreprogress-preview-fill {
+    height: 100%;
+    border-radius: inherit;
+}
+
+#coreprogress-app .coreprogress-preview-mark {
+    position: absolute;
+    top: 50%;
+    transform: translate(-100%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--coreprogress-preview-track);
+    color: var(--coreprogress-preview-pending);
+    font-weight: 700;
+    line-height: 1;
 }

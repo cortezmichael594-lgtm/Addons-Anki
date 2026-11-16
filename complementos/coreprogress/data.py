@@ -21,10 +21,9 @@ from __future__ import annotations
 from anki.collection import Collection, SearchNode
 from aqt import mw
 
+from .effects import round_marks
 from .errors import report
 
-# Checkpoints are taken at these fractions of the session's initial card count.
-_CHECKPOINT_FRACTIONS: tuple[float, float, float, float] = (0.2, 0.4, 0.6, 0.8)
 
 
 def _log(exc: Exception) -> None:
@@ -76,19 +75,15 @@ def compute_progress(initial_total: int, remaining: int) -> float:
 
 
 def checkpoint_marks(initial_total: int) -> list[dict[str, float]]:
-    """Return the checkpoints as {pos, num} pairs for the given session.
+    """Los hitos como pares {pos, num}, más la marca final con el total.
 
-    Each ball's number is a rounded card count; its position is that exact count
-    as a percentage (num / initial_total), so the fill stops right on the ball
-    when that many cards are done. Numbers that would collide, land at 0, or
-    reach the end are skipped.
+    1.3.0 (informe del 2026-11-16, decisión 2): números redondos (5, 10, 15,
+    20 con 27 tarjetas) en lugar del 20, 40, 60 y 80 % (5, 11, 16, 22), y una
+    marca final con el total al 100 %, que cierra la escala y dice cuántas son
+    hoy. Cada marca está donde llega el relleno al despachar ese número. La
+    regla y el paso se fijan al entrar al repaso (effects.round_marks).
     """
-    marks: list[dict[str, float]] = []
-    seen: set[int] = set()
-    for fraction in _CHECKPOINT_FRACTIONS:
-        num = round(initial_total * fraction)
-        if num <= 0 or num >= initial_total or num in seen:
-            continue
-        seen.add(num)
-        marks.append({"pos": num / initial_total * 100.0, "num": float(num)})
+    marks = [{"pos": num / initial_total * 100.0, "num": float(num)} for num in round_marks(initial_total)]
+    if marks:
+        marks.append({"pos": 100.0, "num": float(initial_total), "final": 1.0})
     return marks

@@ -36,6 +36,11 @@ class SessionState:
     pending_celebration: bool = False
     gold_active: bool = False
     best_at_start: int = 0
+    # 1.3.0: mejor racha de los últimos 30 días al entrar, mejor de hoy al
+    # entrar y día de Anki de este repaso (effects.best_in_window).
+    window_at_start: int = 0
+    day_best_at_start: int = 0
+    today: int = 0
     session_max: int = 0
     record_enabled: bool = True
 
@@ -53,6 +58,9 @@ class SessionState:
         self.pending_celebration = False
         self.gold_active = False
         self.best_at_start = 0
+        self.window_at_start = 0
+        self.day_best_at_start = 0
+        self.today = 0
         self.session_max = 0
         self.record_enabled = True
 

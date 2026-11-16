@@ -253,6 +253,12 @@ def record_label(count: int) -> str:
     return t("record").format(count=count)
 
 
+def window_label(count: int) -> str:
+    """Aviso de la mejor racha de los últimos 30 días («Mejor racha en 30 días:
+    42»), en mayúsculas por CSS (1.3.0, informe del 2026-11-16, decisión 1)."""
+    return t("best30").format(count=count)
+
+
 def record_value_label(count: int) -> str:
     """Value shown after "Record:" in the settings dialog («7 aciertos seguidos»)."""
     return plural_text("in_a_row", count)
