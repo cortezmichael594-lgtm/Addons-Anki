@@ -11,8 +11,20 @@
    - En ventanas muy estrechas los botones se compactan un poco para no salirse.
    - Con el teclado se ve un aro de foco.
 
-   Esta hoja solo se carga en la barra inferior del repaso y solo con «Botones de respuesta
-   3D de colores» marcado, así que el selector general «button» no alcanza a otra parte. */
+   Versión 2.5.0 (informe 2.4.0, aprobado entero el 2026-11-16, apartados 8.3 a 8.5): los
+   colores de las caras no cambian. Cambia la forma y lo que no se leía:
+   - Todos los botones de color miden 50 px: cara de 46 y canto de 4, con esquinas de 16.
+   - «Bien» y «Mostrar respuesta» miden 190 px de ancho: tras «Mostrar respuesta», el puntero
+     queda dentro de «Bien» y no en el hueco entre «Difícil» y «Bien».
+   - La letra de «Mostrar respuesta» es el mismo ámbar, más oscuro (#5C3700, 7,5 a 1).
+   - «Editar», «Más» y la raya usan los grises de Nocturne (la letra pasa de 3,0 a 9,7 a 1 de
+     noche y el contorno, de 1,9 a 4,3).
+   - Al pulsar, la cara baja 4 px sobre su canto en 80 ms y vuelve en 70 ms, sin rebote ni
+     cambio de color; la respuesta sale al soltar (buttons.js).
+   - Aro de foco de 2 px separado 2 px, que contrasta con la barra y no con la cara.
+
+   Esta hoja solo se carga en la barra inferior del repaso y solo con «Botones de colores con
+   relieve» marcado, así que el selector general «button» no alcanza a otra parte. */
 
 /* Historial de correcciones de este archivo:
    * FIX-006 (2026-11-13): con el tema de Atelier, los botones perdían su forma y se oscurecían con el ratón. */
@@ -34,24 +46,27 @@
   --profeedback-owl: 147, 211, 51;
   --profeedback-macaw: 73, 192, 248;
   --profeedback-whale: 24, 153, 214;
-  --profeedback-radius: 18px;
+  --profeedback-radius: 16px;
   --profeedback-lip: 4px;
   --profeedback-font-size: 15px;
   --profeedback-tracking: 0.8px;
   --profeedback-line: 1.2;
   --profeedback-hover: brightness(1.08);
-  --profeedback-ease: cubic-bezier(0.34, 1.4, 0.64, 1);
   --profeedback-press: cubic-bezier(0.4, 0, 0.2, 1);
-  --profeedback-outer: #d7dde2; /* colores-ok: raya gris del original (día) */
-  --profeedback-edit-border: #c9d1d9; /* colores-ok: borde de Editar y Más del original (día) */
-  --profeedback-edit-text: #57606a; /* colores-ok: texto de Editar y Más del original (día) */
+  --profeedback-outer: var(--border, #DADEE7); /* colores-ok: reserva de BORDER (día) */
+  --profeedback-edit-border: #878C97; /* colores-ok: NOCTURNE_CONTROL_BORDER (día), sin variable CSS en Anki */
+  --profeedback-edit-text: var(--fg-subtle, #4E576A); /* colores-ok: reserva de FG_SUBTLE (día) */
+  --profeedback-edit-hover: var(--button-gradient-start, #EDF0F5); /* colores-ok: reserva de BUTTON_HOVER (día) */
+  --profeedback-focus: var(--border-focus, #3B6FE0); /* colores-ok: reserva de BORDER_FOCUS (día) */
 }
 
 .night_mode,
 .nightMode {
-  --profeedback-outer: #37464f; /* colores-ok: raya gris del original (noche) */
-  --profeedback-edit-border: #37464f; /* colores-ok: borde de Editar y Más del original (noche) */
-  --profeedback-edit-text: #52656d; /* colores-ok: texto de Editar y Más del original (noche) */
+  --profeedback-outer: var(--border, #2C3444); /* colores-ok: reserva de BORDER (noche) */
+  --profeedback-edit-border: #727B8C; /* colores-ok: NOCTURNE_CONTROL_BORDER (noche), sin variable CSS en Anki */
+  --profeedback-edit-text: var(--fg-subtle, #B7BECC); /* colores-ok: reserva de FG_SUBTLE (noche) */
+  --profeedback-edit-hover: var(--button-gradient-start, #2E3747); /* colores-ok: reserva de BUTTON_HOVER (noche) */
+  --profeedback-focus: var(--border-focus, #6390FF); /* colores-ok: reserva de BORDER_FOCUS (noche) */
 }
 
 /* La raya gris continua encima de la barra. */
@@ -88,15 +103,16 @@ button {
   text-decoration: none !important;
   white-space: nowrap !important;
   border-style: solid !important;
-  height: 48px !important;
-  min-height: 48px !important;
+  height: 50px !important;
+  min-height: 50px !important;
   width: auto !important;
   min-width: 130px !important;
   padding: 0 24px !important;
   outline: none !important;
   border-radius: var(--profeedback-radius) !important;
   background-image: none !important;
-  transition: filter 0.2s, transform 0.22s var(--profeedback-ease), box-shadow 0.22s var(--profeedback-ease) !important;
+  /* Al soltar, la cara vuelve en 70 ms, sin rebote. */
+  transition: transform 70ms var(--profeedback-press) !important;
 }
 
 /* Con el ratón encima solo se aclara: nunca se oscurece. */
@@ -107,15 +123,17 @@ button:hover {
 
 /* Aro de foco solo para quien navega con el teclado (retoque sobre el original). */
 button:focus-visible {
-  outline: 2px solid var(--border-focus, #3B6FE0) !important; /* colores-ok: reserva del token de foco */
-  outline-offset: 3px !important;
+  outline: 2px solid var(--profeedback-focus) !important;
+  outline-offset: 2px !important;
 }
 
+/* Pulsado: la cara baja 4 px en 80 ms y tapa su canto; el color no cambia (oscurecerla
+   bajaría la letra de «Otra vez» a 3,7 a 1). */
 button:active,
 button.profeedback-pressed {
-  transform: translateY(2px) !important;
-  transition: transform 0.09s var(--profeedback-press), box-shadow 0.09s var(--profeedback-press) !important;
-  box-shadow: 0 1px 0 !important;
+  transform: translateY(4px) !important;
+  border-bottom-color: transparent !important;
+  transition: transform 80ms var(--profeedback-press) !important;
 }
 
 /* «Editar» y «Más»: contorno gris con canto, sin relleno. */
@@ -132,15 +150,18 @@ button[title*="More"],
   font-weight: 700 !important;
   letter-spacing: var(--profeedback-tracking) !important;
   margin-inline: 40px;
-  transition: filter 0.2s, transform 0.22s var(--profeedback-ease), box-shadow 0.22s var(--profeedback-ease) !important;
+  box-shadow: none !important;
+  transition: transform 70ms var(--profeedback-press) !important;
 }
 
+/* Con el ratón encima, el relleno de BUTTON_HOVER: el brillo no se notaba sin relleno. */
 button[onclick*="edit"]:hover,
 button[onclick*="more"]:hover,
 button[title*="Edit"]:hover,
 button[title*="More"]:hover,
 .linkb:hover {
-  filter: var(--profeedback-hover) !important;
+  background: var(--profeedback-edit-hover) !important;
+  filter: none !important;
   cursor: pointer !important;
 }
 
@@ -149,10 +170,9 @@ button[onclick*="more"]:active,
 button[title*="Edit"]:active,
 button[title*="More"]:active,
 .linkb:active {
-  transform: translateY(2px) !important;
-  border-bottom: 2px solid var(--profeedback-edit-border) !important;
-  box-shadow: 0 1px 0 var(--profeedback-edit-border) !important;
-  transition: transform 0.09s var(--profeedback-press), box-shadow 0.09s var(--profeedback-press) !important;
+  transform: translateY(4px) !important;
+  border-bottom-color: transparent !important;
+  transition: transform 80ms var(--profeedback-press) !important;
 }
 
 /* Recuento de tarjetas y tiempos previstos: el color de texto de Anki (retoque: el original
@@ -171,14 +191,8 @@ button[title*="More"]:active,
   color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
   background-color: rgb(var(--profeedback-cardinal)) !important; /* colores-ok: color del original */
   border: none !important;
-  border-bottom: 2px solid rgb(var(--profeedback-fire-ant)) !important; /* colores-ok: color del original */
-  box-shadow: 0 2px 0 rgb(var(--profeedback-fire-ant)) !important; /* colores-ok: color del original */
-}
-
-:is(button[onclick*="ease1"], button[data-ease="1"]):is(:active, .profeedback-pressed) {
-  transform: translateY(1px) !important;
-  border-bottom: 1px solid rgb(var(--profeedback-fire-ant)) !important; /* colores-ok: color del original */
-  box-shadow: 0 1px 0 rgb(var(--profeedback-fire-ant)) !important; /* colores-ok: color del original */
+  border-bottom: var(--profeedback-lip) solid rgb(var(--profeedback-fire-ant)) !important; /* colores-ok: color del original */
+  box-shadow: none !important;
 }
 
 /* Difícil: naranja. */
@@ -186,29 +200,18 @@ button[title*="More"]:active,
   color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
   background-color: rgb(var(--profeedback-fox)) !important; /* colores-ok: color del original */
   border: none !important;
-  border-bottom: 2px solid #e6951f !important; /* colores-ok: color del original */
-  box-shadow: 0 2px 0 #e6951f !important; /* colores-ok: color del original */
+  border-bottom: var(--profeedback-lip) solid #e6951f !important; /* colores-ok: color del original */
+  box-shadow: none !important;
 }
 
-:is(button[onclick*="ease2"], button[data-ease="2"]):is(:active, .profeedback-pressed) {
-  transform: translateY(1px) !important;
-  border-bottom: 1px solid #e6951f !important; /* colores-ok: color del original */
-  box-shadow: 0 1px 0 #e6951f !important; /* colores-ok: color del original */
-}
-
-/* Bien: verde. */
+/* Bien: verde, y 190 px de ancho (2.5.0): es la respuesta habitual y queda bajo el puntero. */
 :is(button[onclick*="ease3"], button[data-ease="3"]) {
   color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
   background-color: rgb(var(--profeedback-owl)) !important; /* colores-ok: color del original */
+  min-width: 190px !important;
   border: none !important;
-  border-bottom: 2px solid #79b933 !important; /* colores-ok: color del original */
-  box-shadow: 0 2px 0 #79b933 !important; /* colores-ok: color del original */
-}
-
-:is(button[onclick*="ease3"], button[data-ease="3"]):is(:active, .profeedback-pressed) {
-  transform: translateY(1px) !important;
-  border-bottom: 1px solid #79b933 !important; /* colores-ok: color del original */
-  box-shadow: 0 1px 0 #79b933 !important; /* colores-ok: color del original */
+  border-bottom: var(--profeedback-lip) solid #79b933 !important; /* colores-ok: color del original */
+  box-shadow: none !important;
 }
 
 /* Fácil: azul. */
@@ -216,31 +219,27 @@ button[title*="More"]:active,
   color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
   background-color: rgb(var(--profeedback-macaw)) !important; /* colores-ok: color del original */
   border: none !important;
-  border-bottom: 2px solid rgb(var(--profeedback-whale)) !important; /* colores-ok: color del original */
-  box-shadow: 0 2px 0 rgb(var(--profeedback-whale)) !important; /* colores-ok: color del original */
+  border-bottom: var(--profeedback-lip) solid rgb(var(--profeedback-whale)) !important; /* colores-ok: color del original */
+  box-shadow: none !important;
 }
 
-:is(button[onclick*="ease4"], button[data-ease="4"]):is(:active, .profeedback-pressed) {
-  transform: translateY(1px) !important;
-  border-bottom: 1px solid rgb(var(--profeedback-whale)) !important; /* colores-ok: color del original */
-  box-shadow: 0 1px 0 rgb(var(--profeedback-whale)) !important; /* colores-ok: color del original */
-}
-
-/* Mostrar respuesta: dorado con letra ámbar. */
+/* Mostrar respuesta: dorado con letra ámbar oscura (2.5.0: #5C3700, 7,5 a 1; la del original,
+   #ae6802, daba 3,1). 190 px de ancho, como «Bien». */
 #ansbut {
-  color: #ae6802 !important; /* colores-ok: color del original */
+  color: #5c3700 !important; /* colores-ok: ámbar oscuro de ProFeedback (informe 2.4.0) */
   background-color: #ffd700 !important; /* colores-ok: color del original */
   border: none !important;
   border-bottom: var(--profeedback-lip) solid #e7a601 !important; /* colores-ok: color del original */
-  box-shadow: 0 2px 0 #e7a601 !important; /* colores-ok: color del original */
+  box-shadow: none !important;
+  min-width: 190px !important;
 }
 
-#ansbut:active,
-#ansbut.clicked,
-#ansbut.profeedback-pressed {
-  transform: translateY(1px) !important;
-  border-bottom: 1px solid #e7a601 !important; /* colores-ok: color del original */
-  box-shadow: 0 1px 0 #e7a601 !important; /* colores-ok: color del original */
+/* Pulsado de los botones de color (después de sus reglas, para ganarles): la cara baja 4 px
+   y tapa el canto. */
+:is(button[onclick*="ease"], button[data-ease], #ansbut):is(:active, .profeedback-pressed, .clicked) {
+  transform: translateY(4px) !important;
+  border-bottom-color: transparent !important;
+  transition: transform 80ms var(--profeedback-press) !important;
 }
 
 /* Ventanas muy estrechas: un poco más compactos para que quepan (retoque sobre el original). */
@@ -261,11 +260,12 @@ button[title*="More"]:active,
 
 @media (prefers-reduced-motion: reduce) {
   button,
+  button:active,
   button[onclick*="edit"],
   button[onclick*="more"],
   button[title*="Edit"],
   button[title*="More"],
   .linkb {
-    transition: filter 0.15s linear !important;
+    transition: none !important;
   }
 }

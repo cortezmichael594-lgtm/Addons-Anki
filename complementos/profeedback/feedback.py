@@ -1,4 +1,4 @@
-"""Lo que ocurre en la pantalla de repaso: botones, insignias de la tarjeta y sonidos de acierto y de fallo.
+"""Lo que ocurre en la pantalla de repaso: botones, insignias de la tarjeta y sonidos al responder.
 
 El estilo y el código de la web entran por webview_will_set_content, incrustados en la
 página y antes del primer pintado (nada se inyecta después con JavaScript, para que no haya
@@ -84,8 +84,6 @@ def reset() -> None:
     audio.preload("wrong", settings.wrongSound)
     audio.preload("deck_finish", settings.deckFinishSound)
     audio.preload("all_finish", settings.allDoneSound)
-    audio.preload("deck_perfect", settings.deckPerfectSound)
-    audio.preload("all_perfect", settings.allPerfectSound)
 
 
 def register() -> None:
@@ -143,9 +141,11 @@ def _on_did_answer(reviewer: Reviewer, card: Card, ease: int) -> None:
     # Respondida la tarjeta, su historial cambia: si vuelve a aparecer, se recalcula.
     _badge_card_id = None
     settings = config.get()
-    if settings.answerSoundEnabled and ease in logic.CORRECT_EASES:
+    # Desde la 2.5.0 «Difícil» suena como acierto: solo «Otra vez» lleva el otro sonido, que
+    # no juzga, solo dice que se anotó (informe 2.4.0, apartado 8.8).
+    if ease in logic.CORRECT_EASES:
         audio.play("correct", settings.answerSound)
-    elif settings.wrongSoundEnabled and ease in logic.WRONG_EASES:
+    elif ease in logic.WRONG_EASES:
         audio.play("wrong", settings.wrongSound)
 
 
@@ -158,6 +158,6 @@ def _on_card_will_show(text: str, card: Card, kind: str) -> str:
     # lee solo la primera vez y se reutiliza.
     if card.id != _badge_card_id:
         flag = logic.classify_card(card.col, card)
-        _badge_html = badges.badge_html(flag) if flag is not None else ""
+        _badge_html = badges.badge_html(flag) if flag is not None else badges.EMPTY_BADGE_HTML
         _badge_card_id = card.id
-    return _badge_html + text if _badge_html else text
+    return _badge_html + text

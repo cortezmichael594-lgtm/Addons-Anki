@@ -47,6 +47,9 @@ Windows 11, Anki 26.09.3, letra de interfaz Segoe UI Variable. Usa los ocho comp
 - Un fallo nunca abre la ventana de error de Anki.
 - Textos en español de España, con punto de millar («1.240 notas»).
 - Contraste mínimo: 4,5 a 1 para texto (WCAG 2) y 3 a 1 para bordes de controles e iconos.
+- En Anki, «Difícil» es un acierto: solo «Otra vez» cuenta como fallo (manual de Anki, «Answer
+  Buttons»). ProFeedback, CoreProgress y GritMap usan la misma definición (propuesta del informe de
+  ProFeedback 2.4.0, aplicada el 16 de noviembre de 2026).
 
 ## Paleta Nocturne (Atelier 3.8.0, paleta de serie)
 
@@ -184,7 +187,7 @@ es el nombre con el que las páginas de Anki la usan.
 | Atelier (paquete «nocturne») | 3.8.0 | Temas de color completos para todo Anki: cinco paletas de día y de noche |
 | GritMap | 4.16.0 | Mapa de calor del estudio del año, con racha, meta diaria y fechas clave |
 | CoreProgress | 1.2.0 | Barra de progreso del repaso, con hitos, racha de aciertos y récord |
-| ProFeedback | 2.1.0 | Sonidos al acertar, insignias en la tarjeta, botones de colores y confeti al terminar |
+| ProFeedback | 2.5.0 | Sonido al responder, insignias en la tarjeta, botones de colores y confeti al terminar |
 | Hider | 4.1.0 | Repaso sin distracciones: oculta barras y puntero, y entra directo al repaso |
 | Edit field during review | 1.1.0 | Corregir un campo con Ctrl+clic sobre la tarjeta, durante el repaso |
 | Always on Top | 1.3 | Mantener la ventana Añadir por encima de otros programas con un atajo |

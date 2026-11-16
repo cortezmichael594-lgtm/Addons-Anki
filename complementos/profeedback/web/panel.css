@@ -27,6 +27,10 @@
     --profeedback-selected: var(--nocturne-row-highlight, #EAEEF8);
     --profeedback-hover: var(--button-gradient-start, #EDF0F5);
     --profeedback-danger: var(--accent-danger, #CA2D2D);
+    /* Regla de los enlaces (guía de interfaz, 2026-11-11): el texto que se pulsa usa
+     * FG_LINK y lo apagado FG_DISABLED; el azul de acción queda para rellenos y bordes. */
+    --profeedback-link: var(--fg-link, #2F63D8);
+    --profeedback-disabled: var(--fg-disabled, #A9AFBC);
     --profeedback-shadow: var(--shadow-subtle, #1B243012);
     --profeedback-shadow-float: var(--shadow, #1B243026);
 }
@@ -47,6 +51,8 @@ html.night-mode #profeedback-app {
     --profeedback-selected: var(--nocturne-row-highlight, #19233F);
     --profeedback-hover: var(--button-gradient-start, #2E3747);
     --profeedback-danger: var(--accent-danger, #F37777);
+    --profeedback-link: var(--fg-link, #A3C1F7);
+    --profeedback-disabled: var(--fg-disabled, #7C869A);
     /* De noche no hay sombras: la profundidad la dan los fondos. */
     --profeedback-shadow: transparent;
     --profeedback-shadow-float: transparent;
@@ -278,12 +284,21 @@ body.isWin #profeedback-app .profeedback-foot .profeedback-primary {
     border: 0;
     border-radius: 6px;
     background: none;
-    color: var(--profeedback-accent);
+    color: var(--profeedback-link);
     font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 #profeedback-app .profeedback-link:hover {
     background: var(--profeedback-hover);
+    text-decoration: none;
+}
+
+/* «Probar» con «Sin sonido»: texto apagado y no responde (ProFeedback 2.5.0). */
+#profeedback-app .profeedback-btn:disabled {
+    color: var(--profeedback-disabled);
+    cursor: default;
 }
 
 #profeedback-app .profeedback-icon-btn {
@@ -313,7 +328,7 @@ body.isWin #profeedback-app .profeedback-foot .profeedback-primary {
     border: 0;
     border-radius: 6px;
     background: none;
-    color: var(--profeedback-accent);
+    color: var(--profeedback-link);
     font-weight: 600;
 }
 
@@ -507,6 +522,41 @@ body.isWin #profeedback-app .profeedback-foot .profeedback-primary {
     min-width: 5ch;
     text-align: end;
     font-weight: 600;
+}
+
+/* Fila con la etiqueta a la izquierda (ProFeedback 2.5.0, informe 2.4.0,
+ * apartado 8.7): columna de 200 px en peso normal y el control a la derecha.
+ * 8 px entre filas; 16 px mas donde empieza otro grupo de filas. */
+#profeedback-app .profeedback-option-inline {
+    margin-top: 8px;
+}
+
+#profeedback-app .profeedback-option-inline.profeedback-option-gap {
+    margin-top: 16px;
+}
+
+#profeedback-app .profeedback-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#profeedback-app .profeedback-inline-label {
+    flex: none;
+    width: 200px;
+}
+
+#profeedback-app .profeedback-inline > :last-child {
+    flex: 1;
+    min-width: 0;
+}
+
+#profeedback-app .profeedback-select-row .profeedback-btn {
+    min-width: 76px;
+}
+
+#profeedback-app .profeedback-select hr {
+    border-color: var(--profeedback-line);
 }
 
 /* Lista desplegable: un <select> de verdad con el aspecto de los campos. */

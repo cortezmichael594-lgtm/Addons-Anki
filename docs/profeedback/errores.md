@@ -9,13 +9,6 @@ ninguna. Las tres primeras se hicieron antes de que el complemento llegara a est
 
 Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa y propuesta.
 
-- 2026-10-21 · versión 2.0.0 · Qué pasa: si deshace una respuesta (Editar > Deshacer) sin salir del
-  repaso, el complemento la sigue contando para la celebración del mazo. Una «Otra vez» deshecha y
-  respondida después con «Bien» impide la celebración perfecta aunque todas las respuestas que
-  quedan sean «Bien» o «Fácil»; y las respuestas deshechas suman para el mínimo de 5, así que con 4
-  tarjetas y una respuesta deshecha sale confeti. La celebración de todos los mazos no tiene este
-  fallo, porque lee el historial de Anki. Propuesta: que la sesión del mazo también se cuente con
-  el historial de Anki (las respuestas desde que entró a repasar), que ya descuenta lo deshecho.
 - 2026-10-21 · versión 2.0.0 · Qué pasa: si «Insignias en la tarjeta» estaba desmarcada al entrar a
   repasar y la marca en ese momento (Herramientas > Complementos > Configuración), las tarjetas
   siguientes muestran la insignia sin su aspecto: el icono grande y el texto sueltos encima de la
@@ -39,7 +32,11 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   en «al azar» se convertía en el primer sonido de la lista y ya no volvía a ser al azar. Por qué:
   el desplegable no tenía ninguna entrada para «al azar» y, al no encontrarla, mostraba el primer
   archivo, que era el que se guardaba. Regla: todo desplegable de sonido lleva como primera entrada
-  «Aleatorio», y un sonido guardado que ya no existe se muestra como esa entrada.
+  «Aleatorio», y un sonido guardado que ya no existe se muestra como esa entrada. Desde la 2.5.0,
+  con el visto bueno de la persona (informe 2.4.0, aplicado entero), la lista empieza por «Sin
+  sonido», «Aleatorio» va después de los sonidos y un sonido guardado que ya no existe se muestra
+  como el primero de la lista; lo que la regla protege sigue igual: «Aleatorio» siempre se puede
+  elegir y se guarda tal cual.
 - FIX-002 · 2026-10-13 · versión 2.0.0 o anterior · Qué pasaba: tras repasar un rato y salir a la
   lista de mazos sin terminar, al abrir más tarde un mazo ya terminado saltaban el sonido y el
   confeti. Por qué: la señal de «acabo de repasar» no se apagaba al salir del repaso por otro
@@ -56,7 +53,8 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   subcarpeta por tipo de sonido, que además no venían creadas; un .mp3 copiado como decía la nota no
   aparecía en ningún desplegable. Por qué: la nota no nombraba las subcarpetas. Regla: las
   subcarpetas («correcto», «finalizado/mazo», «finalizado/todo», «perfecto-mazo» y «perfecto-todo»)
-  se crean vacías al abrir los ajustes, y la nota dice que cada sonido va en la suya.
+  se crean vacías al abrir los ajustes, y la nota dice que cada sonido va en la suya. Desde la
+  2.5.0 la nota se sustituye por «Abrir la carpeta de estos sonidos…» en cada lista (informe 2.4.0).
 - FIX-005 · 2026-11-13 · versión 2.2.0 · Qué pasaba: al abrir la configuración se veía un destello:
   la ventana salía primero vacía, con su fondo, y después aparecía el panel y la ventana cambiaba de
   alto. Por qué: la ventana se enseñaba en seguida y solo la página esperaba, oculta, a estar
@@ -73,10 +71,36 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
 
-- «Difícil» no cuenta como acierto: no suena el sonido de acierto y quita la celebración perfecta
-  (del mazo y del día). Decisión del autor original.
+- 2.5.0 · Informe «ProFeedback 2.4.0: auditoría y rediseño de la interfaz», aplicado entero a
+  petición de la persona el 2026-11-16, con la opción recomendada en sus cuatro decisiones:
+  - «Difícil» es un acierto (manual de Anki): suena como «Bien». Solo «Otra vez» suena distinto, más
+    bajo y sin tono de castigo. Sustituye a la decisión del autor original («Difícil» como fallo).
+  - Opción B: la celebración dorada premia terminar el día, no la nota; la de mazo nunca es dorada.
+    Ya no hay sonidos «perfecto» aparte: son variantes más de los dos finales. La celebración del
+    día sale una vez al día; si vuelven tarjetas, se celebra como un mazo. Una respuesta deshecha
+    deja de contar (resuelve el pendiente del 2026-10-21).
+  - «Bien» mide 190 px, como «Mostrar respuesta», para que el puntero quede dentro de él. Es la
+    propuesta de la que el propio informe estaba menos seguro.
+  - «SE RESISTE» y «OTRA OPORTUNIDAD» sustituyen a «EJERCICIO DIFÍCIL» y «ERROR ANTERIOR».
+  - Confeti de 4 s como máximo (2,5 s el de mazo) y un solo brillo del título; sustituye a la
+    excepción del autor original (7 s y dos brillos).
+  - Sonidos de respuesta fijos por defecto y variados los de final; los 18 sonidos son nuevos, creados
+    con la receta del informe (los anteriores, algunos con nombres de marcas, se retiran).
+  - Sin la espera de 0,1 s al pulsar con el ratón: la respuesta sale al soltar. Sustituye a la
+    decisión del autor original.
+- 2.5.0 · Decisiones de diseño del taller al aplicar el informe: «Restaurar» va en cada recuadro y no
+  una sola vez abajo, porque el modelo de opciones del taller restaura por grupo; el aviso de
+  «Probar» va encima de su fila, como todos los avisos del modelo, y no debajo; las casillas conservan
+  el texto en seminegrita del modelo (el informe pedía letra normal; las etiquetas nuevas de la
+  izquierda sí van en letra normal); los recuadros conservan el relleno del modelo (16 × 20 px).
+- 2.5.0 · El texto de ejemplo y los avisos usan los tokens de la paleta. Las insignias, los botones y
+  el título dorado conservan sus colores fijos (excepción aprobada en la 2.4.0); los tonos oscuros de
+  día de las insignias, la letra #5C3700 de «Mostrar respuesta» y el dorado del título de día
+  (#8A5200 y #A35F00) son colores propios del complemento, fijados por el informe para llegar a
+  4,5 a 1.
+
 - El confeti y el brillo dorado necesitan un mínimo: 5 respuestas en la sesión para el mazo y 20
-  tarjetas distintas hoy para todos los mazos. Sin él solo suena el sonido de fin. Decisión del
+  tarjetas distintas hoy para el día. Sin él solo suena el sonido de fin. Decisión del
   autor original, para que el confeti no salga por repasar dos tarjetas.
 - Si al terminar un mazo ya no queda nada en ningún otro, la celebración es la de todos los mazos,
   con su mínimo de 20 tarjetas del día, aunque la sesión del mazo hubiera llegado a 5 respuestas.
@@ -84,27 +108,18 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   original.
 - Los sonidos usan un reproductor propio y no el de Anki, para que el audio de la tarjeta siguiente
   no corte el sonido de acierto. Decisión del autor original.
-- Al pulsar un botón de respuesta con el ratón, la respuesta llega a Anki una décima de segundo
-  después, para que se vea el botón hundirse; con el teclado es inmediata. Decisión del autor
-  original.
-- El confeti (hasta 7 segundos) y el brillo del título (dos pasadas de unos 3,6 segundos) duran más
-  que las animaciones breves que pide la guía del taller, porque son la función misma del
-  complemento. Respetan la opción del sistema de reducir las animaciones. Decisión del autor
-  original.
 - El estilo y el código de los botones, las insignias y el confeti van dentro de la propia página
   del repaso, no como archivos aparte: así están listos desde el primer momento y ninguna tarjeta
   puede pedir archivos del complemento. Decisión del autor original.
-- Muchos idiomas tienen cinco textos de la ventana de opciones en inglés («Volume», «Sound»,
-  «Random», la nota de sonidos propios y el aviso de fallo); si a un idioma le falta un texto, sale
-  en inglés. Decisión del autor original.
-- 2.2.0 · Los dos sonidos de fallo (grave.mp3 y suave.mp3) los creó el taller para el complemento
-  (tonos sintetizados, sin derechos de terceros), porque la persona no aportó ninguno. Se pueden
-  sustituir copiando .mp3 propios en «user_files/sonidos/fallo».
+- En los idiomas que no son los nueve completos, los textos de la ventana de opciones y de los avisos
+  nuevos de la 2.5.0 salen en inglés; si a un idioma le falta un texto, sale en inglés. Decisión del
+  autor original, que el informe 2.4.0 mantiene (las insignias sí están en los 54).
+- 2.2.0 · Los dos sonidos de fallo los creó el taller para el complemento. Desde la 2.5.0 los 18
+  sonidos de serie salen de la receta del informe 2.4.0 (herramientas/generar_sonidos_profeedback.py):
+  sumas de tonos, sin grabaciones ni derechos de terceros.
 - 2.4.0 · Botones, insignias, «Editar» y «Más» y la raya gris son iguales que en el ProFeedback
   original, con sus colores fijos, que no cambian con Atelier ni con el modo noche. Lo pidió la
   persona el 2026-11-13 («lo quiero igual al original»), con el original delante. Es una excepción a
-  la regla de colores de la paleta del taller: cada color lleva su marca. Efectos conocidos: de día,
-  las insignias naranja y morada contrastan poco con el fondo claro (por debajo de 3 a 1) y la letra
-  ámbar de «Mostrar respuesta» sobre el dorado también, como en el original. Con la 2.4.0,
-  «EJERCICIO DIFÍCIL» vuelve a ser rojo y «ERROR ANTERIOR» naranja, como en el original (en la 2.3.0
-  eran al revés).
+  la regla de colores de la paleta del taller: cada color lleva su marca. Desde la 2.5.0 los textos
+  que no llegaban a 4,5 a 1 (insignias de día, «Mostrar respuesta», «Editar» y «Más») usan un tono
+  más oscuro del mismo color o los grises de la paleta; las caras y los iconos no cambian.

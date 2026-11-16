@@ -155,21 +155,32 @@ var ProfeedbackPanel = (typeof ProfeedbackPanel !== "undefined" && ProfeedbackPa
         return node;
     }
 
+    /* item.inline (ProFeedback 2.5.0): etiqueta a la izquierda, en una columna
+     * de 200 px, y el control a la derecha; cada fila se lee de un vistazo.
+     * item.gap: 16 px mas de aire encima, para separar grupos de filas. */
     function option(item, labelId, control, extra) {
         var parts = [];
-        if (item.label) {
-            parts.push(el("span", { class: "label", id: labelId, text: item.label }));
-        }
         var slot = errorSlot();
-        parts.push(slot);
-        parts.push(control);
+        if (item.inline) {
+            parts.push(slot);
+            parts.push(el("div", { class: "inline" }, [
+                item.label ? el("span", { class: "inline-label", id: labelId, text: item.label }) : null,
+                control,
+            ]));
+        } else {
+            if (item.label) {
+                parts.push(el("span", { class: "label", id: labelId, text: item.label }));
+            }
+            parts.push(slot);
+            parts.push(control);
+        }
         if (item.note) {
             parts.push(el("p", { class: "rule", text: item.note }));
         }
         (extra || []).forEach(function (node) {
             parts.push(node);
         });
-        var node = el("div", { class: "option" }, parts);
+        var node = el("div", { class: "option" + (item.inline ? " option-inline" : "") + (item.gap ? " option-gap" : "") }, parts);
         return { node: node, slot: slot };
     }
 
@@ -386,27 +397,64 @@ var ProfeedbackPanel = (typeof ProfeedbackPanel !== "undefined" && ProfeedbackPa
         return built.node;
     }
 
+    /* Opciones de la lista: {value, label}; {separator: true} dibuja una raya;
+     * {value, label, action} es una orden («Abrir la carpeta…»): se envia a
+     * Python y la lista vuelve a lo que tenia. item.off es el valor de «Sin
+     * sonido»: con el, «Probar» se apaga. */
     function buildSelect(item) {
         var labelId = newId("label");
         var select = el("select", { class: "select", "aria-labelledby": item.label ? labelId : null });
+        var actions = {};
         item.options.forEach(function (opt) {
-            var node = el("option", { value: opt.value, text: opt.label });
-            select.appendChild(node);
+            if (opt.separator) {
+                select.appendChild(document.createElement("hr"));
+                return;
+            }
+            if (opt.action) {
+                actions[opt.value] = opt.action;
+            }
+            select.appendChild(el("option", { value: opt.value, text: opt.label }));
         });
         select.value = S.v[item.key];
         if (select.selectedIndex < 0 && item.options.length) {
             select.selectedIndex = 0;
             S.v[item.key] = select.value;
         }
+        var test = null;
+
+        function refreshTest(usable) {
+            if (test) {
+                test.disabled = !usable || (item.off !== undefined && select.value === item.off);
+            }
+        }
+
         select.addEventListener("change", function () {
+            if (actions[select.value]) {
+                send("action", { name: actions[select.value], key: item.key });
+                select.value = S.v[item.key];
+                return;
+            }
             S.v[item.key] = select.value;
+            setError(item.key, "");
+            refreshTest(!select.disabled);
             changed();
         });
-        var test = null;
         if (item.test) {
-            test = el("button", { type: "button", class: "btn", text: item.test.label, onclick: function () {
-                send("action", { name: item.test.action, key: item.key, values: S.v });
-            } });
+            test = el("button", {
+                type: "button",
+                class: "btn",
+                text: item.test.label,
+                "aria-label": item.test.aria || null,
+                onclick: function () {
+                    setError(item.key, "");
+                    send("action", { name: item.test.action, key: item.key, values: S.v }, function (result) {
+                        if (result && result.error) {
+                            setError(item.key, result.error);
+                            announce(result.error);
+                        }
+                    });
+                },
+            });
         }
         var row = el("div", { class: "select-row" }, [
             el("div", { class: "select-wrap" }, [select, svg("down", 12)]),
@@ -430,9 +478,7 @@ var ProfeedbackPanel = (typeof ProfeedbackPanel !== "undefined" && ProfeedbackPa
             enable: function (on) {
                 var usable = on && !empty;
                 select.disabled = !usable;
-                if (test) {
-                    test.disabled = !usable;
-                }
+                refreshTest(usable);
                 row.classList.toggle(P + "-off", !usable);
             },
         };
@@ -878,6 +924,7 @@ var ProfeedbackPanel = (typeof ProfeedbackPanel !== "undefined" && ProfeedbackPa
         var n = S.nodes;
         n.title.hidden = true;
         n.back.hidden = false;
+        n.head.hidden = false;
         n.main.hidden = true;
         n.sub.hidden = false;
         n.sub.textContent = "";
@@ -943,6 +990,7 @@ var ProfeedbackPanel = (typeof ProfeedbackPanel !== "undefined" && ProfeedbackPa
         S.page = "main";
         n.title.hidden = false;
         n.back.hidden = true;
+        n.head.hidden = !!S.p.hideTitle;
         n.sub.hidden = true;
         n.sub.textContent = "";
         n.main.hidden = false;
@@ -1049,6 +1097,8 @@ var ProfeedbackPanel = (typeof ProfeedbackPanel !== "undefined" && ProfeedbackPa
             S.t.back || payload.title,
         ]);
         n.head = el("div", { class: "head" }, [n.title, n.back]);
+        // Sin titulo repetido (ProFeedback 2.5.0): el de la barra de la ventana basta.
+        n.head.hidden = !!payload.hideTitle;
         n.main = el("div", {}, payload.cards.map(buildCard));
         n.sub = el("div", { hidden: true });
         n.body = el("div", { class: "body" }, [n.main, n.sub]);

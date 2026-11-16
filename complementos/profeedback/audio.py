@@ -9,8 +9,9 @@ recurre al reproductor de Anki, que siempre está.
 from __future__ import annotations
 
 import importlib
-
 import random
+import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -23,6 +24,10 @@ from .errors import log_error
 from .paths import SoundKind
 
 _EXTENSION = ".mp3"
+# Valor de las listas para «Sin sonido» (2.5.0): ningún archivo puede llamarse así.
+OFF = "-"
+# Nombre de los sonidos de serie desde la 2.5.0: «acierto-1-madera.mp3».
+_BUNDLED_NAME = re.compile(r"-(\d+)-([a-z]+)\.mp3$")
 
 # Clases de Qt Multimedia (reproductor y salida de audio) y si ya se intentó cargarlas.
 _multimedia: tuple[Any, Any] | None = None
@@ -68,27 +73,45 @@ def refresh() -> None:
     _listing.clear()
 
 
+def _mp3_in(folder: Path) -> list[Path]:
+    try:
+        items = [item for item in folder.iterdir() if item.suffix.lower() == _EXTENSION and item.is_file()]
+    except OSError:
+        return []  # la carpeta no existe: ese origen no aporta nada
+    return sorted(items, key=lambda item: item.name.lower())
+
+
 def sound_files(kind: SoundKind) -> dict[str, Path]:
-    """Nombre y ruta de los .mp3 disponibles. Los de la persona ganan a los del complemento."""
+    """Nombre y ruta de los .mp3 disponibles, en el orden de la lista: primero los de serie
+    (por carpeta y nombre) y después los de la persona. Uno propio con el mismo nombre que
+    uno de serie lo sustituye."""
     cached = _listing.get(kind)
     if cached is not None:
         return cached
     found: dict[str, Path] = {}
     for root in (paths.BUNDLED_SOUNDS_DIR, paths.USER_SOUNDS_DIR):
-        folder = root / paths.SOUND_SUBFOLDERS[kind]
-        try:
-            for item in folder.iterdir():
-                if item.suffix.lower() == _EXTENSION and item.is_file():
-                    found[item.name] = item
-        except OSError:
-            continue  # la carpeta no existe: ese origen no aporta nada
+        for subfolder in paths.SOUND_SUBFOLDERS[kind]:
+            for item in _mp3_in(root / subfolder):
+                found[item.name] = item
     _listing[kind] = found
     return found
 
 
 def list_sound_names(kind: SoundKind) -> list[str]:
-    """Nombres de archivo disponibles, ordenados, para el desplegable de la ventana."""
-    return sorted(sound_files(kind), key=str.lower)
+    """Nombres de archivo disponibles, en el orden en que salen en la lista."""
+    return list(sound_files(kind))
+
+
+def sound_label(kind: SoundKind, name: str, voice_label: Callable[[str], str]) -> str:
+    """Lo que se lee en la lista: «1 · Madera» para los de serie (numerados en su lista) y
+    el nombre sin «.mp3» para los propios (2.5.0, informe 2.4.0, apartado 8.7)."""
+    files = sound_files(kind)
+    path = files.get(name)
+    match = _BUNDLED_NAME.search(name)
+    if path is not None and match and path.is_relative_to(paths.BUNDLED_SOUNDS_DIR):
+        bundled = [key for key, value in files.items() if value.is_relative_to(paths.BUNDLED_SOUNDS_DIR)]
+        return f"{bundled.index(name) + 1} · {voice_label(match.group(2))}"
+    return name[: -len(_EXTENSION)] if name.lower().endswith(_EXTENSION) else name
 
 
 def has_sounds(kind: SoundKind) -> bool:
@@ -96,10 +119,15 @@ def has_sounds(kind: SoundKind) -> bool:
 
 
 def _choose(kind: SoundKind, name: str, avoid: Path | None = None) -> Path | None:
-    """El archivo elegido por su nombre o, si no hay nombre o ya no existe, uno al azar."""
+    """El archivo elegido por su nombre; con «Aleatorio» (nombre vacío), uno al azar; y si el
+    elegido ya no existe, el primero de la lista (2.5.0)."""
     files = sound_files(kind)
+    if name == OFF:
+        return None
     if name and name in files:
         return files[name]
+    if name and files:
+        return next(iter(files.values()))
     candidates = [path for path in files.values() if path != avoid] or list(files.values())
     return random.choice(candidates) if candidates else None
 
@@ -206,27 +234,33 @@ def preload(kind: SoundKind, name: str = "") -> None:
         log_error("audio.preload", error)
 
 
-def play(kind: SoundKind, name: str = "", volume: int | None = None) -> None:
-    """Reproduce el sonido elegido; si no hay ninguno elegido, uno al azar.
+def play(kind: SoundKind, name: str = "", volume: int | None = None) -> bool:
+    """Reproduce el sonido elegido; con «Aleatorio», uno al azar; con «Sin sonido», nada.
 
     `volume` permite probar un sonido con el volumen que la persona está ajustando aún
-    sin haberlo guardado.
+    sin haberlo guardado. Devuelve False si no se pudo empezar a reproducir (para que
+    «Probar» lo diga).
     """
+    if name == OFF:
+        return True
     try:
         if volume is not None:
             set_volume(volume)
         channel = _channel(kind)
         if channel is None:
             path = _choose(kind, name)
-            if path is not None:
-                _play_with_anki(path)
-            return
+            if path is None:
+                return False
+            _play_with_anki(path)
+            return True
         if not _prepare(kind, channel, name):
-            return
+            return False
         channel.player.setPosition(0)
         channel.player.play()
+        return True
     except Exception as error:
         log_error("audio.play", error)
+        return False
 
 
 def _play_with_anki(path: Path) -> None:

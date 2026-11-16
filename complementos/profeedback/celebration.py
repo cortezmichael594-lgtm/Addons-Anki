@@ -1,4 +1,4 @@
-"""Celebración al terminar de repasar: sonido y confeti, normales o perfectos.
+"""Celebración al terminar de repasar: sonido y confeti (dorado al terminar el día).
 
 La decisión (qué celebrar) está en logic.py y se prueba sin Anki. Este módulo la conecta con
 los momentos de Anki: cuándo se entra y se sale del repaso, y cuándo la pantalla del mazo
@@ -15,7 +15,7 @@ import json
 from typing import Final
 
 from anki.cards import Card
-from anki.collection import Collection
+from anki.collection import Collection, OpChangesAfterUndo
 from aqt import gui_hooks, mw
 from aqt.operations import QueryOp
 from aqt.overview import Overview
@@ -34,6 +34,9 @@ from .paths import WEB_DIR, SoundKind
 _session = logic.ReviewSession()
 
 _engine_js: str | None = None
+# Días ya celebrados en grande, por perfil y día de Anki: la celebración del día sale una
+# vez (2.5.0, informe 2.4.0, apartado 8.11). Si vuelven tarjetas, se celebra como un mazo.
+_days_celebrated: set[tuple[str, int]] = set()
 
 # Cómo se suelta cada confeti: al terminar un mazo, dos cañones; al terminar todo, lluvia.
 _EFFECT: Final[dict[str, str]] = {"deck": "burst", "all": "rain"}
@@ -55,6 +58,7 @@ def register() -> None:
     gui_hooks.state_did_change.append(_on_state_did_change)
     gui_hooks.overview_did_refresh.append(_on_overview_did_refresh)
     gui_hooks.reviewer_did_answer_card.append(_on_did_answer)
+    gui_hooks.state_did_undo.append(_on_did_undo)
 
 
 def reset() -> None:
@@ -66,6 +70,15 @@ def reset() -> None:
 @guarded
 def _on_did_answer(reviewer: Reviewer, card: Card, ease: int) -> None:
     _session.record(ease)
+
+
+@guarded
+def _on_did_undo(changes: OpChangesAfterUndo) -> None:
+    # Una respuesta deshecha deja de contar para la sesión (informe 2.4.0, apartado 4.2).
+    if mw is None or mw.col is None or mw.state != "review":
+        return
+    if changes.operation == mw.col.tr.actions_answer_card():
+        _session.undo_answer()
 
 
 @guarded
@@ -84,11 +97,13 @@ def _on_overview_did_refresh(overview: Overview) -> None:
 # ── decisión y disparo ───────────────────────────────────────────────────────
 def _evaluate() -> None:
     settings = config.get()
-    if not (settings.sessionSoundsEnabled or settings.confettiEnabled):
+    off = config.SOUND_OFF
+    if settings.deckFinishSound == off and settings.allDoneSound == off and not settings.confettiEnabled:
         return
-    answers, perfect = _session.answers, _session.perfect
+    answers = _session.answers
+    profile = mw.pm.name if mw is not None and mw.pm is not None else ""
 
-    def op(col: Collection) -> logic.Celebration | None:
+    def op(col: Collection) -> tuple[logic.Celebration | None, tuple[str, int]]:
         # La lectura va en segundo plano para que la ventana no se quede bloqueada ni un
         # instante en colecciones grandes.
         remaining = logic.remaining_cards(col)
@@ -98,8 +113,9 @@ def _evaluate() -> None:
         # Causa: el complemento llevaba su propia cuenta del día en la configuración.
         # Regla: el resumen del día sale del historial de Anki (logic.day_summary), y solo
         #   se pide cuando ya no queda nada por repasar.
-        day = logic.day_summary(col) if remaining.total == 0 else logic.DaySummary(0, 0)
-        return logic.decide(remaining, answers, perfect, day)
+        day = logic.day_summary(col) if remaining.total == 0 else logic.DaySummary(0)
+        key = (profile or "", col.sched.day_cutoff)
+        return logic.decide(remaining, answers, day, key in _days_celebrated), key
 
     QueryOp(parent=mw, op=op, success=_on_decided).failure(_on_failed).run_in_background()
 
@@ -110,37 +126,32 @@ def _on_failed(error: Exception) -> None:
 
 
 @guarded
-def _on_decided(celebration: logic.Celebration | None) -> None:
+def _on_decided(result: tuple[logic.Celebration | None, tuple[str, int]]) -> None:
+    celebration, day_key = result
     if celebration is None or mw is None:
         return
+    if celebration.scope == "all":
+        _days_celebrated.add(day_key)
     settings = config.get()
-    if settings.sessionSoundsEnabled:
-        _play_finish_sound(celebration, settings)
+    _play_finish_sound(celebration, settings)
     if settings.confettiEnabled and celebration.confetti:
         _launch_confetti(celebration)
 
 
 def _play_finish_sound(celebration: logic.Celebration, settings: config.AddonConfig) -> None:
-    perfect_kind: SoundKind
-    normal_kind: SoundKind
+    kind: SoundKind
     if celebration.scope == "all":
-        perfect_kind, perfect_name = "all_perfect", settings.allPerfectSound
-        normal_kind, normal_name = "all_finish", settings.allDoneSound
+        kind, name = "all_finish", settings.allDoneSound
     else:
-        perfect_kind, perfect_name = "deck_perfect", settings.deckPerfectSound
-        normal_kind, normal_name = "deck_finish", settings.deckFinishSound
-    # Las sesiones perfectas tienen su propio sonido; si esa carpeta está vacía, suena el normal.
-    if celebration.perfect and audio.has_sounds(perfect_kind):
-        audio.play(perfect_kind, perfect_name)
-    else:
-        audio.play(normal_kind, normal_name)
+        kind, name = "deck_finish", settings.deckFinishSound
+    audio.play(kind, name)
 
 
 def _launch_confetti(celebration: logic.Celebration) -> None:
     engine = _engine()
     if mw is None or not engine:
         return
-    kind = "gold" if celebration.perfect else "normal"
+    kind = "gold" if celebration.gold else "normal"
     effect = _EFFECT[celebration.scope]
     # eval espera a que la página esté lista (Anki lo encola hasta entonces): no hace falta
     # adivinar el momento.

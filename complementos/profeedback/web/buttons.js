@@ -1,8 +1,9 @@
 /* ProFeedback · pulsado de los botones y ajuste del texto al botón.
 
-   1. Retiene el clic 110 ms para que el hundimiento del botón se vea entero antes de que
-      Anki cambie de tarjeta. Con «reducir movimiento» activado en el sistema no se retiene.
-      Los atajos de teclado (1 a 4, espacio) no pasan por aquí y responden al instante.
+   1. Desde la 2.5.0 (informe 2.4.0, apartado 8.5) la respuesta sale en el instante en que se
+      suelta el botón, sin la espera de 0,1 s de antes: el hundimiento se ve mientras el dedo
+      está abajo (:active en buttons.css). Soltar fuera del botón no responde. Un segundo
+      clic antes de 0,4 s se ignora. Los atajos de teclado no pasan por aquí.
    2. Ajusta el tamaño de la letra cuando la palabra no cabe: el botón nunca cambia de forma,
       se encoge el texto.
 
@@ -16,11 +17,9 @@
   }
   window.profeedbackButtonsReady = true;
 
-  var DELAY = 110;
   var DOUBLE_CLICK = 400;
   var MIN_SIZE = 9;
-  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)');
-  /* La retención del clic es solo para responder; «Editar» y «Más» abren su ventana al
+  /* El filtro del doble clic es solo para responder; «Editar» y «Más» abren su ventana al
      momento. */
   var WRAP_SELECTOR =
     "#ansbut,button[onclick*='ease1'],button[onclick*='ease2']," +
@@ -49,15 +48,7 @@
           return;
         }
         button.dataset.profeedbackLast = String(now);
-        if (REDUCED.matches) {
-          original.call(button, event);
-          return;
-        }
-        button.classList.add('profeedback-pressed');
-        window.setTimeout(function () {
-          button.classList.remove('profeedback-pressed');
-          original.call(button, event);
-        }, DELAY);
+        original.call(button, event);
       },
       true
     );

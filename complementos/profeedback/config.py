@@ -17,6 +17,11 @@ from aqt import mw
 
 VOLUME_MIN: Final[int] = 0
 VOLUME_MAX: Final[int] = 100
+# Valor de un sonido para «Sin sonido» (el mismo que audio.OFF).
+SOUND_OFF: Final[str] = "-"
+# Versión del formato de los ajustes. La 2 (ProFeedback 2.5.0) quita las casillas de sonido
+# (ahora es «Sin sonido» en cada lista) y fija por defecto el n.º 1 en las respuestas.
+CONFIG_VERSION: Final[int] = 2
 
 # Claves que usaba la versión anterior para guardar «el día de hoy» dentro de la
 # configuración. Ya no se usan (ahora el día sale del historial de Anki): se quitan al guardar
@@ -25,7 +30,18 @@ _OBSOLETE_KEYS: Final[tuple[str, ...]] = (
     "confettiDayDate",
     "confettiDayAnswers",
     "confettiDayPerfect",
+    # Desde la 2.5.0: las casillas de sonido pasan a «Sin sonido» en cada lista y ya no hay
+    # celebración «perfecta» con sonidos propios.
+    "answerSoundEnabled",
+    "wrongSoundEnabled",
+    "sessionSoundsEnabled",
+    "deckPerfectSound",
+    "allPerfectSound",
 )
+# Sonidos fijos por defecto en las respuestas (informe 2.4.0, apartado 3.2): lo que suena en
+# cada tarjeta es previsible; lo que suena al terminar, variado.
+DEFAULT_ANSWER_SOUND: Final[str] = "acierto-1-madera.mp3"
+DEFAULT_WRONG_SOUND: Final[str] = "fallo-1-madera.mp3"
 
 
 @dataclass(slots=True, frozen=True)
@@ -36,19 +52,16 @@ class AddonConfig:
     versiones anteriores): no se cambian para no perder lo que la persona eligió.
     """
 
-    answerSoundEnabled: bool = True
-    wrongSoundEnabled: bool = True
-    sessionSoundsEnabled: bool = True
     confettiEnabled: bool = True
     styledButtonsEnabled: bool = True
     flagsEnabled: bool = True
-    answerSound: str = ""
-    wrongSound: str = ""
+    # Nombre del archivo; "" es «Aleatorio» y SOUND_OFF, «Sin sonido».
+    answerSound: str = DEFAULT_ANSWER_SOUND
+    wrongSound: str = DEFAULT_WRONG_SOUND
     deckFinishSound: str = ""
     allDoneSound: str = ""
-    deckPerfectSound: str = ""
-    allPerfectSound: str = ""
     soundVolume: int = VOLUME_MAX
+    configVersion: int = CONFIG_VERSION
 
     @classmethod
     def from_stored(cls, stored: object) -> AddonConfig:
@@ -73,10 +86,34 @@ class AddonConfig:
         volume = data.get("soundVolume")
         if isinstance(volume, int):
             data["soundVolume"] = max(VOLUME_MIN, min(VOLUME_MAX, volume))
+        _migrate(stored, data)
         return cls(**data)  # type: ignore[arg-type]
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
+
+
+def _migrate(stored: dict[object, object], data: dict[str, object]) -> None:
+    """Ajustes de antes de la 2.5.0: una casilla de sonido desmarcada pasa a «Sin sonido», y
+    «Aleatorio» en las respuestas (lo que venía de serie) pasa al n.º 1 fijo.
+
+    configVersion no va en config.json a propósito: Anki mezcla esos valores de serie con los
+    guardados, y un ajuste antiguo parecería ya migrado. Se escribe al guardar."""
+    version = stored.get("configVersion")
+    if isinstance(version, int) and not isinstance(version, bool) and version >= CONFIG_VERSION:
+        return
+    data["configVersion"] = CONFIG_VERSION
+    if not data.get("answerSound"):
+        data["answerSound"] = DEFAULT_ANSWER_SOUND
+    if not data.get("wrongSound"):
+        data["wrongSound"] = DEFAULT_WRONG_SOUND
+    if stored.get("answerSoundEnabled") is False:
+        data["answerSound"] = SOUND_OFF
+    if stored.get("wrongSoundEnabled") is False:
+        data["wrongSound"] = SOUND_OFF
+    if stored.get("sessionSoundsEnabled") is False:
+        data["deckFinishSound"] = SOUND_OFF
+        data["allDoneSound"] = SOUND_OFF
 
 
 _cached: AddonConfig | None = None

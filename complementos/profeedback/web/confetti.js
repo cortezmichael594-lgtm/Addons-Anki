@@ -2,9 +2,9 @@
 
    Un único motor de partículas con dos formas de soltarlas:
    - burst: dos cañones, uno en cada esquina de abajo (al terminar un mazo);
-   - rain: lluvia desde arriba durante siete segundos (al terminar todo el día).
-   Cada una, en versión «normal» (colores de la paleta) o «gold» (tonos cálidos y brillo
-   en el título, para las sesiones sin ningún fallo).
+   - rain: lluvia desde arriba durante cuatro segundos (al terminar todo el día).
+   Cada una, en versión «normal» (colores de la paleta) o «gold» (tonos cálidos y un brillo
+   en el título, para el final del día desde la 2.5.0).
 
    Colores: se leen de las variables de la paleta de Anki en el momento de soltar el confeti
    (las redefine Nocturne), así que acompañan al modo día o noche; no hay ninguno escrito
@@ -22,7 +22,12 @@
     '--accent-card', '--state-marked', '--flag-5'
   ];
   var GRAVITY = 0.00125; /* px por ms al cuadrado */
-  var RAIN_MS = 7000;
+  /* 2.5.0 (informe 2.4.0, apartado 8.11): todo en pantalla 4 s como máximo en la lluvia y
+     2,5 s en los cañones; los trozos que quedan se desvanecen en los últimos 400 ms. */
+  var RAIN_MS = 4000;
+  var BURST_MS = 2500;
+  var FADE_MS = 400;
+  var deadline = 0;
   var RAIN_PER_SECOND = 34;
   var BURST_PIECES = 160;
   var STAR_CHANCE = 0.12;
@@ -99,15 +104,15 @@
     style.id = 'profeedback-gold-style';
     style.textContent =
       '.congrats h1{' +
-      'background-image:linear-gradient(100deg,var(--state-buried) 0%,' +
-      'var(--flag-2) 30%,' +
-      'color-mix(in srgb,var(--flag-2) 55%,var(--highlight-fg)) 50%,' +
-      'var(--flag-2) 70%,var(--state-buried) 100%);' +
+      '--profeedback-gold-a:#8a5200;--profeedback-gold-b:#a35f00;' + /* colores-ok: dorado de ProFeedback de día (6,0 y 4,7 a 1, informe 2.4.0) */
+      'background-image:linear-gradient(100deg,var(--profeedback-gold-a) 0%,' +
+      'var(--profeedback-gold-b) 50%,var(--profeedback-gold-a) 100%);' +
       'background-size:200% auto;background-position:0% center;' +
       '-webkit-background-clip:text;background-clip:text;' +
       'color:transparent;-webkit-text-fill-color:transparent;' +
-      'animation:profeedback-gold-shine 3.6s ease-in-out 2;' +
-      'filter:drop-shadow(0 1px 2px var(--shadow-subtle))}' +
+      'animation:profeedback-gold-shine 3.6s ease-in-out 1}' +
+      ':is(.night_mode,.nightMode) .congrats h1{' +
+      '--profeedback-gold-a:#ffd700;--profeedback-gold-b:#fff1a8}' + /* colores-ok: dorado de ProFeedback de noche (12,9 y 15,9 a 1) */
       '@keyframes profeedback-gold-shine{0%{background-position:0% center}' +
       '50%{background-position:100% center}100%{background-position:0% center}}' +
       '@media (prefers-reduced-motion:reduce){.congrats h1{animation:none}}';
@@ -215,6 +220,9 @@
   function finish() {
     window.cancelAnimationFrame(frame);
     frame = 0;
+    window.clearInterval(spawner);
+    spawner = null;
+    pieces = [];
     if (canvas) {
       canvas.remove();
       canvas = null;
@@ -228,6 +236,12 @@
     resize();
     var width = window.innerWidth;
     var height = window.innerHeight;
+    var left = deadline - now;
+    if (left <= 0) {
+      finish();
+      return;
+    }
+    canvas.style.opacity = String(Math.min(1, left / FADE_MS));
     ctx.clearRect(0, 0, width, height);
     pieces = pieces.filter(function (piece) {
       piece.update(dt);
@@ -262,6 +276,7 @@
     var width = window.innerWidth;
     var height = window.innerHeight;
     var scale = Math.max(0.6, Math.min(1.2, Math.log(width) / Math.log(1920)));
+    deadline = performance.now() + BURST_MS;
     for (var i = 0; i < BURST_PIECES; i += 1) {
       var fromLeft = i % 2 === 0;
       var angle = (random(15, 82) * Math.PI) / 180;
@@ -302,12 +317,13 @@
       add(random(-40, height * 0.9));
     }
     var startedAt = performance.now();
+    deadline = startedAt + RAIN_MS;
     var carry = 0;
     var previous = startedAt;
     window.clearInterval(spawner);
     spawner = window.setInterval(function () {
       var now = performance.now();
-      if (now - startedAt > RAIN_MS) {
+      if (now - startedAt > RAIN_MS - FADE_MS) {
         window.clearInterval(spawner);
         spawner = null;
         return;
