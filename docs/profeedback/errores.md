@@ -9,12 +9,6 @@ ninguna. Las tres primeras se hicieron antes de que el complemento llegara a est
 
 Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa y propuesta.
 
-- 2026-10-21 · versión 2.0.0 · Qué pasa: si «Insignias en la tarjeta» estaba desmarcada al entrar a
-  repasar y la marca en ese momento (Herramientas > Complementos > Configuración), las tarjetas
-  siguientes muestran la insignia sin su aspecto: el icono grande y el texto sueltos encima de la
-  tarjeta, sin la píldora de color, hasta que sale del repaso y vuelve a entrar. Propuesta: cargar
-  siempre el estilo de la insignia en el repaso (es pequeño y no se ve si no hay insignia), de modo
-  que activarla a mitad de repaso salga ya con su aspecto.
 - 2026-10-21 · versión 2.0.0 · Qué pasa: choca con una regla del taller. Para elegir la insignia, al
   mostrar cada tarjeta el complemento lee su historial de respuestas mientras Anki espera, en lugar
   de hacerlo en segundo plano. Es una lectura pequeña (las respuestas de una sola tarjeta, una vez
@@ -66,10 +60,39 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   reglas más fuertes que las del complemento, y ganaban. Regla: con «Botones de respuesta 3D de
   colores» marcado, la forma y el color de los botones son siempre los del complemento, y al pasar
   el ratón solo se aclaran.
+- FIX-007 · 2026-11-17 · versión 2.5.0 (el fallo venía de la 2.0.0) · Qué pasaba: si «Insignias sobre
+  la tarjeta» estaba desmarcada al entrar a repasar y se marcaba en ese momento, las tarjetas
+  siguientes mostraban la insignia sin su aspecto (icono grande y texto sueltos) hasta salir del
+  repaso y volver. Por qué: el estilo de la insignia solo se cargaba en la página del repaso si la
+  opción estaba marcada al cargarla. Regla: el estilo de la insignia se carga siempre en el repaso
+  (es pequeño y no se ve si no hay insignia); la opción solo decide si se pone la insignia. Estaba en
+  «Pendientes» desde el 2026-10-21, con esta misma propuesta.
 
 ## Así a propósito
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
+
+- 2.6.0 · Informe «Rediseño de color y forma: ProFeedback 2.5.0», aplicado entero a petición de la
+  persona el 2026-11-17, con la opción recomendada en sus tres decisiones:
+  - Decisión 1 (A): «Mostrar respuesta» en el azul de acción de Atelier; el oro queda solo para
+    celebrar haber terminado.
+  - Decisión 2: paleta propia de los cuatro botones (coral, ámbar, jade, cielo), calculada por
+    contraste y con versión de noche. Sustituye a los colores del original que la persona fijó el
+    2026-11-13 («lo quiero igual al original»), que eran los de Duolingo.
+  - Decisión 3: esquinas de 12 px y canto de 3 (48 px de alto).
+  - Además, sin decisión: insignias con colores e iconos nuevos, confeti diseñado entero, título en el
+    oro de CoreProgress con un brillo de 1,2 s, ratón encima que aleja la cara de su letra, raya de
+    1 px, tiempos previstos en gris de 12 px, sin el alias «Feather Bold.ttf», tres destellos fijos con
+    «reducir movimiento», colores del sistema en el contraste alto y «Ver» junto a «Confeti al
+    terminar».
+- 2.6.0 · Decisiones del taller al aplicarlo: todos los colores salen de un solo sitio (look.py) y
+  llegan a la página como variables incrustadas antes del primer pintado, y al confeti en JSON, para
+  que las pruebas comprueben cada contraste; la letra de «Mostrar respuesta» y el dibujo de los iconos
+  de día son el blanco de HIGHLIGHT_FG de Nocturne (el que Anki pone sobre el azul de acción), no otro;
+  «Ver» enseña el confeti de mazo, que es el más frecuente; los movimientos del confeti (2,4 y 3,8 s) y
+  del brillo (1,2 s) superan los 150 ms de la guía: excepción aprobada con el informe, como en la
+  2.5.0. Con la tritanopía (la forma más rara de daltonismo), «Bien» y «Fácil» se acercan (de 14,5 a
+  7,1 de diferencia): lo acepta el informe, porque llevan palabra.
 
 - 2.5.0 · Informe «ProFeedback 2.4.0: auditoría y rediseño de la interfaz», aplicado entero a
   petición de la persona el 2026-11-16, con la opción recomendada en sus cuatro decisiones:
@@ -94,10 +117,8 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   el texto en seminegrita del modelo (el informe pedía letra normal; las etiquetas nuevas de la
   izquierda sí van en letra normal); los recuadros conservan el relleno del modelo (16 × 20 px).
 - 2.5.0 · El texto de ejemplo y los avisos usan los tokens de la paleta. Las insignias, los botones y
-  el título dorado conservan sus colores fijos (excepción aprobada en la 2.4.0); los tonos oscuros de
-  día de las insignias, la letra #5C3700 de «Mostrar respuesta» y el dorado del título de día
-  (#8A5200 y #A35F00) son colores propios del complemento, fijados por el informe para llegar a
-  4,5 a 1.
+  el título dorado llevan colores propios del complemento, fijados por los informes (desde la 2.6.0,
+  los de look.py, calculados por contraste).
 
 - El confeti y el brillo dorado necesitan un mínimo: 5 respuestas en la sesión para el mazo y 20
   tarjetas distintas hoy para el día. Sin él solo suena el sonido de fin. Decisión del
@@ -117,8 +138,9 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 2.2.0 · Los dos sonidos de fallo los creó el taller para el complemento. Desde la 2.5.0 los 18
   sonidos de serie salen de la receta del informe 2.4.0 (herramientas/generar_sonidos_profeedback.py):
   sumas de tonos, sin grabaciones ni derechos de terceros.
-- 2.4.0 · Botones, insignias, «Editar» y «Más» y la raya gris son iguales que en el ProFeedback
-  original, con sus colores fijos, que no cambian con Atelier ni con el modo noche. Lo pidió la
+- 2.4.0 (sustituido en la 2.6.0 por la paleta propia del informe del 2026-11-17) · Botones,
+  insignias, «Editar» y «Más» y la raya gris eran iguales que en el ProFeedback original, con sus
+  colores fijos, que no cambiaban con Atelier ni con el modo noche. Lo pidió la
   persona el 2026-11-13 («lo quiero igual al original»), con el original delante. Es una excepción a
   la regla de colores de la paleta del taller: cada color lleva su marca. Desde la 2.5.0 los textos
   que no llegaban a 4,5 a 1 (insignias de día, «Mostrar respuesta», «Editar» y «Más») usan un tono

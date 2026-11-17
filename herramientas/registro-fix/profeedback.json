@@ -20,6 +20,9 @@
     ],
     "FIX-006": [
       "web/buttons.css"
+    ],
+    "FIX-007": [
+      "feedback.py"
     ]
   }
 }

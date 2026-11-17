@@ -209,7 +209,27 @@ var ProfeedbackPanel = (typeof ProfeedbackPanel !== "undefined" && ProfeedbackPa
             changed();
         }, { describedBy: noteId });
         var slot = errorSlot();
-        var parts = [slot, box.node];
+        var head = box.node;
+        if (item.test) {
+            /* ProFeedback 2.6.0: «Ver» junto a «Confeti al terminar», como «Probar» junto a
+             * cada sonido. Python devuelve el código del confeti y se ejecuta en esta misma
+             * página, encima del panel. */
+            var see = el("button", {
+                type: "button",
+                class: "btn",
+                text: item.test.label,
+                "aria-label": item.test.aria || null,
+                onclick: function () {
+                    send("action", { name: item.test.action, key: item.key, values: S.v }, function (result) {
+                        if (result && result.confetti) {
+                            new Function(result.confetti)();
+                        }
+                    });
+                },
+            });
+            head = el("div", { class: "check-row" }, [box.node, see]);
+        }
+        var parts = [slot, head];
         if (item.note) {
             parts.push(el("p", { class: "rule", id: noteId, text: item.note }));
         }

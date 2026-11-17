@@ -110,6 +110,16 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   opciones. Pendiente de la persona: probarlo en Anki.
 - 2026-11-17: CoreProgress 1.4.0 quita del todo la barra llena y la línea de resumen de la pantalla
   de «¡Enhorabuena!» (petición de la persona). 25 pruebas.
+- 2026-11-17: CoreProgress 1.5.0 con el informe «Rediseño de color y forma: CoreProgress 1.4.0»
+  (aplicado entero, opción recomendada en sus tres decisiones): paleta nueva calculada por contraste,
+  barra de 720 px centrada, hitos como cortes, aviso en píldora, estrella dorada, tres grosores y
+  muestras en minibarra. 34 pruebas. La tabla Nocturne de 00-contexto-comun.md tenía cuatro grises
+  atrasados (Atelier 3.9.0); puesta al día.
+- 2026-11-17: ProFeedback 2.6.0 con el informe «Rediseño de color y forma: ProFeedback 2.5.0»
+  (aplicado entero, opción recomendada en sus tres decisiones): paleta propia en look.py, «Mostrar
+  respuesta» azul, esquinas de 12 y canto de 3, insignias e iconos nuevos, confeti diseñado entero,
+  título en el oro de CoreProgress y «Ver» en las opciones. FIX-007 (insignias activadas a mitad de
+  repaso). 42 pruebas. Va en el mismo pull request que CoreProgress 1.5.0.
 
 ## En curso
 
@@ -126,7 +136,10 @@ Pendiente de probar por la persona dentro de Anki, de las entregas del 2026-11-0
 
 - Las ventanas de opciones nuevas de CoreProgress, ProFeedback, Hider, Restart, Always on Top y Edit
   field during review.
-- La barra de CoreProgress, en el repaso; y que desde la 1.4.0 la pantalla «¡Enhorabuena!» sale sin ella.
+- Los botones, las insignias y el confeti de ProFeedback 2.6.0, de día y de noche, y «Ver» en sus
+  opciones.
+- La barra de CoreProgress 1.5.0 en el repaso (colores, cortes, píldora, estrella, tres grosores) y su
+  ventana de opciones; y que la pantalla «¡Enhorabuena!» sale sin ella.
 
 ## Dudas para la persona
 

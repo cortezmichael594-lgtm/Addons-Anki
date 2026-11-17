@@ -1,6 +1,6 @@
 # Qué hace «ProFeedback»
 
-Versión 2.5.0 · 2026-11-16
+Versión 2.6.0 · 2026-11-17
 
 Hace más agradable el repaso: suena un sonido corto al acertar y otro, más discreto, al pulsar «Otra
 vez»; pone una insignia encima de la tarjeta (tarjeta nueva, «se resiste» u «otra oportunidad»); da a
@@ -11,6 +11,12 @@ colección: nunca cambia tarjetas, notas ni repasos. Lo único que guarda son su
 La 2.5.0 aplica el informe «ProFeedback 2.4.0: auditoría y rediseño de la interfaz» (aprobado entero el
 2026-11-16), con la opción recomendada en sus cuatro decisiones: el oro premia terminar el día y no la
 nota que uno se pone, «Bien» más ancho, «SE RESISTE» y «OTRA OPORTUNIDAD», y confeti más corto.
+
+La 2.6.0 aplica entero el informe «Rediseño de color y forma: ProFeedback 2.5.0» (2026-11-17), con la
+opción recomendada en sus tres decisiones: «Mostrar respuesta» en el azul de acción de Atelier, paleta
+propia para los cuatro botones (deja de ser la de Duolingo) y esquinas de 12 px con canto de 3. Cambian
+también las insignias, el confeti (diseñado entero), el título del fin del día y el estado con el ratón
+encima; y se añade «Ver» junto a «Confeti al terminar».
 
 ## 1. Dónde aparece
 
@@ -62,42 +68,68 @@ este orden de prioridad:
   (antes, «ERROR ANTERIOR»).
 - Si no se cumple nada de esto, no hay insignia.
 
-- Colores: el icono conserva siempre el color del original (#CE82FF, #FF4B4B, #FFAB33). El texto, de
-  noche, también; de día, el mismo tono más oscuro (#8F3BD9, #C92C2C, #9E5A00), para leerse sobre el
-  fondo claro (5 a 1 o más).
+- Colores (2.6.0): las tres pesan igual. Texto a 6,8 a 1 de día y 8,5 de noche; de día, lejos de las
+  banderas roja y morada de Anki.
+
+  | Insignia | Texto día / noche | Icono día / noche | Dibujo día / noche |
+  |---|---|---|---|
+  | TARJETA NUEVA (violeta) | #73428F / #CDA1E9 | #A572C4 / #CDA1E9 | blanco / #532F67 |
+  | SE RESISTE (rojo) | #9B322F / #F9988E | #D3655E / #F9988E | blanco / #6D2824 |
+  | OTRA OPORTUNIDAD (ámbar) | #7A4D07 / #E0A761 | #BA7816 / #E0A761 | blanco / #593704 |
+
+- Iconos (2.6.0): un círculo de su color con un dibujo encima: un destello de cuatro puntas (nueva),
+  una pesa (se resiste) y una flecha en bucle (otra oportunidad). De día, el círculo en tono medio
+  (3,4 a 1 contra el fondo; antes, 1,8 y 2,4) con el dibujo en blanco; de noche, en tono claro con el
+  dibujo en el tono oscuro de su color. Texto con 0,06 em entre letras (antes, 0,4 px).
+- En el contraste alto de Windows, círculo vacío con borde y dibujo y texto en el color del texto.
 - Encima de la tarjeta hay siempre una franja de 40 px (24 del icono y 16 de aire), haya insignia o no:
   la tarjeta empieza siempre en el mismo sitio y no salta de una a otra.
 - Aparece con un fundido de 0,12 segundos; sin fundido si el sistema pide reducir las animaciones. No se
-  puede pulsar ni seleccionar. Solo cuentan las respuestas dadas con un botón. La misma insignia sale en
+  puede pulsar ni seleccionar. Desde la 2.6.0, activarlas en mitad de un repaso las pone ya con su
+  aspecto (FIX-007). Solo cuentan las respuestas dadas con un botón. La misma insignia sale en
   la pregunta y en la respuesta.
 - Los dos textos nuevos están traducidos en los 54 idiomas.
 
 ## 4. Botones del repaso
 
 Con la opción «Botones de colores con relieve» (marcada por defecto), los botones de la barra inferior
-del repaso tienen el aspecto del ProFeedback original, con sus colores fijos, los mismos de día y de
-noche:
+del repaso tienen colores con relieve. Desde la 2.6.0, con una paleta propia calculada por contraste
+(antes, los colores de Duolingo) y una versión más suave de noche:
 
-- «Otra vez» rojo (#FF4B4B), «Difícil» naranja (#FFAB33), «Bien» verde (#93D333) y «Fácil» azul claro
-  (#49C0F8), con la letra casi negra (#131F24) en negrita de 15 px.
-- «Mostrar respuesta», dorado (#FFD700) con la letra ámbar oscura (#5C3700; desde la 2.5.0, antes
-  #AE6802, que no se leía bien).
-- Todos miden 50 px de alto: una cara de 46 y un canto de 4 px de su color más oscuro, con esquinas de
-  16 px. 130 px de ancho como mínimo; «Bien» y «Mostrar respuesta», 190 px: así, tras pulsar «Mostrar
-  respuesta», el puntero queda dentro de «Bien» y no en el hueco entre «Difícil» y «Bien».
-- «Editar» y «Más», sin relleno: contorno de 2 px con canto de 4 px del gris de los controles de la paleta
-  y letra en el gris secundario (de noche, 9,7 a 1; antes 3,0). Con el ratón encima, se rellenan del
-  color de pasar el ratón de la paleta.
-- Encima de la barra, una raya de 2 px del color de las rayas de la paleta.
-- Los tiempos previstos y el recuento de tarjetas, en el color de texto de Anki.
-- Al pasar el ratón por un botón de color, se aclara (brillo 1,08); nunca se oscurece. Mandan su forma y
-  sus colores aunque Atelier (Nocturne) esté instalado (FIX-006).
-- Al pulsarlo, la cara baja 4 px sobre su canto en 80 ms, sin cambiar de color, y vuelve en 70 ms al
-  soltar, sin rebote. La respuesta sale en el instante en que se suelta el botón (antes había una espera
-  de una décima de segundo); si se suelta fuera, no responde. Los atajos de teclado responden al
-  instante. Un segundo clic en el mismo botón antes de 0,4 segundos se ignora. Con «reducir movimiento»,
-  sin animación.
+| Botón | Cara día / noche | Letra | Canto día / noche | Ratón encima día / noche |
+|---|---|---|---|---|
+| Otra vez (coral) | #F47B72 / #E8847B | #2F0405 | #DB655D / #C05F58 | #FD867C / #F38D84 |
+| Difícil (ámbar) | #FDB354 / #F8B564 | #311C01 | #C78112 / #D08F3C | #FEC178 |
+| Bien (jade) | #53E2A6 / #70DDAB | #01291A | #15A472 / #46B686 | #5FECAF / #7AE7B5 |
+| Fácil (cielo) | #73C9FB / #7FC8F3 | #012537 | #4098C9 / #5AA1CB | #88D1FD / #89D1FD |
+| Mostrar respuesta (azul de acción de Atelier) | #3B6FE0 / #4066E6 | blanca | #284EAA / #2B45AA | #3366D6 / #385CDC |
+
+- La letra va en negrita de 15 px, en un tono muy oscuro del color de su botón (antes, un gris casi
+  negro igual en los cuatro); en «Mostrar respuesta», blanca. Todas se leen igual o mejor que antes:
+  «Otra vez» pasa de 5,1 a 7 a 1.
+- «Difícil» y «Bien» se distinguen también con daltonismo rojo-verde (antes eran el mismo color).
+- «Mostrar respuesta» ya no es dorado: el oro queda para celebrar haber terminado, como en
+  CoreProgress.
+- Todos miden 48 px de alto: una cara de 45 y un canto de 3 px, con esquinas de 12 px, las de la
+  tarjeta y de Atelier (antes, 50 px, canto de 4 y esquinas de 16). De día el canto contrasta 3 a 1
+  con la barra, para que el botón se vea como botón. 130 px de ancho como mínimo; «Bien» y «Mostrar
+  respuesta», 190 px: así, tras pulsar «Mostrar respuesta», el puntero queda dentro de «Bien».
+- «Editar» y «Más», sin relleno: contorno de 2 px con canto de 3 px del gris de los controles de la
+  paleta y letra en el gris secundario. Con el ratón encima, se rellenan del color de pasar el ratón.
+- Encima de la barra, una raya de 1 px del color de las rayas de la paleta (antes, 2).
+- Los tiempos previstos («<1 min», «6 min»…), en el gris secundario de 12 px con cifras del mismo
+  ancho (antes, en el color de texto de Anki).
+- Al pasar el ratón por un botón de color, la cara se aleja de su letra: se aclara un poco y, en
+  «Mostrar respuesta», se oscurece; el cambio se nota y nunca empeora la lectura (antes, un brillo de
+  1,08 que apenas se veía). Mandan su forma y sus colores aunque Atelier (Nocturne) esté instalado
+  (FIX-006).
+- Al pulsarlo, la cara baja 3 px sobre su canto en 80 ms, sin cambiar de color, y vuelve en 70 ms al
+  soltar, sin rebote. La respuesta sale en el instante en que se suelta el botón; si se suelta fuera,
+  no responde. Los atajos de teclado responden al instante. Un segundo clic en el mismo botón antes de
+  0,4 segundos se ignora. Con «reducir movimiento», sin animación.
 - Con el teclado, el botón elegido lleva un aro de foco azul de 2 px, separado 2 px del botón.
+- En el contraste alto de Windows, los botones toman los colores del sistema, con borde de 1 px y sin
+  canto.
 - En ventanas de menos de 640 px los botones se compactan un poco; si una palabra no cabe, se reduce la
   letra. Con la respuesta a la vista, la barra entera necesita unos 1.064 px de ancho.
 
@@ -119,19 +151,30 @@ Lo que queda se cuenta como lo cuenta Anki, con sus límites diarios.
 
 | Celebración | Mínimo para el confeti | Confeti |
 |---|---|---|
-| Mazo | 5 respuestas en la sesión | Dos cañones desde las esquinas de abajo, 2,5 s como máximo; colores de la paleta |
-| Día | 20 tarjetas distintas respondidas hoy en toda la colección | Lluvia dorada desde arriba, 4 s como máximo, y el título de la pantalla brilla en dorado una vez (3,6 s) |
+| Mazo | 5 respuestas en la sesión | 72 piezas desde dos cañones en las esquinas de abajo, 2,4 s, con los cuatro colores de los botones (también el coral: cada respuesta contó) |
+| Día | 20 tarjetas distintas respondidas hoy en toda la colección | 120 piezas en lluvia dorada desde arriba, 3,8 s, y el título de la pantalla pasa a dorado y lo cruza un brillo una vez (1,2 s) |
 
 - Desde la 2.5.0 ninguna celebración depende de las notas: el oro premia terminar el día. Antes, la
   dorada exigía no haber pulsado nunca «Otra vez» ni «Difícil», lo que empujaba a calificarse al alza.
-- El título dorado es #FFD700 de noche y #8A5200 de día (se lee en los dos modos).
+- Confeti (2.6.0, diseñado entero): tiras de 6 × 14 px con esquinas redondeadas, círculos de 8 y
+  destellos de cuatro puntas de 12 (los de CoreProgress); en la lluvia, además, estrellas de cinco
+  puntas de 13. Las piezas salen disparadas, frenan con el aire, caen despacio, se mecen de lado y
+  giran como papel; empiezan a la vez que el sonido y la posición de cada una se sortea en cada
+  celebración. Se desvanecen en los últimos 0,4 s. Como mucho 1,4 vueltas por segundo y 14 px por
+  pieza: nada que parpadee. De día, la lluvia usa cuatro oros más oscuros, para que se vea caer sobre
+  el fondo claro; de noche, los oros de CoreProgress y un crema.
+- El título dorado es el oro de CoreProgress: #845E09 de día y #FEE06D de noche (antes, #8A5200 y
+  #FFD700). El brillo es una banda más clara que lo cruza de izquierda a derecha una sola vez, desde
+  los 0,3 s, y después el título se queda dorado y quieto.
 - El sonido de fin suena siempre que hay celebración, salvo con «Sin sonido». Sin el mínimo, solo
   suena: ni confeti ni brillo.
 - «Hoy» empieza a la hora de cambio de día de Anki, y lo de hoy se lee del historial de Anki: cuenta cada
   perfil por separado e incluye lo repasado en otros dispositivos ya sincronizado.
 - El confeti pasa por encima de todo sin tapar nada y se desvanece en sus últimos 0,4 s.
-- Con «reducir movimiento» activado en el sistema no hay confeti; al terminar el día, el título queda
-  dorado sin moverse.
+- Con «reducir movimiento» activado en el sistema no hay confeti ni brillo: encima del título salen tres
+  destellos fijos (jade, ámbar y cielo al terminar un mazo; dorados al terminar el día, con el título
+  dorado y quieto).
+- En el contraste alto de Windows no hay confeti ni destellos, y el título va en el color del texto.
 - La decisión se toma sin congelar Anki.
 
 ## 6. Ventana de opciones
@@ -157,7 +200,7 @@ lado:
 | | Al terminar el día | Lista + «Probar» | Aleatorio |
 | Aspecto | Botones de colores con relieve | Casilla | Marcada |
 | | Insignias sobre la tarjeta | Casilla | Marcada |
-| | Confeti al terminar | Casilla | Marcada |
+| | Confeti al terminar | Casilla, con «Ver» a la derecha (2.6.0) | Marcada |
 
 - Cada fila lleva la etiqueta a la izquierda (columna de 200 px, letra normal) y la lista a la derecha.
   Las dos de respuesta y las dos de final van separadas por un hueco.
@@ -170,6 +213,8 @@ lado:
   icono, «No se pudo reproducir. Compruebe la salida de audio del equipo.», que se quita al cambiar de
   sonido o al volver a probar. El lector de pantalla oye cada «Probar» con su nombre («Probar el sonido
   de acierto», «Probar el sonido de «Otra vez»», «… de fin de mazo», «… de fin del día»).
+- «Ver» (2.6.0) suelta el confeti de fin de mazo dentro de la propia ventana de opciones, con sus
+  colores, sin terminar un mazo y sin guardar nada.
 - Al cerrar la ventana, el volumen vuelve al guardado si no acepta.
 - Si un sonido guardado ya no existe, la lista muestra el primero de serie y suena ese.
 - Aceptar guarda y deja los sonidos preparados al momento. El aspecto de los botones cambia la próxima
@@ -188,8 +233,9 @@ lado:
   Se crean vacías al abrir la ventana de opciones, y «Abrir la carpeta de estos sonidos…» abre la de
   cada lista. Un archivo propio con el mismo nombre que uno de serie lo sustituye.
 - La lista de sonidos se vuelve a leer al abrir la ventana de opciones y al abrir un perfil.
-- Letra: si deja en «user_files» (o en la carpeta del complemento) un archivo «ProFeedback.ttf» o
-  «Feather Bold.ttf» de 1,5 MB como máximo, los botones y las insignias usan esa letra. Si no hay
+- Letra: si deja en «user_files» (o en la carpeta del complemento) un archivo «ProFeedback.ttf» de 1,5 MB
+  como máximo, los botones y las insignias usan esa letra. Desde la 2.6.0 ya no se reconoce el nombre
+  «Feather Bold.ttf» (la letra de Duolingo): quien lo tuviera debe renombrarlo a «ProFeedback.ttf». Si no hay
   ninguno, como ahora, usan la letra del sistema.
 
 ## 8. Qué guarda y dónde

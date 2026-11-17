@@ -1,14 +1,16 @@
 # Ficha de diseño: CoreProgress
 
-Versión 1.4.0 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. Es un complemento que
+Versión 1.5.0 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. Es un complemento que
 la persona trajo hecho fuera del taller; la 1.2.0 aplica entero el primer informe de diseño de
-CoreProgress (interfaz, aprendizaje y hábito, 9 de noviembre de 2026). Los colores de los temas son
-propios, fuera de la paleta Nocturne, y están aprobados.
+CoreProgress (interfaz, aprendizaje y hábito, 9 de noviembre de 2026) y la 1.5.0, el informe «Rediseño
+de color y forma: CoreProgress 1.4.0» (17 de noviembre de 2026), también entero. Los colores de los
+temas son propios, fuera de la paleta Nocturne, y están aprobados.
 
 ## 1. Qué es, en una frase
 
 Una barra de progreso fija arriba de la pantalla de repaso que se llena a medida que se despacha todo
-lo de hoy en el mazo (lo hecho más lo que queda), con marcas numeradas por el camino; además cuenta los aciertos
+lo de hoy en el mazo (lo hecho más lo que queda), con cortes por el camino, el número del próximo hito y
+el total; además cuenta los aciertos
 seguidos, los celebra con un aviso breve, vuelve dorada la barra desde 5 seguidos y guarda el récord
 personal.
 
@@ -38,89 +40,106 @@ Qué mide:
 - Una tarjeta cuenta solo cuando sale de verdad de la cola (se gradúa o un repaso pasa a otro día). Una
   fallada vuelve a aprendizaje y no hace avanzar la barra mientras Anki la siga contando.
 - Enterrar, suspender o apartar una tarjeta de hoy también hace avanzar la barra.
-- Se pone al día una décima de segundo después de cada respuesta o cambio.
+- Se pone al día 50 ms después de cada respuesta o cambio (1.5.0; antes, 120).
 - Si la cuenta de Anki sube (vencen tarjetas en aprendizaje), la barra se queda quieta hasta que el
   avance la alcance; solo retrocede al deshacer.
 - Al terminar, Anki sale del repaso y la barra desaparece con él.
 
 Posición y forma:
 
-- Fija arriba, de lado a lado, con 18 px de margen a cada lado y 10 px arriba, por encima de la
-  tarjeta; no se mueve al desplazarse. Los clics la atraviesan.
-- Altura de 12 a 22 px (16 de serie); esquinas redondeadas.
-- Canal (parte vacía): un tono 7,5 % más claro (de noche) o más oscuro (de día) que el fondo real de la
-  tarjeta, medido en pantalla, con sombra interior (de día: inset 0 2px 5px negro al 13 % y 0 1px 2px al
-  9 %; de noche: inset 0 2px 6px negro al 55 % y 0 1px 2px al 40 %). Así encaja con plantillas de
-  fondo propio. Quien edite plantillas puede fijar el color del canal. Hasta tener la medida (algo más
-  de medio segundo como mucho), la barra no se enseña; luego aparece con un fundido breve.
-- Relleno: degradado horizontal de cuatro tonos del tema (0 %, 30 %, 70 %, 100 %), plano desde la 1.3.0
-  (sin brillo de cristal ni sombra de color), con un contorno de 1 px por dentro en la tinta del tema
-  (el color de su aviso), que lo separa del canal (4,03 a 1 o más de día). Con algo hecho, al menos tan
-  ancho como alto. Sin destello desde la 1.2.0.
+- Fija arriba, centrada sobre la tarjeta: 720 px como mucho (el ancho de la tarjeta de Atelier); en
+  una ventana más estrecha, el ancho menos 18 px a cada lado; 10 px arriba. Por encima de la tarjeta;
+  no se mueve al desplazarse. Los clics la atraviesan. (1.5.0; antes, de lado a lado.)
+- Grosor: Fina 12 px, Normal 16 (de serie), Gruesa 20. Canal, relleno, discos y aviso en forma de
+  píldora (radio = mitad del alto); los cortes de hito, rectos.
+- Canal (parte vacía), plano y sin sombra (1.5.0): sobre el fondo de Atelier (#F7F8FA / #12161F),
+  #D5D9E2 de día y #272F3F de noche (1,33 y 1,35 a 1 del fondo); sobre otro fondo, un gris con ese
+  mismo contraste, calculado en pantalla. Quien edite plantillas puede fijar el color del canal. Hasta
+  tener la medida (algo más de medio segundo como mucho), la barra no se enseña.
+- Relleno: degradado de tres tonos del tema (0 %, 50 %, 100 %), plano, sin contorno ni brillo ni
+  sombra (1.5.0). Siempre al menos tan ancho como alto, también con 0 tarjetas. Sin destello.
 - Día o noche se decide por lo oscuro que sea el fondo real de la tarjeta, no solo por el modo de Anki.
-  Se repinta al cambiar de modo o de tamaño de ventana.
+  Se repinta en su sitio, sin animación, al cambiar de modo o de tamaño de ventana; al entrar a
+  repasar o al cambiar las opciones se dibuja ya en su sitio, sin deslizarse desde cero.
 - La tarjeta deja siempre sitio a la barra y a su aviso: 10 px de margen, el alto de la barra, 24 px
   para el aviso (si las celebraciones están activadas) y 8 px de aire; 58 px con la barra de serie.
   «Espacio extra» (0 a 300 px) se suma.
 - Para el lector de pantalla, es una barra de progreso llamada «Progreso de hoy» con el valor en
   palabras («30 de 50 tarjetas»; con 5 aciertos seguidos o más, «…; 7 aciertos seguidos»), sin anuncios
   automáticos.
-- Contraste alto de Windows: relleno en el color de resaltado del sistema y canal con borde del color del
-  texto.
+- Contraste alto de Windows (1.5.0): canal Canvas con borde CanvasText; relleno Highlight; cortes
+  Canvas; próximo hito con fondo Canvas, aro de 2 px Highlight y número CanvasText; total con aro de
+  1 px CanvasText; estrella HighlightText; aviso con fondo Canvas, borde y texto CanvasText; sin chispas.
 
-Colores del relleno (no son de la paleta Nocturne; los trae el complemento):
+Colores (1.5.0; no son de la paleta Nocturne, los trae el complemento). Una sola receta para todos,
+calculada en OKLCH por contraste: de día, la punta del relleno a 3,1 a 1 del canal y el arranque a
+2,0; de noche, a 7,0 y 4,6; croma de 0,16 como máximo de día y 0,15 de noche; ningún tono a menos de
+10 (ΔE2000) del azul de acción. La tinta (texto del aviso, aro y número del próximo hito, chispas) es
+oscura de día (6,5 a 1 contra el fondo) y, de noche, la propia punta. La píldora es el fondo del aviso.
 
-| Tema | Degradado de día | Degradado de noche | Tinta: aviso, contorno y disco alcanzado (día / noche) | Muestra en Opciones (día) |
-|---|---|---|---|---|
-| Verde clásico (de serie) | #64D97A, #3DD65A, #25CB44, #1DAF38 | #2DB947, #33D151, #4BD865, #68DC7E | #167628 / #88E098 | #3DD65A |
-| Azul océano | #5F87DD, #376BDD, #1E56D2, #1649B6 | #2757BF, #2C62D8, #4575DE, #638AE1 | #12337A / #84A2E4 | #376BDD |
-| Turquesa laguna | #5DE0D0, #34DFCC, #1BD5BF, #14B8A5 | #24C1AF, #29DBC6, #42E0CE, #60E3D4 | #107C70 / #82E5DA | #34DFCC |
-| Rosa suave | #DD608F, #DB3876, #D11F62, #B41853 | #BE2860, #D72D6D, #DD467F, #E06493 | #791339 / #E385A8 | #DB3876 |
-| Púrpura real | #7E60DC, #7450B8, #4B20D0, #3E18B4 | #4D28BD, #572ED6, #6B46DC, #8264E0 | #2C1379 / #9C85E3 | #7450B8 |
-| Naranja atardecer | #E0935D, #DF7B34, #D5681B, #B85814 | #C16524, #DB7329, #E18442, #E39660 | #7C3D10 / #E5AB82 | #DF7B34 |
-| Dorado (5 o más seguidas) | #E3BD59, #E4B230, #DAA416, #BC8D10 | #C59820, #DFAC25, #E4B73E, #E7C15D | #856206 / #E7C15D | — |
+| Tema | Relleno de día (arranque · centro · punta) | Tinta de día | Píldora de día | Relleno de noche (la punta es la tinta) | Píldora de noche |
+|---|---|---|---|---|---|
+| Verde clásico (de serie) | #53AD4B · #329D43 · #0F8B41 | #09692F | #E3F6E6 | #3EAC5F · #5EBD68 · #7BCE73 | #1C3422 |
+| Turquesa laguna | #17ACA0 · #139992 · #108784 | #096462 | #DAF7F5 | #16A8A5 · #1ABCB4 · #1ED1C2 | #0B3534 |
+| Azul océano | #16A4DB · #1391CC · #0F7FBE | #085E8F | #E3F2FF | #219EE9 · #26B3F9 · #53C7FD | #183042 |
+| Púrpura real | #B283F0 · #9B74E1 · #8466D1 | #634C9F | #F1EEFF | #A187EE · #B897FD · #CCADFD | #2F2942 |
+| Rosa suave | #EE7098 · #D95F8F · #C44E85 | #943A64 | #FFEAF1 | #E372A3 · #F883AE · #FDA0BA | #3F242F |
+| Naranja atardecer | #E58018 · #D66B12 · #C7570F | #96400A | #FFECE3 | #E67A43 · #F68E4A · #FDA863 | #40261A |
+| Dorado (5 o más seguidas) | #F7D856 · #F6C835 · #F4B81C | #845E09 | #FDEFCF | #F0BB43 · #F9CD54 · #FEE06D | #3C2E0F |
 
-Dorado: además, un halo suave (0 0 6px dorado al 18 % y 0 0 2px al 14 %), rebajado dos veces a
-petición del usuario («debe adornar, no llamar la atención»); desde la 1.3.0 es la única luz de la
-barra. El aviso no lleva sombra ni resplandor. La tinta dorada de día es un dorado profundo nuevo
-(#856206, 5,27 a 1); la de antes daba 2,84.
+Dorado: claro, más que cualquier tema (se distingue también por la luminosidad con daltonismo). Sin
+halo desde la 1.5.0. De día lleva un contorno de 1 px en #845E09 (sin él quedaría a 1,27 del canal; con
+él, 4,14). En la punta, una estrella de cinco puntas del alto de la barra menos 5 px (8 px como mínimo):
+#845E09 de día y el color del fondo de noche (3,27 y 13,87 a 1).
+
+Piezas neutras (día / noche): fondo y color de los cortes #F7F8FA / #12161F (CANVAS); disco
+#FBFCFE / #212836 (CANVAS_ELEVATED); aro del total #646C7D / #9AA3B4 (FG_FAINT); número del total
+#4E576A / #B7BECC (FG_SUBTLE); número sobre la tinta #FBFCFE / #12161F.
 
 Nota: los temas comparten nombre con los de GritMap, pero sus tonos son otros. Rojo fuego se retiró en
 la 1.2.0, como en GritMap (en Anki el rojo es error); quien lo tenía pasa a Naranja atardecer con aviso.
-La muestra de Opciones sale en el tono del modo activo (de noche, el sexto tono de la rampa nocturna).
 
-## 5. Hitos (marcas numeradas)
+## 5. Hitos
 
-- Con «Mostrar hitos en la barra» y un total de 10 tarjetas o más: marcas en números redondos (1.3.0).
-  Paso: el menor de 5, 10, 20, 25, 50, 100, 200, 250, 500, 1.000… que deja cinco marcas o menos;
-  ninguna más allá del 92 % del ancho. Con 27: 5, 10, 15, 20; con 50: 10, 20, 30, 40; con 130: 20,
-  40, 60, 80, 100. Al 100 %, una marca final con el total («27»). Con menos de 10, ninguna. El paso se
-  fija al entrar a repasar.
-- Cada marca está donde llega el relleno al despachar ese número.
-- Forma: círculo (pastilla si el número es largo) del alto de la barra más 4 px, con letra en negrita
-  de 11 a 13 px. Con la barra por debajo de 14 px, sin número: solo la marca.
-- Sin alcanzar: color del canal, número en FG_SUBTLE (#4E576A de día, 5,75 a 1; #B7BECC de noche).
-  Al alcanzarla: el disco toma la tinta del tema (o la dorada), sin borde, con el número en blanco de
-  día y #1B2430 de noche (5,07 a 1 o más en todos los temas). Con «Celebrar rachas y récords», además
-  da un pequeño salto (crece durante 0,4 s) y suelta tres chispas blancas, salvo que esa respuesta ya
-  traiga un aviso.
+- Con «Mostrar hitos en la barra» y un total de 10 tarjetas o más: hitos en números redondos (1.3.0).
+  Paso: el menor de 5, 10, 20, 25, 50, 100, 200, 250, 500, 1.000… que deja cinco o menos; ninguno más
+  allá del 92 % del ancho. Con 27: 5, 10, 15, 20; con 50: 10, 20, 30, 40; con 130: 20, 40, 60, 80,
+  100. Al final, el total («27»). Con menos de 10, ninguno. El paso se fija al entrar a repasar.
+- Cada hito está donde llega el relleno al despachar ese número.
+- Tres piezas (1.5.0; antes, un disco numerado por hito):
+  - Hito pasado y hito lejano (detrás del próximo): corte de 2 px del color del fondo, de arriba abajo
+    de la barra, sin número.
+  - Próximo hito: disco del alto de la barra más 4 px, fondo CANVAS_ELEVATED, aro de 2 px y número en
+    la tinta, centrado en su posición.
+  - Total: disco igual, aro de 1,5 px FG_FAINT y número FG_SUBTLE, con su borde derecho en el final del
+    canal. Cuando ya no queda hito intermedio, pasa a ser el próximo y toma el color.
+- Números: 11 px (12 con la barra de 20), seminegrita, cifras tabulares; pastilla si tiene 3 cifras o
+  más.
+- Al alcanzar un hito (con «Celebrar rachas y récords» y si la respuesta no trae aviso): el disco se
+  llena de tinta con el número en #FBFCFE de día o en el fondo de noche, crece a 1,15 en 0,15 s, se
+  queda 0,3 s y pasa a corte en 0,15 s; tres chispas; el disco del hito siguiente aparece después, en
+  0,2 s. Si no, pasa a corte sin más.
+- Barra Fina (12 px): sin discos; el próximo hito es un corte de 3 px en la tinta y el final del canal
+  es el total.
 
 ## 6. Racha y récord
 
 - Racha: respuestas seguidas con «Difícil», «Bien» o «Fácil» en este repaso (aciertos, como los
   entiende Anki). Solo «Otra vez» la pone a cero. Empieza de cero en cada repaso. No se ve como cifra fija.
 - Avisos (con «Celebrar rachas y récords»): al llegar a 5, 10, 20, 30… (cada 10 desde 10), en la franja
-  de 24 px bajo la barra, centrado en la ventana y quieto (1.3.0; antes seguía al relleno), en
-  mayúsculas: «5 ACIERTOS SEGUIDOS». Letra de 13 px, negrita, interletraje 0,06 em, en la tinta del tema,
-  sin sombra. Desde 5, el relleno se aviva un instante y suelta cuatro chispas en su borde.
+  de 24 px bajo la barra, centrado sobre la barra y quieto, en mayúsculas: «5 ACIERTOS SEGUIDOS». Desde
+  la 1.5.0, en una píldora de 20 px de alto (radio 10, 12 px de margen a los lados, 4 px bajo la barra)
+  con el fondo tintado del tema y el texto en su tinta (6,00 a 1 o más); letra de 12,5 px, negrita,
+  interletraje 0,06 em. Desde 5, tres chispas desde la punta del relleno; el relleno ya no se aviva.
 - El aviso dura 1,5 s (entrada de 150 ms y salida de 300 ms); uno nuevo sustituye al anterior.
 - Mejor racha de los últimos 30 días (1.3.0): se celebra una vez por repaso al superarla (desde 3):
   «MEJOR RACHA EN 30 DÍAS: 42». Se guarda la mejor racha de cada día de los últimos 30.
 - Una sola celebración por respuesta: récord, mejor de 30 días, racha y, si no hay ninguna, el salto del
   hito.
-- Barra dorada: con 5 o más seguidas, relleno y aviso dorados; al romperse, vuelve al tema.
+- Barra dorada: con 5 o más seguidas, relleno, aviso (píldora dorada) y próximo hito dorados, con la
+  estrella en la punta; al romperse, vuelve al tema en 0,4 s y la estrella se va con el color.
 - Récord: racha más larga, propia de cada perfil. Se celebra una vez por repaso, al batirlo (como
-  mínimo a las 3): «NUEVO RÉCORD: 11», con avivado y chispas si es de 5 o más. Gana al aviso de racha si
+  mínimo a las 3): «NUEVO RÉCORD: 11», con chispas si es de 5 o más. Gana al aviso de racha si
   coinciden.
 - Se guarda al batirlo (con efectos) y, en todo caso, al salir del repaso o cerrar el perfil.
 - Mazos excluidos: sin celebración de récord ni de mejor de 30 días y sin guardarlos; barra, avisos de
@@ -136,15 +155,19 @@ La muestra de Opciones sale en el tono del modo activo (de noche, el sexto tono 
 
 ## 8. Movimiento
 
-- Relleno: avanza deslizándose en 0,4 s; cambios de color en casi 0,5 s; canal, fundidos de 0,3 s.
-  Avisos: entrada de 150 ms y salida de 300 ms.
-- Sin animación continua (el destello se retiró en la 1.2.0).
-- Saltos de hitos (0,4 s), chispas, avivado, fundido de avisos: todo se apaga con «Celebrar rachas y
-  récords», salvo el avance del relleno y el cambio de color, que informan.
-- Con «reducir animaciones» del sistema (1.3.0): nada se anima. El relleno y el color cambian al
-  instante, el hito alcanzado solo cambia de color, el aviso aparece y desaparece sin fundido, sin
-  chispas ni avivado.
-- Duraciones por encima de la norma del taller (150 ms): excepción aprobada con el informe.
+- Relleno: avanza en 0,3 s con frenada al final (cubic-bezier(.2, .8, .2, 1)); cambio a oro y vuelta,
+  0,4 s, solo el color; canal, fundido de 0,3 s si se corrige su color. Avisos: entrada de 150 ms,
+  1,05 s quieto y salida de 300 ms.
+- Hito alcanzado: 0,6 s en total (crece, se queda, pasa a corte); chispas de 0,5 s; disco siguiente,
+  0,2 s.
+- Chispas: tres, de cuatro puntas, de 7 a 9 px, en la tinta; suben 8 px y se apagan.
+- Sin animación continua ni avivado del relleno, ni halo (1.5.0). Una sola cosa en movimiento por
+  celebración, en el sitio donde ocurre.
+- Hitos, chispas y fundido de avisos se apagan con «Celebrar rachas y récords», salvo el avance del
+  relleno y el cambio de color, que informan.
+- Con «reducir animaciones» del sistema: nada se anima; el relleno salta, el hito pasa a corte, el oro
+  aparece de golpe, sin chispas y el aviso aparece y desaparece sin fundido.
+- Duraciones por encima de la norma del taller (150 ms): excepción aprobada con los informes.
 
 ## 9. Ventana de opciones
 
@@ -153,14 +176,16 @@ Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recua
 - Título «CoreProgress» solo en la barra de la ventana (1.3.0). Dos recuadros, sin desplazar (unos 646
   px de alto):
   1. Aspecto de la barra: vista previa (rectángulo de 44 px del color de fondo de las tarjetas con una
-     barra al 60 %, hitos 10, 20, 30 y 40 y total 50; cambia al instante con el tema, la altura y la
-     casilla de hitos; decorativa); «Tema de color» con «Restaurar los valores predeterminados» (y
-     «Deshacer») a la derecha en su misma fila; seis fichas de 32 px por orden alfabético, en dos
-     columnas, con muestra de 16 px en el tono del modo activo y contorno de 1 px en la tinta del tema;
-     la elegida con tinte, un solo borde de 2 px BORDER_FOCUS y ✓ en FG_LINK (con el foco del teclado,
-     el borde pasa a 4 px); «Altura de la barra» y «Espacio extra» en paralelo, con «−» y «+» y «px ·
-     12–22» y «px · 0–300» al lado; dos casillas, 12 px entre ellas: «Mostrar hitos en la barra» y
-     «Celebrar rachas y récords». Si tenía Rojo fuego, arriba la franja de aviso.
+     barra al 60 % como la del repaso: cortes en 10, 20 y 30, próximo hito 40 y total 50; cambia al
+     instante con el tema, el grosor y la casilla de hitos; decorativa); «Tema de color» con «Restaurar
+     los valores predeterminados» (y «Deshacer») a la derecha en su misma fila; seis fichas de 32 px por
+     orden alfabético, en dos columnas, con muestra en minibarra de 30 × 10 px (radio 5) con el
+     degradado del modo activo, sin contorno (1.5.0); la elegida con tinte, un solo borde de 2 px
+     BORDER_FOCUS y ✓ en FG_LINK (con el foco del teclado, el borde pasa a 4 px); «Grosor» (control
+     segmentado del panel modelo: Fina, Normal, Gruesa; el elegido con fondo de capa elevada, borde de
+     acción y seminegrita; 1.5.0) y «Espacio extra» (con «−» y «+» y «px · 0–300») en paralelo; dos
+     casillas, 12 px entre ellas: «Mostrar hitos en la barra» y «Celebrar rachas y récords». Si tenía
+     Rojo fuego, arriba la franja de aviso.
   2. El récord entero: «Récord: **7 aciertos seguidos**» o «Mejor racha en 30 días: **41** · récord:
      90» (o «Sin récord todavía»; con la racha en curso si la supera) y «Poner a cero» a la derecha (no
      se enseña sin récord), con la pregunta «¿Poner el récord a cero?» y el foco en «Cancelar»; debajo,
@@ -178,16 +203,20 @@ Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recua
 - La barra se anuncia como «Progreso de hoy», barra de progreso («30 de 50 tarjetas»; con 5 aciertos
   seguidos o más, también la racha), sin anuncios automáticos que interrumpan la lectura de la tarjeta;
   los avisos de racha no se anuncian.
-- Contrastes (1.3.0): todo texto a 4,5 a 1 o más y todo contorno del relleno a 3 a 1 o más, de día y de
-  noche, en los seis temas y el dorado; números de 11 px como mínimo.
+- Contrastes (1.5.0): punta del relleno a 3,08 o más del canal de día y 6,98 o más de noche, sin
+  contorno; todo texto a 5,14 a 1 o más; aro del próximo hito a 4,14 o más; números de 11 px como
+  mínimo.
 - La ventana de opciones sigue el modelo del panel de GritMap, con su teclado y su lector de pantalla.
-- Daltonismo: con protanopía o deuteranopía el dorado se confunde con Verde clásico; la racha se dice
-  también con texto en el aviso, y el halo es la única luz de la barra.
+- Daltonismo (1.5.0): el oro, mucho más claro que los temas, se separa de Verde clásico en todos los
+  tipos simulados (18,0 y 24,8 de diferencia de día con protanopía y deuteranopía), y la estrella dice
+  «racha dorada» por la forma. Naranja atardecer de noche con deuteranopía queda justo (9,7): ahí
+  trabaja la estrella.
 
 ## 11. Textos visibles (español)
 
 «5 ACIERTOS SEGUIDOS», «NUEVO RÉCORD: 11», «Récord: 7 aciertos seguidos», «Sin récord todavía»,
-«Poner a cero», «¿Poner el récord a cero?», «Celebrar rachas y récords», «Espacio extra», «Mazos que no
+«Poner a cero», «¿Poner el récord a cero?», «Celebrar rachas y récords», «Grosor», «Fina», «Normal»,
+«Gruesa», «Espacio extra», «Mazos que no
 cuentan para el récord», «Útil para mazos muy fáciles.», «30 de 50
 tarjetas» (lector de pantalla), el aviso del tema retirado y el aviso de fallo de Anki «El problema
 podría ser causado por un add-on.» con «CoreProgress: » delante, «MEJOR RACHA EN 30 DÍAS: 42», «Mejor
@@ -200,7 +229,8 @@ tema retirado (usted, como GritMap). Formas de plural de cada idioma. 60 idiomas
 - Opciones: configuración de complementos del ordenador (todos los perfiles, no se sincroniza).
 - Récord y mejor racha de cada día de los últimos 30: en la colección de cada perfil (se sincroniza); no
   entran en Editar > Deshacer.
-- Un valor que falte o no sirva usa el de serie; los números fuera de margen se llevan al límite.
+- Un valor que falte o no sirva usa el de serie; los números fuera de margen se llevan al límite, y un
+  grosor de una versión anterior, al tamaño más cercano.
 
 ## 13. Fallos conocidos pendientes (decisión de la persona)
 
@@ -217,7 +247,7 @@ tema retirado (usted, como GritMap). Formas de plural de cada idioma. 60 idiomas
   animación; sin mensajes de ánimo al fallar.
 - El récord se celebra desde 3 (antes 5). El récord se celebra una vez por repaso y gana al aviso de racha. Se guarda al batirlo y baja
   si se deshace. Rehacer no lo devuelve. Los mazos excluidos solo afectan al récord. El canal toma el
-  color del fondo real de la tarjeta. Halo dorado y tonos suavizados a petición del usuario.
+  color del fondo real de la tarjeta (desde la 1.5.0, el gris de Atelier sobre su fondo).
 
 - Informe del 2026-11-16 (aplicado entero, 1.3.0): mejor racha de 30 días (decisión 1), hitos redondos
   con marca final (decisión 2), relleno plano (decisión 3), sin cabecera repetida (decisión 4). Se
@@ -225,8 +255,19 @@ tema retirado (usted, como GritMap). Formas de plural de cada idioma. 60 idiomas
   racha, los avisos y sus textos, el dorado desde 5, el diálogo de confirmación al poner a cero.
 - 1.4.0 (2026-11-17, petición de la persona): se quita del todo la barra llena y la línea de resumen
   de la pantalla de «¡Enhorabuena!». No volver a proponer nada de CoreProgress en esa pantalla.
-- No se añaden (informe del 2026-11-16, 7.3): porcentaje o «15/27» fijo, sonido propio, más niveles
-  de color.
+- Informe del 2026-11-17 (aplicado entero, 1.5.0), con la opción recomendada en sus tres decisiones:
+  barra de 720 px centrada (1), cortes con número solo en el próximo hito y el total (2), estrella sin
+  halo en la racha dorada (3). Además: paleta nueva calculada por contraste, sin contorno salvo el oro
+  de día, canal gris plano, aviso en píldora, movimiento de 0,3 s con frenada, tres grosores y muestras
+  en minibarra. Se quedan: la lógica, los nombres y el orden de los temas, Verde clásico de serie, los
+  textos, una celebración por respuesta y su orden.
+- Al aplicarlo (1.5.0): el canal es el gris medido en el informe (#D5D9E2 / #272F3F), no el
+  SCROLLBAR_BG actual de Atelier, que es más oscuro desde la 3.9.0; el grosor elegido va como el
+  control segmentado del panel modelo (capa elevada y borde de acción), no relleno de azul; el número
+  sobre la tinta es #FBFCFE, no blanco puro.
+- No se añaden (informes del 2026-11-16, 7.3, y del 2026-11-17, 7.3): porcentaje o «15/27» fijo,
+  sonido propio, más niveles de color, un segundo color para hitos alcanzados, brillo o franja clara
+  sobre el relleno, animación en reposo (latido o brillo que recorre la barra).
 
 ## 15. Qué no hace
 

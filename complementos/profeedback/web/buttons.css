@@ -1,27 +1,22 @@
 /* ProFeedback · botones de la barra inferior del repaso.
 
-   Versión 2.4.0 (petición del cliente, 2026-11-13): igual que el ProFeedback original
-   (AnkiWeb 392368329): sus colores, sus formas, su raya gris de arriba y sus botones
-   «Editar» y «Más». Los colores son los fijos del original, a petición expresa del cliente
-   («lo quiero igual al original»); cada línea con un color lleva su marca «colores-ok».
+   Versión 2.6.0 (informe «Rediseño de color y forma: ProFeedback 2.5.0», aprobado entero el
+   2026-11-17, con la opción recomendada en sus tres decisiones):
+   - Colores propios, calculados por contraste (coral, ámbar, jade y cielo), con su versión de
+     noche y la letra en un tono muy oscuro de su color. Salen de look.py como variables
+     (--profeedback-again-face…), incrustadas en la página antes que esta hoja: aquí no hay
+     ningún color de botón escrito a mano.
+   - «Mostrar respuesta» en el azul de acción de Atelier (decisión 1); el oro queda para
+     celebrar haber terminado.
+   - Forma (decisión 3): 48 px de alto (cara de 45 y canto de 3) y esquinas de 12 px, las de la
+     tarjeta y Atelier. Al pulsar, la cara baja 3 px.
+   - Con el ratón encima, la cara se aleja de su letra (un tono más claro; en «Mostrar
+     respuesta», más oscuro): sustituye al brillo de 1,08, que apenas se veía.
+   - Raya de 1 px sobre la barra y tiempos previstos en el gris secundario, de 12 px.
+   - Contraste alto de Windows: colores del sistema, borde de 1 px y sin canto.
 
-   Retoques mínimos sobre el original, casi imperceptibles:
-   - El recuento de tarjetas y los tiempos previstos usan el color de texto de Anki en lugar
-     de negro y blanco puros.
-   - En ventanas muy estrechas los botones se compactan un poco para no salirse.
-   - Con el teclado se ve un aro de foco.
-
-   Versión 2.5.0 (informe 2.4.0, aprobado entero el 2026-11-16, apartados 8.3 a 8.5): los
-   colores de las caras no cambian. Cambia la forma y lo que no se leía:
-   - Todos los botones de color miden 50 px: cara de 46 y canto de 4, con esquinas de 16.
-   - «Bien» y «Mostrar respuesta» miden 190 px de ancho: tras «Mostrar respuesta», el puntero
-     queda dentro de «Bien» y no en el hueco entre «Difícil» y «Bien».
-   - La letra de «Mostrar respuesta» es el mismo ámbar, más oscuro (#5C3700, 7,5 a 1).
-   - «Editar», «Más» y la raya usan los grises de Nocturne (la letra pasa de 3,0 a 9,7 a 1 de
-     noche y el contorno, de 1,9 a 4,3).
-   - Al pulsar, la cara baja 4 px sobre su canto en 80 ms y vuelve en 70 ms, sin rebote ni
-     cambio de color; la respuesta sale al soltar (buttons.js).
-   - Aro de foco de 2 px separado 2 px, que contrasta con la barra y no con la cara.
+   Versión 2.5.0 (informe 2.4.0): «Bien» y «Mostrar respuesta» de 190 px, la respuesta sale al
+   soltar (buttons.js), aro de foco de 2 px separado 2 px.
 
    Esta hoja solo se carga en la barra inferior del repaso y solo con «Botones de colores con
    relieve» marcado, así que el selector general «button» no alcanza a otra parte. */
@@ -39,19 +34,12 @@
      «Botones de respuesta 3D de colores». */
 
 :root {
-  --profeedback-snow: 19, 31, 36;
-  --profeedback-cardinal: 255, 75, 75;
-  --profeedback-fire-ant: 230, 34, 34;
-  --profeedback-fox: 255, 171, 51;
-  --profeedback-owl: 147, 211, 51;
-  --profeedback-macaw: 73, 192, 248;
-  --profeedback-whale: 24, 153, 214;
-  --profeedback-radius: 16px;
-  --profeedback-lip: 4px;
+  --profeedback-radius: 12px;
+  --profeedback-lip: 3px;
+  --profeedback-height: 48px;
   --profeedback-font-size: 15px;
   --profeedback-tracking: 0.8px;
   --profeedback-line: 1.2;
-  --profeedback-hover: brightness(1.08);
   --profeedback-press: cubic-bezier(0.4, 0, 0.2, 1);
   --profeedback-outer: var(--border, #DADEE7); /* colores-ok: reserva de BORDER (día) */
   --profeedback-edit-border: #878C97; /* colores-ok: NOCTURNE_CONTROL_BORDER (día), sin variable CSS en Anki */
@@ -69,9 +57,9 @@
   --profeedback-focus: var(--border-focus, #6390FF); /* colores-ok: reserva de BORDER_FOCUS (noche) */
 }
 
-/* La raya gris continua encima de la barra. */
+/* La raya continua encima de la barra: 1 px, como las rayas de Atelier. */
 #outer {
-  border-top: 2px solid var(--profeedback-outer) !important;
+  border-top: 1px solid var(--profeedback-outer) !important;
 }
 
 .reviewer-container {
@@ -97,41 +85,35 @@ button {
   align-items: center !important;
   justify-content: center !important;
   box-sizing: border-box !important;
-  font: 700 var(--profeedback-font-size) / var(--profeedback-line) "ProFeedbackDisplay", "Feather",
-    system-ui, sans-serif !important;
+  font: 700 var(--profeedback-font-size) / var(--profeedback-line) "ProFeedbackDisplay", system-ui,
+    sans-serif !important;
   letter-spacing: var(--profeedback-tracking) !important;
   text-decoration: none !important;
   white-space: nowrap !important;
   border-style: solid !important;
-  height: 50px !important;
-  min-height: 50px !important;
+  height: var(--profeedback-height) !important;
+  min-height: var(--profeedback-height) !important;
   width: auto !important;
   min-width: 130px !important;
   padding: 0 24px !important;
   outline: none !important;
   border-radius: var(--profeedback-radius) !important;
   background-image: none !important;
+  filter: none !important;
   /* Al soltar, la cara vuelve en 70 ms, sin rebote. */
   transition: transform 70ms var(--profeedback-press) !important;
 }
 
-/* Con el ratón encima solo se aclara: nunca se oscurece. */
-button:hover {
-  filter: var(--profeedback-hover) !important;
-  cursor: pointer !important;
-}
-
-/* Aro de foco solo para quien navega con el teclado (retoque sobre el original). */
+/* Aro de foco solo para quien navega con el teclado. */
 button:focus-visible {
   outline: 2px solid var(--profeedback-focus) !important;
   outline-offset: 2px !important;
 }
 
-/* Pulsado: la cara baja 4 px en 80 ms y tapa su canto; el color no cambia (oscurecerla
-   bajaría la letra de «Otra vez» a 3,7 a 1). */
+/* Pulsado: la cara baja 3 px en 80 ms y tapa su canto; el color no cambia. */
 button:active,
 button.profeedback-pressed {
-  transform: translateY(4px) !important;
+  transform: translateY(var(--profeedback-lip)) !important;
   border-bottom-color: transparent !important;
   transition: transform 80ms var(--profeedback-press) !important;
 }
@@ -144,7 +126,7 @@ button[title*="More"],
 .linkb {
   background: none !important;
   border: 2px solid var(--profeedback-edit-border) !important;
-  border-bottom: 4px solid var(--profeedback-edit-border) !important;
+  border-bottom: var(--profeedback-lip) solid var(--profeedback-edit-border) !important;
   color: var(--profeedback-edit-text) !important;
   border-radius: var(--profeedback-radius) !important;
   font-weight: 700 !important;
@@ -154,14 +136,13 @@ button[title*="More"],
   transition: transform 70ms var(--profeedback-press) !important;
 }
 
-/* Con el ratón encima, el relleno de BUTTON_HOVER: el brillo no se notaba sin relleno. */
+/* Con el ratón encima, el relleno de BUTTON_HOVER. */
 button[onclick*="edit"]:hover,
 button[onclick*="more"]:hover,
 button[title*="Edit"]:hover,
 button[title*="More"]:hover,
 .linkb:hover {
   background: var(--profeedback-edit-hover) !important;
-  filter: none !important;
   cursor: pointer !important;
 }
 
@@ -170,79 +151,87 @@ button[onclick*="more"]:active,
 button[title*="Edit"]:active,
 button[title*="More"]:active,
 .linkb:active {
-  transform: translateY(4px) !important;
+  transform: translateY(var(--profeedback-lip)) !important;
   border-bottom-color: transparent !important;
   transition: transform 80ms var(--profeedback-press) !important;
 }
 
-/* Recuento de tarjetas y tiempos previstos: el color de texto de Anki (retoque: el original
-   usaba negro y blanco puros). */
+/* Tiempos previstos: información de apoyo, en el gris secundario de 12 px con cifras del
+   mismo ancho (6,83 a 1 de día y 9,70 de noche). */
 .nobold {
-  color: var(--fg, #1B2430); /* colores-ok: reserva del token de texto */
+  color: var(--profeedback-edit-text) !important;
+  font-size: 12px !important;
+  font-variant-numeric: tabular-nums;
 }
 
-.night_mode .nobold,
-.nightMode .nobold {
-  color: var(--fg, #D6DAE1); /* colores-ok: reserva del token de texto (noche) */
-}
-
-/* Otra vez: rojo. */
+/* Los cuatro botones de respuesta: cara, letra y canto de su color (look.py). */
 :is(button[onclick*="ease1"], button[data-ease="1"]) {
-  color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
-  background-color: rgb(var(--profeedback-cardinal)) !important; /* colores-ok: color del original */
-  border: none !important;
-  border-bottom: var(--profeedback-lip) solid rgb(var(--profeedback-fire-ant)) !important; /* colores-ok: color del original */
-  box-shadow: none !important;
+  --profeedback-face: var(--profeedback-again-face);
+  --profeedback-ink: var(--profeedback-again-ink);
+  --profeedback-edge: var(--profeedback-again-edge);
+  --profeedback-over: var(--profeedback-again-hover);
 }
 
-/* Difícil: naranja. */
 :is(button[onclick*="ease2"], button[data-ease="2"]) {
-  color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
-  background-color: rgb(var(--profeedback-fox)) !important; /* colores-ok: color del original */
-  border: none !important;
-  border-bottom: var(--profeedback-lip) solid #e6951f !important; /* colores-ok: color del original */
-  box-shadow: none !important;
+  --profeedback-face: var(--profeedback-hard-face);
+  --profeedback-ink: var(--profeedback-hard-ink);
+  --profeedback-edge: var(--profeedback-hard-edge);
+  --profeedback-over: var(--profeedback-hard-hover);
 }
 
-/* Bien: verde, y 190 px de ancho (2.5.0): es la respuesta habitual y queda bajo el puntero. */
+/* Bien: 190 px de ancho (2.5.0): es la respuesta habitual y queda bajo el puntero. */
 :is(button[onclick*="ease3"], button[data-ease="3"]) {
-  color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
-  background-color: rgb(var(--profeedback-owl)) !important; /* colores-ok: color del original */
+  --profeedback-face: var(--profeedback-good-face);
+  --profeedback-ink: var(--profeedback-good-ink);
+  --profeedback-edge: var(--profeedback-good-edge);
+  --profeedback-over: var(--profeedback-good-hover);
   min-width: 190px !important;
-  border: none !important;
-  border-bottom: var(--profeedback-lip) solid #79b933 !important; /* colores-ok: color del original */
-  box-shadow: none !important;
 }
 
-/* Fácil: azul. */
 :is(button[onclick*="ease4"], button[data-ease="4"]) {
-  color: rgb(var(--profeedback-snow)) !important; /* colores-ok: color del original */
-  background-color: rgb(var(--profeedback-macaw)) !important; /* colores-ok: color del original */
-  border: none !important;
-  border-bottom: var(--profeedback-lip) solid rgb(var(--profeedback-whale)) !important; /* colores-ok: color del original */
-  box-shadow: none !important;
+  --profeedback-face: var(--profeedback-easy-face);
+  --profeedback-ink: var(--profeedback-easy-ink);
+  --profeedback-edge: var(--profeedback-easy-edge);
+  --profeedback-over: var(--profeedback-easy-hover);
 }
 
-/* Mostrar respuesta: dorado con letra ámbar oscura (2.5.0: #5C3700, 7,5 a 1; la del original,
-   #ae6802, daba 3,1). 190 px de ancho, como «Bien». */
+/* Mostrar respuesta: el azul de acción, 190 px de ancho, como «Bien». */
 #ansbut {
-  color: #5c3700 !important; /* colores-ok: ámbar oscuro de ProFeedback (informe 2.4.0) */
-  background-color: #ffd700 !important; /* colores-ok: color del original */
-  border: none !important;
-  border-bottom: var(--profeedback-lip) solid #e7a601 !important; /* colores-ok: color del original */
-  box-shadow: none !important;
+  --profeedback-face: var(--profeedback-show-face);
+  --profeedback-ink: var(--profeedback-show-ink);
+  --profeedback-edge: var(--profeedback-show-edge);
+  --profeedback-over: var(--profeedback-show-hover);
   min-width: 190px !important;
 }
 
-/* Pulsado de los botones de color (después de sus reglas, para ganarles): la cara baja 4 px
+:is(button[onclick*="ease"], button[data-ease], #ansbut) {
+  color: var(--profeedback-ink) !important;
+  background-color: var(--profeedback-face) !important;
+  border: none !important;
+  border-bottom: var(--profeedback-lip) solid var(--profeedback-edge) !important;
+  box-shadow: none !important;
+}
+
+/* Con el ratón encima, la cara se aleja de su letra: el cambio siempre se nota y nunca
+   empeora la lectura. */
+:is(button[onclick*="ease"], button[data-ease], #ansbut):hover {
+  background-color: var(--profeedback-over) !important;
+}
+
+/* El recuento de tarjetas de «Mostrar respuesta» va encima del botón, fuera de su cara. */
+#ansbut .stattxt {
+  color: var(--profeedback-edit-text);
+}
+
+/* Pulsado de los botones de color (después de sus reglas, para ganarles): la cara baja 3 px
    y tapa el canto. */
 :is(button[onclick*="ease"], button[data-ease], #ansbut):is(:active, .profeedback-pressed, .clicked) {
-  transform: translateY(4px) !important;
+  transform: translateY(var(--profeedback-lip)) !important;
   border-bottom-color: transparent !important;
   transition: transform 80ms var(--profeedback-press) !important;
 }
 
-/* Ventanas muy estrechas: un poco más compactos para que quepan (retoque sobre el original). */
+/* Ventanas muy estrechas: un poco más compactos para que quepan. */
 @media (max-width: 640px) {
   button {
     min-width: 0 !important;
@@ -267,5 +256,21 @@ button[title*="More"]:active,
   button[title*="More"],
   .linkb {
     transition: none !important;
+  }
+}
+
+/* Contraste alto de Windows: colores del sistema, borde de 1 px y sin canto. */
+@media (forced-colors: active) {
+  button,
+  :is(button[onclick*="ease"], button[data-ease], #ansbut),
+  :is(button[onclick*="ease"], button[data-ease], #ansbut):hover {
+    forced-color-adjust: auto;
+    background-color: ButtonFace !important;
+    color: ButtonText !important;
+    border: 1px solid ButtonText !important;
+  }
+
+  button:focus-visible {
+    outline-color: Highlight !important;
   }
 }

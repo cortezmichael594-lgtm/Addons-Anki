@@ -1,5 +1,11 @@
 """El panel de opciones.
 
+Version 1.5.0 (informe «Rediseño de color y forma» del 2026-11-17, aplicado
+entero, 8.9): las muestras de tema son minibarras con el degradado del modo
+activo; el grosor pasa a tres tamaños (Fina, Normal, Gruesa) en un control
+segmentado, como los de GritMap; la vista previa enseña la barra nueva (cortes,
+próximo hito con número y total en gris).
+
 Version 1.3.0 (informe del cliente del 2026-11-16, aplicado entero, 8.8): dos
 recuadros en lugar de tres, con lo que se viene a cambiar primero. El primero,
 el aspecto de la barra: vista previa, tema (con «Restaurar…» en su fila),
@@ -44,11 +50,10 @@ from aqt.theme import theme_manager
 from .errors import report
 from .effects import round_marks
 from .i18n import record_value_label, t
-from .palettes import DEFAULT_THEME, RETIRED_THEMES, THEME_KEYS, ink, preview_style, swatch
+from .palettes import DEFAULT_THEME, RETIRED_THEMES, THEME_KEYS, neutral, preview_style, swatch
 from .panel import PanelDialog, button_text, parent_window
 from .settings import (
-    BAR_HEIGHT_MAX,
-    BAR_HEIGHT_MIN,
+    BAR_HEIGHTS,
     DEFAULT_CONFIG,
     PUSH_MAX,
     PUSH_MIN,
@@ -178,7 +183,7 @@ def page(cfg: Config, record: int, title: str = "CoreProgress", window: int = 0)
                 "height": "bar_height",
                 "checks": "checkpoints_enabled",
                 "themes": {key: preview_style(key, dark) for key in THEME_KEYS},
-                "reachedText": "#1b2430" if dark else "#ffffff",  # colores-ok: número del hito alcanzado (palettes)
+                "neutral": neutral(dark),
                 "total": _PREVIEW_TOTAL,
                 "progress": _PREVIEW_PROGRESS,
                 "marks": [*round_marks(_PREVIEW_TOTAL), _PREVIEW_TOTAL],
@@ -192,7 +197,6 @@ def page(cfg: Config, record: int, title: str = "CoreProgress", window: int = 0)
                         "value": key,
                         "label": t(f"theme_{key}"),
                         "swatch": swatch(key, dark),
-                        "swatchBorder": ink(key, dark),
                     }
                     for key in sorted_themes()
                 ],
@@ -201,12 +205,15 @@ def page(cfg: Config, record: int, title: str = "CoreProgress", window: int = 0)
                 "type": "pair",
                 "children": [
                     {
-                        "type": "stepper",
+                        "type": "segmented",
                         "key": "bar_height",
-                        "label": _without_px(t("opt_bar_height")),
-                        "min": BAR_HEIGHT_MIN,
-                        "max": BAR_HEIGHT_MAX,
-                        "unit": f"px · {BAR_HEIGHT_MIN}–{BAR_HEIGHT_MAX}",
+                        "label": t("opt_thickness"),
+                        "options": [
+                            {"value": size, "label": t(name)}
+                            for size, name in zip(
+                                BAR_HEIGHTS, ("thickness_thin", "thickness_normal", "thickness_thick")
+                            )
+                        ],
                     },
                     {
                         "type": "stepper",
@@ -257,6 +264,13 @@ def _int(value: object, fallback: int, low: int, high: int) -> int:
     return max(low, min(high, value))
 
 
+def _height(value: object) -> int:
+    """Solo uno de los tres grosores; cualquier otra cosa, el de serie."""
+    if isinstance(value, int) and not isinstance(value, bool) and value in BAR_HEIGHTS:
+        return value
+    return DEFAULT_CONFIG.bar_height
+
+
 def config_from_page(values: Any, existing: set[int] | None = None) -> Config:
     """Lo elegido en la pagina, con cada valor comprobado. Los mazos que ya no
     existen dejan de guardarse."""
@@ -273,7 +287,7 @@ def config_from_page(values: Any, existing: set[int] | None = None) -> Config:
         theme=theme if isinstance(theme, str) and theme in THEME_KEYS else DEFAULT_THEME,
         effects_enabled=effects if isinstance(effects, bool) else DEFAULT_CONFIG.effects_enabled,
         checkpoints_enabled=checkpoints if isinstance(checkpoints, bool) else DEFAULT_CONFIG.checkpoints_enabled,
-        bar_height=_int(raw.get("bar_height"), DEFAULT_CONFIG.bar_height, BAR_HEIGHT_MIN, BAR_HEIGHT_MAX),
+        bar_height=_height(raw.get("bar_height")),
         push_down=_int(raw.get("push_down"), DEFAULT_CONFIG.push_down, PUSH_MIN, PUSH_MAX),
         excluded_decks=tuple(decks),
     )

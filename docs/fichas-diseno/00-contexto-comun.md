@@ -101,7 +101,7 @@ es el nombre con el que las páginas de Anki la usan.
 |-|-|-|-|
 |`BUTTON_BG`|`--button-bg`|`#FBFCFE`|`#242C3A`|
 |`BUTTON_HOVER`|`--button-gradient-start`, `--button-gradient-end`|`#EDF0F5`|`#2E3747`|
-|`BUTTON_HOVER_BORDER`|`--button-hover-border`|`#C0C6D3`|`#3D475C`|
+|`BUTTON_HOVER_BORDER`|`--button-hover-border`|`#6F7682`|`#8590A3`|
 |`BUTTON_DISABLED`|`--button-disabled`|`#FBFCFE80`|`#242C3A80`|
 |`BUTTON_PRIMARY_BG`|`--button-primary-bg`|`#3B6FE0`|`#4066E6`|
 |`BUTTON_PRIMARY_GRADIENT_START`|`--button-primary-gradient-start`|`#3B6FE0`|`#4066E6`|
@@ -131,9 +131,9 @@ es el nombre con el que las páginas de Anki la usan.
 
 |Token|Variable CSS|LIGHT (día)|DARK (noche)|
 |-|-|-|-|
-|`SCROLLBAR_BG`|`--scrollbar-bg`|`#D5D9E2`|`#272F3F`|
-|`SCROLLBAR_BG_HOVER`|`--scrollbar-bg-hover`|`#C0C6D3`|`#353E50`|
-|`SCROLLBAR_BG_ACTIVE`|`--scrollbar-bg-active`|`#AAB1C0`|`#3D475C`|
+|`SCROLLBAR_BG`|`--scrollbar-bg`|`#828893`|`#6C7587`|
+|`SCROLLBAR_BG_HOVER`|`--scrollbar-bg-hover`|`#6F7682`|`#8590A3`|
+|`SCROLLBAR_BG_ACTIVE`|`--scrollbar-bg-active`|`#646C7D`|`#9AA3B4`|
 
 ### Sombras
 
@@ -186,8 +186,8 @@ es el nombre con el que las páginas de Anki la usan.
 |---|---|---|
 | Atelier (paquete «nocturne») | 3.8.0 | Temas de color completos para todo Anki: cinco paletas de día y de noche |
 | GritMap | 4.16.0 | Mapa de calor del estudio del año, con racha, meta diaria y fechas clave |
-| CoreProgress | 1.4.0 | Barra de progreso del repaso, con hitos, racha de aciertos y récord |
-| ProFeedback | 2.5.0 | Sonido al responder, insignias en la tarjeta, botones de colores y confeti al terminar |
+| CoreProgress | 1.5.0 | Barra de progreso del repaso, con hitos, racha de aciertos y récord |
+| ProFeedback | 2.6.0 | Sonido al responder, insignias en la tarjeta, botones de colores y confeti al terminar |
 | Hider | 4.1.0 | Repaso sin distracciones: oculta barras y puntero, y entra directo al repaso |
 | Edit field during review | 1.1.0 | Corregir un campo con Ctrl+clic sobre la tarjeta, durante el repaso |
 | Always on Top | 1.3 | Mantener la ventana Añadir por encima de otros programas con un atajo |

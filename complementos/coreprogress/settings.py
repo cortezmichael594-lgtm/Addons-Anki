@@ -45,8 +45,12 @@ COL_DAILY_BEST_KEY: str = "coreprogress_daily_best"
 LEGACY_BEST_STREAK_KEY: str = "best_streak"
 _MAX_STREAK: int = 1_000_000
 
-BAR_HEIGHT_MIN: int = 12
-BAR_HEIGHT_MAX: int = 22
+# 1.5.0 (informe del 2026-11-17, 2.6): el grosor va en tres tamaños, Fina,
+# Normal y Gruesa, en lugar del campo de 12 a 22 px. Un valor guardado por una
+# versión anterior pasa al tamaño más cercano (en un empate, al mayor).
+BAR_HEIGHTS: tuple[int, int, int] = (12, 16, 20)
+BAR_HEIGHT_MIN: int = BAR_HEIGHTS[0]
+BAR_HEIGHT_MAX: int = BAR_HEIGHTS[-1]
 PUSH_MIN: int = 0
 PUSH_MAX: int = 300
 
@@ -103,6 +107,13 @@ def _as_int(value: object, fallback: int, minimum: int, maximum: int) -> int:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return fallback
     return max(minimum, min(maximum, int(value)))
+
+
+def as_bar_height(value: object, fallback: int = 16) -> int:
+    """El grosor guardado, llevado al tamaño más cercano de BAR_HEIGHTS."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return fallback
+    return min(BAR_HEIGHTS, key=lambda size: (abs(size - value), -size))
 
 
 def _as_bool(value: object, fallback: bool) -> bool:
@@ -175,7 +186,7 @@ def _raw() -> dict[str, object]:
 
 def load_config() -> Config:
     stored = _raw()
-    bar_height = _as_int(stored.get("bar_height"), DEFAULT_CONFIG.bar_height, BAR_HEIGHT_MIN, BAR_HEIGHT_MAX)
+    bar_height = as_bar_height(stored.get("bar_height"), DEFAULT_CONFIG.bar_height)
     return Config(
         theme=_as_theme(stored),
         effects_enabled=_as_bool(stored.get("effects_enabled"), DEFAULT_CONFIG.effects_enabled),

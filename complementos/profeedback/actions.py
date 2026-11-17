@@ -49,6 +49,9 @@ def open_settings() -> None:
 
     def handle(action: str, arg: Any) -> Any:
         if action == "action":
+            if isinstance(arg, dict) and arg.get("name") == dialogs.PREVIEW_CONFETTI:
+                # «Ver»: el confeti de mazo, con sus colores, dentro de la propia ventana.
+                return {"confetti": celebration.preview_script()}
             folder = dialogs.folder_request(arg)
             if folder is not None:
                 from aqt.utils import openFolder

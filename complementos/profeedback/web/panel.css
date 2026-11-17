@@ -885,3 +885,11 @@ body.isWin #profeedback-app .profeedback-dialog-actions .profeedback-primary {
         background: CanvasText;
     }
 }
+
+/* ProFeedback 2.6.0: una casilla con su botón «Ver» a la derecha. */
+#profeedback-app .profeedback-check-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}

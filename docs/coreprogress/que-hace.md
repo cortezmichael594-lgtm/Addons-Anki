@@ -1,9 +1,9 @@
 # Qué hace «CoreProgress»
 
-Versión 1.4.0 · 2026-11-17
+Versión 1.5.0 · 2026-11-17
 
 Barra de progreso en la parte de arriba de la pantalla de repaso: se va llenando a medida que despacha
-lo que tenía hoy en el mazo que está estudiando, con marcas numeradas por el camino y el total de hoy al final. Además cuenta sus
+lo que tenía hoy en el mazo que está estudiando, con marcas por el camino, el número del próximo hito y el total de hoy al final. Además cuenta sus
 aciertos seguidos, los celebra con un aviso breve en ciertos números, vuelve dorada la barra a partir
 de cinco, celebra la mejor racha de los últimos 30 días y guarda su récord personal. Solo lee su estudio: nunca cambia tarjetas, notas, repasos ni
 fechas. Lo único que guarda son sus opciones y su récord.
@@ -13,7 +13,12 @@ entero el informe «Auditoría y rediseño de la interfaz: CoreProgress 1.2.0» 
 opción recomendada en sus cuatro decisiones: mejor racha de 30 días, hitos en números redondos con el
 total al final, relleno plano y sin la cabecera repetida en la ventana de opciones (véase «Así a
 propósito» en el registro de errores). La 1.4.0 quita la barra llena y la línea de resumen de la
-pantalla de «¡Enhorabuena!».
+pantalla de «¡Enhorabuena!». La 1.5.0 aplica entero el informe «Rediseño de color y forma: CoreProgress
+1.4.0» del 2026-11-17, con la opción recomendada en sus tres decisiones: barra de 720 px centrada,
+hitos como cortes con número solo en el próximo y en el total, y estrella en la punta de la racha
+dorada en lugar del halo. Cambian todos los colores de los temas (pesan igual, ninguno se parece al
+azul de los botones y de noche brillan menos), el canal, el aviso (en una píldora), el movimiento y,
+en la ventana de opciones, las muestras de tema, el grosor y la vista previa.
 
 ## 1. Dónde aparece
 
@@ -42,8 +47,8 @@ Qué mide:
   avanzar la barra.
 - Enterrar, suspender o apartar una tarjeta de hoy también hace avanzar la barra, porque sale de la
   cola.
-- Se pone al día una décima de segundo después de cada respuesta y después de cualquier cambio que
-  haga Anki.
+- Se pone al día una vigésima de segundo después de cada respuesta y después de cualquier cambio que
+  haga Anki (hasta la 1.4.0, una décima).
 - La barra no retrocede: si la cuenta de Anki sube durante el repaso (porque vencen tarjetas en
   aprendizaje que al empezar todavía no contaban), se queda quieta hasta que el avance la alcance.
   Solo retrocede al deshacer una respuesta. Al terminar, lo que queda es cero y llega al 100 %.
@@ -52,52 +57,66 @@ Qué mide:
 
 Aspecto:
 
-- Queda fija arriba, de lado a lado (con 18 píxeles de margen a cada lado y 10 por arriba), por
-  encima de la tarjeta; no se mueve al bajar por una tarjeta larga. Los clics la atraviesan.
+- Queda fija arriba, centrada sobre la tarjeta: mide como mucho 720 px, el ancho de la tarjeta de
+  Atelier, y en una ventana más estrecha ocupa el ancho menos 18 px a cada lado; 10 px por arriba
+  (desde la 1.5.0; antes iba de lado a lado y la punta quedaba lejos del texto). Va por encima de la
+  tarjeta y no se mueve al bajar por una tarjeta larga. Los clics la atraviesan.
 - La tarjeta deja siempre sitio a la barra y a su aviso: 10 px de margen, el alto de la barra, 24 px
   para el aviso de racha (solo con «Celebrar rachas y récords» marcada) y 8 px de aire: 58 px con la
-  barra de serie, 34 sin celebraciones. «Espacio extra» se suma a ese mínimo. Hasta la 1.1.0, con el valor de serie
-  la barra tapaba la parte alta de la tarjeta (FIX-004).
-- El canal (la parte vacía) es un tono algo más claro o más oscuro que el fondo real de la tarjeta,
-  medido en pantalla. Hasta tener esa medida la barra no se enseña (como mucho, algo más de medio
-  segundo) y después aparece con un fundido breve. Quien edite plantillas de tarjeta puede fijar desde
-  la plantilla el color del canal.
-- El relleno es un degradado del tema de color elegido, plano: desde la 1.3.0 sin brillo de cristal
-  ni sombra de color, con un contorno de 1 px por dentro en la «tinta» del tema (el color de su aviso:
-  oscuro de día y claro de noche). El contorno lo separa del canal también de día, donde Verde
-  clásico, Turquesa laguna y el dorado casi no se distinguían de él. Con la primera tarjeta hecha, el
-  relleno es al menos tan ancho como alto. Desde la 1.2.0 ya no lo cruza ningún destello.
+  barra de serie, 34 sin celebraciones. «Espacio extra» se suma a ese mínimo. Hasta la 1.1.0, con el
+  valor de serie la barra tapaba la parte alta de la tarjeta (FIX-004).
+- Grosor: Fina (12 px), Normal (16, de serie) o Gruesa (20). Canal, relleno, discos y aviso tienen
+  forma de píldora (esquinas redondeadas del todo).
+- El canal (la parte vacía) es gris y plano, sin sombra (1.5.0): sobre el fondo de tarjeta de Atelier,
+  el gris de la paleta (#D5D9E2 de día y #272F3F de noche); sobre otro fondo, un gris con el mismo
+  contraste respecto a ese fondo, medido en pantalla. Hasta tener esa medida la barra no se enseña
+  (como mucho, algo más de medio segundo). Quien edite plantillas de tarjeta puede fijar desde la
+  plantilla el color del canal.
+- El relleno es un degradado de tres tonos del tema elegido, plano y sin contorno (1.5.0): los seis
+  temas pesan igual, porque cada tono está calculado por contraste. De día, la punta queda a 3,1 a 1
+  del canal; de noche, a 7,0. Siempre es al menos tan ancho como alto, también con 0 tarjetas hechas:
+  un punto de partida a la vista. No lo cruza ningún destello.
 - Los tonos de día o de noche se eligen según lo oscuro que sea el fondo real de la tarjeta. Al
-  cambiar Anki de modo, o al cambiar el tamaño de la ventana, la barra se vuelve a pintar.
-- El relleno avanza deslizándose en cuatro décimas de segundo. Los cambios de color (por ejemplo, al
-  pasar a dorado) se funden en casi medio segundo. Si el sistema pide reducir las animaciones, desde
-  la 1.3.0 todo cambia al instante: ni deslizamiento, ni fundidos, ni salto de los hitos, ni chispas.
+  cambiar Anki de modo, o al cambiar el tamaño de la ventana, la barra se vuelve a pintar en su sitio,
+  sin animación.
+- Al entrar a repasar (también a un mazo a medias) o al cambiar las opciones, la barra se dibuja ya en
+  su sitio, sin deslizarse desde cero (1.5.0).
+- El relleno avanza deslizándose en 0,3 segundos y frena al final (antes, 0,4). Los cambios de color
+  (al pasar a dorado y al volver) se funden en 0,4 segundos. Si el sistema pide reducir las
+  animaciones, todo cambia al instante: ni deslizamiento, ni fundidos, ni hitos que crecen, ni chispas.
 - Para el lector de pantalla, la barra es una barra de progreso llamada «Progreso de hoy» (1.3.0), con
   su valor en palabras («30 de 50 tarjetas»; con 5 aciertos seguidos o más, «30 de 50 tarjetas; 7
   aciertos seguidos»). No anuncia nada por su cuenta: se consulta cuando se quiere.
-- En el modo de contraste alto de Windows, el relleno toma el color de resaltado del sistema y el canal
-  lleva un borde del color del texto (1.3.0).
+- En el modo de contraste alto de Windows (1.5.0), cada pieza toma un color del sistema: el canal, el
+  del fondo con un borde del color del texto; el relleno, el de resaltado; los cortes, el del fondo; el
+  próximo hito, aro del color de resaltado; el total, aro del color del texto; la estrella dorada, el
+  del texto resaltado; y el aviso, un borde del color del texto. Las chispas no salen.
 
-## 3. Los hitos (marcas numeradas)
+## 3. Los hitos
 
 - Si la opción «Mostrar hitos en la barra» está marcada y el total de hoy en el mazo es de 10 tarjetas
-  o más, la barra lleva marcas en números redondos (desde la 1.3.0; antes, en el 20, 40, 60 y 80 %
-  del total, que con 27 tarjetas daba 5, 11, 16 y 22). El paso es el menor de 5, 10, 20, 25, 50,
-  100, 200, 250, 500, 1.000… que deja cinco marcas o menos, y ninguna pasa del 92 % del ancho: con 27
-  tarjetas, 5, 10, 15 y 20; con 50, 10, 20, 30 y 40; con 130, 20, 40, 60, 80 y 100. Al final, al
-  100 %, una marca más con el total de hoy («27»). Con menos de 10 tarjetas no hay hitos.
-- El paso se decide al entrar a repasar. Van en letra de 11 a 13 px; con la barra por debajo de 14 px
-  de alto no se leerían, así que solo quedan las marcas, sin número.
-- Cada marca está justo donde llega el relleno al despachar ese número de tarjetas.
-- Mientras no se alcanza, la marca tiene el color del canal y el número en el gris secundario de la
-  paleta. Al alcanzarla, desde la 1.3.0, el disco toma la tinta del tema, sin borde, con el número en
-  blanco de día y oscuro de noche (todos los temas, 5 a 1 de contraste o más; antes, en Azul, Rosa y
-  Naranja, algunos no llegaban a 4,5). Con la barra dorada, la tinta dorada. Con «Celebrar rachas y
-  récords» marcada, además da un pequeño salto (crece un poco durante cuatro décimas de segundo) y
-  suelta tres chispas, salvo que esa misma respuesta traiga un aviso (entonces solo cambia de color)
-  o que el sistema pida reducir las animaciones.
-- El disco mide el alto de la barra más 4 px.
-- Con números de muchas cifras, la marca se ensancha en forma de pastilla para que quepan.
+  o más, la barra lleva hitos en números redondos (desde la 1.3.0). El paso es el menor de 5, 10, 20,
+  25, 50, 100, 200, 250, 500, 1.000… que deja cinco hitos o menos, y ninguno pasa del 92 % del ancho:
+  con 27 tarjetas, 5, 10, 15 y 20; con 50, 10, 20, 30 y 40; con 130, 20, 40, 60, 80 y 100. Al final
+  está el total de hoy («27»). Con menos de 10 tarjetas no hay hitos. El paso se decide al entrar a
+  repasar.
+- Cada hito está justo donde llega el relleno al despachar ese número de tarjetas.
+- Desde la 1.5.0 solo se ven dos números (antes, hasta seis):
+  - El próximo hito: un disco del alto de la barra más 4 px, del color de las tarjetas elevadas, con
+    un aro de 2 px y el número en la tinta del tema (la de la barra dorada, si lo es).
+  - El total, al final: un disco igual con un aro gris fino y el número en gris. Cuando ya no queda
+    ningún hito por delante, el total pasa a ser el próximo y toma el color.
+  - Los hitos ya pasados y los que quedan detrás del próximo son cortes finos de 2 px del color del
+    fondo, sin número.
+- Al alcanzar un hito, con «Celebrar rachas y récords» marcada, su disco se llena de tinta con el
+  número en claro, crece un poco, se queda un instante y se convierte en corte (0,6 s en total);
+  suelta tres chispas pequeñas que suben y se apagan en medio segundo, y después aparece el disco del
+  hito siguiente. Si esa misma respuesta trae un aviso (una celebración por respuesta), o si el sistema
+  pide reducir las animaciones, el hito pasa a corte sin más.
+- Números de 11 px (12 con la barra Gruesa), en seminegrita y con cifras del mismo ancho. Con números
+  de muchas cifras, el disco se ensancha en forma de pastilla.
+- Con la barra Fina no hay discos, que no se leerían: el próximo hito es un corte de 3 px en la tinta
+  y el final del canal es el total.
 
 ## 4. Racha y récord
 
@@ -107,16 +126,19 @@ Aspecto:
   entra a repasar. No se ve como una cifra fija: solo en los avisos.
 - Avisos de racha (con «Celebrar rachas y récords» marcada): al llegar a 5, 10, 20, 30… (cada diez a
   partir de 10) aparece debajo de la barra, en mayúsculas, «5 ACIERTOS SEGUIDOS», «10 ACIERTOS
-  SEGUIDOS», etc. Desde la 1.3.0 el aviso va centrado en la ventana, en la franja que hay bajo la
-  barra, y no se mueve (antes seguía al relleno y al empezar salía en la esquina izquierda, lejos de
-  la vista). Va en la tinta del tema, sin sombra ni resplandor. Además, el relleno se aviva un instante
-  y suelta cuatro chispas en su borde (no, si el sistema pide reducir las animaciones).
+  SEGUIDOS», etc. Va centrado bajo la barra, 4 px por debajo, y no se mueve. Desde la 1.5.0 va en una
+  píldora de 20 px de alto, con un fondo suave del color del tema y el texto en su tinta (6 a 1 de
+  contraste o más), como una etiqueta de logro. Además salen tres chispas desde la punta del relleno
+  (no, si el sistema pide reducir las animaciones); desde la 1.5.0 el relleno ya no se aviva.
 - El aviso dura 1,5 segundos (aparece en 0,15 s y se apaga en 0,3 s, solo), pase lo que pase con la
   tarjeta; uno nuevo sustituye al anterior.
-- Barra dorada (con la casilla marcada): con 5 o más seguidas, el relleno pasa a tonos dorados con un
-  halo suave, que es la única luz de la barra, y el aviso, a dorado (de día, un dorado profundo,
-  #856206, que se lee bien: el de antes daba 2,8 a 1). Al romperse la racha vuelve al color del tema,
-  sin aviso.
+- Barra dorada (con la casilla marcada): con 5 o más seguidas, el relleno pasa a un oro claro, más
+  claro que cualquier tema, y en su punta aparece una estrella de cinco puntas (1.5.0, en lugar del
+  halo): dorado profundo de día y del color del fondo de noche. Así se reconoce por la forma, también
+  con daltonismo y en el contraste alto de Windows. De día el relleno lleva además un contorno de 1 px
+  en dorado profundo, porque un oro claro casi no se distingue del canal. El aviso y el próximo hito
+  pasan a dorado (la píldora, a un dorado suave). Al romperse la racha vuelve al color del tema en
+  0,4 s y la estrella se va con el color, sin aviso.
 - Mejor racha de los últimos 30 días (1.3.0): se celebra una vez por repaso al superarla, como mínimo a
   las 3 seguidas, con «MEJOR RACHA EN 30 DÍAS: 42». Se guarda, junto al récord, la mejor racha de
   cada día de los últimos 30. Así hay una meta que se renueva sola: un récord histórico alto casi no
@@ -168,19 +190,20 @@ Dos recuadros (desde la 1.3.0; antes tres, con el récord primero):
 
 1. El aspecto de la barra:
    - Arriba, una vista previa: un rectángulo del color de fondo de las tarjetas con una barra de
-     muestra al 60 %, hitos 10, 20, 30 y 40 y el total 50. Cambia al instante con el tema, la altura y
-     la casilla de hitos. No se pulsa ni la lee el lector de pantalla.
+     muestra al 60 %, como la del repaso (1.5.0): los hitos 10, 20 y 30 son cortes, el 40 es el próximo
+     (disco con número) y el total 50 queda en gris. Cambia al instante con el tema, el grosor y la
+     casilla de hitos. No se pulsa ni la lee el lector de pantalla.
    - «Tema de color», con «Restaurar los valores predeterminados» en la misma fila, a la derecha (en
-     el color de enlace y subrayado; tras usarlo, «Deshacer» al lado). Repone el tema, la altura, el
+     el color de enlace y subrayado; tras usarlo, «Deshacer» al lado). Repone el tema, el grosor, el
      espacio y las dos casillas sin guardar nada y sin tocar el récord ni los mazos.
 
 | Opción | Control | Valores | Por defecto |
 |---|---|---|---|
-| Tema de color | Fichas de 32 px en dos columnas, por orden alfabético de su nombre, cada una con su cuadrito de muestra en el tono del modo activo y contorno de 1 px en la tinta del tema. La elegida, con el tinte de selección, un borde de 2 px y una ✓ en el color de enlace | Azul océano, Naranja atardecer, Púrpura real, Rosa suave, Turquesa laguna, Verde clásico | Verde clásico |
-| Altura de la barra | Campo con «−» y «+» y «px · 12–22» al lado, en paralelo con el siguiente | De 12 a 22 píxeles; también cambia el tamaño de los hitos y de sus números | 16 |
+| Tema de color | Fichas de 32 px en dos columnas, por orden alfabético de su nombre, cada una con su muestra: desde la 1.5.0, una minibarra de 30 × 10 px con el degradado del tema en el modo activo, sin contorno. La elegida, con el tinte de selección, un borde de 2 px y una ✓ en el color de enlace | Azul océano, Naranja atardecer, Púrpura real, Rosa suave, Turquesa laguna, Verde clásico | Verde clásico |
+| Grosor (1.5.0; antes «Altura de la barra», de 12 a 22 px) | Tres botones seguidos sobre un carril (control segmentado, como los de GritMap), en paralelo con el siguiente; el elegido, con el fondo de la capa elevada, borde azul y seminegrita. Si algún nombre no cupiera en su idioma, pasan a lista vertical | Fina (12 px), Normal (16) y Gruesa (20); también cambia el tamaño de los hitos y de sus números. Un valor guardado por una versión anterior pasa al más cercano (22 → Gruesa, 14 → Normal) | Normal |
 | Espacio extra | Campo con «−» y «+» (de 4 en 4) y «px · 0–300» al lado | De 0 a 300 píxeles que se suman al espacio mínimo que la tarjeta deja a la barra | 0 |
 | Mostrar hitos en la barra | Casilla | — | Marcada |
-| Celebrar rachas y récords | Casilla | Avisos de racha, de mejor racha de 30 días y de récord, barra dorada, avivado y chispas, y el salto y las chispas de los hitos | Marcada |
+| Celebrar rachas y récords | Casilla | Avisos de racha, de mejor racha de 30 días y de récord, barra dorada con su estrella, chispas, y la animación y las chispas de los hitos | Marcada |
 
    El signo «−» o «+» que ya no sirve (en el límite) va en el gris de apagado de la paleta.
    Si tenía elegido Rojo fuego, que se retiró en la 1.2.0, arriba del recuadro sale «Su tema «Rojo

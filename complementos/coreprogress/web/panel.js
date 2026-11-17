@@ -366,14 +366,10 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
                 }
             });
             inputs.push(input);
-            // Contorno de 1 px en la tinta del tema (CoreProgress 1.3.0): sin él,
-            // Púrpura de noche quedaba a 1,95 a 1 del recuadro.
+            // CoreProgress 1.5.0: la muestra es una minibarra con el degradado
+            // del tema en el modo activo, sin contorno (4,24 a 1 o más).
             var swatch = opt.swatch
-                ? el("span", {
-                    class: "swatch",
-                    "aria-hidden": "true",
-                    style: "background:" + opt.swatch + (opt.swatchBorder ? ";box-shadow:inset 0 0 0 1px " + opt.swatchBorder : ""),
-                })
+                ? el("span", { class: "swatch", "aria-hidden": "true", style: "background:" + opt.swatch })
                 : null;
             group.appendChild(el("label", { class: "chip" }, [
                 input,
@@ -404,6 +400,61 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
             },
         };
         return built.node;
+    }
+
+    /* Control segmentado (CoreProgress 1.5.0, grosor de la barra), como los de
+     * GritMap: botones de opcion de verdad sobre un carril hundido; el
+     * tabulador entra en el elegido y las flechas cambian el valor. Si algun
+     * texto no cabe en su idioma, el carril pasa entero a lista vertical. */
+    function buildSegmented(item) {
+        var labelId = newId("label");
+        var name = newId("seg");
+        var group = el("div", { class: "seg", role: "radiogroup", "aria-labelledby": item.label ? labelId : null });
+        var inputs = [];
+        item.options.forEach(function (opt) {
+            var input = el("input", { type: "radio", name: name, value: String(opt.value) });
+            input.checked = String(S.v[item.key]) === String(opt.value);
+            input.addEventListener("change", function () {
+                if (input.checked) {
+                    S.v[item.key] = opt.value;
+                    changed();
+                }
+            });
+            inputs.push(input);
+            group.appendChild(el("label", {}, [input, el("span", { text: opt.label })]));
+        });
+        var built = option(item, labelId, group);
+        S.ctl[item.key] = {
+            item: item,
+            node: built.node,
+            slot: built.slot,
+            focus: null,
+            set: function (value) {
+                inputs.forEach(function (input) {
+                    input.checked = input.value === String(value);
+                });
+            },
+            enable: function (on) {
+                inputs.forEach(function (input) {
+                    input.disabled = !on;
+                });
+                group.classList.toggle(P + "-off", !on);
+            },
+            firstFocus: function () {
+                return group.querySelector("input:checked") || inputs[0];
+            },
+        };
+        return built.node;
+    }
+
+    function fitSegmented() {
+        document.querySelectorAll("#" + P + "-app ." + P + "-seg").forEach(function (node) {
+            node.classList.remove(P + "-vertical");
+            var tooWide = Array.prototype.some.call(node.querySelectorAll("label"), function (label) {
+                return label.scrollWidth > label.clientWidth + 1;
+            });
+            node.classList.toggle(P + "-vertical", tooWide);
+        });
     }
 
     /* Opciones de la lista: {value, label}; {separator: true} dibuja una raya;
@@ -774,45 +825,69 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
         }));
     }
 
-    /* Vista previa de la barra de CoreProgress (1.3.0): un rectángulo del color
-     * de fondo de las tarjetas con una barra de muestra al 60 %, hitos 10, 20,
-     * 30 y 40 y el total 50. Cambia al instante con el tema, la altura y la
-     * casilla de hitos. Decorativa: no recibe el foco ni la anuncia el lector. */
+    /* Vista previa de la barra de CoreProgress (1.5.0, informe del 2026-11-17):
+     * un rectangulo del color de fondo de las tarjetas con una barra de muestra
+     * al 60 %: los hitos 10, 20 y 30, ya pasados, son cortes finos; el 40 es el
+     * proximo (disco con aro y numero en la tinta) y el total, 50, queda en gris
+     * al final. Con la barra fina no hay discos: el proximo hito es un corte de
+     * 3 px en la tinta. Cambia al instante con el tema, el grosor y la casilla
+     * de hitos. Decorativa: no recibe el foco ni la anuncia el lector. */
     function buildPreview(item) {
         var box = el("div", { class: "preview", "aria-hidden": "true" });
         var track = el("div", { class: "preview-track" });
         var fill = el("div", { class: "preview-fill" });
         track.appendChild(fill);
+        var nt = item.neutral || {};
+        track.style.background = nt.track || "";
         var marks = [];
         (item.marks || []).forEach(function (num) {
-            var disc = el("span", { class: "preview-mark", text: String(num) });
-            disc.style.left = (num / item.total * 100) + "%";
-            marks.push({ node: disc, num: num });
-            track.appendChild(disc);
+            var final = num === item.total;
+            var mark = el("span", { class: "preview-mark" + (final ? " preview-final" : "") });
+            var cut = el("span", { class: "preview-cut" });
+            var disc = el("span", { class: "preview-disc", text: String(num) });
+            mark.style.left = (num / item.total * 100) + "%";
+            cut.style.background = nt.bg || "";
+            mark.appendChild(cut);
+            mark.appendChild(disc);
+            marks.push({ node: mark, cut: cut, disc: disc, num: num, final: final });
+            track.appendChild(mark);
         });
         box.appendChild(track);
 
         function paint() {
             var theme = item.themes[S.v[item.theme]] || item.themes[Object.keys(item.themes)[0]];
             var height = Number(S.v[item.height]) || 16;
+            var small = height < 14;
             var showMarks = item.checks ? !!S.v[item.checks] : true;
             track.style.height = height + "px";
             track.style.borderRadius = (height / 2) + "px";
             fill.style.width = item.progress + "%";
+            fill.style.minWidth = height + "px";
             fill.style.background = theme.gradient;
-            fill.style.boxShadow = "inset 0 0 0 1px " + theme.ink;
-            var disc = height + 4;
-            var font = height < 14 ? 0 : Math.max(11, Math.min(13, Math.round(height * 0.62)));
+            var next = null;
             marks.forEach(function (mark) {
-                var reached = mark.num / item.total * 100 <= item.progress;
-                var n = mark.node;
-                n.hidden = !showMarks;
-                n.style.height = disc + "px";
-                n.style.minWidth = disc + "px";
-                n.style.fontSize = font + "px";
-                n.style.color = font ? (reached ? item.reachedText : "") : "transparent";
-                n.style.background = reached ? theme.ink : "";
-                n.classList.toggle(P + "-preview-reached", reached);
+                if (next === null && mark.num / item.total * 100 > item.progress) {
+                    next = mark;
+                }
+            });
+            var size = height + 4;
+            marks.forEach(function (mark) {
+                var isNext = mark === next;
+                var isTotal = mark.final && !isNext;
+                var disc = !small && (isNext || isTotal);
+                mark.node.hidden = !showMarks || (small && mark.final);
+                mark.cut.hidden = disc;
+                mark.cut.style.width = small && isNext ? "3px" : "";
+                mark.cut.style.background = small && isNext ? theme.ink : (nt.bg || "");
+                mark.disc.hidden = !disc;
+                mark.disc.style.height = size + "px";
+                mark.disc.style.minWidth = size + "px";
+                mark.disc.style.fontSize = (height >= 20 ? 12 : 11) + "px";
+                mark.disc.style.background = nt.disc || "";
+                mark.disc.style.color = isNext ? theme.ink : (nt.subtle || "");
+                mark.disc.style.boxShadow = isNext
+                    ? "inset 0 0 0 2px " + theme.ink
+                    : "inset 0 0 0 1.5px " + (nt.faint || "");
             });
         }
 
@@ -834,6 +909,8 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
             return buildStepper(item);
         case "chips":
             return buildChips(item);
+        case "segmented":
+            return buildSegmented(item);
         case "select":
             return buildSelect(item);
         case "slider":
@@ -1215,6 +1292,7 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
         n.shell = el("div", { class: "shell" }, [n.head, n.body, n.foot]);
         app.appendChild(n.shell);
         app.appendChild(n.live);
+        fitSegmented();
         payload.cards.forEach(function (card) {
             markParents(card.items, null);
         });

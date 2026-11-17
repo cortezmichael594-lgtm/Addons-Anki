@@ -44,6 +44,9 @@ SOUND_ROWS: tuple[tuple[SoundKind, str, strings.UIKey, strings.UIKey], ...] = (
 )
 SOUND_FIELDS: dict[SoundKind, str] = {kind: field for kind, field, _, _ in SOUND_ROWS}
 
+# Orden de «Ver» (2.6.0): enseña el confeti de mazo en la propia ventana de opciones.
+PREVIEW_CONFETTI = "preview:confetti"
+
 _CHECKS: tuple[tuple[str, strings.UIKey], ...] = (
     ("styledButtonsEnabled", "styled_buttons"),
     ("flagsEnabled", "flags_option"),
@@ -109,6 +112,20 @@ def _sound_select(
     }
 
 
+def _check(key: str, label: strings.UIKey) -> dict[str, Any]:
+    """Una casilla del aspecto. «Confeti al terminar» lleva «Ver» al lado (2.6.0, informe del
+    2026-11-17, 2.7), como «Probar» junto a cada sonido: enseña la celebración sin terminar un
+    mazo y sin guardar nada."""
+    item: dict[str, Any] = {"type": "check", "key": key, "label": strings.ui(label)}
+    if key == "confettiEnabled":
+        item["test"] = {
+            "label": strings.ui("preview"),
+            "aria": strings.ui("preview_confetti"),
+            "action": PREVIEW_CONFETTI,
+        }
+    return item
+
+
 def page(
     config: AddonConfig, sounds: Mapping[SoundKind, Sequence[str]], label_for: LabelFor = _plain_label
 ) -> dict[str, Any]:
@@ -132,7 +149,7 @@ def page(
         {
             "title": strings.ui("group_appearance"),
             "restore": True,
-            "items": [{"type": "check", "key": key, "label": strings.ui(label)} for key, label in _CHECKS],
+            "items": [_check(key, label) for key, label in _CHECKS],
         },
     ]
     return {
