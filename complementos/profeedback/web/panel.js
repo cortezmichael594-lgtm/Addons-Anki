@@ -210,16 +210,27 @@ var ProfeedbackPanel = (typeof ProfeedbackPanel !== "undefined" && ProfeedbackPa
         }, { describedBy: noteId });
         var slot = errorSlot();
         var head = box.node;
+        var hint = null;
         if (item.test) {
             /* ProFeedback 2.6.0: «Ver» junto a «Confeti al terminar», como «Probar» junto a
              * cada sonido. Python devuelve el código del confeti y se ejecuta en esta misma
              * página, encima del panel. */
+            /* 2.6.1: si el sistema pide reducir las animaciones (en Windows, «Efectos de
+             * animación» desactivado), no hay confeti, ni aquí ni al terminar: «Ver» lo
+             * explica debajo en lugar de no hacer nada. */
+            hint = el("p", { class: "rule", hidden: true, text: item.test.reduced || "" });
             var see = el("button", {
                 type: "button",
                 class: "btn",
                 text: item.test.label,
                 "aria-label": item.test.aria || null,
                 onclick: function () {
+                    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                    if (reduced && item.test.reduced) {
+                        hint.hidden = false;
+                        announce(item.test.reduced);
+                        return;
+                    }
                     send("action", { name: item.test.action, key: item.key, values: S.v }, function (result) {
                         if (result && result.confetti) {
                             new Function(result.confetti)();
@@ -230,6 +241,9 @@ var ProfeedbackPanel = (typeof ProfeedbackPanel !== "undefined" && ProfeedbackPa
             head = el("div", { class: "check-row" }, [box.node, see]);
         }
         var parts = [slot, head];
+        if (hint) {
+            parts.push(hint);
+        }
         if (item.note) {
             parts.push(el("p", { class: "rule", id: noteId, text: item.note }));
         }

@@ -120,6 +120,8 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   respuesta» azul, esquinas de 12 y canto de 3, insignias e iconos nuevos, confeti diseñado entero,
   título en el oro de CoreProgress y «Ver» en las opciones. FIX-007 (insignias activadas a mitad de
   repaso). 42 pruebas. Va en el mismo pull request que CoreProgress 1.5.0.
+- 2026-11-17: ProFeedback 2.6.1 (petición de la persona): iconos de insignia sin círculo de fondo y
+  FIX-008 («Ver» explica por qué no hay confeti con «reducir movimiento» del sistema).
 
 ## En curso
 

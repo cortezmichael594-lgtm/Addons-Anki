@@ -5,10 +5,10 @@
    - Colores nuevos, que salen de look.py como variables (--profeedback-new-card-text…): las
      tres insignias pesan igual (texto a 6,8 a 1 de día y 8,5 de noche) y de día se separan de
      las banderas 1 y 7 de Anki.
-   - Icono redondo en tono medio de día (3,4 a 1 contra el fondo) con el dibujo en blanco; de
-     noche, en tono claro con el dibujo en el tono oscuro de su color.
+   - Icono en tono medio de día (3,4 a 1 contra el fondo) y en tono claro de noche. Desde la
+     2.6.1, a petición de la persona, solo el dibujo, con el fondo transparente (sin el círculo).
    - 0,06 em entre letras, como los avisos de CoreProgress.
-   - Contraste alto de Windows: círculo vacío con trazo, dibujo y texto en el color del texto.
+   - Contraste alto de Windows: dibujo y texto en el color del texto.
 
    Versión 2.5.0 (informe 2.4.0): franja fija de 40 px (24 del icono y 16 de aire), haya
    insignia o no, y fundido de 120 ms; ninguno si el sistema pide menos animación.
@@ -50,30 +50,23 @@
   overflow: visible;
 }
 
-.profeedback-badge .profeedback-badge-disc {
-  fill: var(--profeedback-badge-icon);
-}
-
 .profeedback-badge .profeedback-badge-draw {
-  color: var(--profeedback-badge-drawing);
+  color: var(--profeedback-badge-icon);
 }
 
 .profeedback-badge--new-card {
   color: var(--profeedback-new-card-text);
   --profeedback-badge-icon: var(--profeedback-new-card-icon);
-  --profeedback-badge-drawing: var(--profeedback-new-card-drawing);
 }
 
 .profeedback-badge--hard-exercise {
   color: var(--profeedback-hard-exercise-text);
   --profeedback-badge-icon: var(--profeedback-hard-exercise-icon);
-  --profeedback-badge-drawing: var(--profeedback-hard-exercise-drawing);
 }
 
 .profeedback-badge--previous-mistake {
   color: var(--profeedback-previous-mistake-text);
   --profeedback-badge-icon: var(--profeedback-previous-mistake-icon);
-  --profeedback-badge-drawing: var(--profeedback-previous-mistake-drawing);
 }
 
 @keyframes profeedback-badge-in {
@@ -96,13 +89,6 @@
 @media (forced-colors: active) {
   .profeedback-badge {
     color: CanvasText;
-  }
-
-  .profeedback-badge .profeedback-badge-disc {
-    forced-color-adjust: none;
-    fill: Canvas;
-    stroke: CanvasText;
-    stroke-width: 1.5;
   }
 
   .profeedback-badge .profeedback-badge-draw {

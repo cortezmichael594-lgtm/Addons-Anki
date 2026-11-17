@@ -18,6 +18,7 @@ botones está en actions.py.
 
 # Historial de correcciones de este archivo:
 # FIX-001 (2026-10-13): al guardar, «sonido al azar» se convertía en el primer sonido de la lista.
+# FIX-008 (2026-11-17): «Ver» no hacía nada con «reducir movimiento» activado en el sistema.
 
 from __future__ import annotations
 
@@ -122,6 +123,14 @@ def _check(key: str, label: strings.UIKey) -> dict[str, Any]:
             "label": strings.ui("preview"),
             "aria": strings.ui("preview_confetti"),
             "action": PREVIEW_CONFETTI,
+            # --- FIX-008 (2026-11-17) ---
+            # Síntoma: al pulsar «Ver» no pasaba nada (en Windows, con «Efectos de animación»
+            #   desactivado).
+            # Causa: con «reducir movimiento» el motor no suelta confeti y no había nada más que
+            #   enseñar en la ventana de opciones; el botón callaba.
+            # Regla: un botón que no puede hacer lo que anuncia dice por qué, en su sitio; nunca
+            #   se queda sin respuesta (web/panel.js enseña este texto bajo la casilla).
+            "reduced": strings.ui("preview_reduced"),
         }
     return item
 

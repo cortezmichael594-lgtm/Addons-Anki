@@ -67,6 +67,12 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   opción estaba marcada al cargarla. Regla: el estilo de la insignia se carga siempre en el repaso
   (es pequeño y no se ve si no hay insignia); la opción solo decide si se pone la insignia. Estaba en
   «Pendientes» desde el 2026-10-21, con esta misma propuesta.
+- FIX-008 · 2026-11-17 · versión 2.6.0 · Qué pasaba: al pulsar «Ver» en la ventana de opciones no
+  pasaba nada. Por qué: con «Efectos de animación» desactivado en Windows (el sistema pide reducir las
+  animaciones), el complemento no suelta confeti, y en la ventana de opciones no había nada más que
+  enseñar: el botón no respondía. Regla: un botón que no puede hacer lo que anuncia dice por qué, en su
+  sitio; nunca se queda sin respuesta. Ahora «Ver» explica debajo de la casilla que no habrá confeti y
+  dónde se cambia.
 
 ## Así a propósito
 
@@ -85,10 +91,15 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
     1 px, tiempos previstos en gris de 12 px, sin el alias «Feather Bold.ttf», tres destellos fijos con
     «reducir movimiento», colores del sistema en el contraste alto y «Ver» junto a «Confeti al
     terminar».
+- 2.6.1 · Los iconos de las insignias van sin círculo de fondo, solo el dibujo del color de su
+  insignia, de día y de noche. Lo pidió la persona el 2026-11-17 (el informe los ponía sobre un
+  círculo de color con el dibujo en blanco). El dibujo de día sigue a 3,4 a 1 contra el fondo.
+- 2.6.1 · ProFeedback y CoreProgress siguen solo la petición del sistema de reducir las animaciones,
+  no la opción «Reducir movimiento» de Anki: esa viene activada de serie y apagaría el confeti a casi
+  todo el mundo.
 - 2.6.0 · Decisiones del taller al aplicarlo: todos los colores salen de un solo sitio (look.py) y
   llegan a la página como variables incrustadas antes del primer pintado, y al confeti en JSON, para
-  que las pruebas comprueben cada contraste; la letra de «Mostrar respuesta» y el dibujo de los iconos
-  de día son el blanco de HIGHLIGHT_FG de Nocturne (el que Anki pone sobre el azul de acción), no otro;
+  que las pruebas comprueben cada contraste; la letra de «Mostrar respuesta» es el blanco de HIGHLIGHT_FG de Nocturne (el que Anki pone sobre el azul de acción), no otro;
   «Ver» enseña el confeti de mazo, que es el más frecuente; los movimientos del confeti (2,4 y 3,8 s) y
   del brillo (1,2 s) superan los 150 ms de la guía: excepción aprobada con el informe, como en la
   2.5.0. Con la tritanopía (la forma más rara de daltonismo), «Bien» y «Fácil» se acercan (de 14,5 a

@@ -133,8 +133,7 @@ class PaletteTests(unittest.TestCase):
             self.assertGreaterEqual(_ratio(badge.text.day, look.CANVAS.day), 6.7, key)
             self.assertGreaterEqual(_ratio(badge.text.night, look.CANVAS.night), 8.4, key)
             self.assertGreaterEqual(_ratio(badge.icon.day, look.CANVAS.day), 3.0, key)
-            self.assertGreaterEqual(_ratio(badge.drawing.day, badge.icon.day), 3.0, key)
-            self.assertGreaterEqual(_ratio(badge.drawing.night, badge.icon.night), 4.5, key)
+            self.assertGreaterEqual(_ratio(badge.icon.night, look.CANVAS.night), 3.0, key)
         flag1, flag7 = "#BE1D1D", "#7048E8"
         self.assertGreater(_de2000(_seen(look.BADGES["hard_exercise"].text.day), _seen(flag1)), 7)
         self.assertGreater(_de2000(_seen(look.BADGES["new_card"].text.day), _seen(flag7)), 10)
@@ -151,7 +150,7 @@ class PaletteTests(unittest.TestCase):
         self.assertIn("--profeedback-again-face:#F47B72", css)
         self.assertIn(":is(.night_mode,.nightMode){", css)
         self.assertIn("--profeedback-show-hover:#385CDC", css)
-        self.assertIn("--profeedback-new-card-drawing:#532F67", css)
+        self.assertIn("--profeedback-new-card-icon:#CDA1E9", css)
         data = json.loads(look.celebration_colors())
         self.assertEqual(len(data["deck"]["day"]), 8)
         self.assertEqual(len(data["gold"]["night"]), 6)
@@ -160,7 +159,8 @@ class PaletteTests(unittest.TestCase):
     def test_badge_icons_draw_with_current_colour(self) -> None:
         for flag in ("new_card", "hard_exercise", "previous_mistake"):
             markup = badges.badge_html(flag)  # type: ignore[arg-type]
-            self.assertIn("profeedback-badge-disc", markup)
+            # 2.6.1 (petición de la persona): sin círculo de fondo, solo el dibujo.
+            self.assertNotIn("<circle", markup)
             self.assertIn("currentColor", markup)
         self.assertNotIn("Feather Bold.ttf", feedback._FONT_FILENAMES)
 
@@ -174,6 +174,8 @@ class PreviewTests(unittest.TestCase):
         checks = [item for card in page["cards"] for item in card["items"] if item["type"] == "check"]
         confetti = next(item for item in checks if item["key"] == "confettiEnabled")
         self.assertEqual(confetti["test"]["action"], dialogs.PREVIEW_CONFETTI)
+        # 2.6.1: con «reducir movimiento», «Ver» explica por qué no hay confeti.
+        self.assertTrue(confetti["test"]["reduced"])
         self.assertTrue(all("test" not in item for item in checks if item is not confetti))
         script = celebration.preview_script()
         self.assertIn("window.profeedbackConfetti.burst(", script)
