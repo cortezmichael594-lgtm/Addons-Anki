@@ -211,5 +211,17 @@ class BadgeGapTests(unittest.TestCase):
         self.assertIn("gap: 8px;", css.split(".profeedback-badge {", 1)[1].split("}", 1)[0])
 
 
+class PanelOpensLikeAnyWindowTests(unittest.TestCase):
+    # --- FIX-009: la ventana de opciones no juega con su opacidad (destello en Windows); solo
+    # la página espera oculta.
+    def test_no_window_opacity_trick(self) -> None:
+        from pathlib import Path
+
+        source = (Path(badges.__file__).parent / "panel.py").read_text(encoding="utf-8")
+        code = "\n".join(line for line in source.splitlines() if not line.lstrip().startswith("#"))
+        self.assertNotIn("setWindowOpacity", code)
+        self.assertIn("self._web.hide()", code)
+
+
 if __name__ == "__main__":
     unittest.main()

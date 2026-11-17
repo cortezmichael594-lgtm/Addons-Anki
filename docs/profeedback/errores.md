@@ -73,6 +73,13 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   enseñar: el botón no respondía. Regla: un botón que no puede hacer lo que anuncia dice por qué, en su
   sitio; nunca se queda sin respuesta. Ahora «Ver» explica debajo de la casilla que no habrá confeti y
   dónde se cambia.
+- FIX-009 · 2026-11-17 · versión 2.6.2 · Qué pasaba: en Windows, al abrir la configuración la ventana
+  hacía un pequeño destello. Por qué: para cumplir FIX-005, la ventana se abría transparente y pasaba a
+  opaca al estar lista, y Windows la vuelve a pintar entera en ese cambio. Regla (sustituye a la de
+  FIX-005, con el visto bueno de la persona, que pidió que se abriera como cualquier otra ventana): la
+  ventana se abre normal, con el fondo de Anki, y solo la página espera oculta a estar dibujada y con
+  su alto; entonces aparece de una vez. Es como se abren las ventanas de opciones de los demás
+  complementos del taller.
 
 ## Así a propósito
 

@@ -26,6 +26,9 @@
     ],
     "FIX-008": [
       "dialogs.py"
+    ],
+    "FIX-009": [
+      "panel.py"
     ]
   }
 }

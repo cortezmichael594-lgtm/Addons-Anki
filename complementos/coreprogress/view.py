@@ -62,7 +62,7 @@ img#star{top:var(--coreprogress-mark-top,30px) !important;}
 #coreprogress-bar{position:fixed;top:0;left:0;right:0;z-index:99999;padding:10px 18px 8px;pointer-events:none;
  opacity:0;transition:opacity .28s ease;background:var(--coreprogress-cut,transparent);}
 #coreprogress-bar.coreprogress-full #coreprogress-track{max-width:none;}
-#coreprogress-track{position:relative;box-sizing:border-box;width:100%;max-width:720px;margin:0 auto;
+#coreprogress-track{position:relative;box-sizing:border-box;width:100%;max-width:710px;margin:0 auto;
  height:var(--coreprogress-h);border-radius:calc(var(--coreprogress-h) / 2);contain:layout;}
 #coreprogress-fill{position:relative;height:100%;width:0%;min-width:var(--coreprogress-h);
  border-radius:calc(var(--coreprogress-h) / 2);overflow:hidden;

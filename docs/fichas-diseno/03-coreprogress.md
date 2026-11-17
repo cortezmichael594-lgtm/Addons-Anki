@@ -1,6 +1,6 @@
 # Ficha de diseño: CoreProgress
 
-Versión 1.6.0 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. Es un complemento que
+Versión 1.6.1 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. Es un complemento que
 la persona trajo hecho fuera del taller; la 1.2.0 aplica entero el primer informe de diseño de
 CoreProgress (interfaz, aprendizaje y hábito, 9 de noviembre de 2026) y la 1.5.0, el informe «Rediseño
 de color y forma: CoreProgress 1.4.0» (17 de noviembre de 2026), también entero. Los colores de los
@@ -48,7 +48,7 @@ Qué mide:
 Posición y forma:
 
 - Fija arriba, 10 px por debajo del borde. Ancho a elegir (1.6.0, petición de la persona): «Tarjeta»
-  (de serie), 720 px como mucho, centrada; o «Ventana», de lado a lado con 18 px a cada lado. Por
+  (de serie), 710 px como mucho (1.6.1, petición de la persona), centrada; o «Ventana», de lado a lado con 18 px a cada lado. Por
   encima de la tarjeta; no se mueve al desplazarse. Los clics la atraviesan.
 - Franja opaca detrás de la barra, de lado a lado, del color del fondo de la tarjeta (10 px arriba, el
   alto de la barra y 8 abajo): al bajar por una tarjeta larga el contenido se corta limpio bajo ella
@@ -187,7 +187,8 @@ Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recua
      BORDER_FOCUS y ✓ en FG_LINK (con el foco del teclado, el borde pasa a 4 px); «Grosor» (control
      segmentado del panel modelo: Fina, Normal, Gruesa; el elegido con fondo de capa elevada, borde de
      acción y seminegrita; 1.5.0) y «Ancho» (segmentado: Tarjeta, Ventana; 1.6.0) en paralelo; debajo,
-     «Espacio extra» (con «−» y «+» y «px · 0–300»); dos
+     en una fila, las dos casillas a la izquierda y «Espacio extra» (con «−» y «+» y «px · 0–300») a
+     la derecha (1.6.1); dos
      casillas, 12 px entre ellas: «Mostrar hitos en la barra» y «Celebrar rachas y récords». Si tenía
      Rojo fuego, arriba la franja de aviso.
   2. El récord entero: «Récord: **7 aciertos seguidos**» o «Mejor racha en 30 días: **41** · récord:

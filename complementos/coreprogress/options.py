@@ -236,17 +236,29 @@ def page(cfg: Config, record: int, title: str = "CoreProgress", window: int = 0)
                     },
                 ],
             },
+            # 1.6.1 (petición de la persona): las dos casillas a la izquierda y «Espacio extra» a
+            # la derecha, en una sola fila; la ventana pierde una fila de alto.
             {
-                "type": "stepper",
-                "key": "push_down",
-                "label": _without_px(t("opt_push")),
-                "min": PUSH_MIN,
-                "max": PUSH_MAX,
-                "step": 4,
-                "unit": f"px · {PUSH_MIN}–{PUSH_MAX}",
+                "type": "pair",
+                "children": [
+                    {
+                        "type": "stack",
+                        "children": [
+                            {"type": "check", "key": "checkpoints_enabled", "label": t("opt_checkpoints")},
+                            {"type": "check", "key": "effects_enabled", "label": t("opt_effects")},
+                        ],
+                    },
+                    {
+                        "type": "stepper",
+                        "key": "push_down",
+                        "label": _without_px(t("opt_push")),
+                        "min": PUSH_MIN,
+                        "max": PUSH_MAX,
+                        "step": 4,
+                        "unit": f"px · {PUSH_MIN}–{PUSH_MAX}",
+                    },
+                ],
             },
-            {"type": "check", "key": "checkpoints_enabled", "label": t("opt_checkpoints")},
-            {"type": "check", "key": "effects_enabled", "label": t("opt_effects")},
         ],
     }
     # HISTORIAL: la lista de excluir mazos tuvo una frase explicativa que el

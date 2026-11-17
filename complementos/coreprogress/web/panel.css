@@ -959,7 +959,7 @@ html.night-mode #coreprogress-app .coreprogress-preview {
 #coreprogress-app .coreprogress-preview-track {
     position: relative;
     flex: 1;
-    max-width: 720px;
+    max-width: 710px;
     margin: 0 auto;
 }
 
@@ -1065,4 +1065,10 @@ html.night-mode #coreprogress-app .coreprogress-preview {
     justify-content: flex-start;
     white-space: normal;
     text-align: start;
+}
+
+/* CoreProgress 1.6.1: dos casillas apiladas en una celda de pareja, con «Espacio extra» al
+   lado. */
+#coreprogress-app .coreprogress-stack > .coreprogress-option:first-child {
+    margin-top: 0;
 }

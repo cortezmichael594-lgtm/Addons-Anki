@@ -68,8 +68,9 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
 - 1.6.0 · Petición de la persona el 2026-11-17, con capturas: el ancho de la barra se elige
   («Tarjeta», de serie, o «Ventana», como hasta la 1.4.0), y al bajar por una tarjeta larga el
   contenido ya no se ve a través de la barra: detrás de ella va una franja opaca del color del fondo.
-  La barra sigue fija arriba (no se va al bajar). Con la fila nueva, la ventana de opciones crece unos
-  60 px: en una pantalla de 1.366 × 768 puede necesitar desplazarse un poco.
+  La barra sigue fija arriba (no se va al bajar). Desde la 1.6.1, «Tarjeta» mide 710 px (petición de
+  la persona) y «Espacio extra» va a la derecha de las dos casillas, con lo que la ventana de opciones
+  no crece.
 
 - 1.5.0 · Informe «Rediseño de color y forma: CoreProgress 1.4.0», aplicado entero a petición del
   cliente el 2026-11-17, con la opción recomendada en sus tres decisiones:

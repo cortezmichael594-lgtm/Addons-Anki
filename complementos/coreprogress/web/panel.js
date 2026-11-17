@@ -825,6 +825,12 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
         }));
     }
 
+    /* Varios controles uno debajo de otro, en una celda de una pareja (CoreProgress 1.6.1:
+     * las dos casillas a la izquierda y «Espacio extra» a la derecha). */
+    function buildStack(item) {
+        return el("div", { class: "option stack" }, item.children.map(buildItem));
+    }
+
     /* Vista previa de la barra de CoreProgress (1.5.0, informe del 2026-11-17):
      * un rectangulo del color de fondo de las tarjetas con una barra de muestra
      * al 60 %: los hitos 10, 20 y 30, ya pasados, son cortes finos; el 40 es el
@@ -925,6 +931,8 @@ var CoreprogressPanel = (typeof CoreprogressPanel !== "undefined" && Coreprogres
             return buildNotice(item);
         case "pair":
             return buildPair(item);
+        case "stack":
+            return buildStack(item);
         case "preview":
             return buildPreview(item);
         default:

@@ -31,9 +31,16 @@ _APP = QApplication.instance() or QApplication([])
 def _items(page: dict) -> list[dict]:
     """Todos los controles con clave, también los que van en pareja (1.3.0)."""
     found: list[dict] = []
+
+    def walk(items: list[dict]) -> None:
+        for item in items:
+            if item["type"] in ("pair", "stack"):
+                walk(item["children"])
+            else:
+                found.append(item)
+
     for card in page["cards"]:
-        for item in card["items"]:
-            found.extend(item.get("children", [item]) if item["type"] == "pair" else [item])
+        walk(card["items"])
     return [item for item in found if "key" in item]
 
 
@@ -505,7 +512,8 @@ class Version15Tests(unittest.TestCase):
         self.assertNotIn("_cprog", page)
         self.assertNotIn("cprog-", page.replace("--cprog-track", ""))
         self.assertNotIn("Glow", page)
-        self.assertIn("max-width:720px", page)
+        # 1.6.1 (petición de la persona): 710 px con «Tarjeta».
+        self.assertIn("max-width:710px", page)
         self.assertIn("prefers-reduced-motion", page)
         self.assertIn("forced-colors", page)
 
