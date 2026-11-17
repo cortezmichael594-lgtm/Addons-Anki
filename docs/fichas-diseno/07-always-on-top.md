@@ -1,6 +1,6 @@
 # Ficha de diseño: Always on Top
 
-Versión 1.3 (9 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 1.3.1 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
@@ -19,7 +19,8 @@ ventana de opciones con el modelo del panel de GritMap (colores de la paleta).
 
 ## 4. Dónde actúa
 
-- Solo sobre la ventana Añadir (la normal y la que se abre con Mayús+Añadir).
+- Solo sobre la ventana Añadir (la normal y la que se abre con Mayús+Añadir); con las dos abiertas,
+  el atajo cambia las dos (1.3.1).
 - El atajo responde en cualquier ventana de Anki que esté delante (principal, repaso, Explorar,
   Añadir), no en otros programas.
 - Herramientas > Complementos > Always on Top > Configuración: ventana de opciones.
@@ -86,7 +87,6 @@ función y sesión.
 
 ## 12. Fallos conocidos pendientes
 
-- Con las dos ventanas Añadir abiertas, solo cambia la última.
 
 ## 13. Decisiones tomadas a propósito
 

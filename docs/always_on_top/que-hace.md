@@ -1,6 +1,6 @@
 # Qué hace «Always on Top»
 
-Versión 1.3 · 2026-11-09
+Versión 1.3.1 · 2026-11-17
 
 Mantiene la ventana Añadir de Anki por encima de todas las demás ventanas del ordenador, también de
 las de otros programas, para que pueda copiar de un documento o de una página web sin que Añadir
@@ -14,7 +14,8 @@ repasos. Lo único que guarda es el atajo.
 - En Herramientas > Complementos, al seleccionarlo y pulsar «Configuración», se abre su ventana de
   opciones (apartado 4), no el editor de texto que Anki muestra con otros complementos.
 - El efecto solo se aplica a la ventana Añadir, tanto a la normal como a la otra versión que Anki
-  abre si se pulsa Añadir con Mayús. No afecta a la ventana principal, al repaso, a Explorar, a
+  abre si se pulsa Añadir con Mayús. Si están abiertas las dos a la vez, el atajo cambia las dos (desde
+  la 1.3.1; antes, solo la última que se abrió). No afecta a la ventana principal, al repaso, a Explorar, a
   Editar ni a las estadísticas.
 
 ## 2. Encender y apagar «siempre visible»

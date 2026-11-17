@@ -128,6 +128,8 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
 - 2026-11-17: CoreProgress 1.6.1 («Tarjeta» a 710 px y «Espacio extra» junto a las casillas) y
   ProFeedback 2.6.3 (FIX-009: su ventana de opciones se abre sin destello). Peticiones de la persona.
   Sonidos de consola usa aún el método de opacidad que tenía ProFeedback: si destella, mismo arreglo.
+- 2026-11-17: Always on Top 1.3.1 (FIX-003: el atajo cambia todas las ventanas Añadir). Primera
+  parte del repaso de cuatro complementos (petición de la persona).
 
 ## En curso
 
