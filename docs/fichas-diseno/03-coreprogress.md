@@ -1,6 +1,6 @@
 # Ficha de diseño: CoreProgress
 
-Versión 1.3.0 (16 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. Es un complemento que
+Versión 1.4.0 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. Es un complemento que
 la persona trajo hecho fuera del taller; la 1.2.0 aplica entero el primer informe de diseño de
 CoreProgress (interfaz, aprendizaje y hábito, 9 de noviembre de 2026). Los colores de los temas son
 propios, fuera de la paleta Nocturne, y están aprobados.
@@ -10,8 +10,7 @@ propios, fuera de la paleta Nocturne, y están aprobados.
 Una barra de progreso fija arriba de la pantalla de repaso que se llena a medida que se despacha todo
 lo de hoy en el mazo (lo hecho más lo que queda), con marcas numeradas por el camino; además cuenta los aciertos
 seguidos, los celebra con un aviso breve, vuelve dorada la barra desde 5 seguidos y guarda el récord
-personal. Al terminar un mazo, deja la barra llena y una línea de resumen en la pantalla de
-«¡Enhorabuena!».
+personal.
 
 ## 2. Para quién y para qué
 
@@ -21,12 +20,9 @@ Solo lee la cuenta de tarjetas que muestra Anki y lo respondido hoy; guarda sus 
 ## 3. Dónde se ve
 
 - En la pantalla de repaso, también en mazos filtrados y estudio personalizado.
-- En la pantalla de «¡Enhorabuena!» de Anki, al terminar un mazo: la barra llena y quieta y la línea
-  «48 tarjetas · mejor racha: 17» (o «nuevo récord: 17») debajo, en 13 px gris (FG_SUBTLE), centrada,
-  en su sitio arriba de la página (no flota ni tapa nada). Sin animación: la celebración es de
-  ProFeedback.
 - Herramientas > Complementos > CoreProgress > Configuración: su ventana de opciones.
-- No aparece en la lista de mazos, la pantalla de un mazo, Explorar (ni su vista previa), plantillas,
+- No aparece en la lista de mazos, la pantalla de un mazo (tampoco la de «¡Enhorabuena!»: desde la
+  1.4.0, retirada a petición de la persona), Explorar (ni su vista previa), plantillas,
   editor ni estadísticas. No añade menús ni atajos.
 - En todo el repaso baja la estrella de nota marcada y la bandera de Anki para que queden justo debajo
   de la barra.
@@ -45,7 +41,7 @@ Qué mide:
 - Se pone al día una décima de segundo después de cada respuesta o cambio.
 - Si la cuenta de Anki sube (vencen tarjetas en aprendizaje), la barra se queda quieta hasta que el
   avance la alcance; solo retrocede al deshacer.
-- Al terminar, Anki sale del repaso; la barra llena se ve en la pantalla de «¡Enhorabuena!».
+- Al terminar, Anki sale del repaso y la barra desaparece con él.
 
 Posición y forma:
 
@@ -192,7 +188,7 @@ Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recua
 
 «5 ACIERTOS SEGUIDOS», «NUEVO RÉCORD: 11», «Récord: 7 aciertos seguidos», «Sin récord todavía»,
 «Poner a cero», «¿Poner el récord a cero?», «Celebrar rachas y récords», «Espacio extra», «Mazos que no
-cuentan para el récord», «Útil para mazos muy fáciles.», «48 tarjetas · mejor racha: 17», «30 de 50
+cuentan para el récord», «Útil para mazos muy fáciles.», «30 de 50
 tarjetas» (lector de pantalla), el aviso del tema retirado y el aviso de fallo de Anki «El problema
 podría ser causado por un add-on.» con «CoreProgress: » delante, «MEJOR RACHA EN 30 DÍAS: 42», «Mejor
 racha en 30 días: 41 · récord: 90», «Ninguno», «Ningún mazo coincide.», «Progreso de hoy» (lector de
@@ -227,12 +223,14 @@ tema retirado (usted, como GritMap). Formas de plural de cada idioma. 60 idiomas
   con marca final (decisión 2), relleno plano (decisión 3), sin cabecera repetida (decisión 4). Se
   quedan: los degradados y colores de aviso de los temas, el canal, la lógica de la barra y de la
   racha, los avisos y sus textos, el dorado desde 5, el diálogo de confirmación al poner a cero.
+- 1.4.0 (2026-11-17, petición de la persona): se quita del todo la barra llena y la línea de resumen
+  de la pantalla de «¡Enhorabuena!». No volver a proponer nada de CoreProgress en esa pantalla.
 - No se añaden (informe del 2026-11-16, 7.3): porcentaje o «15/27» fijo, sonido propio, más niveles
   de color.
 
 ## 15. Qué no hace
 
 No se conecta a internet, no cambia el estudio, no muestra la racha como cifra fija ni el récord durante
-el repaso, no da mensajes de ánimo al fallar, no aparece fuera del repaso salvo la barra llena de
-«¡Enhorabuena!». Ideas descartadas en el informe: racha de días (la lleva GritMap), contador fijo,
+el repaso, no da mensajes de ánimo al fallar, no aparece fuera del repaso (la barra llena y
+el resumen de «¡Enhorabuena!» se retiraron en la 1.4.0 a petición de la persona: no proponerlos de nuevo). Ideas descartadas en el informe: racha de días (la lleva GritMap), contador fijo,
 puntos e insignias, tiempo estimado (mejor en la pantalla del mazo o en GritMap).

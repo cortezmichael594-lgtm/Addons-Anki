@@ -4,7 +4,7 @@ Formas impersonales en lugar del tuteo; la racha cuenta «aciertos» (Difícil, 
 y Fácil); textos del récord sin el «!» suelto; «Poner a cero»; «Celebrar rachas y
 récords»; «Espacio extra»; los mazos excluidos dicen para qué sirven; el aviso del
 tema retirado es el mismo de GritMap; la barra se anuncia al lector de pantalla
-(«30 de 50 tarjetas») y la línea de resumen de la pantalla de «Enhorabuena».
+(«30 de 50 tarjetas»). La línea de resumen de «Enhorabuena» se retiró en la 1.4.0.
 
 Las claves con «_one», «_few», «_many», «_two», «_zero» y «_other» son formas de
 plural: i18n.plural_text elige la que pide la cifra en cada idioma. Los avisos
@@ -25,7 +25,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Useful for very easy decks.",
         "theme_retired": "Your theme “{old}” has been retired; it now uses “{new}”.",
         "cards_one": "{count} card", "cards_other": "{count} cards", "progress_of": "{done} of {cards}",
-        "summary_best": "best streak: {count}", "summary_record": "new record: {count}",
     },
     "es": {
         "opt_record": "Récord", "record_none": "Sin récord todavía",
@@ -36,7 +35,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Útil para mazos muy fáciles.",
         "theme_retired": "Su tema «{old}» se ha retirado; ahora usa «{new}».",
         "cards_one": "{count} tarjeta", "cards_other": "{count} tarjetas", "progress_of": "{done} de {cards}",
-        "summary_best": "mejor racha: {count}", "summary_record": "nuevo récord: {count}",
     },
     "fr": {
         "opt_record": "Record", "record_none": "Pas encore de record",
@@ -47,7 +45,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Utile pour les paquets très faciles.",
         "theme_retired": "Votre thème « {old} » a été retiré ; il utilise désormais « {new} ».",
         "cards_one": "{count} carte", "cards_other": "{count} cartes", "progress_of": "{done} sur {cards}",
-        "summary_best": "meilleure série : {count}", "summary_record": "nouveau record : {count}",
     },
     "de": {
         "opt_record": "Rekord", "record_none": "Noch kein Rekord",
@@ -58,7 +55,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Nützlich für sehr leichte Stapel.",
         "theme_retired": "Ihr Farbschema „{old}“ wurde entfernt; jetzt wird „{new}“ verwendet.",
         "cards_one": "{count} Karte", "cards_other": "{count} Karten", "progress_of": "{done} von {cards}",
-        "summary_best": "beste Serie: {count}", "summary_record": "neuer Rekord: {count}",
     },
     "it": {
         "opt_record": "Record", "record_none": "Nessun record per ora",
@@ -69,7 +65,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Utile per mazzi molto facili.",
         "theme_retired": "Il tema «{old}» è stato ritirato; ora si usa «{new}».",
         "cards_one": "{count} carta", "cards_other": "{count} carte", "progress_of": "{done} di {cards}",
-        "summary_best": "serie migliore: {count}", "summary_record": "nuovo record: {count}",
     },
     "pt_BR": {
         "opt_record": "Recorde", "record_none": "Ainda sem recorde",
@@ -80,7 +75,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Útil para baralhos muito fáceis.",
         "theme_retired": "O tema «{old}» foi retirado; agora é usado «{new}».",
         "cards_one": "{count} cartão", "cards_other": "{count} cartões", "progress_of": "{done} de {cards}",
-        "summary_best": "melhor sequência: {count}", "summary_record": "novo recorde: {count}",
     },
     "pt_PT": {
         "opt_record": "Recorde", "record_none": "Ainda sem recorde",
@@ -91,7 +85,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Útil para baralhos muito fáceis.",
         "theme_retired": "O tema «{old}» foi retirado; agora é usado «{new}».",
         "cards_one": "{count} cartão", "cards_other": "{count} cartões", "progress_of": "{done} de {cards}",
-        "summary_best": "melhor sequência: {count}", "summary_record": "novo recorde: {count}",
     },
     "nl": {
         "opt_record": "Record", "record_none": "Nog geen record",
@@ -102,7 +95,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Handig voor heel makkelijke pakketten.",
         "theme_retired": "Het thema ‘{old}’ is verwijderd; nu wordt ‘{new}’ gebruikt.",
         "cards_one": "{count} kaart", "cards_other": "{count} kaarten", "progress_of": "{done} van {cards}",
-        "summary_best": "beste reeks: {count}", "summary_record": "nieuw record: {count}",
     },
     "ca": {
         "opt_record": "Rècord", "record_none": "Encara sense rècord",
@@ -113,7 +105,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Útil per a baralles molt fàcils.",
         "theme_retired": "El tema «{old}» s'ha retirat; ara s'usa «{new}».",
         "cards_one": "{count} targeta", "cards_other": "{count} targetes", "progress_of": "{done} de {cards}",
-        "summary_best": "millor ratxa: {count}", "summary_record": "nou rècord: {count}",
     },
     "gl": {
         "opt_record": "Récord", "record_none": "Aínda sen récord",
@@ -124,7 +115,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Útil para mazos moi doados.",
         "theme_retired": "O tema «{old}» retirouse; agora úsase «{new}».",
         "cards_one": "{count} tarxeta", "cards_other": "{count} tarxetas", "progress_of": "{done} de {cards}",
-        "summary_best": "mellor racha: {count}", "summary_record": "novo récord: {count}",
     },
     "ro": {
         "opt_record": "Record", "record_none": "Încă niciun record",
@@ -137,7 +127,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "theme_retired": "Tema „{old}” a fost retrasă; acum se folosește „{new}”.",
         "cards_one": "{count} card", "cards_few": "{count} carduri", "cards_other": "{count} de carduri",
         "progress_of": "{done} din {cards}",
-        "summary_best": "cea mai bună serie: {count}", "summary_record": "record nou: {count}",
     },
     "ru": {
         "opt_record": "Рекорд", "record_none": "Рекорда пока нет",
@@ -150,7 +139,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "theme_retired": "Тема «{old}» больше не поддерживается; теперь используется «{new}».",
         "cards_one": "{count} карточка", "cards_few": "{count} карточки", "cards_many": "{count} карточек", "cards_other": "{count} карточек",
         "progress_of": "{done} из {cards}",
-        "summary_best": "лучшая серия: {count}", "summary_record": "новый рекорд: {count}",
     },
     "uk": {
         "opt_record": "Рекорд", "record_none": "Рекорду ще немає",
@@ -163,7 +151,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "theme_retired": "Тему «{old}» вилучено; тепер використовується «{new}».",
         "cards_one": "{count} картка", "cards_few": "{count} картки", "cards_many": "{count} карток", "cards_other": "{count} карток",
         "progress_of": "{done} з {cards}",
-        "summary_best": "найкраща серія: {count}", "summary_record": "новий рекорд: {count}",
     },
     "be": {
         "opt_record": "Рэкорд", "record_none": "Рэкорду пакуль няма",
@@ -176,7 +163,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "theme_retired": "Тэму «{old}» выдалена; цяпер выкарыстоўваецца «{new}».",
         "cards_one": "{count} картка", "cards_few": "{count} карткі", "cards_many": "{count} картак", "cards_other": "{count} картак",
         "progress_of": "{done} з {cards}",
-        "summary_best": "лепшая серыя: {count}", "summary_record": "новы рэкорд: {count}",
     },
     "pl": {
         "opt_record": "Rekord", "record_none": "Jeszcze bez rekordu",
@@ -189,7 +175,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "theme_retired": "Motyw „{old}” został wycofany; teraz używany jest „{new}”.",
         "cards_one": "{count} karta", "cards_few": "{count} karty", "cards_many": "{count} kart", "cards_other": "{count} kart",
         "progress_of": "{done} z {cards}",
-        "summary_best": "najlepsza seria: {count}", "summary_record": "nowy rekord: {count}",
     },
     "cs": {
         "opt_record": "Rekord", "record_none": "Zatím bez rekordu",
@@ -202,7 +187,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "theme_retired": "Motiv „{old}“ byl vyřazen; nyní se používá „{new}“.",
         "cards_one": "{count} karta", "cards_few": "{count} karty", "cards_other": "{count} karet",
         "progress_of": "{done} z {cards}",
-        "summary_best": "nejlepší série: {count}", "summary_record": "nový rekord: {count}",
     },
     "sk": {
         "opt_record": "Rekord", "record_none": "Zatiaľ bez rekordu",
@@ -215,7 +199,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "theme_retired": "Motív „{old}“ bol vyradený; teraz sa používa „{new}“.",
         "cards_one": "{count} karta", "cards_few": "{count} karty", "cards_other": "{count} kariet",
         "progress_of": "{done} z {cards}",
-        "summary_best": "najlepšia séria: {count}", "summary_record": "nový rekord: {count}",
     },
     "sl": {
         "opt_record": "Rekord", "record_none": "Še brez rekorda",
@@ -228,7 +211,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "theme_retired": "Tema »{old}« je bila umaknjena; zdaj se uporablja »{new}«.",
         "cards_one": "{count} kartica", "cards_two": "{count} kartici", "cards_few": "{count} kartice",
         "cards_other": "{count} kartic", "progress_of": "{done} od {cards}",
-        "summary_best": "najboljši niz: {count}", "summary_record": "nov rekord: {count}",
     },
     "hr": {
         "opt_record": "Rekord", "record_none": "Još nema rekorda",
@@ -241,7 +223,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "theme_retired": "Tema „{old}” je povučena; sada se koristi „{new}”.",
         "cards_one": "{count} kartica", "cards_few": "{count} kartice", "cards_other": "{count} kartica",
         "progress_of": "{done} od {cards}",
-        "summary_best": "najbolji niz: {count}", "summary_record": "novi rekord: {count}",
     },
     "sr": {
         "opt_record": "Рекорд", "record_none": "Још нема рекорда",
@@ -254,7 +235,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "theme_retired": "Тема „{old}” је повучена; сада се користи „{new}”.",
         "cards_one": "{count} картица", "cards_few": "{count} картице", "cards_other": "{count} картица",
         "progress_of": "{done} од {cards}",
-        "summary_best": "најбољи низ: {count}", "summary_record": "нови рекорд: {count}",
     },
     "bg": {
         "opt_record": "Рекорд", "record_none": "Все още няма рекорд",
@@ -265,7 +245,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Полезно за много лесни тестета.",
         "theme_retired": "Темата „{old}“ е премахната; вече се използва „{new}“.",
         "cards_one": "{count} карта", "cards_other": "{count} карти", "progress_of": "{done} от {cards}",
-        "summary_best": "най-добра серия: {count}", "summary_record": "нов рекорд: {count}",
     },
     "sv": {
         "opt_record": "Rekord", "record_none": "Inget rekord ännu",
@@ -276,7 +255,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Bra för mycket lätta kortlekar.",
         "theme_retired": "Temat ”{old}” har tagits bort; nu används ”{new}”.",
         "cards_one": "{count} kort", "cards_other": "{count} kort", "progress_of": "{done} av {cards}",
-        "summary_best": "bästa serie: {count}", "summary_record": "nytt rekord: {count}",
     },
     "da": {
         "opt_record": "Rekord", "record_none": "Ingen rekord endnu",
@@ -287,7 +265,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Nyttigt til meget lette bunker.",
         "theme_retired": "Temaet »{old}« er udgået; nu bruges »{new}«.",
         "cards_one": "{count} kort", "cards_other": "{count} kort", "progress_of": "{done} af {cards}",
-        "summary_best": "bedste stime: {count}", "summary_record": "ny rekord: {count}",
     },
     "nb": {
         "opt_record": "Rekord", "record_none": "Ingen rekord ennå",
@@ -298,7 +275,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Nyttig for svært lette bunker.",
         "theme_retired": "Temaet «{old}» er fjernet; nå brukes «{new}».",
         "cards_one": "{count} kort", "cards_other": "{count} kort", "progress_of": "{done} av {cards}",
-        "summary_best": "beste rekke: {count}", "summary_record": "ny rekord: {count}",
     },
     "fi": {
         "opt_record": "Ennätys", "record_none": "Ei vielä ennätystä",
@@ -309,7 +285,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Hyödyllinen hyvin helpoille pakoille.",
         "theme_retired": "Teema ”{old}” on poistettu; nyt käytetään teemaa ”{new}”.",
         "cards_one": "{count} kortti", "cards_other": "{count} korttia", "progress_of": "{done}/{cards}",
-        "summary_best": "paras putki: {count}", "summary_record": "uusi ennätys: {count}",
     },
     "et": {
         "opt_record": "Rekord", "record_none": "Rekordit veel pole",
@@ -320,7 +295,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Kasulik väga lihtsate pakkide puhul.",
         "theme_retired": "Teema „{old}“ on eemaldatud; nüüd kasutatakse teemat „{new}“.",
         "cards_one": "{count} kaart", "cards_other": "{count} kaarti", "progress_of": "{done}/{cards}",
-        "summary_best": "parim seeria: {count}", "summary_record": "uus rekord: {count}",
     },
     "lt": {
         "opt_record": "Rekordas", "record_none": "Rekordo dar nėra",
@@ -331,7 +305,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Naudinga labai lengvoms kaladėms.",
         "theme_retired": "Tema „{old}“ pašalinta; dabar naudojama „{new}“.",
         "cards_one": "{count} kortelė", "cards_other": "Kortelių: {count}", "progress_of": "{done} iš {cards}",
-        "summary_best": "geriausia serija: {count}", "summary_record": "naujas rekordas: {count}",
     },
     "lv": {
         "opt_record": "Rekords", "record_none": "Rekorda vēl nav",
@@ -342,7 +315,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Noderīgi ļoti viegliem klājiem.",
         "theme_retired": "Motīvs “{old}” ir izņemts; tagad tiek lietots “{new}”.",
         "cards_one": "{count} kartīte", "cards_other": "{count} kartītes", "progress_of": "{done} no {cards}",
-        "summary_best": "labākā sērija: {count}", "summary_record": "jauns rekords: {count}",
     },
     "hu": {
         "opt_record": "Rekord", "record_none": "Még nincs rekord",
@@ -353,7 +325,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Hasznos nagyon könnyű paklikhoz.",
         "theme_retired": "A(z) „{old}” téma megszűnt; most a(z) „{new}” van használatban.",
         "cards_one": "{count} kártya", "cards_other": "{count} kártya", "progress_of": "{done} / {cards}",
-        "summary_best": "legjobb sorozat: {count}", "summary_record": "új rekord: {count}",
     },
     "el": {
         "opt_record": "Ρεκόρ", "record_none": "Δεν υπάρχει ρεκόρ ακόμα",
@@ -364,7 +335,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Χρήσιμο για πολύ εύκολες τράπουλες.",
         "theme_retired": "Το θέμα «{old}» αποσύρθηκε· τώρα χρησιμοποιείται το «{new}».",
         "cards_one": "{count} κάρτα", "cards_other": "{count} κάρτες", "progress_of": "{done} από {cards}",
-        "summary_best": "καλύτερο σερί: {count}", "summary_record": "νέο ρεκόρ: {count}",
     },
     "tr": {
         "opt_record": "Rekor", "record_none": "Henüz rekor yok",
@@ -375,7 +345,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Çok kolay desteler için kullanışlı.",
         "theme_retired": "“{old}” teması kaldırıldı; artık “{new}” kullanılıyor.",
         "cards_one": "{count} kart", "cards_other": "{count} kart", "progress_of": "{done}/{cards}",
-        "summary_best": "en iyi seri: {count}", "summary_record": "yeni rekor: {count}",
     },
     "ar": {
         "opt_record": "الرقم القياسي", "record_none": "لا يوجد رقم قياسي بعد",
@@ -390,7 +359,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "cards_zero": "لا بطاقات", "cards_one": "بطاقة واحدة", "cards_two": "بطاقتان",
         "cards_few": "{count} بطاقات", "cards_many": "{count} بطاقة", "cards_other": "{count} بطاقة",
         "progress_of": "{done} من {cards}",
-        "summary_best": "أفضل سلسلة: {count}", "summary_record": "رقم قياسي جديد: {count}",
     },
     "he": {
         "opt_record": "שיא", "record_none": "עדיין אין שיא",
@@ -403,7 +371,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "theme_retired": "ערכת הנושא „{old}” הוסרה; כעת נעשה שימוש ב־„{new}”.",
         "cards_one": "כרטיס אחד", "cards_two": "שני כרטיסים", "cards_other": "{count} כרטיסים",
         "progress_of": "{done} מתוך {cards}",
-        "summary_best": "הרצף הטוב ביותר: {count}", "summary_record": "שיא חדש: {count}",
     },
     "yi": {
         "opt_record": "רעקאָרד", "record_none": "נאָך קיין רעקאָרד",
@@ -414,7 +381,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "ניצלעך פֿאַר זייער גרינגע קאָלאָדעס.",
         "theme_retired": "די טעמע „{old}“ איז אַוועקגענומען; איצט ווערט גענוצט „{new}“.",
         "cards_one": "{count} קאַרטל", "cards_other": "{count} קאַרטלעך", "progress_of": "{done} פֿון {cards}",
-        "summary_best": "בעסטע סעריע: {count}", "summary_record": "נײַער רעקאָרד: {count}",
     },
     "fa": {
         "opt_record": "رکورد", "record_none": "هنوز رکوردی نیست",
@@ -425,7 +391,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "برای دسته‌های خیلی آسان مفید است.",
         "theme_retired": "پوسته «{old}» کنار گذاشته شد؛ اکنون «{new}» استفاده می‌شود.",
         "cards_one": "{count} کارت", "cards_other": "{count} کارت", "progress_of": "{done} از {cards}",
-        "summary_best": "بهترین زنجیره: {count}", "summary_record": "رکورد جدید: {count}",
     },
     "hi": {
         "opt_record": "रिकॉर्ड", "record_none": "अभी कोई रिकॉर्ड नहीं",
@@ -436,7 +401,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "बहुत आसान डेक के लिए उपयोगी।",
         "theme_retired": "थीम “{old}” हटा दी गई है; अब “{new}” इस्तेमाल होती है।",
         "cards_one": "{count} कार्ड", "cards_other": "{count} कार्ड", "progress_of": "{cards} में से {done}",
-        "summary_best": "सबसे लंबा सिलसिला: {count}", "summary_record": "नया रिकॉर्ड: {count}",
     },
     "th": {
         "opt_record": "สถิติ", "record_none": "ยังไม่มีสถิติ",
@@ -447,7 +411,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "เหมาะกับสำรับที่ง่ายมาก",
         "theme_retired": "ธีม “{old}” ถูกยกเลิกแล้ว ตอนนี้ใช้ “{new}”",
         "cards_other": "{count} การ์ด", "progress_of": "{done} จาก {cards}",
-        "summary_best": "ต่อเนื่องสูงสุด: {count}", "summary_record": "สถิติใหม่: {count}",
     },
     "vi": {
         "opt_record": "Kỷ lục", "record_none": "Chưa có kỷ lục",
@@ -458,7 +421,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Hữu ích cho các bộ thẻ rất dễ.",
         "theme_retired": "Chủ đề “{old}” đã ngừng; giờ dùng “{new}”.",
         "cards_other": "{count} thẻ", "progress_of": "{done} / {cards}",
-        "summary_best": "chuỗi tốt nhất: {count}", "summary_record": "kỷ lục mới: {count}",
     },
     "id": {
         "opt_record": "Rekor", "record_none": "Belum ada rekor",
@@ -469,7 +431,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Berguna untuk dek yang sangat mudah.",
         "theme_retired": "Tema “{old}” sudah dihentikan; sekarang memakai “{new}”.",
         "cards_one": "{count} kartu", "cards_other": "{count} kartu", "progress_of": "{done} dari {cards}",
-        "summary_best": "rentetan terbaik: {count}", "summary_record": "rekor baru: {count}",
     },
     "ms": {
         "opt_record": "Rekod", "record_none": "Belum ada rekod",
@@ -480,7 +441,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Berguna untuk dek yang sangat mudah.",
         "theme_retired": "Tema “{old}” telah dihentikan; kini menggunakan “{new}”.",
         "cards_other": "{count} kad", "progress_of": "{done} daripada {cards}",
-        "summary_best": "rentetan terbaik: {count}", "summary_record": "rekod baharu: {count}",
     },
     "ja": {
         "opt_record": "記録", "record_none": "まだ記録はありません",
@@ -491,7 +451,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "とても簡単なデッキに便利です。",
         "theme_retired": "テーマ「{old}」は廃止されました。現在は「{new}」を使用しています。",
         "cards_other": "{count}枚", "progress_of": "{done} / {cards}",
-        "summary_best": "最長連続：{count}", "summary_record": "新記録：{count}",
     },
     "ko": {
         "opt_record": "기록", "record_none": "아직 기록 없음",
@@ -502,7 +461,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "아주 쉬운 덱에 유용합니다.",
         "theme_retired": "‘{old}’ 테마는 더 이상 제공되지 않아 ‘{new}’을(를) 사용합니다.",
         "cards_other": "카드 {count}장", "progress_of": "{cards} 중 {done}",
-        "summary_best": "최고 연속: {count}", "summary_record": "새 기록: {count}",
     },
     "zh_CN": {
         "opt_record": "纪录", "record_none": "暂无纪录",
@@ -513,7 +471,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "适用于非常简单的牌组。",
         "theme_retired": "主题“{old}”已停用；现在使用“{new}”。",
         "cards_other": "{count} 张卡片", "progress_of": "{done} / {cards}",
-        "summary_best": "最长连胜：{count}", "summary_record": "新纪录：{count}",
     },
     "zh_TW": {
         "opt_record": "紀錄", "record_none": "尚無紀錄",
@@ -524,7 +481,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "適用於非常簡單的牌組。",
         "theme_retired": "主題「{old}」已停用；現在使用「{new}」。",
         "cards_other": "{count} 張卡片", "progress_of": "{done} / {cards}",
-        "summary_best": "最長連勝：{count}", "summary_record": "新紀錄：{count}",
     },
     "eo": {
         "opt_record": "Rekordo", "record_none": "Ankoraŭ neniu rekordo",
@@ -535,7 +491,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Utila por tre facilaj pakoj.",
         "theme_retired": "La etoso “{old}” estis forigita; nun uziĝas “{new}”.",
         "cards_one": "{count} karto", "cards_other": "{count} kartoj", "progress_of": "{done} el {cards}",
-        "summary_best": "plej bona serio: {count}", "summary_record": "nova rekordo: {count}",
     },
     "af": {
         "opt_record": "Rekord", "record_none": "Nog geen rekord nie",
@@ -546,7 +501,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Nuttig vir baie maklike pakke.",
         "theme_retired": "Die tema “{old}” is onttrek; nou word “{new}” gebruik.",
         "cards_one": "{count} kaart", "cards_other": "{count} kaarte", "progress_of": "{done} van {cards}",
-        "summary_best": "beste reeks: {count}", "summary_record": "nuwe rekord: {count}",
     },
     "eu": {
         "opt_record": "Errekorra", "record_none": "Oraindik ez dago errekorrik",
@@ -557,7 +511,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Oso sorta errazetarako erabilgarria.",
         "theme_retired": "«{old}» gaia kendu da; orain «{new}» erabiltzen da.",
         "cards_one": "{count} txartel", "cards_other": "{count} txartel", "progress_of": "{done}/{cards}",
-        "summary_best": "segidarik onena: {count}", "summary_record": "errekor berria: {count}",
     },
     "ga": {
         "opt_record": "Taifead", "record_none": "Gan taifead fós",
@@ -568,7 +521,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Úsáideach do phacaí an-éasca.",
         "theme_retired": "Baineadh an téama “{old}”; úsáidtear “{new}” anois.",
         "cards_one": "{count} cárta", "cards_other": "{count} cárta", "progress_of": "{done} as {cards}",
-        "summary_best": "an tsraith is fearr: {count}", "summary_record": "taifead nua: {count}",
     },
     "hy": {
         "opt_record": "Ռեկորդ", "record_none": "Ռեկորդ դեռ չկա",
@@ -579,7 +531,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Օգտակար է շատ հեշտ փաթեթների համար։",
         "theme_retired": "«{old}» թեման հանվել է․ այժմ օգտագործվում է «{new}»։",
         "cards_one": "{count} քարտ", "cards_other": "{count} քարտ", "progress_of": "{done}՝ {cards}-ից",
-        "summary_best": "լավագույն շարք՝ {count}", "summary_record": "նոր ռեկորդ՝ {count}",
     },
     "jbo": {
         "opt_record": "zmadu", "record_none": "no zmadu ca",
@@ -590,7 +541,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "plixau lo mutce frili pakstu",
         "theme_retired": "le se skari be zo'e pe la'o gy {old} gy cu sisti .i ca pilno la'o gy {new} gy",
         "cards_other": "{count} kardi", "progress_of": "{done} / {cards}",
-        "summary_best": "xagrai ralterba'u: {count}", "summary_record": "cnino zmadu: {count}",
     },
     "la": {
         "opt_record": "Optimum", "record_none": "Nullum adhuc optimum",
@@ -601,7 +551,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Utile fasciculis facillimis.",
         "theme_retired": "Thema «{old}» remotum est; nunc «{new}» adhibetur.",
         "cards_one": "{count} charta", "cards_other": "{count} chartae", "progress_of": "{done} ex {cards}",
-        "summary_best": "optima series: {count}", "summary_record": "novum optimum: {count}",
     },
     "mn": {
         "opt_record": "Дээд амжилт", "record_none": "Дээд амжилт хараахан алга",
@@ -612,7 +561,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Маш амархан багцад хэрэгтэй.",
         "theme_retired": "“{old}” загварыг хассан; одоо “{new}”-г ашиглаж байна.",
         "cards_one": "{count} карт", "cards_other": "{count} карт", "progress_of": "{cards}-аас {done}",
-        "summary_best": "шилдэг цуврал: {count}", "summary_record": "шинэ дээд амжилт: {count}",
     },
     "my": {
         "opt_record": "စံချိန်", "record_none": "စံချိန် မရှိသေးပါ",
@@ -623,7 +571,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "အလွန်လွယ်သော ဒက်များအတွက် အသုံးဝင်သည်။",
         "theme_retired": "“{old}” အပြင်အဆင်ကို ရပ်လိုက်ပြီ၊ ယခု “{new}” ကို သုံးသည်။",
         "cards_other": "ကတ် {count} ခု", "progress_of": "{cards} အနက် {done}",
-        "summary_best": "အကောင်းဆုံး ဆက်တိုက်: {count}", "summary_record": "စံချိန်သစ်: {count}",
     },
     "oc": {
         "opt_record": "Record", "record_none": "Encara cap de record",
@@ -634,7 +581,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Util pels paquets plan aisits.",
         "theme_retired": "Lo tèma « {old} » es estat retirat ; ara s'utiliza « {new} ».",
         "cards_one": "{count} carta", "cards_other": "{count} cartas", "progress_of": "{done} sus {cards}",
-        "summary_best": "melhora sèria : {count}", "summary_record": "novèl record : {count}",
     },
     "sq": {
         "opt_record": "Rekord", "record_none": "Ende pa rekord",
@@ -645,7 +591,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "E dobishme për paketa shumë të lehta.",
         "theme_retired": "Tema “{old}” është hequr; tani përdoret “{new}”.",
         "cards_one": "{count} kartë", "cards_other": "{count} karta", "progress_of": "{done} nga {cards}",
-        "summary_best": "seria më e mirë: {count}", "summary_record": "rekord i ri: {count}",
     },
     "ug": {
         "opt_record": "رېكورت", "record_none": "تېخى رېكورت يوق",
@@ -656,7 +601,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "بەك ئاسان دەستىلەر ئۈچۈن پايدىلىق.",
         "theme_retired": "«{old}» ئۇسلۇبى توختىتىلدى؛ ھازىر «{new}» ئىشلىتىلىدۇ.",
         "cards_one": "{count} كارتا", "cards_other": "{count} كارتا", "progress_of": "{cards} دىن {done}",
-        "summary_best": "ئەڭ ياخشى ئارقىمۇ-ئارقىلىق: {count}", "summary_record": "يېڭى رېكورت: {count}",
     },
     "uz": {
         "opt_record": "Rekord", "record_none": "Hali rekord yo'q",
@@ -667,7 +611,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Juda oson to'plamlar uchun foydali.",
         "theme_retired": "“{old}” mavzusi olib tashlandi; endi “{new}” ishlatiladi.",
         "cards_one": "{count} ta karta", "cards_other": "{count} ta karta", "progress_of": "{cards} dan {done}",
-        "summary_best": "eng yaxshi seriya: {count}", "summary_record": "yangi rekord: {count}",
     },
     "fil": {
         "opt_record": "Rekord", "record_none": "Wala pang rekord",
@@ -678,7 +621,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Kapaki-pakinabang sa napakadaling deck.",
         "theme_retired": "Inalis na ang temang “{old}”; “{new}” na ang gamit ngayon.",
         "cards_one": "{count} card", "cards_other": "{count} card", "progress_of": "{done} sa {cards}",
-        "summary_best": "pinakamahabang sunod-sunod: {count}", "summary_record": "bagong rekord: {count}",
     },
     "or": {
         "opt_record": "ରେକର୍ଡ", "record_none": "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ରେକର୍ଡ ନାହିଁ",
@@ -689,7 +631,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "ବହୁତ ସହଜ ଡେକ୍ ପାଇଁ ଉପଯୋଗୀ।",
         "theme_retired": "“{old}” ଥିମ୍ ବନ୍ଦ ହୋଇଛି; ଏବେ “{new}” ବ୍ୟବହୃତ ହେଉଛି।",
         "cards_one": "{count}ଟି କାର୍ଡ", "cards_other": "{count}ଟି କାର୍ଡ", "progress_of": "{cards} ମଧ୍ୟରୁ {done}",
-        "summary_best": "ସର୍ବୋତ୍ତମ ଲଗାତାର: {count}", "summary_record": "ନୂଆ ରେକର୍ଡ: {count}",
     },
     "kk": {
         "opt_record": "Рекорд", "record_none": "Әзірге рекорд жоқ",
@@ -700,7 +641,6 @@ TEXTS_1_2: dict[str, dict[str, str]] = {
         "opt_exclude_note": "Өте оңай колодалар үшін пайдалы.",
         "theme_retired": "«{old}» тақырыбы алынып тасталды; енді «{new}» қолданылады.",
         "cards_one": "{count} карта", "cards_other": "{count} карта", "progress_of": "{cards} ішінен {done}",
-        "summary_best": "ең жақсы серия: {count}", "summary_record": "жаңа рекорд: {count}",
     },
 }
 

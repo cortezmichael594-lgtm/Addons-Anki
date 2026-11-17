@@ -15,7 +15,7 @@ from aqt.operations import QueryOp
 from aqt.qt import QTimer
 from aqt.theme import theme_manager
 
-from .data import checkpoint_marks, done_today, remaining_count
+from .data import checkpoint_marks, done_today
 from .effects import (
     CELEBRATION_SPARKLE_MIN_STREAK,
     GOLD_STREAK_THRESHOLD,
@@ -27,7 +27,6 @@ from .effects import (
 )
 from .errors import guard, report
 from .i18n import (
-    cards_label,
     progress_text,
     record_label,
     record_value_label,
@@ -57,7 +56,6 @@ from .view import (
     build_hide_label_js,
     build_set_dark_js,
     build_show_label_js,
-    build_summary_js,
     reviewer_eval,
     reviewer_page_body,
     reviewer_page_head,
@@ -78,9 +76,6 @@ class ProgressBarTracker:
         self._config: Config = load_config()
         self._pending_label: str | None = None
         self._pending_sparkle: bool = False
-        # Resumen para la pantalla de «Enhorabuena» (1.2.0): se prepara al
-        # salir del repaso con el mazo terminado y se pinta una sola vez.
-        self._pending_summary: tuple[StyleBundle, str, str] | None = None
         self._timer = QTimer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(UPDATE_INTERVAL_MS)
@@ -99,7 +94,6 @@ class ProgressBarTracker:
         gui_hooks.webview_will_set_content.append(self._on_webview_will_set_content)
         gui_hooks.profile_did_open.append(self._on_profile_open)
         gui_hooks.profile_will_close.append(self._on_profile_close)
-        gui_hooks.overview_did_refresh.append(self._on_overview_did_refresh)
 
     def _register_config_action(self) -> None:
         try:
@@ -257,7 +251,6 @@ class ProgressBarTracker:
         ).failure(on_failure).run_in_background()
 
     def _handle_review_exit(self) -> None:
-        self._prepare_summary()
         try:
             if self._state.record_enabled:
                 save_best_streak(self._state.session_max)
@@ -437,39 +430,6 @@ class ProgressBarTracker:
             text += "; " + record_value_label(streak)
         return text
 
-    def _prepare_summary(self) -> None:
-        """Si se sale del repaso con el mazo terminado, deja preparada la línea
-        de la pantalla de «Enhorabuena»: «48 tarjetas · mejor racha: 17»."""
-        self._pending_summary = None
-        state = self._state
-        if not state.active or not state.answer_history or state.day_total <= 0:
-            return
-        if remaining_count() > 0:
-            return
-        total = state.day_total
-        parts = [cards_label(total)]
-        best = state.session_max
-        if best > 0:
-            beaten = state.record_enabled and best > state.best_at_start and best >= 3
-            key = "summary_record" if beaten else "summary_best"
-            parts.append(t(key).format(count=best))
-        self._pending_summary = (self._bundle_plain(), " · ".join(parts), progress_text(total, total))
-
-    def _bundle_plain(self) -> StyleBundle:
-        return fill_bundle(self._config.theme, False)
-
-    @guard
-    def _on_overview_did_refresh(self, _overview: object) -> None:
-        pending = self._pending_summary
-        self._pending_summary = None
-        if pending is None or mw is None or mw.col is None:
-            return
-        # Solo en la pantalla de «Enhorabuena»: el mazo ya no tiene nada hoy.
-        if remaining_count() > 0:
-            return
-        bundle, line, aria = pending
-        mw.web.eval(build_summary_js(bundle, line, aria, bool(theme_manager.night_mode)))
-
     def current_best(self) -> int:
         """El récord con la racha en curso incluida, si la supera (para la
         ventana de opciones abierta durante un repaso)."""
@@ -510,7 +470,6 @@ class ProgressBarTracker:
         gui_hooks.webview_will_set_content.remove(self._on_webview_will_set_content)
         gui_hooks.profile_did_open.remove(self._on_profile_open)
         gui_hooks.profile_will_close.remove(self._on_profile_close)
-        gui_hooks.overview_did_refresh.remove(self._on_overview_did_refresh)
         self._timer.stop()
 
 
