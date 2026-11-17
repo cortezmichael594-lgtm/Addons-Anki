@@ -141,5 +141,6 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   2026-11-09, apartados 2.2 y 4.3). El primer récord sigue avisándose desde 3.
 - La barra no retrocede cuando la cuenta de Anki sube (vencen tarjetas en aprendizaje): se queda quieta
   hasta que el avance la alcance. Solo retrocede al deshacer (informe del 2026-11-09, apartado 3.2).
-- En la pantalla de «Enhorabuena», la barra llena va sin animación, con una sola línea de datos: la
-  celebración ya la pone ProFeedback (informe del 2026-11-09, apartado 8.1).
+- Desde la 1.4.0 no hay nada en la pantalla de «Enhorabuena»: la barra llena y la línea de resumen
+  que puso la 1.2.0 (informe del 2026-11-09, apartado 8.1) se quitaron del todo a petición de la
+  persona el 2026-11-17. La celebración al terminar es de ProFeedback.

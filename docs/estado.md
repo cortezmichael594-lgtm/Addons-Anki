@@ -108,6 +108,8 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   celebración por respuesta, movimiento reducido completo, ventana de opciones en dos recuadros con
   vista previa (panel copiado del de ProFeedback 2.5.0 y ampliado). Regla de 672 px en el modelo de
   opciones. Pendiente de la persona: probarlo en Anki.
+- 2026-11-17: CoreProgress 1.4.0 quita del todo la barra llena y la línea de resumen de la pantalla
+  de «¡Enhorabuena!» (petición de la persona). 25 pruebas.
 
 ## En curso
 
@@ -124,7 +126,7 @@ Pendiente de probar por la persona dentro de Anki, de las entregas del 2026-11-0
 
 - Las ventanas de opciones nuevas de CoreProgress, ProFeedback, Hider, Restart, Always on Top y Edit
   field during review.
-- La barra de CoreProgress 1.2.0, en el repaso y en la pantalla «¡Enhorabuena!».
+- La barra de CoreProgress, en el repaso; y que desde la 1.4.0 la pantalla «¡Enhorabuena!» sale sin ella.
 
 ## Dudas para la persona
 

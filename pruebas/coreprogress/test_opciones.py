@@ -179,8 +179,6 @@ class Version12Tests(unittest.TestCase):
             "opt_exclude_note",
             "theme_retired",
             "progress_of",
-            "summary_best",
-            "summary_record",
             "in_a_row_other",
             "cards_other",
         )

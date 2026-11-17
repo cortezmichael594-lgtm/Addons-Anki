@@ -697,39 +697,6 @@ def build_apply_js(bundle: StyleBundle, progress: float, aria: str = "", quiet: 
     )
 
 
-def build_summary_js(bundle: StyleBundle, line: str, aria: str, dark: bool) -> str:
-    """La barra llena y quieta, con una linea debajo, en la pantalla de
-    «Enhorabuena» de Anki (1.2.0, informe del 2026-11-09).
-
-    Va arriba de la pagina, en su sitio (no flota), asi que no tapa nada. Sin
-    animacion: el confeti de ProFeedback ya celebra; aqui solo va el dato.
-    """
-    mode = bundle.dark if dark else bundle.light
-    data = {
-        "gradient": mode.gradient,
-        "shadow": mode.fill_shadow,
-        "line": line,
-        "aria": aria,
-    }
-    return (
-        "(function(d){try{"
-        "var old=document.getElementById('_cprogSummary'); if(old) old.remove();"
-        "var box=document.createElement('div'); box.id='_cprogSummary';"
-        "box.style.cssText='max-width:640px;margin:16px auto 0;padding:0 18px;box-sizing:border-box;';"
-        "var bar=document.createElement('div');"
-        "bar.setAttribute('role','progressbar'); bar.setAttribute('aria-valuemin','0');"
-        "bar.setAttribute('aria-valuemax','100'); bar.setAttribute('aria-valuenow','100');"
-        "bar.setAttribute('aria-valuetext', d.aria);"
-        "bar.style.cssText='height:16px;border-radius:16px;background:'+d.gradient+';box-shadow:'+d.shadow+';';"
-        "var p=document.createElement('p'); p.textContent=d.line;"
-        "p.style.cssText='margin:8px 0 0;text-align:center;font-size:13px;"
-        "color:var(--fg-subtle,#4E576A);font-variant-numeric:tabular-nums;';"
-        "box.appendChild(bar); box.appendChild(p);"
-        "(document.body||document.documentElement).prepend(box);"
-        "}catch(e){}})(" + json.dumps(data) + ");"
-    )
-
-
 def build_show_label_js(text: str, bundle: StyleBundle) -> str:
     return (
         "window._cprog&&window._cprog.showLabel&&window._cprog.showLabel("

@@ -1,29 +1,27 @@
 # Qué hace «CoreProgress»
 
-Versión 1.3.0 · 2026-11-16
+Versión 1.4.0 · 2026-11-17
 
 Barra de progreso en la parte de arriba de la pantalla de repaso: se va llenando a medida que despacha
 lo que tenía hoy en el mazo que está estudiando, con marcas numeradas por el camino y el total de hoy al final. Además cuenta sus
 aciertos seguidos, los celebra con un aviso breve en ciertos números, vuelve dorada la barra a partir
-de cinco, celebra la mejor racha de los últimos 30 días y guarda su récord personal. Al terminar un mazo, deja la barra llena y una línea de resumen
-en la pantalla de «¡Enhorabuena!». Solo lee su estudio: nunca cambia tarjetas, notas, repasos ni
+de cinco, celebra la mejor racha de los últimos 30 días y guarda su récord personal. Solo lee su estudio: nunca cambia tarjetas, notas, repasos ni
 fechas. Lo único que guarda son sus opciones y su récord.
 
 La 1.2.0 aplicó entero el informe de interfaz, aprendizaje y hábito del 2026-11-09. La 1.3.0 aplica
 entero el informe «Auditoría y rediseño de la interfaz: CoreProgress 1.2.0» del 2026-11-16, con la
 opción recomendada en sus cuatro decisiones: mejor racha de 30 días, hitos en números redondos con el
 total al final, relleno plano y sin la cabecera repetida en la ventana de opciones (véase «Así a
-propósito» en el registro de errores).
+propósito» en el registro de errores). La 1.4.0 quita la barra llena y la línea de resumen de la
+pantalla de «¡Enhorabuena!».
 
 ## 1. Dónde aparece
 
 - En la pantalla de repaso (la que se abre al pulsar «Estudiar ahora»), también al repasar un mazo
   filtrado o un estudio personalizado.
-- En la pantalla de «¡Enhorabuena!» de Anki, la que sale al terminar un mazo: la barra llena y una
-  línea (apartado 6).
 - En Herramientas > Complementos, al seleccionarlo y pulsar «Configuración», se abre su ventana de
   opciones, no el editor de texto que Anki muestra con otros complementos.
-- No aparece en la lista de mazos, en la pantalla de un mazo con tarjetas pendientes, en Explorar
+- No aparece en la lista de mazos, en la pantalla de un mazo (tampoco en la de «¡Enhorabuena!»), en Explorar
   (tampoco en su vista previa), en la pantalla de plantillas, en el editor ni en las estadísticas. No
   añade menús ni atajos de teclado.
 - En la pantalla de repaso baja la estrella de nota marcada y la bandera de Anki para que queden
@@ -147,20 +145,9 @@ Aspecto:
 
 ## 6. Al terminar un mazo
 
-En la pantalla de «¡Enhorabuena!» de Anki, la que sale al no quedar nada en el mazo, CoreProgress pone
-arriba su barra llena y quieta (sin chispas ni movimiento), en el color del tema y con su contorno, y
-debajo una línea en gris:
-
-```
-████████████████████████████████████
-48 tarjetas · mejor racha: 17
-```
-
-- «48 tarjetas» es el total de hoy en ese mazo. «Mejor racha» es la más larga de ese repaso; si batió
-  el récord, «nuevo récord: 17». Sin ningún acierto seguido, solo las tarjetas.
-- Solo sale al terminar de verdad, al salir del repaso con el mazo vacío; no al salir a medias.
-- No tapa nada: va en su sitio, encima del contenido de la página. La celebración (confeti y sonido) es
-  cosa de ProFeedback; CoreProgress solo pone el dato.
+Desde la 1.4.0, nada: al terminar un mazo, la pantalla de «¡Enhorabuena!» de Anki queda tal cual, sin
+barra llena ni línea de resumen (lo pidió usted el 2026-11-17). La celebración, si la tiene activada,
+es cosa de ProFeedback.
 
 ## 7. Ventana de opciones
 
@@ -254,10 +241,10 @@ tarjetas») usan la forma de plural de cada idioma. Los botones estándar salen 
 - No se conecta a internet.
 - No cambia nada de su estudio: solo lee la cuenta de tarjetas pendientes y lo respondido hoy.
 - No muestra la racha como cifra fija ni el récord durante el repaso (el récord, en las opciones y en
-  la línea de «¡Enhorabuena!» si se bate). No muestra un porcentaje ni «15/27»: la marca final ya da
+  el aviso de «NUEVO RÉCORD» al batirlo). No muestra un porcentaje ni «15/27»: la marca final ya da
   el total.
 - No suena: el sonido es de ProFeedback.
 - No da mensajes de ánimo al fallar: fallar no cuesta nada visible (la barra no retrocede y al
   romperse la racha solo se funde el dorado).
-- No aparece fuera del repaso, salvo la barra llena de la pantalla de «¡Enhorabuena!».
+- No aparece fuera del repaso.
 - No añade menús ni atajos.
