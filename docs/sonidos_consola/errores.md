@@ -1,4 +1,4 @@
-# Errores de «Sonidos de consola»
+# Errores de «Sound Master» (antes «Sonidos de consola»)
 
 Registro en lenguaje llano de los fallos de este complemento. Cada corrección del código (FIX-NNN)
 tiene aquí su línea con el mismo número.
@@ -18,6 +18,13 @@ tiene aquí su línea con el mismo número.
   Por qué: la ventana se enseñaba en seguida y solo la página esperaba, oculta, a estar dibujada.
   Regla: la ventana entera es invisible hasta que el panel avisa de que está listo y ya tiene su alto;
   entonces aparece de una vez.
+- FIX-003 · 2026-11-17 · versión 1.2.0 · Qué pasaba: en Windows, al abrir la configuración la ventana
+  hacía un pequeño destello. Por qué: para cumplir FIX-002, la ventana se abría transparente y pasaba a
+  opaca al estar lista, y Windows la vuelve a pintar entera en ese cambio. Regla (sustituye a la de
+  FIX-002, con el visto bueno de la persona, que pidió que las ventanas se abran sin destello): la
+  ventana se abre normal, con el fondo de Anki, y solo la página espera oculta a estar dibujada y con
+  su alto; entonces aparece de una vez, como en los demás complementos del taller (el mismo arreglo
+  que FIX-009 de ProFeedback).
 
 ## Así a propósito
 

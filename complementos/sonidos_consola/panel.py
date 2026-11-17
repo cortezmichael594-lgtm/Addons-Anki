@@ -19,6 +19,7 @@ Nada se guarda antes de Aceptar.
 
 # Historial de correcciones de este archivo:
 # FIX-002 (2026-11-13): al abrir la configuración se veía un destello antes del panel.
+# FIX-003 (2026-11-17): en Windows, la ventana hacía un pequeño destello al aparecer (sustituye el método de FIX-002).
 
 from __future__ import annotations
 
@@ -152,7 +153,15 @@ class PanelDialog(QDialog):
         # Causa: la ventana se enseñaba en seguida y solo la página esperaba, oculta, a estar dibujada.
         # Regla: la ventana entera es invisible (opacidad 0) hasta que la página avisa de que está lista
         #   y ya tiene su alto; la página se dibuja detrás, sin ocultarla.
-        self.setWindowOpacity(0.0)
+        #   (Sustituida el 2026-11-17 por la regla de FIX-003, a petición de la persona.)
+        # --- FIX-003 (2026-11-17) ---
+        # Síntoma: en Windows, al abrir la configuración la ventana hacía un pequeño destello.
+        # Causa: la ventana se abría transparente (opacidad 0) y pasaba a opaca al estar lista; Windows
+        #   la vuelve a pintar entera en ese cambio, y se nota.
+        # Regla: la ventana se abre como cualquier otra, sin tocar su opacidad, con el fondo de Anki;
+        #   solo la página espera oculta a estar dibujada y ya con su alto, y aparece de una vez (como
+        #   el resto de ventanas de opciones del taller).
+        self._web.hide()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._web)
@@ -177,11 +186,12 @@ class PanelDialog(QDialog):
         if sip.isdeleted(self) or self._ready:
             return
         self._ready = True
-        self.setWindowOpacity(1.0)
+        self._web.show()
 
     def _reveal(self) -> None:
         if not sip.isdeleted(self):
-            self.setWindowOpacity(1.0)
+            self._web.show()
+            self._web.setFocus()
 
     def _on_bridge(self, cmd: str) -> Any:
         if not cmd.startswith(BRIDGE_PREFIX):
@@ -198,7 +208,6 @@ class PanelDialog(QDialog):
         if action == "ready":
             self._ready = True
             self._fit_height(arg)
-            self._web.setFocus()
             # Se enseña en la vuelta siguiente del bucle de Qt, cuando el alto nuevo ya está aplicado.
             mw.progress.single_shot(0, self._reveal, False)
             return None

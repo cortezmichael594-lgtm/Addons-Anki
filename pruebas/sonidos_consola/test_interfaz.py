@@ -265,3 +265,19 @@ class PlayerFilesTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PanelOpensLikeAnyWindowTests(unittest.TestCase):
+    # --- FIX-003: la ventana de opciones no juega con su opacidad (destello en Windows); solo la
+    # página espera oculta.
+    def test_no_window_opacity_trick(self) -> None:
+        source = (Path(dialogs.__file__).parent / "panel.py").read_text(encoding="utf-8")
+        code = "\n".join(line for line in source.splitlines() if not line.lstrip().startswith("#"))
+        self.assertNotIn("setWindowOpacity", code)
+        self.assertIn("self._web.hide()", code)
+
+    def test_new_name(self) -> None:
+        # 1.3.0: el complemento se llama «Sound Master» (la carpeta sigue siendo sonidos_consola).
+        self.assertEqual(strings.OPTIONS_TITLE, "Sound Master")
+        manifest = (Path(dialogs.__file__).parent / "manifest.json").read_text(encoding="utf-8")
+        self.assertIn('"name": "Sound Master"', manifest)

@@ -1,6 +1,11 @@
-# Qué hace «Sonidos de consola»
+# Qué hace «Sound Master»
 
-Versión 1.2.0 · 2026-11-13
+Versión 1.3.0 · 2026-11-17
+
+Desde la 1.3.0 se llama «Sound Master» (antes, «Sonidos de consola»), a petición suya. Cambia solo el
+nombre que se ve: en la lista de complementos, en el título de su ventana de opciones y en sus
+avisos. Por dentro sigue en la misma carpeta, así que al instalarlo encima conserva sus opciones y sus
+sonidos propios, y no aparece repetido.
 
 Pone sonidos de consola, al estilo de la PS3, a lo que usted hace en Anki: abrirlo, moverse por los
 menús, cancelar o cerrar, aceptar, recibir un globo de notificación, comenzar a estudiar, terminar un
@@ -19,7 +24,7 @@ sonidos propios. No toca su colección: no lee ni cambia tarjetas, notas ni mazo
 | Sonido (archivo) | Cuándo suena |
 |---|---|
 | coldboot_stereo.wav | Al abrir Anki, en cuanto se abre su perfil. Si tiene varios perfiles, también al cambiar de perfil. |
-| gameboot_stereo.wav | Cada vez que aparece un globo de notificación de Anki (el recuadro breve abajo de la ventana), por ejemplo «Sincronización completa», el aviso al añadir una tarjeta o «Sonidos de consola: opciones guardadas.». |
+| gameboot_stereo.wav | Cada vez que aparece un globo de notificación de Anki (el recuadro breve abajo de la ventana), por ejemplo «Sincronización completa», el aviso al añadir una tarjeta o «Sound Master: opciones guardadas.». |
 | snd_option.wav | Navegación por los menús: al pasar de una opción a otra en cualquier menú de Anki (barra de menús Archivo, Editar, Herramientas, Ayuda; menús de Explorar y de otras ventanas; menús del botón derecho), con el ratón o con las flechas del teclado. También al pasar el ratón por los títulos de la barra de menús. Según la opción elegida, puede sonar solo al hacer clic (apartado 4); para que no suene, se desmarca su casilla. |
 | snd_cancel.wav | Al cancelar o cerrar: cerrar un menú sin elegir nada (con Esc o haciendo clic fuera, o pulsando otra vez su título en la barra); pulsar Esc, «Cancelar», «Cerrar» o «No» en una ventana; pulsar la X (o Alt+F4) de cualquier ventana salvo la principal; y salir del estudio a mitad (volver a Mazos, pulsar otro mazo, etc.). |
 | snd_system_ok.wav | Solo al aceptar algo: pulsar «Aceptar», «Sí» u otro botón que confirma en cualquier ventana de Anki o de un complemento (también con Intro), incluidas las ventanas que solo informan. La sincronización no lo hace sonar. |
@@ -61,11 +66,12 @@ Lo que no suena, a propósito:
 ## 4. Ventana de opciones
 
 Es el mismo panel que el resto de sus complementos (el modelo de GritMap): una página dentro de una
-ventana de Anki, con recuadros y los botones Aceptar y Cancelar abajo. Título: «Sonidos de consola»,
+ventana de Anki, con recuadros y los botones Aceptar y Cancelar abajo. Título: «Sound Master»,
 sin botón de ayuda. Ancho de 560 px y alto justo para el contenido (como mucho 720 px o el alto de la
-pantalla menos 80); si no cabe, solo se desplaza el centro y el pie queda fijo. La ventana es
-invisible hasta que el panel está dibujado entero y con su alto definitivo; entonces aparece de una
-vez, sin destello, sin fondo vacío previo y sin cambiar de tamaño ante sus ojos. Si el panel tardara más
+pantalla menos 80); si no cabe, solo se desplaza el centro y el pie queda fijo. La ventana se
+abre como cualquier otra, con el fondo de Anki, y el panel aparece de una vez cuando está dibujado
+entero y con su alto definitivo (desde la 1.3.0, sin el pequeño destello que hacía en Windows,
+FIX-003). Si el panel tardara más
 de 3 segundos, aparece igualmente. De arriba abajo:
 
 1. Recuadro sin título, con el enlace «Restaurar valores predeterminados» (el texto de Anki en su
@@ -191,7 +197,7 @@ Cancelar) salen en el idioma de Anki.
 ## 10. Si algo falla
 
 - Nunca abre la ventana de error de Anki. Si falla una función (por ejemplo, la ventana de opciones),
-  muestra durante 5 segundos «Sonidos de consola tuvo un problema. Anki sigue funcionando; el detalle
+  muestra durante 5 segundos «Sound Master tuvo un problema. Anki sigue funcionando; el detalle
   quedó en su registro.», una sola vez por función y sesión.
 - Si falla la vigilancia de menús y ventanas, se desactiva sola hasta reiniciar Anki: dejan de sonar la
   navegación, cancelar, los globos, los avisos y el aceptar, sin aviso en pantalla; el resto sigue. El

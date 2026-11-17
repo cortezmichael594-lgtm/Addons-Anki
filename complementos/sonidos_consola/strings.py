@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 # Ventana de opciones (Herramientas > Complementos > Configuración)
-OPTIONS_TITLE = "Sonidos de consola"
+# 1.3.0 (petición de la persona, 2026-11-17): el complemento se llama «Sound Master».
+OPTIONS_TITLE = "Sound Master"
 
 VOLUME_LABEL = "Volumen"
 VOLUME_NOTE = "Vale para los ocho sonidos. Pruébelo con «Probar», más abajo; se guarda al aceptar."
@@ -40,10 +41,10 @@ MISSING_SUMMARY_ONE = "Falta 1 sonido: cópielo en la carpeta de sonidos."
 MISSING_SUMMARY_MANY = "Faltan {count} sonidos: cópielos en la carpeta de sonidos."
 NO_AUDIO = "Este ordenador no ofrece a Anki la función de sonido que usa el complemento: no sonará nada."
 
-OPTIONS_SAVED = "Sonidos de consola: opciones guardadas."
+OPTIONS_SAVED = "Sound Master: opciones guardadas."
 
 # Avisos generales
-ERROR_GENERIC = "Sonidos de consola tuvo un problema. Anki sigue funcionando; el detalle quedó en su registro."
+ERROR_GENERIC = "Sound Master tuvo un problema. Anki sigue funcionando; el detalle quedó en su registro."
 
 
 def missing_summary(count: int) -> str:
