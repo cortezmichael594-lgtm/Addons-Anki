@@ -59,8 +59,9 @@ from .palettes import StyleBundle, neutral
 _STATIC_CSS = r"""#qa{padding-top:var(--coreprogress-push,0px);}
 #_mark,#_flag{top:var(--coreprogress-mark-top,30px) !important;}
 img#star{top:var(--coreprogress-mark-top,30px) !important;}
-#coreprogress-bar{position:fixed;top:0;left:0;right:0;z-index:99999;padding:10px 18px;pointer-events:none;
- opacity:0;transition:opacity .28s ease;}
+#coreprogress-bar{position:fixed;top:0;left:0;right:0;z-index:99999;padding:10px 18px 8px;pointer-events:none;
+ opacity:0;transition:opacity .28s ease;background:var(--coreprogress-cut,transparent);}
+#coreprogress-bar.coreprogress-full #coreprogress-track{max-width:none;}
 #coreprogress-track{position:relative;box-sizing:border-box;width:100%;max-width:720px;margin:0 auto;
  height:var(--coreprogress-h);border-radius:calc(var(--coreprogress-h) / 2);contain:layout;}
 #coreprogress-fill{position:relative;height:100%;width:0%;min-width:var(--coreprogress-h);
@@ -403,6 +404,8 @@ _BOOTSTRAP_JS = r"""// colores-ok: canal translúcido provisional y fondos de re
       var h=args.barHeight;
       var wrap=document.createElement('div'); wrap.id=C.WRAP;
       if(C._small){ wrap.classList.add('coreprogress-small'); }
+      // 1.6.0: «Ventana», de lado a lado como hasta la 1.4.0; «Tarjeta», 720 px centrada.
+      if(args.fullWidth){ wrap.classList.add('coreprogress-full'); }
       // 1.2.0: la barra se anuncia como barra de progreso, con el valor en
       // palabras («30 de 50 tarjetas»), para quien use lector de pantalla. Sin
       // anuncios automaticos: no interrumpe la lectura de la tarjeta.
@@ -731,8 +734,10 @@ def build_args(
     label_ms: int = 1500,
     aria: str = "",
     name: str = "",
+    full_width: bool = False,
 ) -> dict[str, object]:
     return {
+        "fullWidth": bool(full_width),
         "barHeight": bar_height,
         "cpSize": bar_height + 4,
         "cpFont": mark_font(bar_height),
@@ -766,9 +771,11 @@ def build_enter_js(
     label_ms: int = 1500,
     aria: str = "",
     name: str = "",
+    full_width: bool = False,
 ) -> str:
     args = build_args(
-        bundle, progress, bar_height, push_down, show_checkpoints, marks, dark, effects, label_ms, aria, name
+        bundle, progress, bar_height, push_down, show_checkpoints, marks, dark, effects, label_ms, aria, name,
+        full_width,
     )
     # --- FIX-001 (2026-07-23) --------------------------------------
     # Sintoma: al empezar el repaso / primera tarjeta la barra se atascaba.

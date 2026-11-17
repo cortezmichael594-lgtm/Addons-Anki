@@ -51,6 +51,10 @@ _MAX_STREAK: int = 1_000_000
 BAR_HEIGHTS: tuple[int, int, int] = (12, 16, 20)
 BAR_HEIGHT_MIN: int = BAR_HEIGHTS[0]
 BAR_HEIGHT_MAX: int = BAR_HEIGHTS[-1]
+# 1.6.0 (petición de la persona, 2026-11-17): el ancho de la barra se elige. «card»: como
+# mucho 720 px, centrada sobre la tarjeta (informe del 2026-11-17, decisión 1); «window»: de lado
+# a lado de la ventana, como hasta la 1.4.0.
+BAR_WIDTHS: tuple[str, str] = ("card", "window")
 PUSH_MIN: int = 0
 PUSH_MAX: int = 300
 
@@ -84,6 +88,8 @@ class Config:
     # Espacio extra (1.2.0), que se suma al mínimo automático (auto_space).
     push_down: int
     excluded_decks: tuple[int, ...]
+    # Ancho de la barra (1.6.0): "card" o "window".
+    bar_width: str = "card"
     # Tema retirado que estaba guardado (por ejemplo, Rojo fuego), para avisarlo
     # una vez en la ventana de opciones; None si no hay ninguno.
     retired_theme: str | None = None
@@ -114,6 +120,11 @@ def as_bar_height(value: object, fallback: int = 16) -> int:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return fallback
     return min(BAR_HEIGHTS, key=lambda size: (abs(size - value), -size))
+
+
+def _as_width(value: object) -> str:
+    """El ancho guardado; cualquier otra cosa, el de serie («card»)."""
+    return value if isinstance(value, str) and value in BAR_WIDTHS else BAR_WIDTHS[0]
 
 
 def _as_bool(value: object, fallback: bool) -> bool:
@@ -196,6 +207,7 @@ def load_config() -> Config:
         bar_height=bar_height,
         push_down=_as_extra_space(stored, bar_height),
         excluded_decks=_as_deck_ids(stored.get("excluded_decks")),
+        bar_width=_as_width(stored.get("bar_width")),
         retired_theme=_retired(stored),
     )
 
@@ -215,6 +227,7 @@ def save_config(cfg: Config) -> None:
             "bar_height": cfg.bar_height,
             "extra_space": cfg.push_down,
             "excluded_decks": list(dict.fromkeys(cfg.excluded_decks)),
+            "bar_width": cfg.bar_width,
         }
     )
     # Lo de versiones anteriores ya traducido a las claves nuevas.

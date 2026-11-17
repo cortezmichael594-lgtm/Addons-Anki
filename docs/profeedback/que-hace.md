@@ -1,6 +1,6 @@
 # Qué hace «ProFeedback»
 
-Versión 2.6.1 · 2026-11-17
+Versión 2.6.2 · 2026-11-17
 
 Hace más agradable el repaso: suena un sonido corto al acertar y otro, más discreto, al pulsar «Otra
 vez»; pone una insignia encima de la tarjeta (tarjeta nueva, «se resiste» u «otra oportunidad»); da a
@@ -83,6 +83,8 @@ este orden de prioridad:
   2.6.1; en la 2.6.0 iba sobre un círculo de color): un destello de cuatro puntas (nueva), una pesa (se
   resiste) y una flecha en bucle (otra oportunidad), con trazo de 2 px. De día, en tono medio (3,4 a 1
   contra el fondo); de noche, en tono claro. Texto con 0,06 em entre letras (antes, 0,4 px).
+- Entre icono y texto, 8 px en «SE RESISTE» y 6 px en «TARJETA NUEVA» y «OTRA OPORTUNIDAD» (2.6.2,
+  petición suya: sus dibujos dejan más aire alrededor).
 - En el contraste alto de Windows, dibujo y texto en el color del texto.
 - Encima de la tarjeta hay siempre una franja de 40 px (24 del icono y 16 de aire), haya insignia o no:
   la tarjeta empieza siempre en el mismo sitio y no salta de una a otra.

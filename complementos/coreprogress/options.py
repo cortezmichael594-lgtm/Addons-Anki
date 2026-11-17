@@ -54,6 +54,7 @@ from .palettes import DEFAULT_THEME, RETIRED_THEMES, THEME_KEYS, neutral, previe
 from .panel import PanelDialog, button_text, parent_window
 from .settings import (
     BAR_HEIGHTS,
+    BAR_WIDTHS,
     DEFAULT_CONFIG,
     PUSH_MAX,
     PUSH_MIN,
@@ -65,7 +66,14 @@ from .settings import (
 
 _RESET_KEY = "reset_record"
 _EXCLUDE_KEY = "excluded_decks"
-_VISUAL_KEYS: tuple[str, ...] = ("theme", "bar_height", "push_down", "effects_enabled", "checkpoints_enabled")
+_VISUAL_KEYS: tuple[str, ...] = (
+    "theme",
+    "bar_height",
+    "bar_width",
+    "push_down",
+    "effects_enabled",
+    "checkpoints_enabled",
+)
 
 
 def _log(exc: BaseException) -> None:
@@ -129,6 +137,7 @@ def _visual_values(cfg: Config) -> dict[str, Any]:
     return {
         "theme": cfg.theme,
         "bar_height": cfg.bar_height,
+        "bar_width": cfg.bar_width,
         "push_down": cfg.push_down,
         "effects_enabled": cfg.effects_enabled,
         "checkpoints_enabled": cfg.checkpoints_enabled,
@@ -215,16 +224,26 @@ def page(cfg: Config, record: int, title: str = "CoreProgress", window: int = 0)
                             )
                         ],
                     },
+                    # 1.6.0 (petición de la persona): «Tarjeta», 720 px centrada, o «Ventana»,
+                    # de lado a lado como hasta la 1.4.0.
                     {
-                        "type": "stepper",
-                        "key": "push_down",
-                        "label": _without_px(t("opt_push")),
-                        "min": PUSH_MIN,
-                        "max": PUSH_MAX,
-                        "step": 4,
-                        "unit": f"px · {PUSH_MIN}–{PUSH_MAX}",
+                        "type": "segmented",
+                        "key": "bar_width",
+                        "label": t("opt_width"),
+                        "options": [
+                            {"value": value, "label": t(f"width_{value}")} for value in BAR_WIDTHS
+                        ],
                     },
                 ],
+            },
+            {
+                "type": "stepper",
+                "key": "push_down",
+                "label": _without_px(t("opt_push")),
+                "min": PUSH_MIN,
+                "max": PUSH_MAX,
+                "step": 4,
+                "unit": f"px · {PUSH_MIN}–{PUSH_MAX}",
             },
             {"type": "check", "key": "checkpoints_enabled", "label": t("opt_checkpoints")},
             {"type": "check", "key": "effects_enabled", "label": t("opt_effects")},
@@ -288,6 +307,7 @@ def config_from_page(values: Any, existing: set[int] | None = None) -> Config:
         effects_enabled=effects if isinstance(effects, bool) else DEFAULT_CONFIG.effects_enabled,
         checkpoints_enabled=checkpoints if isinstance(checkpoints, bool) else DEFAULT_CONFIG.checkpoints_enabled,
         bar_height=_height(raw.get("bar_height")),
+        bar_width=raw["bar_width"] if raw.get("bar_width") in BAR_WIDTHS else DEFAULT_CONFIG.bar_width,
         push_down=_int(raw.get("push_down"), DEFAULT_CONFIG.push_down, PUSH_MIN, PUSH_MAX),
         excluded_decks=tuple(decks),
     )
