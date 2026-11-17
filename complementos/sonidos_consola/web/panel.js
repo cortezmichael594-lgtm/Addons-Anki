@@ -696,7 +696,7 @@ var SonidosConsolaPanel = (typeof SonidosConsolaPanel !== "undefined" && Sonidos
         return node;
     }
 
-    // Boton secundario suelto (Sonidos de consola: «Abrir carpeta de sonidos»). Es el boton
+    // Boton secundario suelto (Sound Master: «Abrir carpeta de sonidos»). Es el boton
     // secundario del catalogo del modelo; manda su accion a Python y no cambia ningun valor.
     function buildButton(item) {
         var button = el("button", { type: "button", class: "btn", text: item.label, onclick: function () {

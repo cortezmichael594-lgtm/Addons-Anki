@@ -6,6 +6,9 @@
     ],
     "FIX-002": [
       "panel.py"
+    ],
+    "FIX-003": [
+      "panel.py"
     ]
   }
 }

@@ -125,6 +125,18 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
 - 2026-11-17: CoreProgress 1.6.0 (ancho elegible «Tarjeta»/«Ventana» y franja opaca detrás de la
   barra al desplazar) y ProFeedback 2.6.2 (6 px entre icono y texto en dos insignias), peticiones de
   la persona.
+- 2026-11-17: CoreProgress 1.6.1 («Tarjeta» a 710 px y «Espacio extra» junto a las casillas) y
+  ProFeedback 2.6.3 (FIX-009: su ventana de opciones se abre sin destello). Peticiones de la persona.
+- 2026-11-17: Always on Top 1.3.1 (FIX-003: el atajo cambia todas las ventanas Añadir). Primera
+  parte del repaso de cuatro complementos (petición de la persona).
+- 2026-11-17: Edit field during review 1.1.1 (FIX-006 campos iguales, FIX-007 fórmulas, FIX-008 huecos
+  con otro campo en el bloque). Segunda parte del repaso de cuatro complementos. Siguen Hider y Sound
+  Master (sonidos_consola: renombrar solo el nombre visible y quitar el destello de su ventana).
+- 2026-11-17: Hider 4.1.1 (aviso de fallo que dice la verdad, 42 idiomas). Tercera parte. Queda en
+  «Pendientes» la consulta del salto automático (espera a que la persona pruebe un mazo grande).
+- 2026-11-17: Sound Master 1.3.0 (antes «Sonidos de consola»: cambia solo el nombre visible; la
+  carpeta sigue siendo sonidos_consola) y FIX-003 (ventana de opciones sin destello). Cuarta y última
+  parte del repaso de cuatro complementos.
 
 ## En curso
 

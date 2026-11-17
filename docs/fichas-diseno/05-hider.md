@@ -1,6 +1,6 @@
 # Ficha de diseño: Hider
 
-Versión 4.1.0 (9 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 4.1.1 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
@@ -113,14 +113,12 @@ Valores no válidos vuelven al de serie (segundos: entero de 1 a 60, si no, 3). 
 
 ## 14. Si algo falla
 
-Nunca la ventana de error de Anki. Aviso 4 s: «Hider ha encontrado un problema y ha desactivado esa parte
-por seguridad. Revisa la configuración del complemento.», como mucho una vez por minuto y sitio. Al
+Nunca la ventana de error de Anki. Aviso 4 s: «Hider ha tenido un problema. Anki sigue funcionando; el
+detalle queda en el registro del complemento.» (4.1.1), como mucho una vez por minuto y sitio. Al
 cerrar o cambiar de perfil a mitad de repaso, barras y puntero vuelven.
 
 ## 15. Fallos conocidos pendientes
 
-- El aviso de fallo no es exacto: no desactiva nada. Propuesta: «Hider ha tenido un problema. Anki sigue
-  funcionando; el detalle queda en el registro del complemento.».
 - El salto automático consulta la colección dos veces sin dejar libre a Anki; en colecciones muy grandes
   podría notarse un parón breve (no medido).
 

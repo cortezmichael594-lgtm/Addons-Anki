@@ -2,6 +2,9 @@
 // FIX-001 (2026-07-24) — El recuadro de edición se partía por líneas.
 // FIX-002 (2026-07-24) — Escape guardaba en vez de cancelar, y al cancelar
 //                        seguía viéndose el texto tecleado sin guardar.
+// FIX-006 (2026-11-17) — Con dos campos iguales, lo editado se guardaba en el primero.
+// FIX-007 (2026-11-17) — Tras guardar un campo con fórmulas, se veía su código.
+// FIX-008 (2026-11-17) — En huecos con «Reverso extra» en el mismo bloque, se tomaba el bloque entero.
 
 (() => {
   "use strict";
@@ -230,7 +233,26 @@
       el = el.parentElement;
     }
 
-    if (el && el !== scopeEl && el !== document.body && el !== document.documentElement) {
+    // --- FIX-008 (2026-11-17) ---
+    // Síntoma: en tarjetas de huecos cuya plantilla pone el texto con huecos y otro campo (por
+    //   ejemplo, «Reverso extra») en un mismo bloque, el complemento tomaba el bloque entero: el
+    //   otro campo no se podía editar y desaparecía mientras se editaba el de huecos.
+    // Causa: se marcaba el primer bloque que contenía todo el texto del campo de huecos, aunque
+    //   contuviera también el de otro campo.
+    // Regla: un bloque solo se toma por el campo si no contiene el texto de otro campo; si lo
+    //   contiene, se envuelve solo el tramo con los huecos dentro de ese bloque.
+    const ownText = textOf(field.raw);
+    const holdsOther = (node) =>
+      (payload ? payload.fields : []).some((other, i) => {
+        if (i === index || !other.raw) {
+          return false;
+        }
+        const otherText = textOf(other.raw);
+        return otherText.length > 1 && !ownText.includes(otherText) &&
+          (node.textContent || "").includes(otherText);
+      });
+    const usable = el && el !== scopeEl && el !== document.body && el !== document.documentElement;
+    if (usable && !holdsOther(el)) {
       if (!marked(el) && !insideMarked(el)) {
         el.setAttribute(ATTR, String(index));
       }
@@ -239,7 +261,7 @@
 
     // The field is not inside any wrapper of its own: wrap the run of nodes that
     // holds the cloze deletions, extending over neighbouring text only.
-    const parent = scopeEl || scope;
+    const parent = usable ? el : scopeEl || scope;
     const kids = Array.from(parent.childNodes);
     let first = -1;
     let last = -1;
@@ -269,8 +291,31 @@
     wrapRun(parent, index, run);
   };
 
+  // --- FIX-006 (2026-11-17) ---
+  // Síntoma: si dos campos tenían exactamente el mismo contenido (por ejemplo, «Palabra» y
+  //   «Lectura» con «すし»), al editar el segundo en pantalla el cambio se guardaba en el primero.
+  // Causa: cada campo se reconoce en la tarjeta por su texto, y dos textos iguales no se
+  //   distinguen.
+  // Regla: si dos campos tienen el mismo contenido, ninguno de los dos se ofrece para editar:
+  //   antes no editar que guardar en el campo equivocado.
+  const duplicated = (fields) => {
+    const seen = new Map();
+    fields.forEach((field) => {
+      if (field.kind === KIND_TAGS || !field.raw || !field.raw.trim()) {
+        return;
+      }
+      const key = canon(field.raw);
+      seen.set(key, (seen.get(key) || 0) + 1);
+    });
+    return (field) => field.kind !== KIND_TAGS && (seen.get(canon(field.raw || "")) || 0) > 1;
+  };
+
   const markFields = (scope, fields) => {
+    const isDuplicate = duplicated(fields);
     fields.forEach((field, index) => {
+      if (isDuplicate(field)) {
+        return;
+      }
       if (scope.querySelector(`[${ATTR}="${index}"]`)) {
         return;
       }
@@ -283,6 +328,23 @@
         markPlain(scope, index, field);
       }
     });
+  };
+
+  const typeset = (el) => {
+    const mj = window.MathJax;
+    if (!mj || !/\\\(|\\\[/.test(el.textContent || "")) {
+      return;
+    }
+    const run = () => {
+      if (typeof mj.typesetPromise === "function") {
+        mj.typesetPromise([el]).catch((err) => console.error("LFE typeset", err));
+      }
+    };
+    if (mj.startup && mj.startup.promise) {
+      mj.startup.promise.then(run).catch(() => {});
+    } else {
+      run();
+    }
   };
 
   const placeCaret = (el) => {
@@ -545,6 +607,14 @@
         return;
       }
       live.innerHTML = fresh.innerHTML;
+      // --- FIX-007 (2026-11-17) ---
+      // Síntoma: tras guardar un campo con una fórmula (MathJax), en su sitio quedaba el código
+      //   («\(x^2\)») hasta pasar a la otra cara.
+      // Causa: el trozo se redibujaba con el texto de Anki, sin pedir que se dibujaran sus
+      //   fórmulas.
+      // Regla: todo trozo redibujado que pueda llevar fórmulas pide a MathJax (el de la propia
+      //   página, si está cargado) que las dibuje, solo en ese trozo.
+      typeset(live);
     } catch (err) {
       console.error("LFE patch", err);
     }

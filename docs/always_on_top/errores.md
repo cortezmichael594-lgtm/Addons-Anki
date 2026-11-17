@@ -9,14 +9,7 @@ versión exacta no consta, solo su fecha.
 
 Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa y propuesta.
 
-- 2026-10-21 · versión 1.2 · Qué pasa: si tiene abiertas a la vez las dos versiones de la ventana
-  Añadir (la normal y la que Anki abre si se pulsa Añadir con Mayús), el atajo solo cambia la última
-  que se abrió. Por ejemplo: con «siempre visible» encendido abre Añadir, después la otra con Mayús,
-  y pulsa el atajo para apagarlo; el aviso dice «Siempre visible: desactivado», pero la primera sigue
-  por encima de todo hasta que la cierre. Por qué: el complemento solo recuerda una ventana Añadir, y
-  Anki 26.09.3 permite tener las dos abiertas. Propuesta: que recuerde todas las ventanas Añadir
-  abiertas y aplique el cambio a cada una. Es un caso raro: solo ocurre si usa las dos versiones a la
-  vez.
+(Ninguno.)
 
 ## Corregidos
 
@@ -34,6 +27,11 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   de Añadir se encendía «siempre visible» en lugar de hacer su trabajo. Por qué: la lista de atajos
   ocupados venía de Anki 25.09. Regla: al cambiar Anki de versión, la lista se revisa contra el
   editor del Anki instalado. Ahora esas seis se rechazan con el aviso de siempre.
+- FIX-003 · 2026-11-17 · versión 1.3 · Qué pasaba: con las dos versiones de la ventana Añadir
+  abiertas a la vez (la normal y la que Anki abre si se pulsa Añadir con Mayús), el atajo solo
+  cambiaba la última que se abrió; la otra seguía por encima de todo. Por qué: el complemento solo
+  recordaba una ventana Añadir. Regla: se recuerdan todas las ventanas Añadir abiertas, sin
+  retenerlas, y el atajo se aplica a cada una. Estaba en «Pendientes» desde el 2026-10-21.
 
 ## Así a propósito
 

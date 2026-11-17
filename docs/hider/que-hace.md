@@ -1,6 +1,6 @@
 # Qué hace «Hider»
 
-Versión 4.1.0 · 2026-11-09
+Versión 4.1.1 · 2026-11-17
 
 Deja la pantalla de repaso limpia para concentrarse en la tarjeta: mientras repasa, pliega la barra
 de menú, la barra superior y la barra inferior de la ventana, quita la barra de desplazamiento de la
@@ -174,10 +174,9 @@ Cancelar y Restaurar los traduce Qt. Sus frases tratan de tú.
 ## 10. Si algo falla
 
 - Nunca abre la ventana de error de Anki. En su lugar muestra durante 4 segundos el aviso «Hider ha
-  encontrado un problema y ha desactivado esa parte por seguridad. Revisa la configuración del
-  complemento.», como mucho una vez por minuto por cada sitio que falle, para no llenar la pantalla.
-- Ese aviso no es exacto: en realidad no desactiva nada. La parte que falló sigue funcionando y, si
-  vuelve a fallar, el aviso puede repetirse pasado un minuto. Está anotado como fallo pendiente.
+  tenido un problema. Anki sigue funcionando; el detalle queda en el registro del complemento.», como
+  mucho una vez por minuto por cada sitio que falle, para no llenar la pantalla. La parte que falló
+  sigue funcionando. (Hasta la 4.1.0 el aviso decía que desactivaba esa parte, y no era verdad.)
 - Anki sigue funcionando. Si al salir del repaso fallara la vuelta de una barra, las otras vuelven
   igualmente.
 - Al cerrar el perfil o cambiar de perfil en mitad del repaso, las barras y el puntero vuelven en el

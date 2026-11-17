@@ -14,6 +14,9 @@ Reglas de esta parte, por si se vuelve a tocar mas adelante:
    responde se percibe como que Anki se ha colgado.
 """
 
+# Historial de correcciones de este archivo:
+# FIX-003 (2026-11-17): con dos ventanas Añadir abiertas, el atajo solo cambiaba la última.
+
 from __future__ import annotations
 
 import ctypes
@@ -79,7 +82,13 @@ class AlwaysOnTopManager:
 
     def __init__(self) -> None:
         self._enabled: bool = False
-        self._window: weakref.ReferenceType[QWidget] | None = None
+        # --- FIX-003 (2026-11-17) ---
+        # Síntoma: con la ventana Añadir normal y la que se abre con Mayús a la vez, el atajo solo
+        #   cambiaba la última abierta; la otra seguía por encima de todo.
+        # Causa: el complemento recordaba una sola ventana Añadir.
+        # Regla: se recuerdan todas las ventanas Añadir abiertas (sin retenerlas: referencias
+        #   débiles) y el atajo se aplica a cada una.
+        self._windows: list[weakref.ReferenceType[QWidget]] = []
         self._shortcut: QShortcut | None = None
 
     # Arranque y atajo de teclado
@@ -119,28 +128,39 @@ class AlwaysOnTopManager:
     def on_add_cards_init(self, add_cards: QWidget) -> None:
         # Anki dispara este hook antes de mostrar la ventana, asi que aqui el
         # efecto se aplica sin parpadeo ninguno.
-        self._window = weakref.ref(add_cards)
+        self._windows = [ref for ref in self._windows if self._alive(ref) is not None]
+        self._windows.append(weakref.ref(add_cards))
         if self._enabled:
             self._apply(add_cards, True)
 
     @guarded
     def _on_shortcut_activated(self) -> None:
         self._enabled = not self._enabled
-        window = self._current_window()
-        if window is not None:
+        for window in self._open_windows():
             self._apply(window, self._enabled)
         tooltip(
             tr("on") if self._enabled else tr("off"),
             period=constants.TOOLTIP_PERIOD_MS,
         )
 
-    def _current_window(self) -> QWidget | None:
-        """La ventana de Anadir viva, o nada si ya se cerro."""
-        window = self._window() if self._window is not None else None
+    @staticmethod
+    def _alive(ref: weakref.ReferenceType[QWidget]) -> QWidget | None:
+        window = ref()
         if window is None or sip.isdeleted(window):
-            self._window = None
             return None
         return window
+
+    def _open_windows(self) -> list[QWidget]:
+        """Las ventanas de Añadir vivas; olvida las que ya se cerraron."""
+        alive: list[QWidget] = []
+        kept: list[weakref.ReferenceType[QWidget]] = []
+        for ref in self._windows:
+            window = self._alive(ref)
+            if window is not None:
+                alive.append(window)
+                kept.append(ref)
+        self._windows = kept
+        return alive
 
     def _apply(self, window: QWidget, enabled: bool) -> None:
         try:
@@ -149,8 +169,9 @@ class AlwaysOnTopManager:
                     return
             self._apply_qt_flag(window, enabled)
         except RuntimeError:
-            # La ventana de Qt pudo destruirse entre la comprobacion y la llamada.
-            self._window = None
+            # La ventana de Qt pudo destruirse entre la comprobacion y la llamada; se olvida
+            # en la proxima pasada por _open_windows.
+            return
 
     def _apply_qt_flag(self, window: QWidget, enabled: bool) -> None:
         flags = window.windowFlags()

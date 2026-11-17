@@ -1,6 +1,6 @@
 # Qué hace «ProFeedback»
 
-Versión 2.6.2 · 2026-11-17
+Versión 2.6.3 · 2026-11-17
 
 Hace más agradable el repaso: suena un sonido corto al acertar y otro, más discreto, al pulsar «Otra
 vez»; pone una insignia encima de la tarjeta (tarjeta nueva, «se resiste» u «otra oportunidad»); da a
@@ -187,7 +187,9 @@ Título «ProFeedback» en la barra de la ventana (no se repite dentro). Sigue e
 opciones del taller (el panel de GritMap): 560 px de ancho y el alto justo para su contenido (unos 545
 px, sin barra de desplazamiento), recuadros sobre el fondo de Anki con los colores de la paleta, y
 Aceptar y Cancelar abajo (en Windows, Aceptar primero). La ventana entera es invisible hasta que el
-panel está dibujado y con su alto, y entonces aparece de una vez (FIX-005). Recuerda su tamaño y su
+panel está dibujado y con su alto, y entonces aparece de una vez (FIX-005). Desde la 2.6.3 la ventana
+se abre como cualquier otra, sin el pequeño destello que hacía en Windows: solo el panel espera oculto
+a estar dibujado (FIX-009). Recuerda su tamaño y su
 posición, y si ya está abierta se trae al frente. Esc cancela y Ctrl+Intro acepta. Nada se guarda hasta
 pulsar Aceptar.
 

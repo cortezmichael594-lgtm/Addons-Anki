@@ -1,4 +1,4 @@
-"""Sonidos de consola: sonidos al abrir Anki, al navegar por los menús, al cancelar, al aceptar, etc.
+"""Sound Master (antes «Sonidos de consola»; la carpeta sigue siendo sonidos_consola): sonidos al abrir Anki, al navegar por los menús, al cancelar, al aceptar, etc.
 
 Este módulo solo registra: la acción de configuración (Herramientas > Complementos), los ganchos y el
 vigilante de la interfaz. Las reglas están en logic.py; el reproductor, en player.py; la

@@ -7,6 +7,9 @@
     ],
     "FIX-002": [
       "shortcuts.py"
+    ],
+    "FIX-003": [
+      "logic.py"
     ]
   }
 }

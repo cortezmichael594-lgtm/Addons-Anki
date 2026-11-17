@@ -1,6 +1,6 @@
 # Ficha de diseño: Edit field during review
 
-Versión 1.1.0 (9 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
+Versión 1.1.1 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`.
 
 ## 1. Qué es, en una frase
 
@@ -117,10 +117,9 @@ sincroniza). Sin historial propio ni archivos.
 
 ## 14. Fallos conocidos pendientes
 
-- Dos campos con el mismo contenido en bloques distintos: edita siempre el primero.
-- Tras editar un campo con fórmula, se ve el código hasta cambiar de cara.
-- En plantillas de huecos con otro campo en el mismo bloque, ese otro campo no se puede editar y
-  desaparece mientras se edita el de huecos.
+Ninguno. Desde la 1.1.1: dos campos con el mismo contenido no se ofrecen para editar (antes se
+guardaba en el primero); las fórmulas se vuelven a dibujar al guardar; en huecos con otro campo en el
+mismo bloque, cada uno se edita por separado.
 
 ## 15. Decisiones tomadas a propósito
 
