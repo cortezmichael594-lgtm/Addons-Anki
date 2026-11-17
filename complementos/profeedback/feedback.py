@@ -5,6 +5,9 @@ página y antes del primer pintado (nada se inyecta después con JavaScript, par
 un instante con los botones sin estilo).
 """
 
+# Historial de correcciones de este archivo:
+# FIX-007 (2026-11-17): al activar las insignias en mitad de un repaso salían sin su aspecto.
+
 from __future__ import annotations
 
 import base64
@@ -15,7 +18,7 @@ from aqt import gui_hooks
 from aqt.reviewer import Reviewer, ReviewerBottomBar
 from aqt.webview import WebContent
 
-from . import audio, badges, config, logic
+from . import audio, badges, config, logic, look
 from .errors import guarded, guarded_filter, log_error
 from .paths import ADDON_ROOT, USER_FILES_DIR, WEB_DIR
 
@@ -24,9 +27,10 @@ _CARD_CONTEXTS: Final[tuple[str, ...]] = ("reviewQuestion", "reviewAnswer")
 
 # Nombre con el que el CSS del complemento pide la tipografía propia, si la hay.
 FONT_FAMILY: Final[str] = "ProFeedbackDisplay"
-# Archivos aceptados, por orden de preferencia. Si no hay ninguno se usa la tipografía del
-# sistema y todo sigue igual de bien.
-_FONT_FILENAMES: Final[tuple[str, ...]] = ("ProFeedback.ttf", "Feather Bold.ttf")
+# Archivo aceptado. Si no está se usa la tipografía del sistema y todo sigue igual de bien.
+# 2.6.0 (informe del 2026-11-17, 1.6): sin el alias «Feather Bold.ttf», que es la letra de
+# Duolingo y animaba a vestir el complemento de Duolingo.
+_FONT_FILENAMES: Final[tuple[str, ...]] = ("ProFeedback.ttf",)
 # Una tipografía enorme (por ejemplo, una con miles de caracteres CJK) se incrustaría en
 # cada página de repaso: por encima de este tamaño se ignora.
 _FONT_MAX_BYTES: Final[int] = 1_500_000
@@ -111,6 +115,11 @@ def _style_tag(name: str) -> str:
     return f"<style>{css}</style>" if css.strip() else ""
 
 
+def _colors_tag() -> str:
+    """Las variables de color de botones e insignias (look.py), de día y de noche."""
+    return f"<style>{look.css_vars()}</style>"
+
+
 def _script_tag(name: str) -> str:
     js = _read_asset(name)
     return f"<script>{js}</script>" if js.strip() else ""
@@ -128,11 +137,19 @@ def _on_webview_will_set_content(web_content: WebContent, context: object | None
     if isinstance(context, ReviewerBottomBar):
         if settings.styledButtonsEnabled:
             web_content.head += (
-                _font_style_tag() + _style_tag("buttons.css") + _script_tag("buttons.js")
+                _font_style_tag() + _colors_tag() + _style_tag("buttons.css") + _script_tag("buttons.js")
             )
-    elif isinstance(context, Reviewer) and settings.flagsEnabled:
+    elif isinstance(context, Reviewer):
+        # --- FIX-007 (2026-11-17) ---
+        # Síntoma: si «Insignias sobre la tarjeta» estaba desmarcada al entrar a repasar y se
+        #   marcaba en ese momento, las tarjetas siguientes mostraban la insignia sin su
+        #   aspecto (icono y texto sueltos) hasta salir y volver a entrar.
+        # Causa: el estilo de la insignia solo se cargaba en la página del repaso si la opción
+        #   estaba marcada al cargarla.
+        # Regla: el estilo de la insignia se carga siempre en el repaso (es pequeño y no se ve
+        #   si no hay insignia); la opción solo decide si se pone la insignia en la tarjeta.
         # Solo el repaso: en la vista previa y en el editor de tarjetas no se pone insignia.
-        web_content.head += _font_style_tag() + _style_tag("flags.css")
+        web_content.head += _font_style_tag() + _colors_tag() + _style_tag("flags.css")
 
 
 @guarded

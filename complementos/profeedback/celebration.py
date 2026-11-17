@@ -21,7 +21,7 @@ from aqt.operations import QueryOp
 from aqt.overview import Overview
 from aqt.reviewer import Reviewer
 
-from . import audio, config, logic
+from . import audio, config, logic, look
 from .errors import guarded, log_error
 from .paths import WEB_DIR, SoundKind
 
@@ -147,6 +147,14 @@ def _play_finish_sound(celebration: logic.Celebration, settings: config.AddonCon
     audio.play(kind, name)
 
 
+def preview_script() -> str:
+    """El confeti de mazo listo para ejecutar en otra página (el «Ver» de las opciones)."""
+    engine = _engine()
+    if not engine:
+        return ""
+    return f"{engine}\nwindow.profeedbackConfetti.burst(\"normal\",{look.celebration_colors()});"
+
+
 def _launch_confetti(celebration: logic.Celebration) -> None:
     engine = _engine()
     if mw is None or not engine:
@@ -155,4 +163,6 @@ def _launch_confetti(celebration: logic.Celebration) -> None:
     effect = _EFFECT[celebration.scope]
     # eval espera a que la página esté lista (Anki lo encola hasta entonces): no hace falta
     # adivinar el momento.
-    mw.web.eval(f"{engine}\nwindow.profeedbackConfetti.{effect}({json.dumps(kind)});")
+    # 2.6.0: los colores llegan de look.py, de día y de noche; el motor elige según el modo.
+    colors = look.celebration_colors()
+    mw.web.eval(f"{engine}\nwindow.profeedbackConfetti.{effect}({json.dumps(kind)},{colors});")

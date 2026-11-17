@@ -192,7 +192,8 @@ class AnswerSoundTests(unittest.TestCase):
 
 
 class ButtonStyleTests(unittest.TestCase):
-    """2.5.0: mismos colores de cara; forma, letra y grises según el informe 2.4.0 (FIX-006 sigue)."""
+    """2.6.0: forma y estados según el informe del 2026-11-17 (FIX-006 sigue). Los colores se
+    prueban en test_aspecto.py."""
 
     def setUp(self) -> None:
         self.css = (ADDON / "web" / "buttons.css").read_text(encoding="utf-8")
@@ -200,56 +201,61 @@ class ButtonStyleTests(unittest.TestCase):
         self.js = (ADDON / "web" / "buttons.js").read_text(encoding="utf-8")
 
     def test_shape_wins_over_the_theme(self) -> None:
+        # Decisión 3: 48 px (cara de 45 y canto de 3) y esquinas de 12, como la tarjeta.
         for declaration in (
             "border-radius: var(--profeedback-radius) !important",
             "background-image: none !important",
-            "height: 50px !important",
+            "height: var(--profeedback-height) !important",
             "min-width: 130px !important",
         ):
             self.assertIn(declaration, self.css)
-        self.assertIn("--profeedback-radius: 16px;", self.css)
-        self.assertIn("--profeedback-lip: 4px;", self.css)
+        self.assertIn("--profeedback-radius: 12px;", self.css)
+        self.assertIn("--profeedback-lip: 3px;", self.css)
+        self.assertIn("--profeedback-height: 48px;", self.css)
 
-    def test_face_colours_unchanged_and_readable_text(self) -> None:
-        for value in ("255, 75, 75", "255, 171, 51", "147, 211, 51", "73, 192, 248", "#ffd700"):
-            self.assertIn(value, self.css)
-        self.assertIn("#5c3700", self.css)
-        self.assertNotIn("#ae6802", self.css.split("#ansbut {", 1)[1].split("}", 1)[0])
-        self.assertNotIn("#52656d", self.css)
+    def test_no_duolingo_colours_left(self) -> None:
+        # 2.6.0: fuera los colores de Duolingo y la letra «Feather».
+        for value in ("255, 75, 75", "#ff4b4b", "#ffd700", "#ce82ff", "#ffab33", "#93d333", "Feather"):
+            self.assertNotIn(value.lower(), self.css.lower())
+            self.assertNotIn(value.lower(), self.flags.lower())
         self.assertIn("var(--fg-subtle, #B7BECC)", self.css)
 
     def test_good_is_as_wide_as_show_answer(self) -> None:
-        good = self.css.split("/* Bien: verde", 1)[1].split("}", 1)[0]
+        good = self.css.split("/* Bien: 190 px", 1)[1].split("}", 1)[0]
         self.assertIn("min-width: 190px !important", good)
         self.assertIn("min-width: 190px !important", self.css.split("#ansbut {", 1)[1].split("}", 1)[0])
 
-    def test_hover_only_brightens_and_focus_ring_is_apart(self) -> None:
-        hover = self.css.split("button:hover {", 1)[1].split("}", 1)[0]
-        self.assertIn("filter: var(--profeedback-hover)", hover)
-        self.assertNotIn("background", hover)
+    def test_hover_moves_the_face_away_from_its_text_and_focus_ring_is_apart(self) -> None:
+        # 3.1: sin el brillo de 1,08; la cara cambia a su tono de «ratón encima».
+        self.assertNotIn("brightness", self.css)
+        hover = self.css.split("#ansbut):hover {", 1)[1].split("}", 1)[0]
+        self.assertIn("background-color: var(--profeedback-over) !important", hover)
         self.assertIn("outline-offset: 2px !important", self.css)
+        self.assertIn("border-top: 1px solid", self.css)
+        self.assertIn("forced-colors: active", self.css)
 
     def test_answer_on_release_without_delay(self) -> None:
         self.assertNotIn("setTimeout(function () {\n          button.classList.remove", self.js)
         self.assertNotIn("DELAY", self.js)
 
     def test_badges(self) -> None:
-        for modifier, icon, day in (
-            ("new-card", "#ce82ff", "#8f3bd9"),
-            ("hard-exercise", "#ff4b4b", "#c92c2c"),
-            ("previous-mistake", "#ffab33", "#9e5a00"),
-        ):
-            self.assertIn(icon, self.flags.split(f".profeedback-badge--{modifier} svg {{", 1)[1].split("}", 1)[0])
-            self.assertIn(day, self.flags.split(f".profeedback-badge--{modifier} {{", 1)[1].split("}", 1)[0])
+        for modifier in ("new-card", "hard-exercise", "previous-mistake"):
+            block = self.flags.split(f".profeedback-badge--{modifier} {{", 1)[1].split("}", 1)[0]
+            self.assertIn(f"var(--profeedback-{modifier}-text)", block)
+            self.assertIn(f"var(--profeedback-{modifier}-icon)", block)
         self.assertIn("height: 24px;", self.flags)
         self.assertIn("margin: 0 0 16px;", self.flags)
+        self.assertIn("letter-spacing: 0.06em;", self.flags)
         self.assertIn("120ms", self.flags)
 
-    def test_confetti_lasts_four_seconds_and_one_shine(self) -> None:
+    def test_confetti_design(self) -> None:
+        # 8.7: 72 piezas en 2,4 s (mazo) y 120 en 3,8 s (día); brillo de 1,2 s desde los 0,3 s.
         confetti = (ADDON / "web" / "confetti.js").read_text(encoding="utf-8")
-        self.assertIn("var RAIN_MS = 4000;", confetti)
-        self.assertIn("var BURST_MS = 2500;", confetti)
-        self.assertIn("ease-in-out 1}", confetti)
+        self.assertIn("burst: { pieces: 72, duration: 2.4, fadeFrom: 2.0 }", confetti)
+        self.assertIn("rain: { pieces: 120, duration: 3.8, fadeFrom: 3.4 }", confetti)
+        self.assertIn("1.2s cubic-bezier(.2,.8,.2,1) .3s 1 both", confetti)
+        self.assertIn("prefers-reduced-motion", confetti)
+        self.assertIn("forced-colors", confetti)
 
 
 class ConfigFromPageTests(unittest.TestCase):

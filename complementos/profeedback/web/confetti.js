@@ -1,196 +1,252 @@
-/* ProFeedback · confeti de fin de repaso.
+/* ProFeedback · celebración al terminar: confeti, brillo del título y destellos fijos.
 
-   Un único motor de partículas con dos formas de soltarlas:
-   - burst: dos cañones, uno en cada esquina de abajo (al terminar un mazo);
-   - rain: lluvia desde arriba durante cuatro segundos (al terminar todo el día).
-   Cada una, en versión «normal» (colores de la paleta) o «gold» (tonos cálidos y un brillo
-   en el título, para el final del día desde la 2.5.0).
+   Versión 2.6.0 (informe «Rediseño de color y forma: ProFeedback 2.5.0», aprobado entero el
+   2026-11-17, apartados 2.5, 2.6, 3.2, 5.3, 5.4 y 8.7 a 8.9). Dos formas de soltarlo:
+   - burst (fin de mazo): 72 piezas desde dos cañones, a 24 px de las esquinas de abajo, en dos
+     ráfagas dentro de 0,12 s; 2,4 s en total, desvaneciéndose desde 2,0.
+   - rain (fin del día): 120 piezas que entran por arriba repartidas en 0,9 s; 3,8 s en total,
+     desvaneciéndose desde 3,4. El título de la pantalla pasa a dorado y lo cruza una banda
+     más clara una sola vez (1,2 s, desde los 0,3 s); después se queda dorado y quieto.
 
-   Colores: se leen de las variables de la paleta de Anki en el momento de soltar el confeti
-   (las redefine Nocturne), así que acompañan al modo día o noche; no hay ninguno escrito
-   a mano. Con «reducir movimiento» activado en el sistema no hay confeti ni brillo animado.
+   Formas: tiras de 6 × 14 px con esquinas de 2, círculos de 8 y destellos de cuatro puntas de
+   12 (los de CoreProgress); en la lluvia, también estrellas de cinco puntas de 13. Tamaño
+   ±15 % al azar. Cada pieza sale disparada, frena con el aire (frenada exponencial de
+   0,16 s), cae despacio, se mece de lado y gira como papel; su posición depende solo del
+   tiempo, con fórmulas cerradas. Como mucho 1,4 vueltas por segundo y 14 px por pieza: sin
+   destellos peligrosos.
 
-   Es idempotente: Python lo envía completo cada vez, y si ya está cargado no hace nada. */
+   Colores: llegan de Python (look.py) en JSON, de día y de noche; aquí no hay ninguno
+   escrito a mano. Con «reducir movimiento» no hay confeti ni brillo: tres destellos fijos
+   encima del título. Con el contraste alto de Windows, ni confeti ni destellos y el título en
+   el color del texto.
+
+   Es idempotente: Python lo envía completo cada vez, y si ya está cargado no se redefine. */
 (function () {
   'use strict';
   if (window.profeedbackConfetti) {
     return;
   }
 
-  var NORMAL_VARS = [
-    '--accent-danger', '--flag-2', '--accent-note',
-    '--accent-card', '--state-marked', '--flag-5'
-  ];
-  var GRAVITY = 0.00125; /* px por ms al cuadrado */
-  /* 2.5.0 (informe 2.4.0, apartado 8.11): todo en pantalla 4 s como máximo en la lluvia y
-     2,5 s en los cañones; los trozos que quedan se desvanecen en los últimos 400 ms. */
-  var RAIN_MS = 4000;
-  var BURST_MS = 2500;
-  var FADE_MS = 400;
-  var deadline = 0;
-  var RAIN_PER_SECOND = 34;
-  var BURST_PIECES = 160;
-  var STAR_CHANCE = 0.12;
+  var TAU = Math.PI * 2;
+  var DRAG = 0.16; /* s: frenada exponencial del impulso */
+  var EFFECTS = {
+    burst: { pieces: 72, duration: 2.4, fadeFrom: 2.0 },
+    rain: { pieces: 120, duration: 3.8, fadeFrom: 3.4 }
+  };
+  /* Reparto de formas: tira, círculo, destello y estrella. */
+  var SHAPES = {
+    burst: [['strip', 0.5], ['circle', 0.25], ['sparkle', 0.25]],
+    rain: [['strip', 0.4], ['circle', 0.2], ['sparkle', 0.25], ['star', 0.15]]
+  };
 
   var canvas = null;
   var ctx = null;
   var pieces = [];
-  var spawner = null;
   var frame = 0;
-  var lastTime = 0;
-  var scratch = null;
+  var startedAt = 0;
+  var current = null;
 
   function reducedMotion() {
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  function forcedColors() {
+    return !!(window.matchMedia && window.matchMedia('(forced-colors: active)').matches);
+  }
+
+  function isNight() {
+    var html = document.documentElement;
+    var body = document.body;
+    return html.classList.contains('night-mode') ||
+      !!(body && (body.classList.contains('night_mode') || body.classList.contains('nightMode')));
   }
 
   function random(min, max) {
     return Math.random() * (max - min) + min;
   }
 
-  /* ── colores ─────────────────────────────────────────────────────────────── */
-  function cssVar(name) {
-    var value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    return value || getComputedStyle(document.body).color;
+  function pick(list) {
+    return list[Math.floor(Math.random() * list.length)];
   }
 
-  /* Cualquier color CSS (hex, rgb, nombre…) a [r, g, b], con un lienzo de 1 píxel. */
-  function toRgb(color) {
-    if (!scratch) {
-      scratch = document.createElement('canvas');
-      scratch.width = scratch.height = 1;
+  function shapeFor(effect) {
+    var roll = Math.random();
+    var table = SHAPES[effect];
+    for (var i = 0; i < table.length; i += 1) {
+      roll -= table[i][1];
+      if (roll < 0) {
+        return table[i][0];
+      }
     }
-    var c = scratch.getContext('2d', { willReadFrequently: true });
-    c.clearRect(0, 0, 1, 1);
-    c.fillStyle = color;
-    c.fillRect(0, 0, 1, 1);
-    var d = c.getImageData(0, 0, 1, 1).data;
-    return [d[0], d[1], d[2]];
+    return table[0][0];
   }
 
-  function mix(a, b, t) {
-    return [
-      Math.round(a[0] + (b[0] - a[0]) * t),
-      Math.round(a[1] + (b[1] - a[1]) * t),
-      Math.round(a[2] + (b[2] - a[2]) * t)
-    ];
+  /* ── estilo: título dorado y destellos fijos ─────────────────────────────── */
+  /* Tres destellos de cuatro puntas (10, 12 y 10 px) en una imagen SVG de 44 × 12 px. */
+  function sparklesSvg(colors) {
+    var shapes = colors.map(function (color, i) {
+      var cx = 6 + i * 16;
+      var r = i === 1 ? 6 : 5;
+      var points = [];
+      for (var k = 0; k < 8; k += 1) {
+        var radius = k % 2 === 0 ? r : r * 0.3;
+        var a = (k * Math.PI) / 4 - Math.PI / 2;
+        points.push((cx + Math.cos(a) * radius).toFixed(2) + ',' + (6 + Math.sin(a) * radius).toFixed(2));
+      }
+      return '<polygon fill="' + color + '" points="' + points.join(' ') + '"/>';
+    }).join('');
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="12" viewBox="0 0 44 12">' +
+      shapes + '</svg>';
+    return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
   }
 
-  function css(rgb) {
-    return 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
-  }
-
-  function palette(kind) {
-    if (kind === 'gold') {
-      var deep = toRgb(cssVar('--state-buried'));
-      var warm = toRgb(cssVar('--flag-2'));
-      var white = toRgb(cssVar('--highlight-fg'));
-      return [
-        deep, warm, mix(deep, warm, 0.5),
-        mix(warm, white, 0.35), mix(deep, white, 0.35), mix(warm, white, 0.6)
-      ].map(css);
-    }
-    return NORMAL_VARS.map(function (name) {
-      return css(toRgb(cssVar(name)));
-    });
-  }
-
-  /* ── brillo dorado del título ────────────────────────────────────────────── */
-  function goldTitle() {
-    if (document.getElementById('profeedback-gold-style')) {
-      return;
+  function addStyle(id, css) {
+    var old = document.getElementById(id);
+    if (old) {
+      old.remove();
     }
     var style = document.createElement('style');
-    style.id = 'profeedback-gold-style';
-    style.textContent =
-      '.congrats h1{' +
-      '--profeedback-gold-a:#8a5200;--profeedback-gold-b:#a35f00;' + /* colores-ok: dorado de ProFeedback de día (6,0 y 4,7 a 1, informe 2.4.0) */
-      'background-image:linear-gradient(100deg,var(--profeedback-gold-a) 0%,' +
-      'var(--profeedback-gold-b) 50%,var(--profeedback-gold-a) 100%);' +
-      'background-size:200% auto;background-position:0% center;' +
-      '-webkit-background-clip:text;background-clip:text;' +
-      'color:transparent;-webkit-text-fill-color:transparent;' +
-      'animation:profeedback-gold-shine 3.6s ease-in-out 1}' +
-      ':is(.night_mode,.nightMode) .congrats h1{' +
-      '--profeedback-gold-a:#ffd700;--profeedback-gold-b:#fff1a8}' + /* colores-ok: dorado de ProFeedback de noche (12,9 y 15,9 a 1) */
-      '@keyframes profeedback-gold-shine{0%{background-position:0% center}' +
-      '50%{background-position:100% center}100%{background-position:0% center}}' +
-      '@media (prefers-reduced-motion:reduce){.congrats h1{animation:none}}';
+    style.id = id;
+    style.textContent = css;
     (document.head || document.documentElement).appendChild(style);
   }
 
-  /* ── partículas ──────────────────────────────────────────────────────────── */
-  function Piece(x, y, vx, vy, color, rain) {
-    this.x = x;
-    this.y = y;
-    this.vx = vx;
-    this.vy = vy;
-    this.color = color;
-    this.rain = rain;
-    this.star = Math.random() < STAR_CHANCE;
-    this.w = random(7, 13);
-    this.h = this.star ? this.w : random(9, 18);
-    this.angle = random(0, Math.PI * 2);
-    this.spin = random(-0.012, 0.012);
-    this.flip = random(0, Math.PI * 2);
-    this.flipSpeed = random(0.004, 0.012);
-    this.baseX = x;
-    this.sway = random(0.0006, 0.0016);
-    this.swayAmp = random(20, 55);
-    this.age = 0;
+  var NIGHT = ':is(.night-mode,.night_mode,.nightMode) ';
+
+  /* Título del fin del día: el oro de CoreProgress y una sola pasada de brillo. */
+  function goldTitle(colors) {
+    addStyle(
+      'profeedback-gold-style',
+      '.congrats h1{--profeedback-title:' + colors.title.day + ';--profeedback-band:' + colors.band.day + '}' +
+      NIGHT + '.congrats h1{--profeedback-title:' + colors.title.night + ';--profeedback-band:' +
+      colors.band.night + '}' +
+      '.congrats h1{color:var(--profeedback-title);background-image:linear-gradient(100deg,' +
+      'var(--profeedback-title) 0%,var(--profeedback-title) 40%,var(--profeedback-band) 50%,' +
+      'var(--profeedback-title) 60%,var(--profeedback-title) 100%);background-size:250% 100%;' +
+      'background-position:100% 0;-webkit-background-clip:text;background-clip:text;' +
+      '-webkit-text-fill-color:transparent;' +
+      'animation:profeedback-gold-shine 1.2s cubic-bezier(.2,.8,.2,1) .3s 1 both}' +
+      '@keyframes profeedback-gold-shine{from{background-position:100% 0}to{background-position:0% 0}}' +
+      '@media (prefers-reduced-motion:reduce){.congrats h1{animation:none;background:none;' +
+      '-webkit-text-fill-color:currentColor}}' +
+      '@media (forced-colors:active){.congrats h1{animation:none;background:none;' +
+      'color:CanvasText;-webkit-text-fill-color:CanvasText}}'
+    );
   }
 
-  Piece.prototype.update = function (dt) {
-    this.age += dt;
-    this.angle += this.spin * dt;
-    this.flip += this.flipSpeed * dt;
-    if (this.rain) {
-      this.y += this.vy * dt;
-      this.x = this.baseX + Math.sin(this.age * this.sway + this.angle) * this.swayAmp;
-    } else {
-      this.vy += GRAVITY * dt;
-      this.vx *= Math.pow(0.9994, dt);
-      this.x += this.vx * dt;
-      this.y += this.vy * dt;
-    }
-  };
+  /* «Reducir movimiento»: tres destellos fijos encima del título, que no desplazan nada. */
+  function fixedSparkles(list) {
+    addStyle(
+      'profeedback-sparkles-style',
+      '.congrats h1{position:relative}' +
+      '.congrats h1::before{content:"";position:absolute;left:50%;bottom:100%;width:44px;height:12px;' +
+      'transform:translate(-50%,-6px);background:' + sparklesSvg(list.day) + ' no-repeat;' +
+      'pointer-events:none}' +
+      NIGHT + '.congrats h1::before{background-image:' + sparklesSvg(list.night) + '}' +
+      '@media (forced-colors:active){.congrats h1::before{display:none}}'
+    );
+  }
 
-  Piece.prototype.gone = function (height, width) {
-    return this.y > height + 40 || this.x < -220 || this.x > width + 220;
-  };
+  /* ── piezas ──────────────────────────────────────────────────────────────── */
+  function burstPiece(i, width, height, colors) {
+    var left = i % 2 === 0;
+    var angle = (random(40, 75) * Math.PI) / 180;
+    return {
+      shape: shapeFor('burst'),
+      color: pick(colors),
+      t0: i < 36 ? random(0, 0.02) : random(0.06, 0.12),
+      x0: left ? 24 : width - 24,
+      y0: height - 24,
+      dx: (left ? 1 : -1) * Math.cos(angle),
+      dy: -Math.sin(angle),
+      reach: random(0.4, 0.85) * height,
+      fall: random(0.14, 0.24) * height,
+      swayAmp: random(6, 20),
+      swayHz: random(0.5, 1.2),
+      phase: random(0, TAU),
+      flipHz: random(0.6, 1.4),
+      spin: random(60, 240) * (Math.random() < 0.5 ? -1 : 1),
+      rot0: random(0, 360),
+      size: random(0.85, 1.15)
+    };
+  }
 
-  function drawStar(c, radius) {
-    var spikes = 4;
-    var step = Math.PI / spikes;
-    var rot = (Math.PI / 2) * 3;
+  function rainPiece(width, height, colors) {
+    return {
+      shape: shapeFor('rain'),
+      color: pick(colors),
+      t0: random(0, 0.9),
+      x0: random(0, width),
+      y0: -random(20, 60),
+      dx: 0,
+      dy: 1,
+      reach: random(0.05, 0.45) * height,
+      fall: random(0.15, 0.33) * height,
+      swayAmp: random(12, 38),
+      swayHz: random(0.4, 1.0),
+      phase: random(0, TAU),
+      flipHz: random(0.6, 1.4),
+      spin: random(60, 240) * (Math.random() < 0.5 ? -1 : 1),
+      rot0: random(0, 360),
+      size: random(0.85, 1.15)
+    };
+  }
+
+  /* Posición en el instante t (s): impulso que frena, caída lenta y vaivén. */
+  function place(p, t) {
+    var u = t - p.t0;
+    var push = p.reach * (1 - Math.exp(-u / DRAG));
+    var sway = p.swayAmp * Math.sin(TAU * p.swayHz * u + p.phase) * Math.min(1, u / 0.4);
+    return {
+      x: p.x0 + p.dx * push + sway,
+      y: p.y0 + p.dy * push + p.fall * u,
+      rot: ((p.rot0 + p.spin * u) * Math.PI) / 180,
+      flip: Math.cos(TAU * p.flipHz * u + p.phase)
+    };
+  }
+
+  function star(c, points, outer, inner) {
     c.beginPath();
-    c.moveTo(0, -radius);
-    for (var i = 0; i < spikes; i += 1) {
-      c.lineTo(Math.cos(rot) * radius, Math.sin(rot) * radius);
-      rot += step;
-      c.lineTo(Math.cos(rot) * radius * 0.5, Math.sin(rot) * radius * 0.5);
-      rot += step;
+    for (var i = 0; i < points * 2; i += 1) {
+      var r = i % 2 === 0 ? outer : inner;
+      var a = (i * Math.PI) / points - Math.PI / 2;
+      if (i === 0) {
+        c.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+      } else {
+        c.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+      }
     }
     c.closePath();
     c.fill();
   }
 
-  Piece.prototype.draw = function (c, height) {
-    var fade = Math.max(0, Math.min(1, (height + 20 - this.y) / 90));
+  function draw(c, p, at) {
     c.save();
-    c.translate(this.x, this.y);
-    c.rotate(this.angle);
-    c.fillStyle = this.color;
-    if (this.star) {
-      c.globalAlpha = (0.65 + 0.35 * Math.sin(this.flip * 6)) * fade;
-      drawStar(c, this.w / 2);
+    c.translate(at.x, at.y);
+    c.rotate(at.rot);
+    c.scale(p.size, p.size);
+    c.fillStyle = p.color;
+    if (p.shape === 'strip') {
+      c.scale(1, at.flip);
+      c.beginPath();
+      if (c.roundRect) {
+        c.roundRect(-3, -7, 6, 14, 2);
+      } else {
+        c.rect(-3, -7, 6, 14);
+      }
+      c.fill();
+    } else if (p.shape === 'circle') {
+      c.scale(1, Math.max(0.15, Math.abs(at.flip)));
+      c.beginPath();
+      c.arc(0, 0, 4, 0, TAU);
+      c.fill();
+    } else if (p.shape === 'sparkle') {
+      star(c, 4, 6, 1.8);
     } else {
-      c.scale(Math.cos(this.flip), 1);
-      c.globalAlpha = fade;
-      c.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+      star(c, 5, 6.5, 2.6);
     }
     c.restore();
-  };
+  }
 
   /* ── lienzo y bucle ──────────────────────────────────────────────────────── */
   function ensureCanvas() {
@@ -202,7 +258,7 @@
     canvas.setAttribute('aria-hidden', 'true');
     canvas.style.cssText =
       'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1000';
-    document.body.appendChild(canvas);
+    (document.body || document.documentElement).appendChild(canvas);
     ctx = canvas.getContext('2d');
   }
 
@@ -218,11 +274,12 @@
   }
 
   function finish() {
-    window.cancelAnimationFrame(frame);
+    if (frame) {
+      window.cancelAnimationFrame(frame);
+    }
     frame = 0;
-    window.clearInterval(spawner);
-    spawner = null;
     pieces = [];
+    current = null;
     if (canvas) {
       canvas.remove();
       canvas = null;
@@ -231,112 +288,66 @@
   }
 
   function loop(now) {
-    var dt = Math.min(48, now - lastTime);
-    lastTime = now;
-    resize();
-    var width = window.innerWidth;
-    var height = window.innerHeight;
-    var left = deadline - now;
-    if (left <= 0) {
+    frame = 0;
+    if (!canvas || !current) {
       finish();
       return;
     }
-    canvas.style.opacity = String(Math.min(1, left / FADE_MS));
+    var t = (now - startedAt) / 1000;
+    if (t >= current.duration) {
+      finish();
+      return;
+    }
+    resize();
+    var width = window.innerWidth;
+    var height = window.innerHeight;
     ctx.clearRect(0, 0, width, height);
-    pieces = pieces.filter(function (piece) {
-      piece.update(dt);
-      piece.draw(ctx, height);
-      return !piece.gone(height, width);
-    });
-    if (pieces.length > 0 || spawner) {
-      frame = window.requestAnimationFrame(loop);
-    } else {
-      finish();
+    ctx.globalAlpha = t <= current.fadeFrom ? 1 :
+      Math.max(0, 1 - (t - current.fadeFrom) / (current.duration - current.fadeFrom));
+    for (var i = 0; i < pieces.length; i += 1) {
+      var p = pieces[i];
+      if (t < p.t0) {
+        continue;
+      }
+      var at = place(p, t);
+      if (at.y > height + 30 || at.x < -40 || at.x > width + 40) {
+        continue;
+      }
+      draw(ctx, p, at);
     }
+    frame = window.requestAnimationFrame(loop);
   }
 
-  function start() {
-    if (!frame) {
-      lastTime = performance.now();
-      frame = window.requestAnimationFrame(loop);
+  function launch(effect, kind, colors) {
+    var gold = kind === 'gold';
+    if (gold && colors) {
+      goldTitle(colors);
     }
-  }
-
-  /* ── formas de soltarlo ──────────────────────────────────────────────────── */
-  function burst(kind) {
-    if (kind === 'gold') {
-      goldTitle();
-    }
-    if (reducedMotion()) {
+    if (forcedColors() || !colors) {
       return;
     }
-    ensureCanvas();
-    resize();
-    var colors = palette(kind);
-    var width = window.innerWidth;
-    var height = window.innerHeight;
-    var scale = Math.max(0.6, Math.min(1.2, Math.log(width) / Math.log(1920)));
-    deadline = performance.now() + BURST_MS;
-    for (var i = 0; i < BURST_PIECES; i += 1) {
-      var fromLeft = i % 2 === 0;
-      var angle = (random(15, 82) * Math.PI) / 180;
-      var speed = random(0.9, 1.7) * scale;
-      var x = fromLeft ? random(-20, 20) : width + random(-20, 20);
-      var y = height * (5 / 7) + random(-20, 20);
-      pieces.push(new Piece(
-        x, y,
-        (fromLeft ? 1 : -1) * Math.cos(angle) * speed,
-        -Math.sin(angle) * speed,
-        colors[Math.floor(Math.random() * colors.length)],
-        false
-      ));
-    }
-    start();
-  }
-
-  function rain(kind) {
-    if (kind === 'gold') {
-      goldTitle();
-    }
     if (reducedMotion()) {
+      fixedSparkles(gold ? colors.sparklesGold : colors.sparklesDeck);
       return;
     }
+    finish();
     ensureCanvas();
     resize();
-    var colors = palette(kind);
+    current = EFFECTS[effect];
     var width = window.innerWidth;
     var height = window.innerHeight;
-    function add(y) {
-      pieces.push(new Piece(
-        random(0, width), y, 0, random(0.1, 0.22),
-        colors[Math.floor(Math.random() * colors.length)],
-        true
-      ));
+    var night = isNight();
+    var source = gold ? colors.gold : colors.deck;
+    var list = night ? source.night : source.day;
+    for (var i = 0; i < current.pieces; i += 1) {
+      pieces.push(effect === 'burst' ? burstPiece(i, width, height, list) : rainPiece(width, height, list));
     }
-    for (var i = 0; i < 44; i += 1) {
-      add(random(-40, height * 0.9));
-    }
-    var startedAt = performance.now();
-    deadline = startedAt + RAIN_MS;
-    var carry = 0;
-    var previous = startedAt;
-    window.clearInterval(spawner);
-    spawner = window.setInterval(function () {
-      var now = performance.now();
-      if (now - startedAt > RAIN_MS - FADE_MS) {
-        window.clearInterval(spawner);
-        spawner = null;
-        return;
-      }
-      carry += (RAIN_PER_SECOND * (now - previous)) / 1000;
-      previous = now;
-      while (carry >= 1) {
-        add(-20);
-        carry -= 1;
-      }
-    }, 50);
-    start();
+    startedAt = performance.now();
+    frame = window.requestAnimationFrame(loop);
   }
 
-  window.profeedbackConfetti = { burst: burst, rain: rain };
+  window.profeedbackConfetti = {
+    burst: function (kind, colors) { launch('burst', kind, colors); },
+    rain: function (kind, colors) { launch('rain', kind, colors); }
+  };
 })();
