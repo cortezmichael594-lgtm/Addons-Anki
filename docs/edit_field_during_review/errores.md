@@ -9,31 +9,7 @@ exacta de cada una no consta, solo su fecha.
 
 Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa y propuesta.
 
-- 2026-10-21 · versión 1.0.0 · Qué pasa: si dos campos de una nota tienen exactamente el mismo
-  contenido y la plantilla pone cada uno en su propio bloque (por ejemplo, «Palabra» y «Lectura» con
-  «すし», como ocurre en japonés con las palabras escritas solo en kana), el complemento toma los dos
-  por el primero. Al editar el segundo en pantalla, el cambio se guarda en el primer campo y el
-  segundo se queda como estaba, aunque en pantalla se vean cambiados los dos. Se puede deshacer con
-  Editar > Deshacer. Propuesta: reconocer cada campo por su sitio en la plantilla y no solo por su
-  texto; mientras tanto, si dos campos coinciden, no dejar editar ninguno de los dos antes que
-  guardar en el equivocado.
-- 2026-10-21 · versión 1.0.0 · Qué pasa: si edita un campo que contiene una fórmula (MathJax) y
-  guarda, en su sitio queda el código de la fórmula (por ejemplo, «\(x^2\)») en lugar de la fórmula
-  dibujada, hasta que pasa a la otra cara o a otra tarjeta. Lo guardado es correcto; solo falla lo
-  que se ve. Por qué: el complemento redibuja ese trozo con el texto que le da Anki, pero no pide que
-  se vuelvan a dibujar sus fórmulas. Propuesta: tras redibujar el trozo, pedir que se dibujen de
-  nuevo las fórmulas que contiene.
-- 2026-10-21 · versión 1.0.0 · Qué pasa: en las tarjetas de huecos cuya plantilla pone el texto con
-  huecos y otro campo (por ejemplo, «Reverso extra») dentro de un mismo bloque, sin un bloque propio
-  para cada uno, el complemento toma el bloque entero por el campo de huecos: el otro campo no se
-  puede editar y, mientras edita el de huecos, desaparece de la vista hasta que guarda o cancela. No
-  se pierde nada. La plantilla de huecos que trae Anki no tiene este problema. Propuesta: limitar el
-  campo de huecos a su propio texto también en ese caso.
-- 2026-10-21 · versión 1.0.0 · Qué pasa: el recuadro azul de edición usa dos azules fijos propios:
-  de día, el de la bandera azul de Anki, y de noche, uno que no está en la paleta Nocturne. No es el
-  azul de foco de Anki, así que no casa con el resto de la interfaz. Además, el comprobador del
-  taller no deja empaquetar una versión nueva con colores fijos. Propuesta: usar el azul de foco de
-  la paleta, con su pareja de modo noche.
+(Ninguno.)
 
 ## Corregidos
 
@@ -65,6 +41,24 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   propios, fuera de la paleta, así que con Atelier en Bosque, Lavanda, Atardecer o Papel seguía azul
   aunque el color de acción fuera otro. Por qué: los colores estaban escritos a mano. Regla: el
   recuadro usa el color de foco de la paleta, de día y de noche.
+- FIX-006 · 2026-11-17 · versión 1.1.0 · Qué pasaba: si dos campos de una nota tenían exactamente el
+  mismo contenido y la plantilla ponía cada uno en su bloque (por ejemplo, «Palabra» y «Lectura» con
+  «すし»), al editar el segundo en pantalla el cambio se guardaba en el primero. Por qué: cada campo se
+  reconoce en la tarjeta por su texto, y dos textos iguales no se distinguen. Regla: si dos campos
+  tienen el mismo contenido, ninguno se ofrece para editar sobre la tarjeta; antes no editar que
+  guardar en el campo equivocado.
+- FIX-007 · 2026-11-17 · versión 1.1.0 · Qué pasaba: al guardar un campo con una fórmula (MathJax), en
+  su sitio quedaba su código («\(x^2\)») hasta pasar a la otra cara. Por qué: el trozo se redibujaba
+  con el texto de Anki sin pedir que se dibujaran sus fórmulas. Regla: todo trozo redibujado que pueda
+  llevar fórmulas pide a MathJax que las dibuje, solo en ese trozo.
+- FIX-008 · 2026-11-17 · versión 1.1.0 · Qué pasaba: en tarjetas de huecos cuya plantilla pone el
+  texto con huecos y otro campo (por ejemplo, «Reverso extra») en un mismo bloque, el complemento
+  tomaba el bloque entero por el campo de huecos: el otro no se podía editar y desaparecía mientras se
+  editaba el de huecos. Por qué: se marcaba el primer bloque con todo el texto de los huecos, aunque
+  tuviera también el de otro campo. Regla: un bloque solo se toma por un campo si no contiene el
+  texto de otro; si lo contiene, se envuelve solo el tramo con los huecos.
+- Sin nota en el código · 2026-11-17 · El pendiente «el recuadro azul usa dos azules fijos propios»
+  ya estaba resuelto por FIX-005 (2026-11-09); se quita de «Pendientes».
 
 ## Así a propósito
 

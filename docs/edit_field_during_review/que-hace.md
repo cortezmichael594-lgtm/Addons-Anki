@@ -1,6 +1,6 @@
 # Qué hace «Edit field during review»
 
-Versión 1.1.0 · 2026-11-09
+Versión 1.1.1 · 2026-11-17
 
 Le deja corregir el texto de una nota directamente sobre la tarjeta, mientras repasa o en la vista
 previa de Explorar, sin abrir la ventana de edición. Se mantiene pulsada la tecla Ctrl y se hace clic
@@ -71,8 +71,15 @@ Solo cambia el campo que usted edita, y cada cambio se puede deshacer desde Edit
 - Pulsar sobre un enlace, un botón de reproducir sonido o la casilla para escribir la respuesta nunca
   empieza a editar.
 - Las etiquetas solo se pueden editar si la plantilla las muestra.
-- Hay tres casos en que el reconocimiento falla de forma visible (descritos en «Pendientes» de sus
-  errores): dos campos con el mismo contenido, fórmulas y algunas plantillas de huecos.
+- Si dos campos tienen exactamente el mismo contenido (por ejemplo, «Palabra» y «Lectura» con
+  «すし»), ninguno de los dos se puede editar sobre la tarjeta: el complemento no sabría a cuál de
+  los dos va el cambio, y antes que guardarlo en el equivocado no ofrece ninguno (1.1.1; antes
+  guardaba siempre en el primero). Se editan como siempre, desde Editar.
+- Al guardar un campo con fórmulas, las fórmulas se vuelven a dibujar en su sitio (1.1.1; antes se
+  veía su código hasta pasar a la otra cara).
+- En las tarjetas de huecos cuya plantilla pone el texto con huecos y otro campo (por ejemplo,
+  «Reverso extra») en un mismo bloque, cada uno se edita por separado (1.1.1; antes el de huecos se
+  quedaba el bloque entero).
 
 ## 4. Qué cambia de su colección y cómo deshacerlo
 
