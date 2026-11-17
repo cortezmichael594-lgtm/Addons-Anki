@@ -292,6 +292,7 @@ class ProgressBarTracker:
             label_ms=LABEL_VISIBLE_MS,
             aria=self._aria(progress),
             name=t("bar_name"),
+            full_width=cfg.bar_width == "window",
         )
         reviewer_eval(js)
         self._state.bar_injected = True

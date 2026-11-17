@@ -122,6 +122,9 @@ Se actualiza al cerrar cada parte de un trabajo largo y se lee al retomarlo. Va 
   repaso). 42 pruebas. Va en el mismo pull request que CoreProgress 1.5.0.
 - 2026-11-17: ProFeedback 2.6.1 (petición de la persona): iconos de insignia sin círculo de fondo y
   FIX-008 («Ver» explica por qué no hay confeti con «reducir movimiento» del sistema).
+- 2026-11-17: CoreProgress 1.6.0 (ancho elegible «Tarjeta»/«Ventana» y franja opaca detrás de la
+  barra al desplazar) y ProFeedback 2.6.2 (6 px entre icono y texto en dos insignias), peticiones de
+  la persona.
 
 ## En curso
 

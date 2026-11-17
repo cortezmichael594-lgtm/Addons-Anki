@@ -1,6 +1,6 @@
 # Qué hace «CoreProgress»
 
-Versión 1.5.0 · 2026-11-17
+Versión 1.6.0 · 2026-11-17
 
 Barra de progreso en la parte de arriba de la pantalla de repaso: se va llenando a medida que despacha
 lo que tenía hoy en el mazo que está estudiando, con marcas por el camino, el número del próximo hito y el total de hoy al final. Además cuenta sus
@@ -18,7 +18,9 @@ pantalla de «¡Enhorabuena!». La 1.5.0 aplica entero el informe «Rediseño de
 hitos como cortes con número solo en el próximo y en el total, y estrella en la punta de la racha
 dorada en lugar del halo. Cambian todos los colores de los temas (pesan igual, ninguno se parece al
 azul de los botones y de noche brillan menos), el canal, el aviso (en una píldora), el movimiento y,
-en la ventana de opciones, las muestras de tema, el grosor y la vista previa.
+en la ventana de opciones, las muestras de tema, el grosor y la vista previa. La 1.6.0 (petición suya)
+deja elegir el ancho de la barra («Tarjeta» o «Ventana») y pone detrás de la barra una franja del color
+del fondo, para que al bajar por una tarjeta larga el contenido pase limpio por debajo.
 
 ## 1. Dónde aparece
 
@@ -57,10 +59,14 @@ Qué mide:
 
 Aspecto:
 
-- Queda fija arriba, centrada sobre la tarjeta: mide como mucho 720 px, el ancho de la tarjeta de
-  Atelier, y en una ventana más estrecha ocupa el ancho menos 18 px a cada lado; 10 px por arriba
-  (desde la 1.5.0; antes iba de lado a lado y la punta quedaba lejos del texto). Va por encima de la
-  tarjeta y no se mueve al bajar por una tarjeta larga. Los clics la atraviesan.
+- Queda fija arriba, 10 px por debajo del borde. Su ancho se elige en las opciones (1.6.0):
+  «Tarjeta» (de serie), como mucho 720 px, el ancho de la tarjeta de Atelier, centrada; o «Ventana», de
+  lado a lado con 18 px de margen a cada lado, como hasta la 1.4.0. Va por encima de la tarjeta y no se
+  mueve al bajar por una tarjeta larga. Los clics la atraviesan.
+- Detrás de la barra hay una franja de lado a lado, del color del fondo de la tarjeta, de 10 px por
+  arriba, el alto de la barra y 8 px por abajo (1.6.0). Sin bajar no tapa nada (la tarjeta ya deja ese
+  hueco); al bajar por una tarjeta larga, el contenido pasa por debajo de la franja y se corta limpio,
+  en lugar de verse a través de la barra y de sus hitos.
 - La tarjeta deja siempre sitio a la barra y a su aviso: 10 px de margen, el alto de la barra, 24 px
   para el aviso de racha (solo con «Celebrar rachas y récords» marcada) y 8 px de aire: 58 px con la
   barra de serie, 34 sin celebraciones. «Espacio extra» se suma a ese mínimo. Hasta la 1.1.0, con el
@@ -200,8 +206,9 @@ Dos recuadros (desde la 1.3.0; antes tres, con el récord primero):
 | Opción | Control | Valores | Por defecto |
 |---|---|---|---|
 | Tema de color | Fichas de 32 px en dos columnas, por orden alfabético de su nombre, cada una con su muestra: desde la 1.5.0, una minibarra de 30 × 10 px con el degradado del tema en el modo activo, sin contorno. La elegida, con el tinte de selección, un borde de 2 px y una ✓ en el color de enlace | Azul océano, Naranja atardecer, Púrpura real, Rosa suave, Turquesa laguna, Verde clásico | Verde clásico |
-| Grosor (1.5.0; antes «Altura de la barra», de 12 a 22 px) | Tres botones seguidos sobre un carril (control segmentado, como los de GritMap), en paralelo con el siguiente; el elegido, con el fondo de la capa elevada, borde azul y seminegrita. Si algún nombre no cupiera en su idioma, pasan a lista vertical | Fina (12 px), Normal (16) y Gruesa (20); también cambia el tamaño de los hitos y de sus números. Un valor guardado por una versión anterior pasa al más cercano (22 → Gruesa, 14 → Normal) | Normal |
-| Espacio extra | Campo con «−» y «+» (de 4 en 4) y «px · 0–300» al lado | De 0 a 300 píxeles que se suman al espacio mínimo que la tarjeta deja a la barra | 0 |
+| Grosor (1.5.0; antes «Altura de la barra», de 12 a 22 px) | Tres botones seguidos sobre un carril (control segmentado, como los de GritMap), en paralelo con «Ancho»; el elegido, con el fondo de la capa elevada, borde azul y seminegrita. Si algún nombre no cupiera en su idioma, pasan a lista vertical | Fina (12 px), Normal (16) y Gruesa (20); también cambia el tamaño de los hitos y de sus números. Un valor guardado por una versión anterior pasa al más cercano (22 → Gruesa, 14 → Normal) | Normal |
+| Ancho (1.6.0) | Dos botones seguidos sobre un carril (como «Grosor»), en paralelo con él | «Tarjeta» (720 px centrada) o «Ventana» (de lado a lado, como hasta la 1.4.0) | Tarjeta |
+| Espacio extra | Campo con «−» y «+» (de 4 en 4) y «px · 0–300» al lado, en su propia fila desde la 1.6.0 | De 0 a 300 píxeles que se suman al espacio mínimo que la tarjeta deja a la barra | 0 |
 | Mostrar hitos en la barra | Casilla | — | Marcada |
 | Celebrar rachas y récords | Casilla | Avisos de racha, de mejor racha de 30 días y de récord, barra dorada con su estrella, chispas, y la animación y las chispas de los hitos | Marcada |
 

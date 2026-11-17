@@ -57,6 +57,8 @@
 .profeedback-badge--new-card {
   color: var(--profeedback-new-card-text);
   --profeedback-badge-icon: var(--profeedback-new-card-icon);
+  /* 2.6.2 (petición de la persona): icono 2 px más cerca del texto; «SE RESISTE» sigue con 8. */
+  gap: 6px;
 }
 
 .profeedback-badge--hard-exercise {
@@ -67,6 +69,8 @@
 .profeedback-badge--previous-mistake {
   color: var(--profeedback-previous-mistake-text);
   --profeedback-badge-icon: var(--profeedback-previous-mistake-icon);
+  /* 2.6.2 (petición de la persona): icono 2 px más cerca del texto; «SE RESISTE» sigue con 8. */
+  gap: 6px;
 }
 
 @keyframes profeedback-badge-in {

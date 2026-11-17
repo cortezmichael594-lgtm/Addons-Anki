@@ -1,6 +1,6 @@
 # Ficha de diseño: ProFeedback
 
-Versión 2.6.1 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. La 2.6.0 aplica entero el
+Versión 2.6.2 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. La 2.6.0 aplica entero el
 informe «Rediseño de color y forma: ProFeedback 2.5.0», con la opción recomendada en sus tres decisiones.
 
 ## 1. Qué es, en una frase
@@ -54,7 +54,8 @@ Una sola, por prioridad:
 | «OTRA OPORTUNIDAD» | Alguna de sus dos últimas respuestas fue «Otra vez» | Flecha en bucle, trazo de 2 px | #7A4D07 / #E0A761 | #BA7816 / #E0A761 |
 
 - Icono: solo el dibujo, de 24 px, del color de su insignia, con fondo transparente de día y de noche
-  (2.6.1, petición de la persona: no volver a proponer un círculo o fondo detrás); 8 px de hueco; letra
+  (2.6.1, petición de la persona: no volver a proponer un círculo o fondo detrás); 8 px de hueco en «SE
+  RESISTE» y 6 en «TARJETA NUEVA» y «OTRA OPORTUNIDAD» (2.6.2, petición de la persona); letra
   de 14 px en negrita, mayúsculas, 0,06 em entre letras (2.6.0; antes 0,4 px).
 - Franja fija de 40 px encima de la tarjeta (24 del icono y 16 de aire), haya insignia o no: la tarjeta
   no cambia de sitio entre una y otra.

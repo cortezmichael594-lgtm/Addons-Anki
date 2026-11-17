@@ -196,5 +196,20 @@ class BadgeStyleTests(unittest.TestCase):
         self.assertIn("--profeedback-hard-exercise-text", content.head)
 
 
+class BadgeGapTests(unittest.TestCase):
+    def test_gap_per_badge(self) -> None:
+        # 2.6.2: 6 px entre icono y texto en «TARJETA NUEVA» y «OTRA OPORTUNIDAD»; 8 en «SE RESISTE».
+        from pathlib import Path
+
+        css = (Path(badges.__file__).parent / "web" / "flags.css").read_text(encoding="utf-8")
+        for modifier, gap in (("new-card", 6), ("previous-mistake", 6), ("hard-exercise", None)):
+            block = css.split(f".profeedback-badge--{modifier} {{", 1)[1].split("}", 1)[0]
+            if gap is None:
+                self.assertNotIn("gap:", block)
+            else:
+                self.assertIn(f"gap: {gap}px;", block)
+        self.assertIn("gap: 8px;", css.split(".profeedback-badge {", 1)[1].split("}", 1)[0])
+
+
 if __name__ == "__main__":
     unittest.main()

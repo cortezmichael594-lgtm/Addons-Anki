@@ -1,6 +1,6 @@
 # Ficha de diseño: CoreProgress
 
-Versión 1.5.0 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. Es un complemento que
+Versión 1.6.0 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. Es un complemento que
 la persona trajo hecho fuera del taller; la 1.2.0 aplica entero el primer informe de diseño de
 CoreProgress (interfaz, aprendizaje y hábito, 9 de noviembre de 2026) y la 1.5.0, el informe «Rediseño
 de color y forma: CoreProgress 1.4.0» (17 de noviembre de 2026), también entero. Los colores de los
@@ -47,9 +47,12 @@ Qué mide:
 
 Posición y forma:
 
-- Fija arriba, centrada sobre la tarjeta: 720 px como mucho (el ancho de la tarjeta de Atelier); en
-  una ventana más estrecha, el ancho menos 18 px a cada lado; 10 px arriba. Por encima de la tarjeta;
-  no se mueve al desplazarse. Los clics la atraviesan. (1.5.0; antes, de lado a lado.)
+- Fija arriba, 10 px por debajo del borde. Ancho a elegir (1.6.0, petición de la persona): «Tarjeta»
+  (de serie), 720 px como mucho, centrada; o «Ventana», de lado a lado con 18 px a cada lado. Por
+  encima de la tarjeta; no se mueve al desplazarse. Los clics la atraviesan.
+- Franja opaca detrás de la barra, de lado a lado, del color del fondo de la tarjeta (10 px arriba, el
+  alto de la barra y 8 abajo): al bajar por una tarjeta larga el contenido se corta limpio bajo ella
+  (1.6.0, petición de la persona con capturas). Sin bajar, no tapa nada.
 - Grosor: Fina 12 px, Normal 16 (de serie), Gruesa 20. Canal, relleno, discos y aviso en forma de
   píldora (radio = mitad del alto); los cortes de hito, rectos.
 - Canal (parte vacía), plano y sin sombra (1.5.0): sobre el fondo de Atelier (#F7F8FA / #12161F),
@@ -183,7 +186,8 @@ Sigue el modelo de `09-patron-configuracion.md` (panel de GritMap, 560 px, recua
      degradado del modo activo, sin contorno (1.5.0); la elegida con tinte, un solo borde de 2 px
      BORDER_FOCUS y ✓ en FG_LINK (con el foco del teclado, el borde pasa a 4 px); «Grosor» (control
      segmentado del panel modelo: Fina, Normal, Gruesa; el elegido con fondo de capa elevada, borde de
-     acción y seminegrita; 1.5.0) y «Espacio extra» (con «−» y «+» y «px · 0–300») en paralelo; dos
+     acción y seminegrita; 1.5.0) y «Ancho» (segmentado: Tarjeta, Ventana; 1.6.0) en paralelo; debajo,
+     «Espacio extra» (con «−» y «+» y «px · 0–300»); dos
      casillas, 12 px entre ellas: «Mostrar hitos en la barra» y «Celebrar rachas y récords». Si tenía
      Rojo fuego, arriba la franja de aviso.
   2. El récord entero: «Récord: **7 aciertos seguidos**» o «Mejor racha en 30 días: **41** · récord:
@@ -261,6 +265,8 @@ tema retirado (usted, como GritMap). Formas de plural de cada idioma. 60 idiomas
   de día, canal gris plano, aviso en píldora, movimiento de 0,3 s con frenada, tres grosores y muestras
   en minibarra. Se quedan: la lógica, los nombres y el orden de los temas, Verde clásico de serie, los
   textos, una celebración por respuesta y su orden.
+- 1.6.0 (petición de la persona): ancho elegible y franja opaca detrás de la barra. No volver a
+  proponer un ancho único.
 - Al aplicarlo (1.5.0): el canal es el gris medido en el informe (#D5D9E2 / #272F3F), no el
   SCROLLBAR_BG actual de Atelier, que es más oscuro desde la 3.9.0; el grosor elegido va como el
   control segmentado del panel modelo (capa elevada y borde de acción), no relleno de azul; el número

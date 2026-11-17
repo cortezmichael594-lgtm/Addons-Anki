@@ -47,6 +47,7 @@ class PanelPageTests(unittest.TestCase):
                 "reset_record",
                 "theme",
                 "bar_height",
+                "bar_width",
                 "push_down",
                 "effects_enabled",
                 "checkpoints_enabled",
@@ -514,6 +515,36 @@ class Version15Tests(unittest.TestCase):
         for code, table in i18n.TRANSLATIONS.items():
             for key in ("opt_thickness", "thickness_thin", "thickness_normal", "thickness_thick"):
                 self.assertTrue(table.get(key), f"{code}: {key}")
+
+
+class Version16Tests(unittest.TestCase):
+    """1.6.0 (petición de la persona, 2026-11-17): ancho elegible y franja opaca al desplazar."""
+
+    def test_width_option(self) -> None:
+        from coreprogress.i18n import TRANSLATIONS
+
+        seg = next(item for item in _items(options.page(DEFAULT_CONFIG, 0)) if item["key"] == "bar_width")
+        self.assertEqual([option["value"] for option in seg["options"]], ["card", "window"])
+        self.assertEqual(DEFAULT_CONFIG.bar_width, "card")
+        self.assertEqual(options.config_from_page({"bar_width": "window"}).bar_width, "window")
+        self.assertEqual(options.config_from_page({"bar_width": "nope"}).bar_width, "card")
+        es = TRANSLATIONS["es"]
+        self.assertEqual((es["opt_width"], es["width_card"], es["width_window"]), ("Ancho", "Tarjeta", "Ventana"))
+        for code, table in TRANSLATIONS.items():
+            for key in ("opt_width", "width_card", "width_window"):
+                self.assertTrue(table.get(key), f"{code}: {key}")
+
+    def test_full_width_and_opaque_band(self) -> None:
+        from coreprogress import view
+        from coreprogress.palettes import fill_bundle
+
+        args = view.build_args(fill_bundle("classic_green", False), 40, 16, 0, True, [], False, full_width=True)
+        self.assertTrue(args["fullWidth"])
+        page = view.reviewer_page_head()
+        # Al bajar por una tarjeta larga, el contenido pasa por debajo de una franja del color
+        # del fondo y no se ve a través de la barra.
+        self.assertIn("background:var(--coreprogress-cut,transparent)", page)
+        self.assertIn(".coreprogress-full #coreprogress-track{max-width:none;}", page)
 
 
 if __name__ == "__main__":
