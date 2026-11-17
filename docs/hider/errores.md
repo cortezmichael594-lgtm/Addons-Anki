@@ -9,13 +9,6 @@ ninguna. Las cuatro primeras se hicieron antes de que el complemento llegara a e
 
 Fallos detectados que esperan su decisión. Cada uno: fecha, versión, qué pasa y propuesta.
 
-- 2026-10-21 · versión 4.0.3 · Qué pasa: cuando algo falla, el aviso dice «Hider ha encontrado un
-  problema y ha desactivado esa parte por seguridad. Revisa la configuración del complemento.», pero
-  no desactiva nada: esa parte sigue funcionando y, si vuelve a fallar, el aviso sale otra vez
-  pasado un minuto. Revisar la configuración tampoco lo arregla, porque las opciones con un valor que
-  no sirve ya se corrigen solas. Propuesta: cambiar el texto, en sus 42 idiomas, por uno que diga lo
-  que pasa de verdad, por ejemplo «Hider ha tenido un problema. Anki sigue funcionando; el detalle
-  queda en el registro del complemento.».
 - 2026-10-21 · versión 4.0.3 · Qué pasa: con «Empezar el repaso automáticamente al abrir un mazo»
   activada, al pulsar un mazo Hider pregunta a la colección si hay tarjetas que repasar sin dejar
   libre a Anki mientras tanto, y lo hace dos veces (antes de dibujar la pantalla del mazo y justo
@@ -55,6 +48,13 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
   siguiente. Regla: cambiar de pantalla no es tener la pantalla nueva lista; lo que deba coincidir
   con ella se hace cuando Anki pide su contenido, con un plazo de seguridad (cuatro décimas de
   segundo) por si ese aviso no llegara, porque quedarse sin barras sería peor que un salto.
+
+- Sin nota en el código · 2026-11-17 · versión 4.1.0 · Qué pasaba: cuando algo fallaba, el aviso
+  decía «Hider ha encontrado un problema y ha desactivado esa parte por seguridad. Revisa la
+  configuración del complemento.», pero no desactivaba nada y revisar la configuración no lo arreglaba.
+  Por qué: el texto describía un comportamiento que el complemento no tiene. Regla: un aviso dice lo
+  que de verdad pasa. Ahora dice «Hider ha tenido un problema. Anki sigue funcionando; el detalle queda
+  en el registro del complemento.», en sus 42 idiomas. Estaba en «Pendientes» desde el 2026-10-21.
 
 ## Así a propósito
 

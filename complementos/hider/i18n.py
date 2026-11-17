@@ -17,7 +17,7 @@ FALLBACK: str = "en"
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "en": {
         "button_hidden": "That button is hidden. You can only answer \u00ab{again}\u00bb or \u00ab{good}\u00bb.",
-        "hook_error": "Hider ran into a problem and disabled that part for safety. Check the add-on's configuration.",
+        "hook_error": "Hider ran into a problem. Anki keeps working; the details are in the add-on's log.",
         "dialog_title": "Hider",
         "group_review": "While reviewing, hide:",
         "group_behaviour": "Behaviour",
@@ -41,7 +41,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "es": {
         "button_hidden": "Ese bot\u00f3n est\u00e1 oculto. Solo puedes responder \u00ab{again}\u00bb o \u00ab{good}\u00bb.",
-        "hook_error": "Hider ha encontrado un problema y ha desactivado esa parte por seguridad. Revisa la configuraci\u00f3n del complemento.",
+        "hook_error": "Hider ha tenido un problema. Anki sigue funcionando; el detalle queda en el registro del complemento.",
         "dialog_title": "Hider",
         "group_review": "Durante el repaso, ocultar:",
         "group_behaviour": "Comportamiento",
@@ -65,7 +65,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "fr": {
         "button_hidden": "Ce bouton est masqu\u00e9. Vous ne pouvez r\u00e9pondre qu'avec \u00ab\u00a0{again}\u00a0\u00bb ou \u00ab\u00a0{good}\u00a0\u00bb.",
-        "hook_error": "Hider a rencontr\u00e9 un probl\u00e8me et a d\u00e9sactiv\u00e9 cette partie par s\u00e9curit\u00e9. V\u00e9rifiez la configuration du module.",
+        "hook_error": "Hider a rencontr\u00e9 un probl\u00e8me. Anki continue de fonctionner ; le d\u00e9tail figure dans le journal du module.",
         "dialog_title": "Hider",
         "group_review": "Pendant la r\u00e9vision, masquer\u00a0:",
         "group_behaviour": "Comportement",
@@ -89,7 +89,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "de": {
         "button_hidden": "Diese Schaltfl\u00e4che ist ausgeblendet. Du kannst nur mit \u00ab{again}\u00bb oder \u00ab{good}\u00bb antworten.",
-        "hook_error": "Hider ist auf ein Problem gesto\u00dfen und hat diesen Teil aus Sicherheitsgr\u00fcnden deaktiviert. \u00dcberpr\u00fcfe die Einstellungen des Add-ons.",
+        "hook_error": "Hider hatte ein Problem. Anki l\u00e4uft weiter; Details stehen im Protokoll des Add-ons.",
         "dialog_title": "Hider",
         "group_review": "W\u00e4hrend der Wiederholung ausblenden:",
         "group_behaviour": "Verhalten",
@@ -113,7 +113,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "it": {
         "button_hidden": "Quel pulsante \u00e8 nascosto. Puoi rispondere solo con \u00ab{again}\u00bb o \u00ab{good}\u00bb.",
-        "hook_error": "Hider ha riscontrato un problema e ha disattivato quella parte per sicurezza. Controlla la configurazione del componente aggiuntivo.",
+        "hook_error": "Hider ha avuto un problema. Anki continua a funzionare; i dettagli sono nel registro del componente.",
         "dialog_title": "Hider",
         "group_review": "Durante la revisione, nascondi:",
         "group_behaviour": "Comportamento",
@@ -137,7 +137,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "pt_BR": {
         "button_hidden": "Esse bot\u00e3o est\u00e1 oculto. Voc\u00ea s\u00f3 pode responder \u00ab{again}\u00bb ou \u00ab{good}\u00bb.",
-        "hook_error": "O Hider encontrou um problema e desativou essa parte por seguran\u00e7a. Verifique a configura\u00e7\u00e3o do add-on.",
+        "hook_error": "O Hider teve um problema. O Anki continua funcionando; os detalhes est\u00e3o no registro do complemento.",
         "dialog_title": "Hider",
         "group_review": "Durante a revis\u00e3o, ocultar:",
         "group_behaviour": "Comportamento",
@@ -161,7 +161,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "pt_PT": {
         "button_hidden": "Esse bot\u00e3o est\u00e1 oculto. S\u00f3 podes responder \u00ab{again}\u00bb ou \u00ab{good}\u00bb.",
-        "hook_error": "O Hider encontrou um problema e desativou essa parte por seguran\u00e7a. Verifica a configura\u00e7\u00e3o do extra.",
+        "hook_error": "O Hider teve um problema. O Anki continua a funcionar; os detalhes est\u00e3o no registo do suplemento.",
         "dialog_title": "Hider",
         "group_review": "Durante a revis\u00e3o, ocultar:",
         "group_behaviour": "Comportamento",
@@ -185,7 +185,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "nl": {
         "button_hidden": "Die knop is verborgen. Je kunt alleen antwoorden met \u00ab{again}\u00bb of \u00ab{good}\u00bb.",
-        "hook_error": "Hider is op een probleem gestuit en heeft dat onderdeel voor de veiligheid uitgeschakeld. Controleer de instellingen van de add-on.",
+        "hook_error": "Hider had een probleem. Anki blijft werken; de details staan in het logboek van de add-on.",
         "dialog_title": "Hider",
         "group_review": "Tijdens het overhoren verbergen:",
         "group_behaviour": "Gedrag",
@@ -209,7 +209,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "ca": {
         "button_hidden": "Aquest bot\u00f3 est\u00e0 amagat. Nom\u00e9s pots respondre \u00ab{again}\u00bb o \u00ab{good}\u00bb.",
-        "hook_error": "Hider ha trobat un problema i ha desactivat aquesta part per seguretat. Revisa la configuraci\u00f3 del complement.",
+        "hook_error": "Hider ha tingut un problema. Anki continua funcionant; el detall queda al registre del complement.",
         "dialog_title": "Hider",
         "group_review": "Durant el repas, amaga:",
         "group_behaviour": "Comportament",
@@ -233,7 +233,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "gl": {
         "button_hidden": "Ese bot\u00f3n est\u00e1 agochado. S\u00f3 podes responder \u00ab{again}\u00bb ou \u00ab{good}\u00bb.",
-        "hook_error": "Hider atopou un problema e desactivou esa parte por seguranza. Revisa a configuraci\u00f3n do complemento.",
+        "hook_error": "Hider tivo un problema. Anki segue funcionando; o detalle queda no rexistro do complemento.",
         "dialog_title": "Hider",
         "group_review": "Durante o repaso, agochar:",
         "group_behaviour": "Comportamento",
@@ -257,7 +257,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "ro": {
         "button_hidden": "Acel buton este ascuns. Po\u021bi r\u0103spunde doar cu \u00ab{again}\u00bb sau \u00ab{good}\u00bb.",
-        "hook_error": "Hider a \u00eent\u00e2mpinat o problem\u0103 \u0219i a dezactivat acea parte din motive de siguran\u021b\u0103. Verific\u0103 configura\u021bia suplimentului.",
+        "hook_error": "Hider a avut o problem\u0103. Anki func\u021bioneaz\u0103 \u00een continuare; detaliile sunt \u00een jurnalul suplimentului.",
         "dialog_title": "Hider",
         "group_review": "\u00cen timpul repet\u0103rii, ascunde:",
         "group_behaviour": "Comportament",
@@ -281,7 +281,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "ru": {
         "button_hidden": "\u042d\u0442\u0430 \u043a\u043d\u043e\u043f\u043a\u0430 \u0441\u043a\u0440\u044b\u0442\u0430. \u041c\u043e\u0436\u043d\u043e \u043e\u0442\u0432\u0435\u0442\u0438\u0442\u044c \u0442\u043e\u043b\u044c\u043a\u043e \u00ab{again}\u00bb \u0438\u043b\u0438 \u00ab{good}\u00bb.",
-        "hook_error": "Hider \u0441\u0442\u043e\u043b\u043a\u043d\u0443\u043b\u0441\u044f \u0441 \u043f\u0440\u043e\u0431\u043b\u0435\u043c\u043e\u0439 \u0438 \u043e\u0442\u043a\u043b\u044e\u0447\u0438\u043b \u044d\u0442\u0443 \u0447\u0430\u0441\u0442\u044c \u0432 \u0446\u0435\u043b\u044f\u0445 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438. \u041f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u0430\u0434\u0434\u043e\u043d\u0430.",
+        "hook_error": "\u0412 Hider \u043f\u0440\u043e\u0438\u0437\u043e\u0448\u043b\u0430 \u043e\u0448\u0438\u0431\u043a\u0430. Anki \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0430\u0435\u0442 \u0440\u0430\u0431\u043e\u0442\u0430\u0442\u044c; \u043f\u043e\u0434\u0440\u043e\u0431\u043d\u043e\u0441\u0442\u0438 \u2014 \u0432 \u0436\u0443\u0440\u043d\u0430\u043b\u0435 \u0434\u043e\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f.",
         "dialog_title": "Hider",
         "group_review": "\u0412\u043e \u0432\u0440\u0435\u043c\u044f \u043f\u043e\u0432\u0442\u043e\u0440\u0435\u043d\u0438\u044f \u0441\u043a\u0440\u044b\u0432\u0430\u0442\u044c:",
         "group_behaviour": "\u041f\u043e\u0432\u0435\u0434\u0435\u043d\u0438\u0435",
@@ -305,7 +305,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "uk": {
         "button_hidden": "\u0426\u044f \u043a\u043d\u043e\u043f\u043a\u0430 \u043f\u0440\u0438\u0445\u043e\u0432\u0430\u043d\u0430. \u041c\u043e\u0436\u043d\u0430 \u0432\u0456\u0434\u043f\u043e\u0432\u0456\u0441\u0442\u0438 \u043b\u0438\u0448\u0435 \u00ab{again}\u00bb \u0430\u0431\u043e \u00ab{good}\u00bb.",
-        "hook_error": "Hider \u0437\u0456\u0442\u043a\u043d\u0443\u0432\u0441\u044f \u0437 \u043f\u0440\u043e\u0431\u043b\u0435\u043c\u043e\u044e \u0456 \u0432\u0438\u043c\u043a\u043d\u0443\u0432 \u0446\u044e \u0447\u0430\u0441\u0442\u0438\u043d\u0443 \u0437 \u043c\u0456\u0440\u043a\u0443\u0432\u0430\u043d\u044c \u0431\u0435\u0437\u043f\u0435\u043a\u0438. \u041f\u0435\u0440\u0435\u0432\u0456\u0440\u0442\u0435 \u043d\u0430\u043b\u0430\u0448\u0442\u0443\u0432\u0430\u043d\u043d\u044f \u0434\u043e\u0434\u0430\u0442\u043a\u0430.",
+        "hook_error": "\u0423 Hider \u0441\u0442\u0430\u043b\u0430\u0441\u044f \u043f\u043e\u043c\u0438\u043b\u043a\u0430. Anki \u043f\u0440\u0430\u0446\u044e\u0454 \u0434\u0430\u043b\u0456; \u043f\u043e\u0434\u0440\u043e\u0431\u0438\u0446\u0456 \u2014 \u0432 \u0436\u0443\u0440\u043d\u0430\u043b\u0456 \u0434\u043e\u043f\u043e\u0432\u043d\u0435\u043d\u043d\u044f.",
         "dialog_title": "Hider",
         "group_review": "\u041f\u0456\u0434 \u0447\u0430\u0441 \u043f\u043e\u0432\u0442\u043e\u0440\u0435\u043d\u043d\u044f \u043f\u0440\u0438\u0445\u043e\u0432\u0443\u0432\u0430\u0442\u0438:",
         "group_behaviour": "\u041f\u043e\u0432\u0435\u0434\u0456\u043d\u043a\u0430",
@@ -329,7 +329,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "pl": {
         "button_hidden": "Ten przycisk jest ukryty. Mo\u017cesz odpowiedzie\u0107 tylko \u00ab{again}\u00bb lub \u00ab{good}\u00bb.",
-        "hook_error": "Hider napotka\u0142 problem i wy\u0142\u0105czy\u0142 t\u0119 cz\u0119\u015b\u0107 dla bezpiecze\u0144stwa. Sprawd\u017a konfiguracj\u0119 dodatku.",
+        "hook_error": "Hider napotka\u0142 problem. Anki dzia\u0142a dalej; szczeg\u00f3\u0142y s\u0105 w dzienniku dodatku.",
         "dialog_title": "Hider",
         "group_review": "Podczas powtarzania ukryj:",
         "group_behaviour": "Zachowanie",
@@ -353,7 +353,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "cs": {
         "button_hidden": "Toto tla\u010d\u00edtko je skryt\u00e9. M\u016f\u017eete odpov\u011bd\u011bt pouze \u00ab{again}\u00bb nebo \u00ab{good}\u00bb.",
-        "hook_error": "Hider narazil na probl\u00e9m a tuto \u010d\u00e1st z bezpe\u010dnostn\u00edch d\u016fvod\u016f vypnul. Zkontrolujte nastaven\u00ed dopl\u0148ku.",
+        "hook_error": "Hider narazil na probl\u00e9m. Anki b\u011b\u017e\u00ed d\u00e1l; podrobnosti jsou v protokolu dopl\u0148ku.",
         "dialog_title": "Hider",
         "group_review": "B\u011bhem opakov\u00e1n\u00ed skr\u00fdt:",
         "group_behaviour": "Chov\u00e1n\u00ed",
@@ -377,7 +377,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "sk": {
         "button_hidden": "T\u00e9to tla\u010didlo je skryt\u00e9. M\u00f4\u017eete odpoveda\u0165 iba \u00ab{again}\u00bb alebo \u00ab{good}\u00bb.",
-        "hook_error": "Hider narazil na probl\u00e9m a t\u00fato \u010das\u0165 z bezpe\u010dnostn\u00fdch d\u00f4vodov vypol. Skontrolujte nastavenia doplnku.",
+        "hook_error": "Hider narazil na probl\u00e9m. Anki be\u017e\u00ed \u010falej; podrobnosti s\u00fa v denn\u00edku doplnku.",
         "dialog_title": "Hider",
         "group_review": "Po\u010das opakovania skry\u0165:",
         "group_behaviour": "Spr\u00e1vanie",
@@ -401,7 +401,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "sl": {
         "button_hidden": "Ta gumb je skrit. Odgovoriti mora\u0161 lahko le z \u00ab{again}\u00bb ali \u00ab{good}\u00bb.",
-        "hook_error": "Hider je naletel na te\u017eavo in je ta del zaradi varnosti onemogo\u010dil. Preverite nastavitve dodatka.",
+        "hook_error": "Hider je naletel na te\u017eavo. Anki deluje naprej; podrobnosti so v dnevniku dodatka.",
         "dialog_title": "Hider",
         "group_review": "Med ponavljanjem skrij:",
         "group_behaviour": "Obna\u0161anje",
@@ -425,7 +425,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "hr": {
         "button_hidden": "Ta tipka je skrivena. Mo\u017ee\u0161 odgovoriti samo \u00ab{again}\u00bb ili \u00ab{good}\u00bb.",
-        "hook_error": "Hider je naletio na problem i iz sigurnosnih razloga onemogu\u0107io taj dio. Provjeri postavke dodatka.",
+        "hook_error": "Hider je nai\u0161ao na problem. Anki i dalje radi; pojedinosti su u zapisniku dodatka.",
         "dialog_title": "Hider",
         "group_review": "Tijekom ponavljanja skrij:",
         "group_behaviour": "Pona\u0161anje",
@@ -449,7 +449,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "sr": {
         "button_hidden": "\u0422\u043e \u0434\u0443\u0433\u043c\u0435 \u0458\u0435 \u0441\u0430\u043a\u0440\u0438\u0432\u0435\u043d\u043e. \u041c\u043e\u0436\u0435\u0448 \u043e\u0434\u0433\u043e\u0432\u043e\u0440\u0438\u0442\u0438 \u0441\u0430\u043c\u043e \u00ab{again}\u00bb \u0438\u043b\u0438 \u00ab{good}\u00bb.",
-        "hook_error": "Hider \u0458\u0435 \u043d\u0430\u0438\u0448\u0430\u043e \u043d\u0430 \u043f\u0440\u043e\u0431\u043b\u0435\u043c \u0438 \u0438\u0437 \u0431\u0435\u0437\u0431\u0435\u0434\u043d\u043e\u0441\u043d\u0438\u0445 \u0440\u0430\u0437\u043b\u043e\u0433\u0430 \u043e\u043d\u0435\u043c\u043e\u0433\u0443\u045b\u0438\u043e \u0442\u0430\u0458 \u0434\u0435\u043e. \u041f\u0440\u043e\u0432\u0435\u0440\u0438 \u043f\u043e\u0434\u0435\u0448\u0430\u0432\u0430\u045a\u0430 \u0434\u043e\u0434\u0430\u0442\u043a\u0430.",
+        "hook_error": "Hider \u0458\u0435 \u043d\u0430\u0438\u0448\u0430\u043e \u043d\u0430 \u043f\u0440\u043e\u0431\u043b\u0435\u043c. Anki \u0438 \u0434\u0430\u0459\u0435 \u0440\u0430\u0434\u0438; \u0434\u0435\u0442\u0430\u0459\u0438 \u0441\u0443 \u0443 \u0434\u043d\u0435\u0432\u043d\u0438\u043a\u0443 \u0434\u043e\u0434\u0430\u0442\u043a\u0430.",
         "dialog_title": "Hider",
         "group_review": "\u0422\u043e\u043a\u043e\u043c \u043f\u043e\u043d\u0430\u0432\u0459\u0430\u045a\u0430, \u0441\u0430\u043a\u0440\u0438\u0458:",
         "group_behaviour": "\u041f\u043e\u043d\u0430\u0448\u0430\u045a\u0435",
@@ -473,7 +473,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "bg": {
         "button_hidden": "\u0422\u043e\u0437\u0438 \u0431\u0443\u0442\u043e\u043d \u0435 \u0441\u043a\u0440\u0438\u0442. \u041c\u043e\u0436\u0435\u0448 \u0434\u0430 \u043e\u0442\u0433\u043e\u0432\u043e\u0440\u0438\u0448 \u0441\u0430\u043c\u043e \u0441 \u00ab{again}\u00bb \u0438\u043b\u0438 \u00ab{good}\u00bb.",
-        "hook_error": "Hider \u0441\u0440\u0435\u0449\u043d\u0430 \u043f\u0440\u043e\u0431\u043b\u0435\u043c \u0438 \u0438\u0437\u043a\u043b\u044e\u0447\u0438 \u0442\u0430\u0437\u0438 \u0447\u0430\u0441\u0442 \u043e\u0442 \u0441\u044a\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u044f. \u041f\u0440\u043e\u0432\u0435\u0440\u0438 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438\u0442\u0435 \u043d\u0430 \u0434\u043e\u0431\u0430\u0432\u043a\u0430\u0442\u0430.",
+        "hook_error": "Hider \u0441\u0440\u0435\u0449\u043d\u0430 \u043f\u0440\u043e\u0431\u043b\u0435\u043c. Anki \u043f\u0440\u043e\u0434\u044a\u043b\u0436\u0430\u0432\u0430 \u0434\u0430 \u0440\u0430\u0431\u043e\u0442\u0438; \u043f\u043e\u0434\u0440\u043e\u0431\u043d\u043e\u0441\u0442\u0438\u0442\u0435 \u0441\u0430 \u0432 \u0434\u043d\u0435\u0432\u043d\u0438\u043a\u0430 \u043d\u0430 \u0434\u043e\u0431\u0430\u0432\u043a\u0430\u0442\u0430.",
         "dialog_title": "Hider",
         "group_review": "\u041f\u043e \u0432\u0440\u0435\u043c\u0435 \u043d\u0430 \u043f\u043e\u0432\u0442\u043e\u0440\u0435\u043d\u0438\u0435\u0442\u043e, \u0441\u043a\u0440\u0438\u0432\u0430\u0439:",
         "group_behaviour": "\u041f\u043e\u0432\u0435\u0434\u0435\u043d\u0438\u0435",
@@ -497,7 +497,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "sv": {
         "button_hidden": "Den knappen \u00e4r dold. Du kan bara svara \u00ab{again}\u00bb eller \u00ab{good}\u00bb.",
-        "hook_error": "Hider st\u00f6tte p\u00e5 ett problem och inaktiverade den delen av s\u00e4kerhetssk\u00e4l. Kontrollera till\u00e4ggets inst\u00e4llningar.",
+        "hook_error": "Hider st\u00f6tte p\u00e5 ett problem. Anki forts\u00e4tter att fungera; detaljerna finns i till\u00e4ggets logg.",
         "dialog_title": "Hider",
         "group_review": "D\u00f6lj under genomg\u00e5ng:",
         "group_behaviour": "Beteende",
@@ -521,7 +521,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "da": {
         "button_hidden": "Den knap er skjult. Du kan kun svare \u00ab{again}\u00bb eller \u00ab{good}\u00bb.",
-        "hook_error": "Hider st\u00f8dte p\u00e5 et problem og deaktiverede den del af sikkerhedshensyn. Tjek tilf\u00f8jelsens indstillinger.",
+        "hook_error": "Hider st\u00f8dte p\u00e5 et problem. Anki k\u00f8rer videre; detaljerne st\u00e5r i tilf\u00f8jelsens log.",
         "dialog_title": "Hider",
         "group_review": "Skjul under gennemgang:",
         "group_behaviour": "Adf\u00e6rd",
@@ -545,7 +545,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "nb": {
         "button_hidden": "Den knappen er skjult. Du kan bare svare \u00ab{again}\u00bb eller \u00ab{good}\u00bb.",
-        "hook_error": "Hider st\u00f8tte p\u00e5 et problem og slo av den delen av sikkerhetshensyn. Sjekk innstillingene for tillegget.",
+        "hook_error": "Hider fikk et problem. Anki fungerer fortsatt; detaljene st\u00e5r i tilleggets logg.",
         "dialog_title": "Hider",
         "group_review": "Skjul under gjennomgang:",
         "group_behaviour": "Oppf\u00f8rsel",
@@ -569,7 +569,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "fi": {
         "button_hidden": "Tuo painike on piilotettu. Voit vastata vain \u00ab{again}\u00bb tai \u00ab{good}\u00bb.",
-        "hook_error": "Hider t\u00f6rm\u00e4si ongelmaan ja poisti kyseisen osan k\u00e4yt\u00f6st\u00e4 turvallisuussyist\u00e4. Tarkista lis\u00e4osan asetukset.",
+        "hook_error": "Hideriss\u00e4 tapahtui virhe. Anki toimii edelleen; tiedot ovat lis\u00e4osan lokissa.",
         "dialog_title": "Hider",
         "group_review": "Kertauksen aikana piilota:",
         "group_behaviour": "K\u00e4ytt\u00e4ytyminen",
@@ -593,7 +593,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "et": {
         "button_hidden": "See nupp on peidetud. V\u00f5id vastata ainult \u00ab{again}\u00bb v\u00f5i \u00ab{good}\u00bb.",
-        "hook_error": "Hider sattus probleemi ja keelas selle osa turvalisuse huvides. Kontrolli lisandi seadeid.",
+        "hook_error": "Hideril tekkis probleem. Anki t\u00f6\u00f6tab edasi; \u00fcksikasjad on lisandmooduli logis.",
         "dialog_title": "Hider",
         "group_review": "Kordamise ajal peida:",
         "group_behaviour": "K\u00e4itumine",
@@ -617,7 +617,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "lt": {
         "button_hidden": "\u0160is mygtukas pasl\u0117ptas. Gali atsakyti tik \u00ab{again}\u00bb arba \u00ab{good}\u00bb.",
-        "hook_error": "Hider susid\u016br\u0117 su problema ir sauga sumetimais i\u0161jung\u0117 t\u0105 dal\u012f. Patikrink priedo nustatymus.",
+        "hook_error": "Hider susid\u016br\u0117 su problema. Anki veikia toliau; i\u0161sami informacija \u2013 priedo \u017eurnale.",
         "dialog_title": "Hider",
         "group_review": "Kartojimo metu sl\u0117pti:",
         "group_behaviour": "Elgsena",
@@ -641,7 +641,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "hu": {
         "button_hidden": "Ez a gomb el van rejtve. Csak \u00ab{again}\u00bb vagy \u00ab{good}\u00bb v\u00e1lasszal felelhetsz.",
-        "hook_error": "A Hider hib\u00e1ba \u00fctk\u00f6z\u00f6tt, \u00e9s biztons\u00e1gi okokb\u00f3l kikapcsolta azt a r\u00e9szt. Ellen\u0151rizd a b\u0151v\u00edtm\u00e9ny be\u00e1ll\u00edt\u00e1sait.",
+        "hook_error": "A Hider hib\u00e1ba \u00fctk\u00f6z\u00f6tt. Az Anki tov\u00e1bb m\u0171k\u00f6dik; a r\u00e9szletek a kieg\u00e9sz\u00edt\u0151 napl\u00f3j\u00e1ban vannak.",
         "dialog_title": "Hider",
         "group_review": "Ism\u00e9tl\u00e9s k\u00f6zben rejtsd el:",
         "group_behaviour": "Viselked\u00e9s",
@@ -665,7 +665,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "el": {
         "button_hidden": "\u0391\u03c5\u03c4\u03cc \u03c4\u03bf \u03ba\u03bf\u03c5\u03bc\u03c0\u03af \u03b5\u03af\u03bd\u03b1\u03b9 \u03ba\u03c1\u03c5\u03bc\u03bc\u03ad\u03bd\u03bf. \u039c\u03c0\u03bf\u03c1\u03b5\u03af\u03c2 \u03bd\u03b1 \u03b1\u03c0\u03b1\u03bd\u03c4\u03ae\u03c3\u03b5\u03b9\u03c2 \u03bc\u03cc\u03bd\u03bf \u00ab{again}\u00bb \u03ae \u00ab{good}\u00bb.",
-        "hook_error": "\u03a4\u03bf Hider \u03b1\u03bd\u03c4\u03b9\u03bc\u03b5\u03c4\u03ce\u03c0\u03b9\u03c3\u03b5 \u03ad\u03bd\u03b1 \u03c0\u03c1\u03cc\u03b2\u03bb\u03b7\u03bc\u03b1 \u03ba\u03b1\u03b9 \u03b1\u03c0\u03b5\u03bd\u03b5\u03c1\u03b3\u03bf\u03c0\u03bf\u03af\u03b7\u03c3\u03b5 \u03b1\u03c5\u03c4\u03cc \u03c4\u03bf \u03bc\u03ad\u03c1\u03bf\u03c2 \u03b3\u03b9\u03b1 \u03bb\u03cc\u03b3\u03bf\u03c5\u03c2 \u03b1\u03c3\u03c6\u03ac\u03bb\u03b5\u03b9\u03b1\u03c2. \u0388\u03bb\u03b5\u03b3\u03be\u03b5 \u03c4\u03b9\u03c2 \u03c1\u03c5\u03b8\u03bc\u03af\u03c3\u03b5\u03b9\u03c2 \u03c4\u03bf\u03c5 \u03c0\u03c1\u03cc\u03c3\u03b8\u03b5\u03c4\u03bf\u03c5.",
+        "hook_error": "\u03a4\u03bf Hider \u03b1\u03bd\u03c4\u03b9\u03bc\u03b5\u03c4\u03ce\u03c0\u03b9\u03c3\u03b5 \u03c0\u03c1\u03cc\u03b2\u03bb\u03b7\u03bc\u03b1. \u03a4\u03bf Anki \u03c3\u03c5\u03bd\u03b5\u03c7\u03af\u03b6\u03b5\u03b9 \u03bd\u03b1 \u03bb\u03b5\u03b9\u03c4\u03bf\u03c5\u03c1\u03b3\u03b5\u03af\u00b7 \u03bf\u03b9 \u03bb\u03b5\u03c0\u03c4\u03bf\u03bc\u03ad\u03c1\u03b5\u03b9\u03b5\u03c2 \u03b5\u03af\u03bd\u03b1\u03b9 \u03c3\u03c4\u03bf \u03b1\u03c1\u03c7\u03b5\u03af\u03bf \u03ba\u03b1\u03c4\u03b1\u03b3\u03c1\u03b1\u03c6\u03ae\u03c2 \u03c4\u03bf\u03c5 \u03c0\u03c1\u03cc\u03c3\u03b8\u03b5\u03c4\u03bf\u03c5.",
         "dialog_title": "Hider",
         "group_review": "\u039a\u03b1\u03c4\u03ac \u03c4\u03b7\u03bd \u03b5\u03c0\u03b1\u03bd\u03ac\u03bb\u03b7\u03c8\u03b7, \u03b1\u03c0\u03cc\u03ba\u03c1\u03c5\u03c8\u03b5:",
         "group_behaviour": "\u03a3\u03c5\u03bc\u03c0\u03b5\u03c1\u03b9\u03c6\u03bf\u03c1\u03ac",
@@ -689,7 +689,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "tr": {
         "button_hidden": "Bu d\u00fc\u011fme gizli. Yaln\u0131zca \u00ab{again}\u00bb veya \u00ab{good}\u00bb ile cevap verebilirsin.",
-        "hook_error": "Hider bir sorunla kar\u015f\u0131la\u015ft\u0131 ve g\u00fcvenlik i\u00e7in o b\u00f6l\u00fcm\u00fc devre d\u0131\u015f\u0131 b\u0131rakt\u0131. Eklentinin yap\u0131land\u0131rmas\u0131n\u0131 kontrol et.",
+        "hook_error": "Hider bir sorunla kar\u015f\u0131la\u015ft\u0131. Anki \u00e7al\u0131\u015fmaya devam ediyor; ayr\u0131nt\u0131lar eklentinin g\u00fcnl\u00fc\u011f\u00fcnde.",
         "dialog_title": "Hider",
         "group_review": "Tekrar s\u0131ras\u0131nda gizle:",
         "group_behaviour": "Davran\u0131\u015f",
@@ -713,7 +713,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "ar": {
         "button_hidden": "\u0630\u0644\u0643 \u0627\u0644\u0632\u0631 \u0645\u062e\u0641\u064a. \u064a\u0645\u0643\u0646\u0643 \u0627\u0644\u0625\u062c\u0627\u0628\u0629 \u0641\u0642\u0637 \u0628\u0640 \u00ab{again}\u00bb \u0623\u0648 \u00ab{good}\u00bb.",
-        "hook_error": "\u0648\u0627\u062c\u0647 Hider \u0645\u0634\u0643\u0644\u0629 \u0648\u0642\u0627\u0645 \u0628\u062a\u0639\u0637\u064a\u0644 \u0630\u0644\u0643 \u0627\u0644\u062c\u0632\u0621 \u0644\u0644\u0633\u0644\u0627\u0645\u0629. \u062a\u062d\u0642\u0642 \u0645\u0646 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u0625\u0636\u0627\u0641\u0629.",
+        "hook_error": "\u0648\u0627\u062c\u0647 Hider \u0645\u0634\u0643\u0644\u0629. \u064a\u0648\u0627\u0635\u0644 Anki \u0627\u0644\u0639\u0645\u0644\u061b \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644 \u0641\u064a \u0633\u062c\u0644 \u0627\u0644\u0625\u0636\u0627\u0641\u0629.",
         "dialog_title": "Hider",
         "group_review": "\u0623\u062b\u0646\u0627\u0621 \u0627\u0644\u0645\u0631\u0627\u062c\u0639\u0629\u060c \u0623\u062e\u0641\u0650:",
         "group_behaviour": "\u0627\u0644\u0633\u0644\u0648\u0643",
@@ -737,7 +737,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "he": {
         "button_hidden": "\u05d4\u05db\u05e4\u05ea\u05d5\u05e8 \u05d4\u05d6\u05d4 \u05de\u05d5\u05e1\u05ea\u05e8. \u05d0\u05e4\u05e9\u05e8 \u05dc\u05d4\u05e9\u05d9\u05d1 \u05e8\u05e7 \u05d1\u05e2\u05d6\u05e8\u05ea \u00ab{again}\u00bb \u05d0\u05d5 \u00ab{good}\u00bb.",
-        "hook_error": "\u05dc-Hider \u05e0\u05ea\u05e7\u05dc\u05d4 \u05d1\u05e2\u05d9\u05d4 \u05d5\u05d4\u05d5\u05d0 \u05d4\u05e9\u05d1\u05d9\u05ea \u05d0\u05ea \u05d4\u05d7\u05dc\u05e7 \u05d4\u05d6\u05d4 \u05de\u05d8\u05e2\u05de\u05d9 \u05d1\u05d8\u05d9\u05d7\u05d5\u05ea. \u05d1\u05d3\u05d5\u05e7 \u05d0\u05ea \u05d4\u05d2\u05d3\u05e8\u05d5\u05ea \u05d4\u05ea\u05d5\u05e1\u05e3.",
+        "hook_error": "Hider \u05e0\u05ea\u05e7\u05dc \u05d1\u05d1\u05e2\u05d9\u05d4. Anki \u05de\u05de\u05e9\u05d9\u05da \u05dc\u05e2\u05d1\u05d5\u05d3; \u05d4\u05e4\u05e8\u05d8\u05d9\u05dd \u05d1\u05d9\u05d5\u05de\u05df \u05e9\u05dc \u05d4\u05ea\u05d5\u05e1\u05e3.",
         "dialog_title": "Hider",
         "group_review": "\u05d1\u05de\u05d4\u05dc\u05da \u05d7\u05d6\u05e8\u05d4, \u05d4\u05e1\u05ea\u05e8:",
         "group_behaviour": "\u05d4\u05ea\u05e0\u05d4\u05d2\u05d5\u05ea",
@@ -761,7 +761,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "fa": {
         "button_hidden": "\u0622\u0646 \u062f\u06a9\u0645\u0647 \u067e\u0646\u0647\u0627\u0646 \u0627\u0633\u062a. \u0641\u0642\u0637 \u0645\u06cc\u200c\u062a\u0648\u0627\u0646\u06cc \u0628\u0627 \u00ab{again}\u00bb \u06cc\u0627 \u00ab{good}\u00bb \u067e\u0627\u0633\u062e \u062f\u0647\u06cc.",
-        "hook_error": "Hider \u0628\u0627 \u0645\u0634\u06a9\u0644\u06cc \u0645\u0648\u0627\u062c\u0647 \u0634\u062f \u0648 \u0622\u0646 \u0628\u062e\u0634 \u0631\u0627 \u0628\u0631\u0627\u06cc \u0627\u06cc\u0645\u0646\u06cc \u063a\u06cc\u0631\u0641\u0639\u0627\u0644 \u06a9\u0631\u062f. \u062a\u0646\u0638\u06cc\u0645\u0627\u062a \u0627\u0641\u0632\u0648\u0646\u0647 \u0631\u0627 \u0628\u0631\u0631\u0633\u06cc \u06a9\u0646.",
+        "hook_error": "Hider \u0628\u0627 \u0645\u0634\u06a9\u0644\u06cc \u0631\u0648\u0628\u0647\u200c\u0631\u0648 \u0634\u062f. Anki \u0647\u0645\u0686\u0646\u0627\u0646 \u06a9\u0627\u0631 \u0645\u06cc\u200c\u06a9\u0646\u062f\u061b \u062c\u0632\u0626\u06cc\u0627\u062a \u062f\u0631 \u06af\u0632\u0627\u0631\u0634 \u0627\u0641\u0632\u0648\u0646\u0647 \u0627\u0633\u062a.",
         "dialog_title": "Hider",
         "group_review": "\u062d\u06cc\u0646 \u0645\u0631\u0648\u0631\u060c \u067e\u0646\u0647\u0627\u0646 \u06a9\u0646:",
         "group_behaviour": "\u0631\u0641\u062a\u0627\u0631",
@@ -785,7 +785,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "hi": {
         "button_hidden": "\u0935\u0939 \u092c\u091f\u0928 \u091b\u093f\u092a\u093e \u0939\u0941\u0906 \u0939\u0948\u0964 \u0906\u092a \u0915\u0947\u0935\u0932 \u00ab{again}\u00bb \u092f\u093e \u00ab{good}\u00bb \u0938\u0947 \u091c\u0935\u093e\u092c \u0926\u0947 \u0938\u0915\u0924\u0947 \u0939\u0948\u0902\u0964",
-        "hook_error": "Hider \u0915\u094b \u090f\u0915 \u0938\u092e\u0938\u094d\u092f\u093e \u0906\u0908 \u0914\u0930 \u0938\u0941\u0930\u0915\u094d\u0937\u093e \u0915\u0947 \u0932\u093f\u090f \u0909\u0938 \u0939\u093f\u0938\u094d\u0938\u0947 \u0915\u094b \u092c\u0902\u0926 \u0915\u0930 \u0926\u093f\u092f\u093e \u0917\u092f\u093e\u0964 \u0910\u0921-\u0911\u0928 \u0915\u0940 \u0915\u0949\u0928\u094d\u092b\u093c\u093f\u0917\u0930\u0947\u0936\u0928 \u091c\u093e\u0902\u091a\u0947\u0902\u0964",
+        "hook_error": "Hider \u092e\u0947\u0902 \u090f\u0915 \u0938\u092e\u0938\u094d\u092f\u093e \u0906\u0908\u0964 Anki \u091a\u0932\u0924\u093e \u0930\u0939\u0947\u0917\u093e; \u0935\u093f\u0935\u0930\u0923 \u0910\u0921-\u0911\u0928 \u0915\u0947 \u0932\u0949\u0917 \u092e\u0947\u0902 \u0939\u0948\u0964",
         "dialog_title": "Hider",
         "group_review": "\u0926\u094b\u0939\u0930\u093e\u0928\u0947 \u0915\u0947 \u0926\u094c\u0930\u093e\u0928 \u091b\u093f\u092a\u093e\u090f\u0902:",
         "group_behaviour": "\u0935\u094d\u092f\u0935\u0939\u093e\u0930",
@@ -809,7 +809,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "th": {
         "button_hidden": "\u0e1b\u0e38\u0e48\u0e21\u0e19\u0e35\u0e49\u0e16\u0e39\u0e01\u0e0b\u0e48\u0e2d\u0e19\u0e2d\u0e22\u0e39\u0e48 \u0e04\u0e38\u0e13\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e15\u0e2d\u0e1a\u0e44\u0e14\u0e49\u0e40\u0e1e\u0e35\u0e22\u0e07 \u00ab{again}\u00bb \u0e2b\u0e23\u0e37\u0e2d \u00ab{good}\u00bb",
-        "hook_error": "Hider \u0e1e\u0e1a\u0e1b\u0e31\u0e0d\u0e2b\u0e32\u0e41\u0e25\u0e30\u0e1b\u0e34\u0e14\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19\u0e2a\u0e48\u0e27\u0e19\u0e19\u0e31\u0e49\u0e19\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e04\u0e27\u0e32\u0e21\u0e1b\u0e25\u0e2d\u0e14\u0e20\u0e31\u0e22 \u0e42\u0e1b\u0e23\u0e14\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e01\u0e32\u0e23\u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32\u0e02\u0e2d\u0e07\u0e2a\u0e48\u0e27\u0e19\u0e40\u0e2a\u0e23\u0e34\u0e21",
+        "hook_error": "Hider \u0e1e\u0e1a\u0e1b\u0e31\u0e0d\u0e2b\u0e32 Anki \u0e22\u0e31\u0e07\u0e17\u0e33\u0e07\u0e32\u0e19\u0e15\u0e48\u0e2d\u0e44\u0e14\u0e49 \u0e23\u0e32\u0e22\u0e25\u0e30\u0e40\u0e2d\u0e35\u0e22\u0e14\u0e2d\u0e22\u0e39\u0e48\u0e43\u0e19\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e02\u0e2d\u0e07\u0e2a\u0e48\u0e27\u0e19\u0e40\u0e2a\u0e23\u0e34\u0e21",
         "dialog_title": "Hider",
         "group_review": "\u0e0b\u0e48\u0e2d\u0e19\u0e23\u0e30\u0e2b\u0e27\u0e48\u0e32\u0e07\u0e01\u0e32\u0e23\u0e17\u0e1a\u0e17\u0e27\u0e19:",
         "group_behaviour": "\u0e1e\u0e24\u0e15\u0e34\u0e01\u0e23\u0e23\u0e21",
@@ -833,7 +833,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "ja": {
         "button_hidden": "\u305d\u306e\u30dc\u30bf\u30f3\u306f\u975e\u8868\u793a\u3067\u3059\u3002\u300c{again}\u300d\u304b\u300c{good}\u300d\u3067\u3057\u304b\u56de\u7b54\u3067\u304d\u307e\u305b\u3093\u3002",
-        "hook_error": "Hider\u3067\u554f\u984c\u304c\u767a\u751f\u3057\u305f\u305f\u3081\u3001\u5b89\u5168\u306e\u305f\u3081\u305d\u306e\u6a5f\u80fd\u3092\u7121\u52b9\u306b\u3057\u307e\u3057\u305f\u3002\u30a2\u30c9\u30aa\u30f3\u306e\u8a2d\u5b9a\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
+        "hook_error": "Hider \u3067\u554f\u984c\u304c\u767a\u751f\u3057\u307e\u3057\u305f\u3002Anki \u306f\u305d\u306e\u307e\u307e\u52d5\u4f5c\u3057\u307e\u3059\u3002\u8a73\u7d30\u306f\u30a2\u30c9\u30aa\u30f3\u306e\u30ed\u30b0\u306b\u3042\u308a\u307e\u3059\u3002",
         "dialog_title": "Hider",
         "group_review": "\u5fa9\u7fd2\u4e2d\u306b\u975e\u8868\u793a\u306b\u3059\u308b:",
         "group_behaviour": "\u52d5\u4f5c",
@@ -857,7 +857,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "ko": {
         "button_hidden": "\uc774 \ubc84\ud2bc\uc740 \uc228\uaca8\uc838 \uc788\uc2b5\ub2c8\ub2e4. \u00ab{again}\u00bb \ub610\ub294 \u00ab{good}\u00bb\uc73c\ub85c\ub9cc \ub2f5\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.",
-        "hook_error": "Hider\uac00 \ubb38\uc81c\ub97c \ubc1c\uacac\ud558\uc5ec \uc548\uc804\uc744 \uc704\ud574 \ud574\ub2f9 \uae30\ub2a5\uc744 \ube44\ud65c\uc131\ud654\ud588\uc2b5\ub2c8\ub2e4. \ubd80\uac00\uae30\ub2a5 \uc124\uc815\uc744 \ud655\uc778\ud558\uc138\uc694.",
+        "hook_error": "Hider\uc5d0 \ubb38\uc81c\uac00 \uc0dd\uacbc\uc2b5\ub2c8\ub2e4. Anki\ub294 \uacc4\uc18d \uc791\ub3d9\ud558\uba70, \uc790\uc138\ud55c \ub0b4\uc6a9\uc740 \uc560\ub4dc\uc628 \ub85c\uadf8\uc5d0 \uc788\uc2b5\ub2c8\ub2e4.",
         "dialog_title": "Hider",
         "group_review": "\ubcf5\uc2b5 \uc911 \uc228\uae30\uae30:",
         "group_behaviour": "\ub3d9\uc791",
@@ -881,7 +881,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "zh_CN": {
         "button_hidden": "\u8be5\u6309\u94ae\u5df2\u9690\u85cf\u3002\u4f60\u53ea\u80fd\u9009\u62e9\u00ab{again}\u00bb\u6216\u00ab{good}\u00bb\u56de\u7b54\u3002",
-        "hook_error": "Hider \u9047\u5230\u4e86\u95ee\u9898\uff0c\u4e3a\u4e86\u5b89\u5168\u5df2\u7981\u7528\u8be5\u90e8\u5206\u3002\u8bf7\u68c0\u67e5\u63d2\u4ef6\u7684\u914d\u7f6e\u3002",
+        "hook_error": "Hider \u9047\u5230\u95ee\u9898\u3002Anki \u4ecd\u53ef\u6b63\u5e38\u4f7f\u7528\uff1b\u8be6\u60c5\u89c1\u63d2\u4ef6\u65e5\u5fd7\u3002",
         "dialog_title": "Hider",
         "group_review": "\u590d\u4e60\u65f6\u9690\u85cf\uff1a",
         "group_behaviour": "\u884c\u4e3a",
@@ -905,7 +905,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "zh_TW": {
         "button_hidden": "\u8a72\u6309\u9215\u5df2\u96b1\u85cf\u3002\u4f60\u53ea\u80fd\u9078\u64c7\u00ab{again}\u00bb\u6216\u00ab{good}\u00bb\u56de\u7b54\u3002",
-        "hook_error": "Hider \u9047\u5230\u554f\u984c\uff0c\u70ba\u4e86\u5b89\u5168\u5df2\u505c\u7528\u8a72\u90e8\u5206\u3002\u8acb\u6aa2\u67e5\u5916\u639b\u7684\u8a2d\u5b9a\u3002",
+        "hook_error": "Hider \u9047\u5230\u554f\u984c\u3002Anki \u4ecd\u53ef\u6b63\u5e38\u4f7f\u7528\uff1b\u8a73\u60c5\u898b\u9644\u52a0\u5143\u4ef6\u65e5\u8a8c\u3002",
         "dialog_title": "Hider",
         "group_review": "\u5fa9\u7fd2\u6642\u96b1\u85cf\uff1a",
         "group_behaviour": "\u884c\u70ba",
@@ -929,7 +929,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "vi": {
         "button_hidden": "N\u00fat \u0111\u00f3 \u0111ang b\u1ecb \u1ea9n. B\u1ea1n ch\u1ec9 c\u00f3 th\u1ec3 tr\u1ea3 l\u1eddi \u00ab{again}\u00bb ho\u1eb7c \u00ab{good}\u00bb.",
-        "hook_error": "Hider g\u1eb7p s\u1ef1 c\u1ed1 v\u00e0 \u0111\u00e3 t\u1eaft ph\u1ea7n \u0111\u00f3 v\u00ec l\u00fd do an to\u00e0n. H\u00e3y ki\u1ec3m tra c\u1ea5u h\u00ecnh c\u1ee7a ti\u1ec7n \u00edch.",
+        "hook_error": "Hider g\u1eb7p s\u1ef1 c\u1ed1. Anki v\u1eabn ho\u1ea1t \u0111\u1ed9ng b\u00ecnh th\u01b0\u1eddng; chi ti\u1ebft n\u1eb1m trong nh\u1eadt k\u00fd c\u1ee7a ti\u1ec7n \u00edch.",
         "dialog_title": "Hider",
         "group_review": "\u1ea8n trong khi \u00f4n t\u1eadp:",
         "group_behaviour": "H\u00e0nh vi",
@@ -953,7 +953,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "id": {
         "button_hidden": "Tombol itu tersembunyi. Kamu hanya bisa menjawab \u00ab{again}\u00bb atau \u00ab{good}\u00bb.",
-        "hook_error": "Hider mengalami masalah dan menonaktifkan bagian itu demi keamanan. Periksa konfigurasi add-on.",
+        "hook_error": "Hider mengalami masalah. Anki tetap berjalan; rinciannya ada di log add-on.",
         "dialog_title": "Hider",
         "group_review": "Selama meninjau, sembunyikan:",
         "group_behaviour": "Perilaku",
@@ -977,7 +977,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "ms": {
         "button_hidden": "Butang itu tersembunyi. Anda hanya boleh menjawab \u00ab{again}\u00bb atau \u00ab{good}\u00bb.",
-        "hook_error": "Hider menghadapi masalah dan melumpuhkan bahagian itu demi keselamatan. Semak konfigurasi tambahan.",
+        "hook_error": "Hider menghadapi masalah. Anki terus berfungsi; butirannya ada dalam log tambahan.",
         "dialog_title": "Hider",
         "group_review": "Semasa ulang kaji, sembunyikan:",
         "group_behaviour": "Kelakuan",
@@ -1001,7 +1001,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "fil": {
         "button_hidden": "Nakatago ang button na iyon. Puwede ka lang sumagot ng \u00ab{again}\u00bb o \u00ab{good}\u00bb.",
-        "hook_error": "May naranasan si Hider na problema at in-disable ang bahaging iyon para sa kaligtasan. Suriin ang configuration ng add-on.",
+        "hook_error": "Nagkaproblema ang Hider. Patuloy na gumagana ang Anki; nasa log ng add-on ang detalye.",
         "dialog_title": "Hider",
         "group_review": "Habang nagre-review, itago:",
         "group_behaviour": "Asal",
