@@ -18,7 +18,7 @@ from aqt.qt import QApplication
 
 from coreprogress import options
 from coreprogress.palettes import THEME_KEYS
-from coreprogress.settings import BAR_HEIGHT_MAX, DEFAULT_CONFIG, PUSH_MIN
+from coreprogress.settings import DEFAULT_CONFIG, PUSH_MIN
 
 ADDON = Path(options.__file__).parent
 
@@ -61,7 +61,8 @@ class PanelPageTests(unittest.TestCase):
         self.assertEqual([option["value"] for option in chips["options"]], options.sorted_themes())
         self.assertEqual(sorted(options.sorted_themes()), sorted(THEME_KEYS))
         self.assertNotIn("fire_red", THEME_KEYS)
-        self.assertTrue(all(option["swatch"].startswith("#") for option in chips["options"]))
+        # 1.5.0: la muestra es una minibarra con el degradado del tema.
+        self.assertTrue(all(option["swatch"].startswith("linear-gradient(") for option in chips["options"]))
 
     def test_labels_without_px(self) -> None:
         for item in _items(options.page(DEFAULT_CONFIG, 0)):
@@ -99,7 +100,8 @@ class ConfigFromPageTests(unittest.TestCase):
     def test_bad_values(self) -> None:
         cfg = options.config_from_page({"theme": "nope", "bar_height": 99, "push_down": -5, "effects_enabled": 1})
         self.assertEqual(cfg.theme, DEFAULT_CONFIG.theme)
-        self.assertEqual(cfg.bar_height, BAR_HEIGHT_MAX)
+        # 1.5.0: solo valen los tres grosores; lo demás, el de serie.
+        self.assertEqual(cfg.bar_height, DEFAULT_CONFIG.bar_height)
         self.assertEqual(cfg.push_down, PUSH_MIN)
         self.assertEqual(cfg.effects_enabled, DEFAULT_CONFIG.effects_enabled)
         self.assertEqual(options.config_from_page(None).theme, DEFAULT_CONFIG.theme)
@@ -223,9 +225,11 @@ class Version13Tests(unittest.TestCase):
         self.assertEqual(parts["before"] + parts["strong"] + parts["after"], "Mejor racha en 30 días: 41 · récord: 90")
         self.assertIn("strong", stat["parts"])
 
-    def test_swatches_have_an_ink_border(self) -> None:
+    def test_swatches_have_no_border(self) -> None:
+        # 1.5.0 (informe del 2026-11-17, 2.6): la minibarra ya da 4,24 a 1 o más
+        # contra la ficha y no lleva el contorno que pedía la 1.3.0.
         chips = next(item for item in _items(options.page(DEFAULT_CONFIG, 0)) if item["key"] == "theme")
-        self.assertTrue(all(option["swatchBorder"].startswith("#") for option in chips["options"]))
+        self.assertTrue(all("swatchBorder" not in option for option in chips["options"]))
 
     def test_round_marks(self) -> None:
         from coreprogress.effects import round_marks
@@ -295,22 +299,29 @@ class Version13Tests(unittest.TestCase):
         for theme in palettes.THEME_KEYS:
             for gold in (False, True):
                 day, night = palettes.ink(theme, False, gold), palettes.ink(theme, True, gold)
-                self.assertGreaterEqual(ratio(day, "#E4E5E7"), 3, theme)  # contorno sobre el canal
-                self.assertGreaterEqual(ratio(day, "#ffffff"), 4.5, theme)  # número blanco
-                self.assertGreaterEqual(ratio(day, "#F7F8FA"), 4.5, theme)  # aviso
-                self.assertGreaterEqual(ratio(night, "#23262F"), 3, theme)
-                self.assertGreaterEqual(ratio(night, "#1b2430"), 4.5, theme)
+                # 1.5.0: aro del próximo hito sobre el canal, número sobre la
+                # tinta y aviso sobre el fondo.
+                self.assertGreaterEqual(ratio(day, "#D5D9E2"), 3, theme)
+                self.assertGreaterEqual(ratio(day, "#FBFCFE"), 4.5, theme)
+                self.assertGreaterEqual(ratio(day, "#F7F8FA"), 4.5, theme)
+                self.assertGreaterEqual(ratio(night, "#272F3F"), 3, theme)
                 self.assertGreaterEqual(ratio(night, "#12161F"), 4.5, theme)
 
-    def test_flat_fill_with_contour(self) -> None:
+    def test_contour_only_on_gold_by_day(self) -> None:
+        # 1.5.0 (informe del 2026-11-17, 2.2 y 2.5): sin contorno en los temas
+        # ni halo; solo el oro de día lleva contorno, y el oro, la estrella.
         from coreprogress import palettes
 
-        mode = palettes.fill_bundle("classic_green", False).light
-        self.assertEqual(mode.fill_shadow, "inset 0 0 0 1px #167628")
-        self.assertEqual(mode.label_glow, "none")
-        gold = palettes.fill_bundle("classic_green", True).light
-        self.assertIn("inset 0 0 0 1px #856206", gold.fill_shadow)
-        self.assertIn("0 0 6px", gold.fill_shadow)
+        for theme in palettes.THEME_KEYS:
+            plain = palettes.fill_bundle(theme, False)
+            self.assertEqual((plain.light.contour, plain.dark.contour), ("none", "none"), theme)
+            self.assertEqual((plain.light.star, plain.dark.star), ("", ""), theme)
+        gold = palettes.fill_bundle("classic_green", True)
+        self.assertEqual(gold.light.contour, "inset 0 0 0 1px #845E09")
+        self.assertEqual(gold.dark.contour, "none")
+        self.assertEqual(gold.light.star, "#845E09")
+        self.assertEqual(gold.dark.star, "#12161F")
+        self.assertNotIn("glow", gold.to_json())
 
     def test_new_texts_in_every_language(self) -> None:
         from coreprogress import i18n
@@ -319,6 +330,190 @@ class Version13Tests(unittest.TestCase):
             for key in ("best30", "record_inline", "none", "bar_name", "no_match"):
                 self.assertTrue(table.get(key), f"{code}: {key}")
             self.assertIn("{count}", table["best30"], code)
+
+
+def _lum(hex_color: str) -> float:
+    values = [int(hex_color.lstrip("#")[i : i + 2], 16) / 255 for i in (0, 2, 4)]
+    lin = [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in values]
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+
+
+def _ratio(a: str, b: str) -> float:
+    la, lb = _lum(a), _lum(b)
+    return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
+
+
+def _lab(hex_color: str) -> tuple[float, float, float]:
+    values = [int(hex_color.lstrip("#")[i : i + 2], 16) / 255 for i in (0, 2, 4)]
+    r, g, b = (v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in values)
+    x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047
+    y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883
+
+    def f(t: float) -> float:
+        return t ** (1 / 3) if t > 216 / 24389 else (24389 / 27 * t + 16) / 116
+
+    fx, fy, fz = f(x), f(y), f(z)
+    return 116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)
+
+
+def _de2000(c1: str, c2: str) -> float:
+    """Diferencia de color CIEDE2000 (Sharma, Wu y Dalal, 2005)."""
+    import math
+
+    l1, a1, b1 = _lab(c1)
+    l2, a2, b2 = _lab(c2)
+    cb = (math.hypot(a1, b1) + math.hypot(a2, b2)) / 2
+    g = 0.5 * (1 - math.sqrt(cb**7 / (cb**7 + 25**7)))
+    a1p, a2p = a1 * (1 + g), a2 * (1 + g)
+    c1p, c2p = math.hypot(a1p, b1), math.hypot(a2p, b2)
+    h1p = math.degrees(math.atan2(b1, a1p)) % 360
+    h2p = math.degrees(math.atan2(b2, a2p)) % 360
+    dl, dc = l2 - l1, c2p - c1p
+    dh = h2p - h1p
+    if c1p * c2p == 0:
+        dh = 0
+    elif dh > 180:
+        dh -= 360
+    elif dh < -180:
+        dh += 360
+    dhh = 2 * math.sqrt(c1p * c2p) * math.sin(math.radians(dh / 2))
+    lbp, cbp = (l1 + l2) / 2, (c1p + c2p) / 2
+    if c1p * c2p == 0:
+        hbp = h1p + h2p
+    elif abs(h1p - h2p) <= 180:
+        hbp = (h1p + h2p) / 2
+    else:
+        hbp = (h1p + h2p + 360) / 2 if h1p + h2p < 360 else (h1p + h2p - 360) / 2
+    t = (
+        1
+        - 0.17 * math.cos(math.radians(hbp - 30))
+        + 0.24 * math.cos(math.radians(2 * hbp))
+        + 0.32 * math.cos(math.radians(3 * hbp + 6))
+        - 0.20 * math.cos(math.radians(4 * hbp - 63))
+    )
+    sl = 1 + 0.015 * (lbp - 50) ** 2 / math.sqrt(20 + (lbp - 50) ** 2)
+    sc = 1 + 0.045 * cbp
+    sh = 1 + 0.015 * cbp * t
+    rt = -2 * math.sqrt(cbp**7 / (cbp**7 + 25**7)) * math.sin(math.radians(60 * math.exp(-(((hbp - 275) / 25) ** 2))))
+    return math.sqrt((dl / sl) ** 2 + (dc / sc) ** 2 + (dhh / sh) ** 2 + rt * (dc / sc) * (dhh / sh))
+
+
+class Version15Tests(unittest.TestCase):
+    """Informe «Rediseño de color y forma: CoreProgress 1.4.0» (2026-11-17)."""
+
+    def test_six_themes_weigh_the_same(self) -> None:
+        # 1.3 y 1.4: punta a 3,1 del canal de día y a 7,0 de noche; arranque a
+        # 2,0 y a 4,6. Los seis, con la misma medida (±0,1).
+        from coreprogress import palettes
+
+        for theme, (day, _ink, _pill, night, _npill) in palettes.THEMES.items():
+            self.assertAlmostEqual(_ratio(day[2], "#D5D9E2"), 3.1, delta=0.1, msg=theme)
+            self.assertAlmostEqual(_ratio(day[0], "#D5D9E2"), 2.0, delta=0.1, msg=theme)
+            self.assertAlmostEqual(_ratio(night[2], "#272F3F"), 7.0, delta=0.1, msg=theme)
+            self.assertAlmostEqual(_ratio(night[0], "#272F3F"), 4.6, delta=0.1, msg=theme)
+
+    def test_text_on_pill_and_disc(self) -> None:
+        from coreprogress import palettes
+
+        for theme in [*palettes.THEME_KEYS, None]:
+            data = palettes.GOLD if theme is None else palettes.THEMES[theme]
+            day_ink, day_pill, night_ink, night_pill = data[1], data[2], data[3][2], data[4]
+            self.assertGreaterEqual(_ratio(day_ink, day_pill), 5.0, theme)
+            self.assertGreaterEqual(_ratio(night_ink, night_pill), 6.9, theme)
+            self.assertGreaterEqual(_ratio(day_ink, "#FBFCFE"), 5.5, theme)  # número del próximo hito
+            self.assertGreaterEqual(_ratio(night_ink, "#212836"), 7.5, theme)
+            self.assertGreaterEqual(_ratio(palettes.ON_INK[0], day_ink), 5.5, theme)  # número del hito alcanzado
+            self.assertGreaterEqual(_ratio(palettes.ON_INK[1], night_ink), 4.5, theme)
+
+    def test_gold_contour_and_star_reach_three_to_one(self) -> None:
+        from coreprogress import palettes
+
+        self.assertGreaterEqual(_ratio(palettes.GOLD[1], "#D5D9E2"), 3)  # contorno de día
+        self.assertGreaterEqual(_ratio(palettes.GOLD[1], palettes.GOLD[0][2]), 3)  # estrella de día
+        self.assertGreaterEqual(_ratio("#12161F", palettes.GOLD[3][2]), 3)  # estrella de noche
+
+    def test_no_theme_looks_like_the_action_blue(self) -> None:
+        # 1.2 y regla 2: ningún tema a menos de 10 (ΔE2000) del azul de acción.
+        from coreprogress import palettes
+
+        for theme, (day, _ink, _pill, night, _npill) in palettes.THEMES.items():
+            for color in day:
+                self.assertGreaterEqual(_de2000(color, "#3B6FE0"), 10, f"{theme} {color}")
+            for color in night:
+                self.assertGreaterEqual(_de2000(color, "#4066E6"), 10, f"{theme} {color}")
+
+    def test_soft_night(self) -> None:
+        # Regla 3: de noche, ningún relleno con más croma que 0,15 (OKLCH).
+        import math
+
+        from coreprogress import palettes
+
+        def chroma(hex_color: str) -> float:
+            values = [int(hex_color.lstrip("#")[i : i + 2], 16) / 255 for i in (0, 2, 4)]
+            r, g, b = (v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in values)
+            lc = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b) ** (1 / 3)
+            mc = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b) ** (1 / 3)
+            sc = (0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b) ** (1 / 3)
+            a = 1.9779984951 * lc - 2.4285922050 * mc + 0.4505937099 * sc
+            bb = 0.0259040371 * lc + 0.7827717662 * mc - 0.8086757660 * sc
+            return math.hypot(a, bb)
+
+        for theme, (_day, _ink, _pill, night, _npill) in palettes.THEMES.items():
+            for color in night:
+                self.assertLessEqual(chroma(color), 0.155, f"{theme} {color}")
+
+    def test_three_thicknesses(self) -> None:
+        from coreprogress.settings import BAR_HEIGHTS, as_bar_height
+
+        self.assertEqual(BAR_HEIGHTS, (12, 16, 20))
+        # Un grosor guardado por una versión anterior pasa al más cercano.
+        for old, new in ((12, 12), (13, 12), (14, 16), (16, 16), (17, 16), (18, 20), (22, 20), ("x", 16), (True, 16)):
+            self.assertEqual(as_bar_height(old), new, old)
+        seg = next(item for item in _items(options.page(DEFAULT_CONFIG, 0)) if item["key"] == "bar_height")
+        self.assertEqual(seg["type"], "segmented")
+        self.assertEqual([option["value"] for option in seg["options"]], [12, 16, 20])
+        from coreprogress.i18n import TRANSLATIONS, t
+
+        self.assertEqual(
+            [option["label"] for option in seg["options"]],
+            [t("thickness_thin"), t("thickness_normal"), t("thickness_thick")],
+        )
+        es = TRANSLATIONS["es"]
+        self.assertEqual(
+            (es["opt_thickness"], es["thickness_thin"], es["thickness_thick"]), ("Grosor", "Fina", "Gruesa")
+        )
+        self.assertEqual(options.config_from_page({"bar_height": 20}).bar_height, 20)
+
+    def test_thin_bar_has_no_discs(self) -> None:
+        from coreprogress import view
+        from coreprogress.palettes import fill_bundle
+
+        def args(height: int) -> dict:
+            return view.build_args(fill_bundle("classic_green", False), 40, height, 0, True, [], False)
+
+        self.assertTrue(args(12)["small"])
+        self.assertFalse(args(16)["small"])
+        self.assertEqual((args(16)["cpFont"], args(20)["cpFont"]), (11, 12))
+        self.assertEqual(args(16)["cpSize"], 20)
+
+    def test_everything_injected_carries_the_package_prefix(self) -> None:
+        from coreprogress import view
+
+        page = view.reviewer_page_head() + view.reviewer_page_body()
+        self.assertNotIn("_cprog", page)
+        self.assertNotIn("cprog-", page.replace("--cprog-track", ""))
+        self.assertNotIn("Glow", page)
+        self.assertIn("max-width:720px", page)
+        self.assertIn("prefers-reduced-motion", page)
+        self.assertIn("forced-colors", page)
+
+    def test_thickness_texts_in_every_language(self) -> None:
+        from coreprogress import i18n
+
+        for code, table in i18n.TRANSLATIONS.items():
+            for key in ("opt_thickness", "thickness_thin", "thickness_normal", "thickness_thick"):
+                self.assertTrue(table.get(key), f"{code}: {key}")
 
 
 if __name__ == "__main__":

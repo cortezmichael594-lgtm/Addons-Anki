@@ -65,6 +65,39 @@ Cada corrección: número, fecha, versión, qué pasaba, por qué pasaba y la re
 
 Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arregla» sin preguntar.
 
+- 1.5.0 · Informe «Rediseño de color y forma: CoreProgress 1.4.0», aplicado entero a petición del
+  cliente el 2026-11-17, con la opción recomendada en sus tres decisiones:
+  - Decisión 1: barra de 720 px como mucho, centrada sobre la tarjeta (antes, de lado a lado).
+  - Decisión 2: hitos como cortes finos; número solo en el próximo hito y en el total. Sustituye a los
+    discos numerados de la 1.3.0.
+  - Decisión 3: estrella en la punta de la racha dorada, sin halo (el halo lo había dejado el cliente).
+  - Además, sin decisión: paleta nueva de los seis temas y del oro, calculada por contraste (sustituye
+    a las escalas hechas a mano, que estaban aprobadas); sin el contorno de 1 px de la 1.3.0 salvo en
+    el oro de día; canal gris plano, sin sombra; aviso en una píldora tintada; movimiento de 0,3 s con
+    frenada, sin avivar el relleno; grosor en tres tamaños; muestras de tema como minibarras; colores
+    del sistema para cada pieza en el contraste alto de Windows.
+- 1.5.0 · El canal usa el gris que midió el informe (#D5D9E2 de día y #272F3F de noche), que el informe
+  llama SCROLLBAR_BG porque lo tomó de la tabla del texto común de las fichas. Esa tabla estaba
+  atrasada: Atelier 3.9.0 (2026-11-11) oscureció SCROLLBAR_BG a #828893 y #6C7587 para que el tirador
+  de las barras de desplazamiento llegue a 3 a 1. Con ese gris el canal quedaría a 3,5 a 1 del fondo y
+  toda la paleta medida dejaría de valer, así que se queda el valor del informe, marcado en el código,
+  y la tabla del texto común se ha puesto al día.
+- 1.5.0 · El grosor elegido va como los controles segmentados del panel modelo de GritMap (fondo de la
+  capa elevada, borde azul y seminegrita) y no relleno de azul con texto blanco, como proponía el
+  informe (2.6): la ventana de opciones sigue el panel modelo, que es regla del taller, y así se ve
+  igual que en GritMap. El contraste del elegido no depende del relleno.
+- 1.5.0 · La muestra de tema es una minibarra de 30 × 10 px (informe, 2.6) y no el cuadrito de 16 × 16
+  del panel modelo: enseña el degradado que se va a ver. Lo aprobó el cliente con el informe.
+- 1.5.0 · Movimiento (informe, 3.1 y 8.7): el relleno avanza en 0,3 s, el color cambia en 0,4 s, el hito
+  alcanzado dura 0,6 s y las chispas 0,5 s. Son más largos que los 150 ms de la guía: excepción
+  aprobada por el cliente con el informe, como las de la 1.2.0. Con «reducir el movimiento», nada se
+  anima.
+- 1.5.0 · Decisiones de diseño del taller al aplicar el informe: el número del hito alcanzado va en
+  CANVAS_ELEVATED (#FBFCFE) y no en blanco puro, que el taller no usa; la actualización tras cada
+  respuesta pasa de 120 a 50 ms, para que la barra responda antes; al entrar a repasar o al cambiar las
+  opciones la barra se dibuja en su sitio, sin deslizarse; lo que se inyecta en el repaso pasa a llevar
+  el prefijo del paquete («coreprogress»), como pide la regla del taller (antes, «_cprog»), y la
+  variable de plantilla antigua --cprog-track se sigue entendiendo.
 - 1.3.0 · Informe «Auditoría y rediseño de la interfaz: CoreProgress 1.2.0», aplicado entero a petición
   del cliente el 2026-11-16, con la opción recomendada en sus cuatro decisiones:
   - Decisión 1 (B): se celebra la mejor racha de los últimos 30 días («MEJOR RACHA EN 30 DÍAS: 42»),
@@ -75,7 +108,8 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
     y ninguna más allá del 92 %) y una marca final con el total. Sustituye a los hitos al 20, 40, 60 y
     80 %, que el informe 1.1 había dado por buenos.
   - Decisión 3 (A): relleno plano, sin brillo de cristal ni sombra de color, con un contorno de 1 px en
-    la tinta del tema; el halo dorado queda como única luz.
+    la tinta del tema; el halo dorado queda como única luz. (Desde la 1.5.0, sin contorno salvo en el
+    oro de día y sin halo.)
   - Decisión 4 (A): sin la cabecera «CoreProgress» dentro de la ventana de opciones.
   - Una sola celebración por respuesta (récord, 30 días, racha; el hito solo cambia de color si
     coincide); aviso centrado en la ventana; con «reducir el movimiento», nada se anima.
@@ -84,11 +118,11 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   (el informe los pedía sin subrayar en reposo); el borde de la ficha elegida es BORDER_FOCUS, como
   pide el informe, y con el foco del teclado pasa a 4 px; los colores de la vista previa (canal y
   número del hito sin alcanzar) son los de Nocturne con su marca, porque en la ventana de opciones no
-  hay una tarjeta que medir.
+  hay una tarjeta que medir. (Desde la 1.5.0 llegan de palettes.py, los mismos que en el repaso.)
 - 1.3.0 · No aplicado y por qué: Intro sin Ctrl no acepta la ventana (el informe lo deja «por
   comprobar» y sigue pendiente también en Atelier); la lista de mazos, si los nombres no caben, no
   lleva globo con la lista entera; las chispas siguen siendo blancas también de día (el informe pide
-  comprobarlo antes con una captura).
+  comprobarlo antes con una captura). (Desde la 1.5.0, las chispas van en la tinta del tema.)
 
 - Desde la 1.2.0, «Difícil» mantiene la racha: es un acierto, como dice el manual de Anki. Solo «Otra
   vez» la rompe. Lo aprobó el cliente el 2026-11-09 (informe de CoreProgress, apartado 2.1), sabiendo
@@ -123,17 +157,15 @@ Lo que parece un fallo pero se decidió así, y quién lo decidió. No se «arre
   informe del 2026-11-16).
 - Los botones estándar de las ventanas (Guardar, Cancelar, Aceptar, restaurar) llevan el texto de Qt
   en el idioma de Anki, no traducciones propias. Decisión del autor original.
-- El canal de la barra toma su color del fondo real de la tarjeta y no del tema de Anki, para no
-  chocar con plantillas que tienen fondo propio. Decisión del autor original.
-- El halo dorado y los tonos del relleno se suavizaron a petición del usuario: el halo debe adornar,
-  no llamar la atención, y el final del degradado no debe quedar casi negro. Según consta en el
-  código (sin fecha).
-- Los temas de la barra tienen escalas de color propias, fuera de la paleta Nocturne, igual que los de
-  GritMap: son la razón de ser de la opción «Tema de color». Lo aprobó el cliente con el informe del
-  2026-11-09, que conserva los temas; en el código van marcadas como aprobadas. Rojo fuego se retira
+- El canal de la barra se ajusta al fondo real de la tarjeta y no al tema de Anki, para no chocar con
+  plantillas que tienen fondo propio. Decisión del autor original; desde la 1.5.0, sobre el fondo de
+  Atelier es el gris de la paleta y sobre otro, un gris con el mismo contraste.
+- Los temas de la barra tienen colores propios, fuera de la paleta Nocturne, igual que los de GritMap:
+  son la razón de ser de la opción «Tema de color». Desde la 1.5.0 son los del informe del 2026-11-17,
+  calculados para que pesen igual; en el código van marcados como aprobados. Rojo fuego se retira
   desde la 1.2.0 (en Anki el rojo es error) y quien lo tenía pasa a Naranja atardecer, con aviso.
-- Movimiento desde la 1.2.0 (informe del 2026-11-09): se quitó el destello que cruzaba la barra cada
-  9 segundos. Se conservan, porque informan del avance o de un logro: el relleno que avanza en 0,4 s,
+- Movimiento desde la 1.2.0 (informe del 2026-11-09; desde la 1.5.0, véase arriba): se quitó el
+  destello que cruzaba la barra cada 9 segundos. Se conservan, porque informan del avance o de un logro: el relleno que avanza en 0,4 s,
   el fundido de color al pasar a dorado, el salto y las chispas de los hitos y el avivado de los
   avisos. Salvo el avance y el cambio de color, todo se apaga con «Celebrar rachas y récords». Son más
   largos que los 150 ms de la guía: excepción aprobada por el cliente con el informe.

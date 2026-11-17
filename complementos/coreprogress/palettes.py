@@ -1,9 +1,27 @@
-"""Color palettes and style-bundle generation for the progress bar.
+"""Colores de la barra: los seis temas, el dorado y las piezas neutras.
 
-Each theme ships a 10-step light ramp (light -> dark) and a 10-step dark ramp
-(dark -> light), generated with a smooth HLS profile. Neutral parts of the bar
-(track, pending checkpoints) are painted in JS from the card's real rendered
-background (see view.py), so nothing here needs to know about Anki themes.
+1.5.0 (informe «Rediseño de color y forma: CoreProgress 1.4.0», 2026-11-17,
+aplicado entero): una sola receta para los seis temas, calculada en OKLCH por
+contraste y no a ojo, para que todos pesen lo mismo. De día, la punta del
+relleno queda a 3,1 a 1 del canal y el arranque a 2,0; de noche, a 7,0 y a 4,6.
+Croma de 0,16 como máximo de día y 0,15 de noche. Ningún tema queda a menos de
+10 de diferencia de color (ΔE2000) del azul de acción de Nocturne. Cada tema
+tiene:
+
+- relleno: tres paradas (arranque, centro y punta). De día la punta es el lado
+  oscuro; de noche, el claro;
+- tinta: texto del aviso, aro y número del próximo hito y chispas. Oscura de
+  día (6,5 a 1 contra el fondo) y, de noche, la propia punta;
+- píldora: el fondo tintado del aviso.
+
+Sin contorno en los temas: la punta ya da 3,1 a 1 por sí sola. Solo el dorado
+de día lo lleva, porque un oro claro no llega a 3 a 1 del canal (1,27; con
+contorno, 4,14). La racha dorada lleva además una estrella en la punta.
+
+HISTORIAL: hasta la 1.4.0 cada tema tenía una escala de diez tonos hecha a
+mano; pesaban muy distinto (punta de 1,98 a 8,35 a 1 contra el canal de día),
+Azul océano era el azul de los botones de Atelier (1,5 de diferencia) y, con
+daltonismo, el dorado no se distinguía del verde de serie.
 """
 
 from __future__ import annotations
@@ -11,107 +29,78 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 
-ACCENT_LIGHT: dict[str, tuple[str, ...]] = {
+# Por tema: (relleno de día, tinta de día, píldora de día,
+#            relleno de noche, píldora de noche). La tinta de noche es la punta.
+_Ramp = tuple[str, str, str]
+_Theme = tuple[_Ramp, str, str, _Ramp, str]
+
+THEMES: dict[str, _Theme] = {
     "classic_green": (
-        "#c9e9cf", "#ace2b6", "#89dc99", "#64d97a", "#3dd65a",  # colores-ok: escala propia del tema (decisión del autor)
-        "#25cb44", "#1daf38", "#18932f", "#167628", "#145a21",  # colores-ok: escala propia del tema (decisión del autor)
+        ("#53AD4B", "#329D43", "#0F8B41"), "#09692F", "#E3F6E6",  # colores-ok: tema propio (informe del 2026-11-17)
+        ("#3EAC5F", "#5EBD68", "#7BCE73"), "#1C3422",  # colores-ok: tema propio (informe del 2026-11-17)
     ),
     "ocean_blue": (
-        "#c8d2ea", "#aabce4", "#85a2e0", "#5f87dd", "#376bdd",  # colores-ok: escala propia del tema (decisión del autor)
-        "#1e56d2", "#1649b6", "#133d98", "#12337a", "#11295d",  # colores-ok: escala propia del tema (decisión del autor)
+        ("#16A4DB", "#1391CC", "#0F7FBE"), "#085E8F", "#E3F2FF",  # colores-ok: tema propio (informe del 2026-11-17)
+        ("#219EE9", "#26B3F9", "#53C7FD"), "#183042",  # colores-ok: tema propio (informe del 2026-11-17)
     ),
     "lagoon_turquoise": (
-        "#c7eae6", "#a9e5de", "#84e1d6", "#5de0d0", "#34dfcc",  # colores-ok: escala propia del tema (decisión del autor)
-        "#1bd5bf", "#14b8a5", "#119a8a", "#107c70", "#105e55",  # colores-ok: escala propia del tema (decisión del autor)
+        ("#17ACA0", "#139992", "#108784"), "#096462", "#DAF7F5",  # colores-ok: tema propio (informe del 2026-11-17)
+        ("#16A8A5", "#1ABCB4", "#1ED1C2"), "#0B3534",  # colores-ok: tema propio (informe del 2026-11-17)
     ),
     "rose_pink": (
-        "#eac8d5", "#e4aac0", "#df86a8", "#dd608f", "#db3876",  # colores-ok: escala propia del tema (decisión del autor)
-        "#d11f62", "#b41853", "#971445", "#791339", "#5c122e",  # colores-ok: escala propia del tema (decisión del autor)
+        ("#EE7098", "#D95F8F", "#C44E85"), "#943A64", "#FFEAF1",  # colores-ok: tema propio (informe del 2026-11-17)
+        ("#E372A3", "#F883AE", "#FDA0BA"), "#3F242F",  # colores-ok: tema propio (informe del 2026-11-17)
     ),
     "royal_purple": (
-        "#d0c8e9", "#b8aae3", "#9c86df", "#7e60dc", "#7450b8",  # colores-ok: escala propia del tema (decisión del autor)
-        "#4b20d0", "#3e18b4", "#341496", "#2c1379", "#24125c",  # colores-ok: escala propia del tema (decisión del autor)
+        ("#B283F0", "#9B74E1", "#8466D1"), "#634C9F", "#F1EEFF",  # colores-ok: tema propio (informe del 2026-11-17)
+        ("#A187EE", "#B897FD", "#CCADFD"), "#2F2942",  # colores-ok: tema propio (informe del 2026-11-17)
     ),
     "sunset_orange": (
-        "#ead6c7", "#e5c2a9", "#e1aa84", "#e0935d", "#df7b34",  # colores-ok: escala propia del tema (decisión del autor)
-        "#d5681b", "#b85814", "#9a4911", "#7c3d10", "#5e3010",  # colores-ok: escala propia del tema (decisión del autor)
+        ("#E58018", "#D66B12", "#C7570F"), "#96400A", "#FFECE3",  # colores-ok: tema propio (informe del 2026-11-17)
+        ("#E67A43", "#F68E4A", "#FDA863"), "#40261A",  # colores-ok: tema propio (informe del 2026-11-17)
     ),
 }
 
-ACCENT_DARK: dict[str, tuple[str, ...]] = {
-    "classic_green": (
-        "#21572b", "#256d32", "#288339", "#2a9d40", "#2db947",  # colores-ok: escala propia del tema (decisión del autor)
-        "#33d151", "#4bd865", "#68dc7e", "#88e098", "#a7e4b3",  # colores-ok: escala propia del tema (decisión del autor)
-    ),
-    "ocean_blue": (
-        "#1e3159", "#223a70", "#244387", "#254ca2", "#2757bf",  # colores-ok: escala propia del tema (decisión del autor)
-        "#2c62d8", "#4575de", "#638ae1", "#84a2e4", "#a5b9e7",  # colores-ok: escala propia del tema (decisión del autor)
-    ),
-    "lagoon_turquoise": (
-        "#1d5a53", "#207168", "#22897d", "#23a495", "#24c1af",  # colores-ok: escala propia del tema (decisión del autor)
-        "#29dbc6", "#42e0ce", "#60e3d4", "#82e5da", "#a4e8e0",  # colores-ok: escala propia del tema (decisión del autor)
-    ),
-    "rose_pink": (
-        "#591f35", "#6f223f", "#862449", "#a12654", "#be2860",  # colores-ok: escala propia del tema (decisión del autor)
-        "#d72d6d", "#dd467f", "#e06493", "#e385a8", "#e6a5be",  # colores-ok: escala propia del tema (decisión del autor)
-    ),
-    "royal_purple": (
-        "#2d1f59", "#35236f", "#3d2586", "#4427a0", "#4d28bd",  # colores-ok: escala propia del tema (decisión del autor)
-        "#572ed6", "#6b46dc", "#8264e0", "#9c85e3", "#b5a5e6",  # colores-ok: escala propia del tema (decisión del autor)
-    ),
-    "sunset_orange": (
-        "#5a371d", "#714220", "#894c22", "#a45823", "#c16524",  # colores-ok: escala propia del tema (decisión del autor)
-        "#db7329", "#e18442", "#e39660", "#e5ab82", "#e8c0a4",  # colores-ok: escala propia del tema (decisión del autor)
-    ),
+# El dorado de la racha (desde 5 aciertos seguidos): claro, más que cualquier
+# tema, para que se distinga también por la luminosidad con daltonismo.
+GOLD: _Theme = (
+    ("#F7D856", "#F6C835", "#F4B81C"), "#845E09", "#FDEFCF",  # colores-ok: dorado propio (informe del 2026-11-17)
+    ("#F0BB43", "#F9CD54", "#FEE06D"), "#3C2E0F",  # colores-ok: dorado propio (informe del 2026-11-17)
+)
+
+# Piezas neutras de la barra (día, noche), de la tabla Nocturne del informe.
+# El canal es el gris que el informe midió como SCROLLBAR_BG; Atelier 3.9.0
+# oscureció después ese token (#828893 y #6C7587) para que el tirador llegue a
+# 3 a 1, y con él toda la paleta medida dejaría de valer: se queda el valor del
+# informe (véase «Así a propósito» en docs/coreprogress/errores.md).
+NEUTRAL: dict[str, tuple[str, str]] = {
+    "bg": ("#F7F8FA", "#12161F"),  # colores-ok: CANVAS de Nocturne; color del corte de los hitos
+    "track": ("#D5D9E2", "#272F3F"),  # colores-ok: canal de la barra (informe del 2026-11-17, 2.1)
+    "disc": ("#FBFCFE", "#212836"),  # colores-ok: CANVAS_ELEVATED de Nocturne; fondo de los discos
+    "faint": ("#646C7D", "#9AA3B4"),  # colores-ok: FG_FAINT de Nocturne; aro del total
+    "subtle": ("#4E576A", "#B7BECC"),  # colores-ok: FG_SUBTLE de Nocturne; número del total
 }
+# Número sobre la tinta (hito recién alcanzado): casi blanco de día (sin el
+# blanco puro) y el fondo de noche.
+ON_INK: tuple[str, str] = ("#FBFCFE", "#12161F")  # colores-ok: CANVAS_ELEVATED (día) y CANVAS (noche) de Nocturne
 
-GOLD_LIGHT: tuple[str, ...] = (
-    "#ebe1c6", "#e6d5a7", "#e3c882", "#e3bd59", "#e4b230",  # colores-ok: escala propia del tema (decisión del autor)
-    "#daa416", "#bc8d10", "#9e760d", "#7f5f0e", "#60490e",  # colores-ok: escala propia del tema (decisión del autor)
-)
-
-GOLD_DARK: tuple[str, ...] = (
-    "#5c4a1c", "#735c1e", "#8b6e20", "#a78220", "#c59820",  # colores-ok: escala propia del tema (decisión del autor)
-    "#dfac25", "#e4b73e", "#e7c15d", "#e8cb80", "#e9d6a2",  # colores-ok: escala propia del tema (decisión del autor)
-)
-
-THEME_KEYS: tuple[str, ...] = tuple(ACCENT_LIGHT)
+THEME_KEYS: tuple[str, ...] = tuple(THEMES)
 # 1.2.0 (informe del 2026-11-09): Rojo fuego se retira, como en GritMap: en Anki
-# el rojo significa «Otra vez», aprendiendo y error, y una barra de avance roja
-# decia «error» mientras decia «progreso». Quien lo tenia pasa a Naranja
-# atardecer y lo ve avisado en la ventana de opciones.
+# el rojo significa «Otra vez», aprendiendo y error. Quien lo tenía pasa a
+# Naranja atardecer y lo ve avisado en la ventana de opciones.
 RETIRED_THEMES: dict[str, str] = {"fire_red": "sunset_orange"}
 DEFAULT_THEME: str = "classic_green"
-
-# Indices into a ramp used for the four-stop fill gradient.
-# HISTORIAL: en modo claro el degradado usaba (4,5,6,7) y su tramo final era
-# casi negro ("demasiado oscuro"); se desplaza a (3,4,5,6): vivo sin apagarse.
-# En modo oscuro (5,6,7,8) resultaba demasiado luminoso; (4,5,6,7) lo atenúa
-# un punto sin perder identidad. Hitos y textos derivan de estas mismas rampas,
-# así que el cambio es coherente en toda la barra.
-_FILL_IDX_LIGHT: tuple[int, int, int, int] = (3, 4, 5, 6)
-_FILL_IDX_DARK: tuple[int, int, int, int] = (4, 5, 6, 7)
-
-# 1.3.0 (informe del 2026-11-16, 8.2 y 8.3): cada tema tiene una «tinta», el
-# color de su aviso (el tono 8 de su rampa: oscuro de día y claro de noche).
-# Con ella se pintan el texto del aviso, el contorno del relleno, el disco del
-# hito alcanzado y el contorno de la muestra en las opciones. El dorado de día
-# lleva un dorado profundo nuevo, solo para texto y contorno: el de antes
-# (#BC8D10) daba 2,84 a 1 sobre el fondo claro; este da 5,27.
-GOLD_INK_LIGHT: str = "#856206"  # colores-ok: dorado profundo de día (informe del 2026-11-16)
-GOLD_INK_DARK: str = "#e7c15d"  # colores-ok: tinta dorada de noche, de la rampa dorada
-# Número del hito alcanzado sobre la tinta: blanco de día y FG de noche.
-REACHED_TEXT_LIGHT: str = "#ffffff"  # colores-ok: blanco sobre la tinta oscura de día (5,07 a 1 o más)
-REACHED_TEXT_DARK: str = "#1b2430"  # colores-ok: FG de día de Nocturne sobre la tinta clara de noche
 
 
 @dataclass(frozen=True)
 class ModeStyle:
     gradient: str
-    fill_shadow: str
-    solid: str
-    label_glow: str
-    reached_text: str = REACHED_TEXT_LIGHT
+    contour: str
+    ink: str
+    pill: str
+    on_ink: str
+    # Color de la estrella de la racha dorada; vacío si la barra no es dorada.
+    star: str = ""
 
 
 @dataclass(frozen=True)
@@ -129,70 +118,43 @@ class StyleBundle:
 def _mode_dict(mode: ModeStyle) -> dict[str, str]:
     return {
         "gradient": mode.gradient,
-        "shadow": mode.fill_shadow,
-        "solid": mode.solid,
-        "glow": mode.label_glow,
-        "reached": mode.reached_text,
+        "contour": mode.contour,
+        "ink": mode.ink,
+        "pill": mode.pill,
+        "onInk": mode.on_ink,
+        "star": mode.star,
     }
 
 
-def _hex_to_rgb(value: str) -> tuple[int, int, int]:
-    value = value.lstrip("#")
-    return int(value[0:2], 16), int(value[2:4], 16), int(value[4:6], 16)
+def _theme(theme: str) -> _Theme:
+    return THEMES.get(theme, THEMES[DEFAULT_THEME])
 
 
-def _rgba(hex_color: str, alpha: float) -> str:
-    r, g, b = _hex_to_rgb(hex_color)
-    return f"rgba({r},{g},{b},{alpha:.2f})"
-
-
-def _scale(theme: str, dark: bool) -> tuple[str, ...]:
-    table = ACCENT_DARK if dark else ACCENT_LIGHT
-    return table.get(theme, table[DEFAULT_THEME])
-
-
-def _gold_scale(dark: bool) -> tuple[str, ...]:
-    return GOLD_DARK if dark else GOLD_LIGHT
-
-
-def _gradient(tones: tuple[str, str, str, str]) -> str:
-    a, b, c, d = tones
-    return f"linear-gradient(90deg,{a} 0%,{b} 30%,{c} 70%,{d} 100%)"
-
-
-def _gold_glow(dark: bool) -> str:
-    # HISTORIAL: el aura dorada empezó en 12px/0.38 de alfa y "distraía"; se ha
-    # rebajado dos veces a petición del usuario. Debe ser un adorno, no un foco.
-    scale = _gold_scale(dark)
-    outer = scale[7] if dark else scale[5]
-    inner = scale[8] if dark else scale[6]
-    return f"0 0 6px {_rgba(outer, 0.18)}, 0 0 2px {_rgba(inner, 0.14)}"
+def _gradient(ramp: _Ramp) -> str:
+    start, middle, tip = ramp
+    return f"linear-gradient(90deg,{start} 0%,{middle} 50%,{tip} 100%)"
 
 
 def ink(theme: str, dark: bool, gold_active: bool = False) -> str:
     """La tinta del tema (o del dorado) en el modo pedido."""
-    if gold_active:
-        return GOLD_INK_DARK if dark else GOLD_INK_LIGHT
-    return _scale(theme, dark)[8]
+    data = GOLD if gold_active else _theme(theme)
+    return data[3][2] if dark else data[1]
 
 
 def _mode_style(theme: str, dark: bool, gold_active: bool) -> ModeStyle:
-    """Relleno plano con contorno (1.3.0, informe del 2026-11-16, decisión 3:
-    sin brillo de cristal ni sombra de color). El contorno de 1 px en la tinta
-    separa el relleno del canal de día (Verde, Turquesa y dorado quedaban entre
-    1,98 y 2,40 a 1). La única luz de la barra es el halo del dorado."""
-    tones = _gold_scale(dark) if gold_active else _scale(theme, dark)
-    idx = _FILL_IDX_DARK if dark else _FILL_IDX_LIGHT
-    picked = (tones[idx[0]], tones[idx[1]], tones[idx[2]], tones[idx[3]])
-    solid = ink(theme, dark, gold_active)
-    contour = f"inset 0 0 0 1px {solid}"
-    fill_shadow = f"{contour}, {_gold_glow(dark)}" if gold_active else contour
+    data = GOLD if gold_active else _theme(theme)
+    ramp = data[3] if dark else data[0]
+    pill = data[4] if dark else data[2]
+    tinta = ink(theme, dark, gold_active)
+    contour = f"inset 0 0 0 1px {tinta}" if gold_active and not dark else "none"
+    star = (NEUTRAL["bg"][1] if dark else tinta) if gold_active else ""
     return ModeStyle(
-        gradient=_gradient(picked),
-        fill_shadow=fill_shadow,
-        solid=solid,
-        label_glow="none",
-        reached_text=REACHED_TEXT_DARK if dark else REACHED_TEXT_LIGHT,
+        gradient=_gradient(ramp),
+        contour=contour,
+        ink=tinta,
+        pill=pill,
+        on_ink=ON_INK[1] if dark else ON_INK[0],
+        star=star,
     )
 
 
@@ -203,16 +165,18 @@ def fill_bundle(theme: str, gold_active: bool) -> StyleBundle:
     )
 
 
-def swatch(theme: str, dark: bool = False) -> str:
-    """Muestra del tema en la ventana de opciones, en el tono del modo activo
-    (1.2.0: se elige lo que se va a ver). El tono central del relleno.
+def neutral(dark: bool) -> dict[str, str]:
+    """Las piezas neutras de la barra en un modo."""
+    return {name: pair[1] if dark else pair[0] for name, pair in NEUTRAL.items()}
 
-    HISTORIAL: con el índice 6 (tono profundo) el cuadrito morado
-    "desaparecía" sobre el diálogo oscuro: se usa la zona media de la rampa.
-    """
-    return _scale(theme, dark=dark)[5 if dark else 4]
+
+def swatch(theme: str, dark: bool = False) -> str:
+    """Muestra del tema en la ventana de opciones (1.5.0): una minibarra con el
+    degradado del modo activo, que enseña lo que se va a ver."""
+    return _gradient(_theme(theme)[3] if dark else _theme(theme)[0])
+
 
 def preview_style(theme: str, dark: bool) -> dict[str, str]:
     """Degradado y tinta de un tema, para la vista previa de las opciones."""
     mode = _mode_style(theme, dark, gold_active=False)
-    return {"gradient": mode.gradient, "ink": mode.solid, "reached": mode.reached_text}
+    return {"gradient": mode.gradient, "ink": mode.ink}

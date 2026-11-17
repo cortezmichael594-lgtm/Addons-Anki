@@ -348,6 +348,7 @@ body.isWin #coreprogress-app .coreprogress-foot .coreprogress-primary {
 #coreprogress-app input:focus-visible,
 #coreprogress-app:not(.coreprogress-quiet) select:focus-visible,
 #coreprogress-app:not(.coreprogress-quiet) .coreprogress-chip:has(input:focus-visible),
+#coreprogress-app:not(.coreprogress-quiet) .coreprogress-seg label:has(input:focus-visible),
 #coreprogress-app:not(.coreprogress-quiet) .coreprogress-check:has(input:focus-visible) .coreprogress-box {
     outline: 2px solid var(--coreprogress-focus) !important;
     outline-offset: 2px;
@@ -883,7 +884,8 @@ body.isWin #coreprogress-app .coreprogress-dialog-actions .coreprogress-primary 
  * real; lo elegido se marca con borde y ✓; el foco, con el resaltado del
  * sistema. Solo las muestras de color conservan su color. */
 @media (forced-colors: active) {
-    #coreprogress-app .coreprogress-chip:has(input:checked) {
+    #coreprogress-app .coreprogress-chip:has(input:checked),
+    #coreprogress-app .coreprogress-seg label:has(input:checked) {
         border-color: Highlight;
     }
 
@@ -938,7 +940,9 @@ body.isWin #coreprogress-app .coreprogress-dialog-actions .coreprogress-primary 
     margin: -8px 0;
 }
 
-/* Vista previa de la barra: el fondo de las tarjetas y una barra de muestra. */
+/* Vista previa de la barra (1.5.0): el fondo de las tarjetas y una barra de
+ * muestra. Los colores del canal, los cortes y los discos llegan de Python
+ * (palettes.py), los mismos que en el repaso. */
 #coreprogress-app .coreprogress-preview {
     display: flex;
     align-items: center;
@@ -955,17 +959,8 @@ html.night-mode #coreprogress-app .coreprogress-preview {
 #coreprogress-app .coreprogress-preview-track {
     position: relative;
     flex: 1;
-    background: var(--coreprogress-preview-track);
-}
-
-#coreprogress-app {
-    --coreprogress-preview-track: #E4E5E7; /* colores-ok: canal de la barra con Nocturne (día), regla del 7,5 % */
-    --coreprogress-preview-pending: #4E576A; /* colores-ok: FG_SUBTLE (día), número del hito sin alcanzar */
-}
-
-html.night-mode #coreprogress-app {
-    --coreprogress-preview-track: #23262F; /* colores-ok: canal de la barra con Nocturne (noche), regla del 7,5 % */
-    --coreprogress-preview-pending: #B7BECC; /* colores-ok: FG_SUBTLE (noche) */
+    max-width: 720px;
+    margin: 0 auto;
 }
 
 #coreprogress-app .coreprogress-preview-fill {
@@ -975,16 +970,99 @@ html.night-mode #coreprogress-app {
 
 #coreprogress-app .coreprogress-preview-mark {
     position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+}
+
+#coreprogress-app .coreprogress-preview-cut {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -1px;
+    width: 2px;
+}
+
+#coreprogress-app .coreprogress-preview-disc {
+    position: absolute;
     top: 50%;
-    transform: translate(-100%, -50%);
+    left: 0;
+    translate: -50% -50%;
     display: flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    padding: 0 5px;
+    padding: 0 4px;
     border-radius: 999px;
-    background: var(--coreprogress-preview-track);
-    color: var(--coreprogress-preview-pending);
-    font-weight: 700;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
     line-height: 1;
+}
+
+#coreprogress-app .coreprogress-preview-final .coreprogress-preview-disc {
+    translate: -100% -50%;
+}
+
+/* Muestra de tema (1.5.0): minibarra de 30 × 10 px con el degradado. */
+#coreprogress-app .coreprogress-chip .coreprogress-swatch {
+    width: 30px;
+    height: 10px;
+    border-radius: 5px;
+}
+
+/* Control segmentado (grosor), con las medidas del de GritMap: carril hundido
+ * con 4 px de relleno; el elegido, en la capa elevada con borde de acción. */
+#coreprogress-app .coreprogress-seg {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 8px;
+    background: var(--coreprogress-inset);
+}
+
+#coreprogress-app .coreprogress-seg input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
+
+#coreprogress-app .coreprogress-seg label {
+    position: relative;
+    flex: 1 1 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 28px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    text-align: center;
+    color: var(--coreprogress-muted);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#coreprogress-app .coreprogress-seg label:hover {
+    color: var(--coreprogress-fg);
+}
+
+#coreprogress-app .coreprogress-seg label:has(input:checked) {
+    background: var(--coreprogress-card);
+    border-color: var(--coreprogress-accent);
+    color: var(--coreprogress-fg);
+    font-weight: 600;
+}
+
+#coreprogress-app .coreprogress-seg.coreprogress-vertical {
+    flex-direction: column;
+}
+
+#coreprogress-app .coreprogress-seg.coreprogress-vertical label {
+    justify-content: flex-start;
+    white-space: normal;
+    text-align: start;
 }

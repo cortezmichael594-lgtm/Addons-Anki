@@ -9,7 +9,9 @@ from __future__ import annotations
 # Streak length at which the fill turns to the gold aura.
 GOLD_STREAK_THRESHOLD: int = 5
 # Debounce for on-screen refreshes (ms). Coalesces bursts of answers.
-UPDATE_INTERVAL_MS: int = 120
+# 1.5.0: de 120 a 50 ms, para que la barra responda antes; sigue juntando el
+# aviso de la respuesta y el de la operación de Anki, que llegan seguidos.
+UPDATE_INTERVAL_MS: int = 50
 # Minimum streak that triggers the sparkle burst (milestones below this only
 # get the text label).
 CELEBRATION_SPARKLE_MIN_STREAK: int = 5
