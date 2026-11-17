@@ -1,6 +1,6 @@
 # Qué hace «ProFeedback»
 
-Versión 2.6.0 · 2026-11-17
+Versión 2.6.1 · 2026-11-17
 
 Hace más agradable el repaso: suena un sonido corto al acertar y otro, más discreto, al pulsar «Otra
 vez»; pone una insignia encima de la tarjeta (tarjeta nueva, «se resiste» u «otra oportunidad»); da a
@@ -16,7 +16,9 @@ La 2.6.0 aplica entero el informe «Rediseño de color y forma: ProFeedback 2.5.
 opción recomendada en sus tres decisiones: «Mostrar respuesta» en el azul de acción de Atelier, paleta
 propia para los cuatro botones (deja de ser la de Duolingo) y esquinas de 12 px con canto de 3. Cambian
 también las insignias, el confeti (diseñado entero), el título del fin del día y el estado con el ratón
-encima; y se añade «Ver» junto a «Confeti al terminar».
+encima; y se añade «Ver» junto a «Confeti al terminar». La 2.6.1 quita el círculo de fondo de los
+iconos de las insignias (a petición suya) y hace que «Ver» explique por qué no hay confeti cuando el
+sistema pide reducir las animaciones (FIX-008).
 
 ## 1. Dónde aparece
 
@@ -71,17 +73,17 @@ este orden de prioridad:
 - Colores (2.6.0): las tres pesan igual. Texto a 6,8 a 1 de día y 8,5 de noche; de día, lejos de las
   banderas roja y morada de Anki.
 
-  | Insignia | Texto día / noche | Icono día / noche | Dibujo día / noche |
-  |---|---|---|---|
-  | TARJETA NUEVA (violeta) | #73428F / #CDA1E9 | #A572C4 / #CDA1E9 | blanco / #532F67 |
-  | SE RESISTE (rojo) | #9B322F / #F9988E | #D3655E / #F9988E | blanco / #6D2824 |
-  | OTRA OPORTUNIDAD (ámbar) | #7A4D07 / #E0A761 | #BA7816 / #E0A761 | blanco / #593704 |
+  | Insignia | Texto día / noche | Icono día / noche |
+  |---|---|---|
+  | TARJETA NUEVA (violeta) | #73428F / #CDA1E9 | #A572C4 / #CDA1E9 |
+  | SE RESISTE (rojo) | #9B322F / #F9988E | #D3655E / #F9988E |
+  | OTRA OPORTUNIDAD (ámbar) | #7A4D07 / #E0A761 | #BA7816 / #E0A761 |
 
-- Iconos (2.6.0): un círculo de su color con un dibujo encima: un destello de cuatro puntas (nueva),
-  una pesa (se resiste) y una flecha en bucle (otra oportunidad). De día, el círculo en tono medio
-  (3,4 a 1 contra el fondo; antes, 1,8 y 2,4) con el dibujo en blanco; de noche, en tono claro con el
-  dibujo en el tono oscuro de su color. Texto con 0,06 em entre letras (antes, 0,4 px).
-- En el contraste alto de Windows, círculo vacío con borde y dibujo y texto en el color del texto.
+- Iconos: un dibujo del color de su insignia, con el fondo transparente, de día y de noche (desde la
+  2.6.1; en la 2.6.0 iba sobre un círculo de color): un destello de cuatro puntas (nueva), una pesa (se
+  resiste) y una flecha en bucle (otra oportunidad), con trazo de 2 px. De día, en tono medio (3,4 a 1
+  contra el fondo); de noche, en tono claro. Texto con 0,06 em entre letras (antes, 0,4 px).
+- En el contraste alto de Windows, dibujo y texto en el color del texto.
 - Encima de la tarjeta hay siempre una franja de 40 px (24 del icono y 16 de aire), haya insignia o no:
   la tarjeta empieza siempre en el mismo sitio y no salta de una a otra.
 - Aparece con un fundido de 0,12 segundos; sin fundido si el sistema pide reducir las animaciones. No se
@@ -214,7 +216,11 @@ lado:
   sonido o al volver a probar. El lector de pantalla oye cada «Probar» con su nombre («Probar el sonido
   de acierto», «Probar el sonido de «Otra vez»», «… de fin de mazo», «… de fin del día»).
 - «Ver» (2.6.0) suelta el confeti de fin de mazo dentro de la propia ventana de opciones, con sus
-  colores, sin terminar un mazo y sin guardar nada.
+  colores, sin terminar un mazo y sin guardar nada. Si el sistema pide reducir las animaciones (en
+  Windows, Configuración › Accesibilidad › Efectos visuales › «Efectos de animación» desactivado), no
+  hay confeti ni aquí ni al terminar, y desde la 2.6.1 «Ver» lo dice debajo de la casilla, con dónde se
+  cambia (FIX-008). La opción «Reducir movimiento» de las preferencias de Anki no lo apaga: viene
+  activada de serie y solo afecta a las transiciones de Anki.
 - Al cerrar la ventana, el volumen vuelve al guardado si no acepta.
 - Si un sonido guardado ya no existe, la lista muestra el primero de serie y suena ese.
 - Aceptar guarda y deja los sonidos preparados al momento. El aspecto de los botones cambia la próxima

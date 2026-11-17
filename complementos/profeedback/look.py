@@ -82,25 +82,22 @@ CANVAS: Final[Pair] = Pair("#F7F8FA", "#12161F")  # colores-ok: CANVAS de Noctur
 class BadgeColors(NamedTuple):
     text: Pair
     icon: Pair
-    drawing: Pair
 
 
 # Insignias: las tres pesan igual (texto a 6,8 de día y 8,5 de noche; icono a 3,4 de día).
+# Desde la 2.6.1 el icono es solo el dibujo, sin círculo de fondo.
 BADGES: Final[dict[str, BadgeColors]] = {
     "new_card": BadgeColors(
         Pair("#73428F", "#CDA1E9"),  # colores-ok: texto de «TARJETA NUEVA»
         Pair("#A572C4", "#CDA1E9"),  # colores-ok: icono de «TARJETA NUEVA»
-        Pair("#FFFFFF", "#532F67"),  # colores-ok: dibujo del icono (blanco de día, informe 8.6)
     ),
     "hard_exercise": BadgeColors(
         Pair("#9B322F", "#F9988E"),  # colores-ok: texto de «SE RESISTE»
         Pair("#D3655E", "#F9988E"),  # colores-ok: icono de «SE RESISTE»
-        Pair("#FFFFFF", "#6D2824"),  # colores-ok: dibujo del icono
     ),
     "previous_mistake": BadgeColors(
         Pair("#7A4D07", "#E0A761"),  # colores-ok: texto de «OTRA OPORTUNIDAD»
         Pair("#BA7816", "#E0A761"),  # colores-ok: icono de «OTRA OPORTUNIDAD»
-        Pair("#FFFFFF", "#593704"),  # colores-ok: dibujo del icono
     ),
 }
 
@@ -142,7 +139,7 @@ def _vars(night: bool) -> str:
         parts.append(f"--profeedback-show-{field}:{pair[pick]}")
     for key, badge in BADGES.items():
         name = key.replace("_", "-")
-        for field, pair in zip(("text", "icon", "drawing"), badge):
+        for field, pair in zip(("text", "icon"), badge):
             parts.append(f"--profeedback-{name}-{field}:{pair[pick]}")
     return ";".join(parts)
 

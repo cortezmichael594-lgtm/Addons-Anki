@@ -1,6 +1,6 @@
 # Ficha de diseño: ProFeedback
 
-Versión 2.6.0 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. La 2.6.0 aplica entero el
+Versión 2.6.1 (17 de noviembre de 2026). Léase junto con `00-contexto-comun.md`. La 2.6.0 aplica entero el
 informe «Rediseño de color y forma: ProFeedback 2.5.0», con la opción recomendada en sus tres decisiones.
 
 ## 1. Qué es, en una frase
@@ -47,22 +47,23 @@ colección; guarda sus opciones.
 Un icono redondo y un texto en mayúsculas, centrados encima del contenido de la tarjeta, sin píldora.
 Una sola, por prioridad:
 
-| Insignia | Cuándo | Dibujo del icono | Texto día / noche | Icono día / noche | Dibujo día / noche |
-|---|---|---|---|---|---|
-| «TARJETA NUEVA» | La tarjeta es nueva | Destello de cuatro puntas de 11 px (el de CoreProgress) | #73428F / #CDA1E9 | #A572C4 / #CDA1E9 | #FFFFFF / #532F67 |
-| «SE RESISTE» | Sus tres últimas respuestas fueron «Otra vez» | Pesa, trazo de 2 px | #9B322F / #F9988E | #D3655E / #F9988E | #FFFFFF / #6D2824 |
-| «OTRA OPORTUNIDAD» | Alguna de sus dos últimas respuestas fue «Otra vez» | Flecha en bucle, trazo de 2 px | #7A4D07 / #E0A761 | #BA7816 / #E0A761 | #FFFFFF / #593704 |
+| Insignia | Cuándo | Dibujo del icono | Texto día / noche | Icono día / noche |
+|---|---|---|---|---|
+| «TARJETA NUEVA» | La tarjeta es nueva | Destello de cuatro puntas (el de CoreProgress) | #73428F / #CDA1E9 | #A572C4 / #CDA1E9 |
+| «SE RESISTE» | Sus tres últimas respuestas fueron «Otra vez» | Pesa, trazo de 2 px | #9B322F / #F9988E | #D3655E / #F9988E |
+| «OTRA OPORTUNIDAD» | Alguna de sus dos últimas respuestas fue «Otra vez» | Flecha en bucle, trazo de 2 px | #7A4D07 / #E0A761 | #BA7816 / #E0A761 |
 
-- Icono: círculo de 24 px de su color con el dibujo encima (SVG con currentColor); 8 px de hueco; letra
+- Icono: solo el dibujo, de 24 px, del color de su insignia, con fondo transparente de día y de noche
+  (2.6.1, petición de la persona: no volver a proponer un círculo o fondo detrás); 8 px de hueco; letra
   de 14 px en negrita, mayúsculas, 0,06 em entre letras (2.6.0; antes 0,4 px).
 - Franja fija de 40 px encima de la tarjeta (24 del icono y 16 de aire), haya insignia o no: la tarjeta
   no cambia de sitio entre una y otra.
 - Fundido de 120 ms (solo opacidad). No se puede pulsar ni seleccionar. La misma en pregunta y
   respuesta. Solo cuentan respuestas dadas con un botón.
 - Contraste (2.6.0): las tres pesan igual. Texto 6,80 a 6,84 de día y 8,51 a 8,54 de noche; icono de
-  día 3,40 a 3,42 contra el fondo; dibujo blanco sobre el icono, 3,6. De día, lejos de las banderas 1 y
+  día 3,40 a 3,42 contra el fondo. De día, lejos de las banderas 1 y
   7 de Anki (7,7 y 14,4 de diferencia; antes, 3,8 y 6,0).
-- Contraste alto de Windows: círculo vacío con trazo CanvasText de 1,5; dibujo y texto CanvasText.
+- Contraste alto de Windows: dibujo y texto CanvasText.
 
 ## 6. Botones del repaso
 
@@ -164,7 +165,8 @@ Aspecto                                 Restaurar valores predeterminados
   icono encima de la fila. Nombre propio para el lector de pantalla en cada uno.
 - Enlaces en FG_LINK, subrayados.
 - «Ver» (2.6.0), a la derecha de «Confeti al terminar»: suelta el confeti de mazo dentro de la propia
-  ventana, sin guardar nada.
+  ventana, sin guardar nada. Con «reducir movimiento» del sistema, explica debajo que no habrá confeti y
+  dónde se cambia (FIX-008).
 - 17 controles de ajuste: deslizador, cuatro listas con su «Probar», tres casillas y «Ver».
 
 ## 9. Sonidos y letra propios
